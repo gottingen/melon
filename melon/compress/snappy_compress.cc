@@ -16,47 +16,47 @@
 // under the License.
 
 
-#include "melon/butil/logging.h"
-#include "melon/butil/third_party/snappy/snappy.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/third_party/snappy/snappy.h"
 #include "melon/compress/snappy_compress.h"
 #include "melon/rpc/protocol.h"
 
 
 namespace melon::compress {
 
-    bool SnappyCompress(const google::protobuf::Message &res, butil::IOBuf *buf) {
-        butil::IOBuf serialized_pb;
-        butil::IOBufAsZeroCopyOutputStream wrapper(&serialized_pb);
+    bool SnappyCompress(const google::protobuf::Message &res, mutil::IOBuf *buf) {
+        mutil::IOBuf serialized_pb;
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&serialized_pb);
         if (res.SerializeToZeroCopyStream(&wrapper)) {
-            butil::IOBufAsSnappySource source(serialized_pb);
-            butil::IOBufAsSnappySink sink(*buf);
-            return butil::snappy::Compress(&source, &sink);
+            mutil::IOBufAsSnappySource source(serialized_pb);
+            mutil::IOBufAsSnappySink sink(*buf);
+            return mutil::snappy::Compress(&source, &sink);
         }
         LOG(WARNING) << "Fail to serialize input pb=" << &res;
         return false;
     }
 
-    bool SnappyDecompress(const butil::IOBuf &data, google::protobuf::Message *req) {
-        butil::IOBufAsSnappySource source(data);
-        butil::IOBuf binary_pb;
-        butil::IOBufAsSnappySink sink(binary_pb);
-        if (butil::snappy::Uncompress(&source, &sink)) {
+    bool SnappyDecompress(const mutil::IOBuf &data, google::protobuf::Message *req) {
+        mutil::IOBufAsSnappySource source(data);
+        mutil::IOBuf binary_pb;
+        mutil::IOBufAsSnappySink sink(binary_pb);
+        if (mutil::snappy::Uncompress(&source, &sink)) {
             return ParsePbFromIOBuf(req, binary_pb);
         }
         LOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
         return false;
     }
 
-    bool SnappyCompress(const butil::IOBuf &in, butil::IOBuf *out) {
-        butil::IOBufAsSnappySource source(in);
-        butil::IOBufAsSnappySink sink(*out);
-        return butil::snappy::Compress(&source, &sink);
+    bool SnappyCompress(const mutil::IOBuf &in, mutil::IOBuf *out) {
+        mutil::IOBufAsSnappySource source(in);
+        mutil::IOBufAsSnappySink sink(*out);
+        return mutil::snappy::Compress(&source, &sink);
     }
 
-    bool SnappyDecompress(const butil::IOBuf &in, butil::IOBuf *out) {
-        butil::IOBufAsSnappySource source(in);
-        butil::IOBufAsSnappySink sink(*out);
-        return butil::snappy::Uncompress(&source, &sink);
+    bool SnappyDecompress(const mutil::IOBuf &in, mutil::IOBuf *out) {
+        mutil::IOBufAsSnappySource source(in);
+        mutil::IOBufAsSnappySink sink(*out);
+        return mutil::snappy::Uncompress(&source, &sink);
     }
 
 } // namespace melon::compress

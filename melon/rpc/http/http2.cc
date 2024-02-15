@@ -16,7 +16,7 @@
 // under the License.
 
 #include <limits>
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/http/hpack.h"
 #include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/http/http2.h"

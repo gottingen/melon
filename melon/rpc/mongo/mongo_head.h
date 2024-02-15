@@ -18,7 +18,7 @@
 #ifndef MELON_RPC_MONGO_MONGO_HEAD_H_
 #define MELON_RPC_MONGO_MONGO_HEAD_H_
 
-#include "melon/butil/sys_byteorder.h"
+#include "melon/utility/sys_byteorder.h"
 
 namespace melon {
 
@@ -71,10 +71,10 @@ namespace melon {
 
         void make_host_endian() {
             if (!ARCH_CPU_LITTLE_ENDIAN) {
-                message_length = butil::ByteSwap((uint32_t) message_length);
-                request_id = butil::ByteSwap((uint32_t) request_id);
-                response_to = butil::ByteSwap((uint32_t) response_to);
-                op_code = butil::ByteSwap((uint32_t) op_code);
+                message_length = mutil::ByteSwap((uint32_t) message_length);
+                request_id = mutil::ByteSwap((uint32_t) request_id);
+                response_to = mutil::ByteSwap((uint32_t) response_to);
+                op_code = mutil::ByteSwap((uint32_t) op_code);
             }
         }
     };

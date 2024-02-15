@@ -17,9 +17,9 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/butil/atomicops.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/time.h"
+#include "melon/utility/atomicops.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/time.h"
 #include "melon/rpc/server.h"
 #include "melon/var/variable.h"
 #include "test.pb.h"
@@ -29,7 +29,7 @@
 DEFINE_int32(port, 8002, "TCP Port of this server");
 DEFINE_bool(use_rdma, true, "Use RDMA or not");
 
-butil::atomic<uint64_t> g_last_time(0);
+mutil::atomic<uint64_t> g_last_time(0);
 
 namespace test {
 class PerfTestServiceImpl : public PerfTestService {
@@ -42,10 +42,10 @@ public:
               PerfTestResponse* response,
               google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
-        uint64_t last = g_last_time.load(butil::memory_order_relaxed);
-        uint64_t now = butil::monotonic_time_us();
+        uint64_t last = g_last_time.load(mutil::memory_order_relaxed);
+        uint64_t now = mutil::monotonic_time_us();
         if (now > last && now - last > 100000) {
-            if (g_last_time.exchange(now, butil::memory_order_relaxed) == last) {
+            if (g_last_time.exchange(now, mutil::memory_order_relaxed) == last) {
                 response->set_cpu_usage(melon::var::Variable::describe_exposed("process_cpu_usage"));
             } else {
                 response->set_cpu_usage("");
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         LOG(ERROR) << "Fail to add service";
         return -1;
     }
-    g_last_time.store(0, butil::memory_order_relaxed);
+    g_last_time.store(0, mutil::memory_order_relaxed);
 
     melon::ServerOptions options;
     options.use_rdma = FLAGS_use_rdma;

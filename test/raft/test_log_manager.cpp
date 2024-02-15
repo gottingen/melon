@@ -1,15 +1,13 @@
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2015/11/24 16:30:49
 
 #include <gtest/gtest.h>
 
-#include <melon/butil/memory/scoped_ptr.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/macros.h>
+#include <melon/utility/memory/scoped_ptr.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/macros.h>
 
-#include <melon/bthread/countdown_event.h>
+#include <melon/fiber/countdown_event.h>
 #include "melon/raft/log_manager.h"
 #include "melon/raft/configuration.h"
 #include "melon/raft/log.h"
@@ -30,7 +28,7 @@ public:
     ~StuckClosure() {}
     void Run() {
         while (_stuck && *_stuck) {
-            bthread_usleep(100);
+            fiber_usleep(100);
         }
         ASSERT_TRUE(status().ok()) << status();
         if (_expected_next_log_index) {
@@ -59,7 +57,7 @@ public:
         _event.wait();
     }
 private:
-    bthread::CountdownEvent _event;
+    fiber::CountdownEvent _event;
 };
 
 TEST_F(LogManagerTest, get_should_be_ok_when_disk_thread_stucks) {
@@ -86,7 +84,7 @@ TEST_F(LogManagerTest, get_should_be_ok_when_disk_thread_stucks) {
         c->_stuck = &stuck;
         c->_expected_next_log_index = &expected_next_log_index;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", i);
+        mutil::string_printf(&buf, "hello_%lu", i);
         entry->data.append(buf);
         entry->AddRef();
         saved_entries[i] = entry;
@@ -99,7 +97,7 @@ TEST_F(LogManagerTest, get_should_be_ok_when_disk_thread_stucks) {
         melon::raft::LogEntry *entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL) << "i=" << i;
         std::string exptected;
-        butil::string_printf(&exptected, "hello_%lu", i);
+        mutil::string_printf(&exptected, "hello_%lu", i);
         ASSERT_EQ(exptected, entry->data.to_string());
         entry->Release();
     }
@@ -134,7 +132,7 @@ TEST_F(LogManagerTest, configuration_changes) {
     for (size_t i = 0; i < N; ++i) {
         std::vector<melon::raft::PeerId> peers;
         for (size_t j = 0; j <= i; ++j) {
-            peers.push_back(melon::raft::PeerId(butil::EndPoint(), j));
+            peers.push_back(melon::raft::PeerId(mutil::EndPoint(), j));
         }
         std::vector<melon::raft::LogEntry*> entries;
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
@@ -189,7 +187,7 @@ TEST_F(LogManagerTest, truncate_suffix_also_revert_configuration) {
     for (size_t i = 0; i < N; ++i) {
         std::vector<melon::raft::PeerId> peers;
         for (size_t j = 0; j <= i; ++j) {
-            peers.push_back(melon::raft::PeerId(butil::EndPoint(), j));
+            peers.push_back(melon::raft::PeerId(mutil::EndPoint(), j));
         }
         std::vector<melon::raft::LogEntry*> entries;
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
@@ -243,7 +241,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", i);
+        mutil::string_printf(&buf, "hello_%lu", i);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 1);
         entries0.push_back(entry);
@@ -263,7 +261,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", i);
+        mutil::string_printf(&buf, "hello_%lu", i);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 1);
         entries1.push_back(entry);
@@ -287,7 +285,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
+        mutil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 2);
         entries2.push_back(entry);
@@ -310,7 +308,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         melon::raft::LogEntry* entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL);
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
+        mutil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
         ASSERT_EQ(buf, entry->data.to_string());
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
         entry->Release();
@@ -328,7 +326,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         melon::raft::LogEntry* entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL);
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
+        mutil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
         ASSERT_EQ(buf, entry->data.to_string());
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
         entry->Release();
@@ -360,7 +358,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", 0lu);
+        mutil::string_printf(&buf, "hello_%lu", 0lu);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 1);
         entries0.push_back(entry);
@@ -390,7 +388,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", i + 1);
+        mutil::string_printf(&buf, "hello_%lu", i + 1);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 2);
         entries1.push_back(entry);
@@ -422,7 +420,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lu", i + 1);
+        mutil::string_printf(&buf, "hello_%lu", i + 1);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 2);
         entries2.push_back(entry);
@@ -443,7 +441,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         ASSERT_TRUE(entry != NULL);
         if (entry->type == melon::raft::ENTRY_TYPE_DATA) {
             std::string buf;
-            butil::string_printf(&buf, "hello_%lu", i + 1);
+            mutil::string_printf(&buf, "hello_%lu", i + 1);
             ASSERT_EQ(buf, entry->data.to_string());
         }
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
@@ -474,7 +472,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         ASSERT_TRUE(entry != NULL);
         if (entry->type == melon::raft::ENTRY_TYPE_DATA) {
             std::string buf;
-            butil::string_printf(&buf, "hello_%lu", i + 1);
+            mutil::string_printf(&buf, "hello_%lu", i + 1);
             ASSERT_EQ(buf, entry->data.to_string());
         }
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
@@ -506,7 +504,7 @@ int on_new_log(void* arg, int /*error_code*/) {
     return 0;
 }
 
-int append_entry(melon::raft::LogManager* lm, butil::StringPiece data, int64_t index, int64_t term = 1) {
+int append_entry(melon::raft::LogManager* lm, mutil::StringPiece data, int64_t index, int64_t term = 1) {
     melon::raft::LogEntry* entry = new melon::raft::LogEntry;
     entry->AddRef();
     entry->type = melon::raft::ENTRY_TYPE_DATA;
@@ -599,7 +597,7 @@ TEST_F(LogManagerTest, check_consistency) {
         opt.log_storage = storage.get();
         opt.configuration_manager = cm.get();
         ASSERT_EQ(0, lm->init(opt));
-        butil::Status st;
+        mutil::Status st;
         st = lm->check_consistency();
         ASSERT_TRUE(st.ok()) << st;
         melon::raft::SnapshotMeta meta;
@@ -627,7 +625,7 @@ TEST_F(LogManagerTest, check_consistency) {
         opt.log_storage = storage.get();
         opt.configuration_manager = cm.get();
         ASSERT_EQ(0, lm->init(opt));
-        butil::Status st;
+        mutil::Status st;
         st = lm->check_consistency();
         LOG(INFO) << "st : " << st;
         ASSERT_FALSE(st.ok()) << st;
@@ -645,7 +643,7 @@ TEST_F(LogManagerTest, truncate_suffix_to_last_snapshot) {
     opt.log_storage = storage.get();
     opt.configuration_manager = cm.get();
     ASSERT_EQ(0, lm->init(opt));
-    butil::Status st;
+    mutil::Status st;
     ASSERT_TRUE(st.ok()) << st;
     melon::raft::SnapshotMeta meta;
     meta.set_last_included_index(1000);

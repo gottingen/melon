@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Zheng,Pengfei(zhengpengfei@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #include "melon/raft/remote_file_copier.h"
 
 #include <gflags/gflags.h>
-#include <melon/butil/strings/string_piece.h>
-#include <melon/butil/strings/string_number_conversions.h>
-#include <melon/butil/files/file_path.h>
-#include <melon/butil/file_util.h>
-#include <melon/bthread/bthread.h>
+#include <melon/utility/strings/string_piece.h>
+#include <melon/utility/strings/string_number_conversions.h>
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/file_util.h>
+#include <melon/fiber/fiber.h>
 #include <melon/rpc/controller.h>
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot.h"
@@ -51,16 +48,16 @@ namespace melon::raft {
                                SnapshotThrottle *throttle) {
         // Parse uri format: remote://ip:port/reader_id
         static const size_t prefix_size = strlen("remote://");
-        butil::StringPiece uri_str(uri);
+        mutil::StringPiece uri_str(uri);
         if (!uri_str.starts_with("remote://")) {
             LOG(ERROR) << "Invalid uri=" << uri;
             return -1;
         }
         uri_str.remove_prefix(prefix_size);
         size_t slash_pos = uri_str.find('/');
-        butil::StringPiece ip_and_port = uri_str.substr(0, slash_pos);
+        mutil::StringPiece ip_and_port = uri_str.substr(0, slash_pos);
         uri_str.remove_prefix(slash_pos + 1);
-        if (!butil::StringToInt64(uri_str, &_reader_id)) {
+        if (!mutil::StringToInt64(uri_str, &_reader_id)) {
             LOG(ERROR) << "Invalid reader_id_format=" << uri_str
                        << " in " << uri;
             return -1;
@@ -77,7 +74,7 @@ namespace melon::raft {
     }
 
     int RemoteFileCopier::read_piece_of_file(
-            butil::IOBuf *buf,
+            mutil::IOBuf *buf,
             const std::string &source,
             off_t offset,
             size_t max_count,
@@ -115,7 +112,7 @@ namespace melon::raft {
     }
 
     int RemoteFileCopier::copy_to_iobuf(const std::string &source,
-                                        butil::IOBuf *dest_buf,
+                                        mutil::IOBuf *dest_buf,
                                         const CopyOptions *options) {
         scoped_refptr<Session> session = start_to_copy_to_iobuf(
                 source, dest_buf, options);
@@ -131,12 +128,12 @@ namespace melon::raft {
             const std::string &source,
             const std::string &dest_path,
             const CopyOptions *options) {
-        butil::File::Error e;
+        mutil::File::Error e;
         FileAdaptor *file = _fs->open(dest_path, O_TRUNC | O_WRONLY | O_CREAT | O_CLOEXEC, NULL, &e);
 
         if (!file) {
             LOG(ERROR) << "Fail to open " << dest_path
-                       << ", " << butil::File::ErrorToString(e);
+                       << ", " << mutil::File::ErrorToString(e);
             return NULL;
         }
 
@@ -160,7 +157,7 @@ namespace melon::raft {
     scoped_refptr<RemoteFileCopier::Session>
     RemoteFileCopier::start_to_copy_to_iobuf(
             const std::string &source,
-            butil::IOBuf *dest_buf,
+            mutil::IOBuf *dest_buf,
             const CopyOptions *options) {
         dest_buf->clear();
         scoped_refptr<Session> session(new Session());
@@ -208,7 +205,7 @@ namespace melon::raft {
         // throttle
         size_t new_max_count = max_count;
         if (_throttle && FLAGS_raft_enable_throttle_when_install_snapshot) {
-            _throttle_token_acquire_time_us = butil::cpuwide_time_us();
+            _throttle_token_acquire_time_us = mutil::cpuwide_time_us();
             new_max_count = _throttle->throttled_by_throughput(max_count);
             if (new_max_count == 0) {
                 // Reset count to make next rpc retry the previous one
@@ -217,9 +214,9 @@ namespace melon::raft {
                 AddRef();
                 int64_t retry_interval_ms_when_throttled =
                         _throttle->get_retry_interval_ms();
-                if (bthread_timer_add(
+                if (fiber_timer_add(
                         &_timer,
-                        butil::milliseconds_from_now(retry_interval_ms_when_throttled),
+                        mutil::milliseconds_from_now(retry_interval_ms_when_throttled),
                         on_timer, this) != 0) {
                     lck.unlock();
                     LOG(ERROR) << "Fail to add timer";
@@ -268,13 +265,13 @@ namespace melon::raft {
                 if (FLAGS_raft_enable_throttle_when_install_snapshot) {
                     _throttle->return_unused_throughput(
                             request_count, 0,
-                            butil::cpuwide_time_us() - _throttle_token_acquire_time_us);
+                            mutil::cpuwide_time_us() - _throttle_token_acquire_time_us);
                 }
             }
             AddRef();
-            if (bthread_timer_add(
+            if (fiber_timer_add(
                     &_timer,
-                    butil::milliseconds_from_now(retry_interval_ms),
+                    mutil::milliseconds_from_now(retry_interval_ms),
                     on_timer, this) != 0) {
                 lck.unlock();
                 LOG(ERROR) << "Fail to add timer";
@@ -286,7 +283,7 @@ namespace melon::raft {
             _request.count() > (int64_t) _cntl.response_attachment().size()) {
             _throttle->return_unused_throughput(
                     _request.count(), _cntl.response_attachment().size(),
-                    butil::cpuwide_time_us() - _throttle_token_acquire_time_us);
+                    mutil::cpuwide_time_us() - _throttle_token_acquire_time_us);
         }
         _retry_times = 0;
         // Reset count to |real_read_size| to make next rpc get the right offset
@@ -297,7 +294,7 @@ namespace melon::raft {
         if (_file) {
             FileSegData data(_cntl.response_attachment());
             uint64_t seg_offset = 0;
-            butil::IOBuf seg_data;
+            mutil::IOBuf seg_data;
             while (0 != data.next(&seg_offset, &seg_data)) {
                 ssize_t nwritten = _file->write(seg_data, seg_offset);
                 if (static_cast<size_t>(nwritten) != seg_data.size()) {
@@ -310,7 +307,7 @@ namespace melon::raft {
         } else {
             FileSegData data(_cntl.response_attachment());
             uint64_t seg_offset = 0;
-            butil::IOBuf seg_data;
+            mutil::IOBuf seg_data;
             while (0 != data.next(&seg_offset, &seg_data)) {
                 CHECK_GE((size_t) seg_offset, _buf->length());
                 _buf->resize(seg_offset);
@@ -333,10 +330,10 @@ namespace melon::raft {
     }
 
     void RemoteFileCopier::Session::on_timer(void *arg) {
-        bthread_t tid;
-        if (bthread_start_background(
+        fiber_t tid;
+        if (fiber_start_background(
                 &tid, NULL, send_next_rpc_on_timedout, arg) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             send_next_rpc_on_timedout(arg);
         }
     }
@@ -361,7 +358,7 @@ namespace melon::raft {
             return;
         }
         melon::StartCancel(_rpc_call);
-        if (bthread_timer_del(_timer) == 0) {
+        if (fiber_timer_del(_timer) == 0) {
             // Release reference of the timer task
             Release();
         }

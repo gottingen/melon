@@ -23,13 +23,13 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>             // ServiceDescriptor
 #include "melon/idl_options.pb.h"                         // option(idl_support)
-#include "melon/bthread/unstable.h"                       // bthread_keytable_pool_init
-#include "melon/butil/macros.h"                            // ARRAY_SIZE
-#include "melon/butil/fd_guard.h"                          // fd_guard
-#include "melon/butil/logging.h"                           // CHECK
-#include "melon/butil/time.h"
-#include "melon/butil/class_name.h"
-#include "melon/butil/string_printf.h"
+#include "melon/fiber/unstable.h"                       // fiber_keytable_pool_init
+#include "melon/utility/macros.h"                            // ARRAY_SIZE
+#include "melon/utility/fd_guard.h"                          // fd_guard
+#include "melon/utility/logging.h"                           // CHECK
+#include "melon/utility/time.h"
+#include "melon/utility/class_name.h"
+#include "melon/utility/string_printf.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/compress.h"
 #include "melon/rpc/policy/nova_pbrpc_protocol.h"
@@ -57,7 +57,7 @@
 #include "melon/builtin/rpcz_service.h"         // RpczService
 #include "melon/builtin/dir_service.h"          // DirService
 #include "melon/builtin/pprof_service.h"        // PProfService
-#include "melon/builtin/bthreads_service.h"     // BthreadsService
+#include "melon/builtin/fibers_service.h"     // FibersService
 #include "melon/builtin/ids_service.h"          // IdsService
 #include "melon/builtin/sockets_service.h"      // SocketsService
 #include "melon/builtin/hotspots_service.h"     // HotspotsService
@@ -83,14 +83,14 @@ inline std::ostream& operator<<(std::ostream& os, const timeval& tm) {
 }
 
 extern "C" {
-void* bthread_get_assigned_data();
+void* fiber_get_assigned_data();
 }
 
 DECLARE_int32(task_group_ntags);
 
 namespace melon {
 
-BAIDU_CASSERT(sizeof(int32_t) == sizeof(butil::subtle::Atomic32),
+MELON_CASSERT(sizeof(int32_t) == sizeof(mutil::subtle::Atomic32),
               Atomic32_must_be_int32);
 
 extern const char* const g_server_info_prefix = "rpc_server";
@@ -105,7 +105,7 @@ const char* status_str(Server::Status s) {
     return "UNKNOWN_STATUS";
 }
 
-butil::static_atomic<int> g_running_server_count = BUTIL_STATIC_ATOMIC_INIT(0);
+mutil::static_atomic<int> g_running_server_count = MUTIL_STATIC_ATOMIC_INIT(0);
 
 // Following services may have security issues and are disabled by default.
 DEFINE_bool(enable_dir_service, false, "Enable /dir");
@@ -135,9 +135,9 @@ ServerOptions::ServerOptions()
     , reserved_session_local_data(0)
     , thread_local_data_factory(NULL)
     , reserved_thread_local_data(0)
-    , bthread_init_fn(NULL)
-    , bthread_init_args(NULL)
-    , bthread_init_count(0)
+    , fiber_init_fn(NULL)
+    , fiber_init_args(NULL)
+    , fiber_init_count(0)
     , internal_port(-1)
     , has_builtin_services(true)
     , force_ssl(false)
@@ -146,7 +146,7 @@ ServerOptions::ServerOptions()
     , health_reporter(NULL)
     , rtmp_service(NULL)
     , redis_service(NULL)
-    , bthread_tag(BTHREAD_TAG_DEFAULT) {
+    , fiber_tag(FIBER_TAG_DEFAULT) {
     if (s_ncore > 0) {
         num_threads = s_ncore + 1;
     }
@@ -177,7 +177,7 @@ Server::MethodProperty::MethodProperty()
 }
 
 static timeval GetUptime(void* arg/*start_time*/) {
-    return butil::microseconds_to_timeval(butil::cpuwide_time_us() - (intptr_t)arg);
+    return mutil::microseconds_to_timeval(mutil::cpuwide_time_us() - (intptr_t)arg);
 }
 
 static void PrintStartTime(std::ostream& os, void* arg) {
@@ -277,19 +277,19 @@ static melon::var::Vector<unsigned, 2> GetSessionLocalDataCount(void* arg) {
 }
 
 static int cast_no_barrier_int(void* arg) {
-    return butil::subtle::NoBarrier_Load(static_cast<int*>(arg));
+    return mutil::subtle::NoBarrier_Load(static_cast<int*>(arg));
 }
 
 std::string Server::ServerPrefix() const {
     if(_options.server_info_name.empty()) {
-        return butil::string_printf("%s_%d", g_server_info_prefix, listen_address().port);
+        return mutil::string_printf("%s_%d", g_server_info_prefix, listen_address().port);
     } else {
         return std::string(g_server_info_prefix) + "_" + _options.server_info_name;
     }
 }
 
 void* Server::UpdateDerivedVars(void* arg) {
-    const int64_t start_us = butil::cpuwide_time_us();
+    const int64_t start_us = mutil::cpuwide_time_us();
 
     Server* server = static_cast<Server*>(arg);
     const std::string prefix = server->ServerPrefix();
@@ -340,10 +340,10 @@ void* Server::UpdateDerivedVars(void* arg) {
     }
 
 
-    int64_t last_time = butil::gettimeofday_us();
+    int64_t last_time = mutil::gettimeofday_us();
     int consecutive_nosleep = 0;
     while (1) {
-        const int64_t sleep_us = 1000000L + last_time - butil::gettimeofday_us();
+        const int64_t sleep_us = 1000000L + last_time - mutil::gettimeofday_us();
         if (sleep_us < 1000L) {
             if (++consecutive_nosleep >= 2) {
                 consecutive_nosleep = 0;
@@ -351,12 +351,12 @@ void* Server::UpdateDerivedVars(void* arg) {
             }
         } else {
             consecutive_nosleep = 0;
-            if (bthread_usleep(sleep_us) < 0) {
+            if (fiber_usleep(sleep_us) < 0) {
                 PLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
                 return NULL;
             }
         }
-        last_time = butil::gettimeofday_us();
+        last_time = mutil::gettimeofday_us();
 
         // Update stats of accepted sockets.
         if (server->_am) {
@@ -365,7 +365,7 @@ void* Server::UpdateDerivedVars(void* arg) {
         if (server->_internal_am) {
             server->_internal_am->ListConnections(&internal_conns);
         }
-        const int64_t now_ms = butil::cpuwide_time_ms();
+        const int64_t now_ms = mutil::cpuwide_time_ms();
         for (size_t i = 0; i < conns.size(); ++i) {
             SocketUniquePtr ptr;
             if (Socket::Address(conns[i], &ptr) == 0) {
@@ -403,13 +403,13 @@ Server::Server(ProfilerLinker)
     , _tab_info_list(NULL)
     , _global_restful_map(NULL)
     , _last_start_time(0)
-    , _derivative_thread(INVALID_BTHREAD)
+    , _derivative_thread(INVALID_FIBER)
     , _keytable_pool(NULL)
     , _eps_bvar(&_nerror_bvar)
     , _concurrency(0)
     , _concurrency_bvar(cast_no_barrier_int, &_concurrency)
     ,_has_progressive_read_method(false) {
-    BAIDU_CASSERT(offsetof(Server, _concurrency) % 64 == 0,
+    MELON_CASSERT(offsetof(Server, _concurrency) % 64 == 0,
                   Server_concurrency_must_be_aligned_by_cacheline);
 }
 
@@ -538,8 +538,8 @@ int Server::AddBuiltinServices() {
         LOG(ERROR) << "Fail to add DirService";
         return -1;
     }
-    if (AddBuiltinService(new (std::nothrow) BthreadsService)) {
-        LOG(ERROR) << "Fail to add BthreadsService";
+    if (AddBuiltinService(new (std::nothrow) FibersService)) {
+        LOG(ERROR) << "Fail to add FibersService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) IdsService)) {
@@ -574,7 +574,7 @@ bool is_http_protocol(const char* name) {
 
 Acceptor* Server::BuildAcceptor() {
     std::set<std::string> whitelist;
-    for (butil::StringSplitter sp(_options.enabled_protocols.c_str(), ' ');
+    for (mutil::StringSplitter sp(_options.enabled_protocols.c_str(), ' ');
          sp; ++sp) {
         std::string protocol(sp.field(), sp.length());
         whitelist.insert(protocol);
@@ -665,8 +665,8 @@ int Server::InitALPNOptions(const ServerSSLOptions* options) {
 
     std::string raw_protocol;
     const std::string& alpns = options->alpns;
-    for (butil::StringSplitter split(alpns.data(), ','); split; ++split) {
-        butil::StringPiece alpn(split.field(), split.length());
+    for (mutil::StringSplitter split(alpns.data(), ','); split; ++split) {
+        mutil::StringPiece alpn(split.field(), split.length());
         alpn.trim_spaces();
 
         // Check protocol valid(exist and server support)
@@ -689,21 +689,21 @@ static void DestroyServerTLS(void* data, const void* void_factory) {
     static_cast<const DataFactory*>(void_factory)->DestroyData(data);
 }
 
-struct BthreadInitArgs {
-    bool (*bthread_init_fn)(void* args); // default: NULL (do nothing)
-    void* bthread_init_args;             // default: NULL
+struct FiberInitArgs {
+    bool (*fiber_init_fn)(void* args); // default: NULL (do nothing)
+    void* fiber_init_args;             // default: NULL
     bool result;
     bool done;
     bool stop;
-    bthread_t th;
+    fiber_t th;
 };
 
-static void* BthreadInitEntry(void* void_args) {
-    BthreadInitArgs* args = (BthreadInitArgs*)void_args;
-    args->result = args->bthread_init_fn(args->bthread_init_args);
+static void* FiberInitEntry(void* void_args) {
+    FiberInitArgs* args = (FiberInitArgs*)void_args;
+    args->result = args->fiber_init_fn(args->fiber_init_args);
     args->done = true;
     while (!args->stop) {
-        bthread_usleep(1000);
+        fiber_usleep(1000);
     }
     return NULL;
 }
@@ -771,7 +771,7 @@ static bool OptionsAvailableOverRdma(const ServerOptions* opt) {
 
 static AdaptiveMaxConcurrency g_default_max_concurrency_of_method(0);
 
-int Server::StartInternal(const butil::EndPoint& endpoint,
+int Server::StartInternal(const mutil::EndPoint& endpoint,
                           const PortRange& port_range,
                           const ServerOptions *opt) {
     std::unique_ptr<Server, RevertServerStatus> revert_server(this);
@@ -864,8 +864,8 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
 
     // Init _keytable_pool always. If the server was stopped before, the pool
     // should be destroyed in Join().
-    _keytable_pool = new bthread_keytable_pool_t;
-    if (bthread_keytable_pool_init(_keytable_pool) != 0) {
+    _keytable_pool = new fiber_keytable_pool_t;
+    if (fiber_keytable_pool_init(_keytable_pool) != 0) {
         LOG(ERROR) << "Fail to init _keytable_pool";
         delete _keytable_pool;
         _keytable_pool = NULL;
@@ -874,13 +874,13 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
 
     if (_options.thread_local_data_factory) {
         _tl_options.thread_local_data_factory = _options.thread_local_data_factory;
-        if (bthread_key_create2(&_tl_options.tls_key, DestroyServerTLS,
+        if (fiber_key_create2(&_tl_options.tls_key, DestroyServerTLS,
                                 _options.thread_local_data_factory) != 0) {
             LOG(ERROR) << "Fail to create thread-local key";
             return -1;
         }
         if (_options.reserved_thread_local_data) {
-            bthread_keytable_pool_reserve(_keytable_pool,
+            fiber_keytable_pool_reserve(_keytable_pool,
                                           _options.reserved_thread_local_data,
                                           _tl_options.tls_key,
                                           CreateServerTLS,
@@ -890,39 +890,39 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
         _tl_options = ThreadLocalOptions();
     }
 
-    if (_options.bthread_init_count != 0 &&
-        _options.bthread_init_fn != NULL) {
-        // Create some special bthreads to call the init functions. The
-        // bthreads will not quit until all bthreads finish the init function.
-        BthreadInitArgs* init_args
-            = new BthreadInitArgs[_options.bthread_init_count];
+    if (_options.fiber_init_count != 0 &&
+        _options.fiber_init_fn != NULL) {
+        // Create some special fibers to call the init functions. The
+        // fibers will not quit until all fibers finish the init function.
+        FiberInitArgs* init_args
+            = new FiberInitArgs[_options.fiber_init_count];
         size_t ncreated = 0;
-        for (size_t i = 0; i < _options.bthread_init_count; ++i, ++ncreated) {
-            init_args[i].bthread_init_fn = _options.bthread_init_fn;
-            init_args[i].bthread_init_args = _options.bthread_init_args;
+        for (size_t i = 0; i < _options.fiber_init_count; ++i, ++ncreated) {
+            init_args[i].fiber_init_fn = _options.fiber_init_fn;
+            init_args[i].fiber_init_args = _options.fiber_init_args;
             init_args[i].result = false;
             init_args[i].done = false;
             init_args[i].stop = false;
-            bthread_attr_t tmp = BTHREAD_ATTR_NORMAL;
-            tmp.tag = _options.bthread_tag;
+            fiber_attr_t tmp = FIBER_ATTR_NORMAL;
+            tmp.tag = _options.fiber_tag;
             tmp.keytable_pool = _keytable_pool;
-            if (bthread_start_background(
-                    &init_args[i].th, &tmp, BthreadInitEntry, &init_args[i]) != 0) {
+            if (fiber_start_background(
+                    &init_args[i].th, &tmp, FiberInitEntry, &init_args[i]) != 0) {
                 break;
             }
         }
-        // Wait until all created bthreads finish the init function.
+        // Wait until all created fibers finish the init function.
         for (size_t i = 0; i < ncreated; ++i) {
             while (!init_args[i].done) {
-                bthread_usleep(1000);
+                fiber_usleep(1000);
             }
         }
-        // Stop and join created bthreads.
+        // Stop and join created fibers.
         for (size_t i = 0; i < ncreated; ++i) {
             init_args[i].stop = true;
         }
         for (size_t i = 0; i < ncreated; ++i) {
-            bthread_join(init_args[i].th, NULL);
+            fiber_join(init_args[i].th, NULL);
         }
         size_t num_failed_result = 0;
         for (size_t i = 0; i < ncreated; ++i) {
@@ -931,13 +931,13 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
             }
         }
         delete [] init_args;
-        if (ncreated != _options.bthread_init_count) {
+        if (ncreated != _options.fiber_init_count) {
             LOG(ERROR) << "Fail to create "
-                       << _options.bthread_init_count - ncreated << " bthreads";
+                       << _options.fiber_init_count - ncreated << " fibers";
             return -1;
         }
         if (num_failed_result != 0) {
-            LOG(ERROR) << num_failed_result << " bthread_init_fn failed";
+            LOG(ERROR) << num_failed_result << " fiber_init_fn failed";
             return -1;
         }
     }
@@ -1005,10 +1005,10 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
         if (FLAGS_usercode_in_pthread) {
             _options.num_threads += FLAGS_usercode_backup_threads;
         }
-        if (_options.num_threads < BTHREAD_MIN_CONCURRENCY) {
-            _options.num_threads = BTHREAD_MIN_CONCURRENCY;
+        if (_options.num_threads < FIBER_MIN_CONCURRENCY) {
+            _options.num_threads = FIBER_MIN_CONCURRENCY;
         }
-        bthread_setconcurrency(_options.num_threads);
+        fiber_setconcurrency(_options.num_threads);
     }
 
     for (MethodMap::iterator it = _method_map.begin();
@@ -1035,7 +1035,7 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
                    << port_range.max_port << ']';
         return -1;
     }
-    if (butil::is_endpoint_extended(endpoint) &&
+    if (mutil::is_endpoint_extended(endpoint) &&
             (port_range.min_port != endpoint.port || port_range.max_port != endpoint.port)) {
         LOG(ERROR) << "Only IPv4 address supports port range feature";
         return -1;
@@ -1043,7 +1043,7 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
     _listen_addr = endpoint;
     for (int port = port_range.min_port; port <= port_range.max_port; ++port) {
         _listen_addr.port = port;
-        butil::fd_guard sockfd(tcp_listen(_listen_addr));
+        mutil::fd_guard sockfd(tcp_listen(_listen_addr));
         if (sockfd < 0) {
             if (port != port_range.max_port) { // not the last port, try next
                 continue;
@@ -1073,20 +1073,20 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
                 return -1;
             }
             _am->_use_rdma = _options.use_rdma;
-            if (_options.bthread_tag < BTHREAD_TAG_DEFAULT ||
-                _options.bthread_tag >= FLAGS_task_group_ntags) {
-                LOG(ERROR) << "Fail to set tag " << _options.bthread_tag << ", tag range is ["
-                           << BTHREAD_TAG_DEFAULT << ":" << FLAGS_task_group_ntags << ")";
+            if (_options.fiber_tag < FIBER_TAG_DEFAULT ||
+                _options.fiber_tag >= FLAGS_task_group_ntags) {
+                LOG(ERROR) << "Fail to set tag " << _options.fiber_tag << ", tag range is ["
+                           << FIBER_TAG_DEFAULT << ":" << FLAGS_task_group_ntags << ")";
                 return -1;
             }
-            _am->_bthread_tag = _options.bthread_tag;
+            _am->_fiber_tag = _options.fiber_tag;
         }
         // Set `_status' to RUNNING before accepting connections
         // to prevent requests being rejected as ELOGOFF
         _status = RUNNING;
         time(&_last_start_time);
         GenerateVersionIfNeeded();
-        g_running_server_count.fetch_add(1, butil::memory_order_relaxed);
+        g_running_server_count.fetch_add(1, mutil::memory_order_relaxed);
 
         // Pass ownership of `sockfd' to `_am'
         if (_am->StartAccept(sockfd, _options.idle_timeout_sec,
@@ -1110,14 +1110,14 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
                 " against the purpose of \"being internal\".";
             return -1;
         }
-        if (butil::is_endpoint_extended(endpoint)) {
+        if (mutil::is_endpoint_extended(endpoint)) {
             LOG(ERROR) << "internal_port is available in IPv4 address only";
             return -1;
         }
 
-        butil::EndPoint internal_point = _listen_addr;
+        mutil::EndPoint internal_point = _listen_addr;
         internal_point.port = _options.internal_port;
-        butil::fd_guard sockfd(tcp_listen(internal_point));
+        mutil::fd_guard sockfd(tcp_listen(internal_point));
         if (sockfd < 0) {
             LOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
             return -1;
@@ -1142,17 +1142,17 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
     PutPidFileIfNeeded();
 
     // Launch _derivative_thread.
-    CHECK_EQ(INVALID_BTHREAD, _derivative_thread);
-    bthread_attr_t tmp = BTHREAD_ATTR_NORMAL;
-    tmp.tag = _options.bthread_tag;
-    if (bthread_start_background(&_derivative_thread, &tmp,
+    CHECK_EQ(INVALID_FIBER, _derivative_thread);
+    fiber_attr_t tmp = FIBER_ATTR_NORMAL;
+    tmp.tag = _options.fiber_tag;
+    if (fiber_start_background(&_derivative_thread, &tmp,
                                  UpdateDerivedVars, this) != 0) {
         LOG(ERROR) << "Fail to create _derivative_thread";
         return -1;
     }
 
     // Print tips to server launcher.
-    if (butil::is_endpoint_extended(_listen_addr)) {
+    if (mutil::is_endpoint_extended(_listen_addr)) {
         const char* builtin_msg = _options.has_builtin_services ? " with builtin service" : "";
         LOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
                   << builtin_msg << '.';
@@ -1169,26 +1169,26 @@ int Server::StartInternal(const butil::EndPoint& endpoint,
         LOG(INFO) << server_info.str() << '.';
 
         if (_options.has_builtin_services) {
-            LOG(INFO) << "Check out http://" << butil::my_hostname() << ':'
+            LOG(INFO) << "Check out http://" << mutil::my_hostname() << ':'
                     << http_port << " in web browser.";
         } else {
             LOG(WARNING) << "Builtin services are disabled according to "
                 "ServerOptions.has_builtin_services";
         }
         // For trackme reporting
-        SetTrackMeAddress(butil::EndPoint(butil::my_ip(), http_port));
+        SetTrackMeAddress(mutil::EndPoint(mutil::my_ip(), http_port));
     }
     revert_server.release();
     return 0;
 }
 
-int Server::Start(const butil::EndPoint& endpoint, const ServerOptions* opt) {
+int Server::Start(const mutil::EndPoint& endpoint, const ServerOptions* opt) {
     return StartInternal(
         endpoint, PortRange(endpoint.port, endpoint.port), opt);
 }
 
 int Server::Start(const char* ip_port_str, const ServerOptions* opt) {
-    butil::EndPoint point;
+    mutil::EndPoint point;
     if (str2endpoint(ip_port_str, &point) != 0 &&
         hostname2endpoint(ip_port_str, &point) != 0) {
         LOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
@@ -1202,22 +1202,22 @@ int Server::Start(int port, const ServerOptions* opt) {
         LOG(ERROR) << "Invalid port=" << port;
         return -1;
     }
-    return Start(butil::EndPoint(butil::IP_ANY, port), opt);
+    return Start(mutil::EndPoint(mutil::IP_ANY, port), opt);
 }
 
 int Server::Start(const char* ip_str, PortRange port_range,
                   const ServerOptions *opt) {
-    butil::ip_t ip;
-    if (butil::str2ip(ip_str, &ip) != 0 &&
-        butil::hostname2ip(ip_str, &ip) != 0) {
+    mutil::ip_t ip;
+    if (mutil::str2ip(ip_str, &ip) != 0 &&
+        mutil::hostname2ip(ip_str, &ip) != 0) {
         LOG(ERROR) << "Invalid address=`" << ip_str << '\'';
         return -1;
     }
-    return StartInternal(butil::EndPoint(ip, 0), port_range, opt);
+    return StartInternal(mutil::EndPoint(ip, 0), port_range, opt);
 }
 
 int Server::Start(PortRange port_range, const ServerOptions* opt) {
-    return StartInternal(butil::EndPoint(butil::IP_ANY, 0), port_range, opt);
+    return StartInternal(mutil::EndPoint(mutil::IP_ANY, 0), port_range, opt);
 }
 
 int Server::Stop(int timeout_ms) {
@@ -1259,32 +1259,32 @@ int Server::Join() {
     if (_keytable_pool) {
         // Destroy _keytable_pool to delete keytables inside. This has to be
         // done here (before leaving Join) because it's legal for users to
-        // delete bthread keys after Join which makes related objects
+        // delete fiber keys after Join which makes related objects
         // in KeyTables undeletable anymore and leaked.
-        CHECK_EQ(0, bthread_keytable_pool_destroy(_keytable_pool));
+        CHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
         // TODO: Can't delete _keytable_pool which may be accessed by
-        // still-running bthreads (created by the server). The memory is
+        // still-running fibers (created by the server). The memory is
         // leaked but servers are unlikely to be started/stopped frequently,
         // the leak is acceptable in most scenarios.
         _keytable_pool = NULL;
     }
 
     // Delete tls_key as well since we don't need it anymore.
-    if (_tl_options.tls_key != INVALID_BTHREAD_KEY) {
-        CHECK_EQ(0, bthread_key_delete(_tl_options.tls_key));
-        _tl_options.tls_key = INVALID_BTHREAD_KEY;
+    if (_tl_options.tls_key != INVALID_FIBER_KEY) {
+        CHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
+        _tl_options.tls_key = INVALID_FIBER_KEY;
     }
 
     // Have to join _derivative_thread, which may assume that server is running
     // and services in server are not mutated, otherwise data race happens
     // between Add/RemoveService after Join() and the thread.
-    if (_derivative_thread != INVALID_BTHREAD) {
-        bthread_stop(_derivative_thread);
-        bthread_join(_derivative_thread, NULL);
-        _derivative_thread = INVALID_BTHREAD;
+    if (_derivative_thread != INVALID_FIBER) {
+        fiber_stop(_derivative_thread);
+        fiber_join(_derivative_thread, NULL);
+        _derivative_thread = INVALID_FIBER;
     }
 
-    g_running_server_count.fetch_sub(1, butil::memory_order_relaxed);
+    g_running_server_count.fetch_sub(1, mutil::memory_order_relaxed);
     _status = READY;
     return 0;
 }
@@ -1380,7 +1380,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
         }
     }
 
-    butil::StringPiece restful_mappings = svc_opt.restful_mappings;
+    mutil::StringPiece restful_mappings = svc_opt.restful_mappings;
     restful_mappings.trim_spaces();
     if (!restful_mappings.empty()) {
         // Parse the mappings.
@@ -1539,7 +1539,7 @@ int Server::AddService(google::protobuf::Service* service,
 
 int Server::AddService(google::protobuf::Service* service,
                        ServiceOwnership ownership,
-                       const butil::StringPiece& restful_mappings,
+                       const mutil::StringPiece& restful_mappings,
                        bool allow_default_url) {
     ServiceOptions options;
     options.ownership = ownership;
@@ -1580,17 +1580,17 @@ void Server::RemoveMethodsOf(google::protobuf::Service* service) {
             continue;
         }
         if (mp->http_url) {
-            butil::StringSplitter at_sp(mp->http_url->c_str(), '@');
+            mutil::StringSplitter at_sp(mp->http_url->c_str(), '@');
             for (; at_sp; ++at_sp) {
-                butil::StringPiece path(at_sp.field(), at_sp.length());
+                mutil::StringPiece path(at_sp.field(), at_sp.length());
                 path.trim_spaces();
-                butil::StringSplitter slash_sp(
+                mutil::StringSplitter slash_sp(
                     path.data(), path.data() + path.size(), '/');
                 if (slash_sp == NULL) {
                     LOG(ERROR) << "Invalid http_url=" << *mp->http_url;
                     break;
                 }
-                butil::StringPiece v_svc_name(slash_sp.field(), slash_sp.length());
+                mutil::StringPiece v_svc_name(slash_sp.field(), slash_sp.length());
                 const ServiceProperty* vsp = FindServicePropertyByName(v_svc_name);
                 if (vsp == NULL) {
                     if (_global_restful_map) {
@@ -1688,13 +1688,13 @@ void Server::ClearServices() {
 }
 
 google::protobuf::Service* Server::FindServiceByFullName(
-    const butil::StringPiece& full_name) const {
+    const mutil::StringPiece& full_name) const {
     ServiceProperty* ss = _fullname_service_map.seek(full_name);
     return (ss ? ss->service : NULL);
 }
 
 google::protobuf::Service* Server::FindServiceByName(
-    const butil::StringPiece& name) const {
+    const mutil::StringPiece& name) const {
     ServiceProperty* ss = _service_map.seek(name);
     return (ss ? ss->service : NULL);
 }
@@ -1738,28 +1738,28 @@ void Server::GenerateVersionIfNeeded() {
             if (!_version.empty()) {
                 _version.push_back('+');
             }
-            _version.append(butil::class_name_str(*it->second.service));
+            _version.append(mutil::class_name_str(*it->second.service));
         }
     }
     if (_options.nshead_service) {
         if (!_version.empty()) {
             _version.push_back('+');
         }
-        _version.append(butil::class_name_str(*_options.nshead_service));
+        _version.append(mutil::class_name_str(*_options.nshead_service));
     }
 
     if (_options.rtmp_service) {
         if (!_version.empty()) {
             _version.push_back('+');
         }
-        _version.append(butil::class_name_str(*_options.rtmp_service));
+        _version.append(mutil::class_name_str(*_options.rtmp_service));
     }
 
     if (_options.redis_service) {
         if (!_version.empty()) {
             _version.push_back('+');
         }
-        _version.append(butil::class_name_str(*_options.redis_service));
+        _version.append(mutil::class_name_str(*_options.redis_service));
     }
 }
 
@@ -1798,7 +1798,7 @@ void Server::PutPidFileIfNeeded() {
 
 void Server::RunUntilAskedToQuit() {
     while (!IsAskedToQuit()) {
-        bthread_usleep(1000000L);
+        fiber_usleep(1000000L);
     }
     Stop(0/*not used now*/);
     Join();
@@ -1806,19 +1806,19 @@ void Server::RunUntilAskedToQuit() {
 
 void* thread_local_data() {
     const Server::ThreadLocalOptions* tl_options =
-        static_cast<const Server::ThreadLocalOptions*>(bthread_get_assigned_data());
+        static_cast<const Server::ThreadLocalOptions*>(fiber_get_assigned_data());
     if (tl_options == NULL) { // not in server threads.
         return NULL;
     }
-    if (BAIDU_UNLIKELY(tl_options->thread_local_data_factory == NULL)) {
+    if (MELON_UNLIKELY(tl_options->thread_local_data_factory == NULL)) {
         CHECK(false) << "The protocol impl. may not set tls correctly";
         return NULL;
     }
-    void* data = bthread_getspecific(tl_options->tls_key);
+    void* data = fiber_getspecific(tl_options->tls_key);
     if (data == NULL) {
         data = tl_options->thread_local_data_factory->CreateData();
         if (data != NULL) {
-            CHECK_EQ(0, bthread_setspecific(tl_options->tls_key, data));
+            CHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
         }
     }
     return data;
@@ -1860,7 +1860,7 @@ int StartDummyServerAt(int port, ProfilerLinker) {
         MELON_SCOPED_LOCK(g_dummy_server_mutex);
         if (g_dummy_server == NULL) {
             Server* dummy_server = new Server;
-            dummy_server->set_version(butil::string_printf(
+            dummy_server->set_version(mutil::string_printf(
                         "DummyServerOf(%s)", GetProgramName()));
             ServerOptions options;
             options.num_threads = 0;
@@ -1885,13 +1885,13 @@ bool IsDummyServerRunning() {
 }
 
 const Server::MethodProperty*
-Server::FindMethodPropertyByFullName(const butil::StringPiece&fullname) const  {
+Server::FindMethodPropertyByFullName(const mutil::StringPiece&fullname) const  {
     return _method_map.seek(fullname);
 }
 
 const Server::MethodProperty*
-Server::FindMethodPropertyByFullName(const butil::StringPiece& service_name/*full*/,
-                                     const butil::StringPiece& method_name) const {
+Server::FindMethodPropertyByFullName(const mutil::StringPiece& service_name/*full*/,
+                                     const mutil::StringPiece& method_name) const {
     const size_t fullname_len = service_name.size() + 1 + method_name.size();
     if (fullname_len <= 256) {
         // Avoid allocation in most cases.
@@ -1899,7 +1899,7 @@ Server::FindMethodPropertyByFullName(const butil::StringPiece& service_name/*ful
         memcpy(buf, service_name.data(), service_name.size());
         buf[service_name.size()] = '.';
         memcpy(buf + service_name.size() + 1, method_name.data(), method_name.size());
-        return FindMethodPropertyByFullName(butil::StringPiece(buf, fullname_len));
+        return FindMethodPropertyByFullName(mutil::StringPiece(buf, fullname_len));
     } else {
         std::string full_method_name;
         full_method_name.reserve(fullname_len);
@@ -1911,7 +1911,7 @@ Server::FindMethodPropertyByFullName(const butil::StringPiece& service_name/*ful
 }
 
 const Server::MethodProperty*
-Server::FindMethodPropertyByNameAndIndex(const butil::StringPiece& service_name,
+Server::FindMethodPropertyByNameAndIndex(const mutil::StringPiece& service_name,
                                          int method_index) const {
     const Server::ServiceProperty* sp = FindServicePropertyByName(service_name);
     if (NULL == sp) {
@@ -1926,12 +1926,12 @@ Server::FindMethodPropertyByNameAndIndex(const butil::StringPiece& service_name,
 }
 
 const Server::ServiceProperty*
-Server::FindServicePropertyByFullName(const butil::StringPiece& fullname) const {
+Server::FindServicePropertyByFullName(const mutil::StringPiece& fullname) const {
     return _fullname_service_map.seek(fullname);
 }
 
 const Server::ServiceProperty*
-Server::FindServicePropertyByName(const butil::StringPiece& name) const {
+Server::FindServicePropertyByName(const mutil::StringPiece& name) const {
     return _service_map.seek(name);
 }
 
@@ -2180,7 +2180,7 @@ int Server::MaxConcurrencyOf(const MethodProperty* mp) const {
     return mp->max_concurrency;
 }
 
-AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const butil::StringPiece& full_method_name) {
+AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const mutil::StringPiece& full_method_name) {
     MethodProperty* mp = _method_map.seek(full_method_name);
     if (mp == NULL) {
         LOG(ERROR) << "Fail to find method=" << full_method_name;
@@ -2190,12 +2190,12 @@ AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const butil::StringPiece& full_
     return MaxConcurrencyOf(mp);
 }
 
-int Server::MaxConcurrencyOf(const butil::StringPiece& full_method_name) const {
+int Server::MaxConcurrencyOf(const mutil::StringPiece& full_method_name) const {
     return MaxConcurrencyOf(_method_map.seek(full_method_name));
 }
 
-AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const butil::StringPiece& full_service_name,
-                              const butil::StringPiece& method_name) {
+AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const mutil::StringPiece& full_service_name,
+                              const mutil::StringPiece& method_name) {
     MethodProperty* mp = const_cast<MethodProperty*>(
         FindMethodPropertyByFullName(full_service_name, method_name));
     if (mp == NULL) {
@@ -2207,19 +2207,19 @@ AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const butil::StringPiece& full_
     return MaxConcurrencyOf(mp);
 }
 
-int Server::MaxConcurrencyOf(const butil::StringPiece& full_service_name,
-                             const butil::StringPiece& method_name) const {
+int Server::MaxConcurrencyOf(const mutil::StringPiece& full_service_name,
+                             const mutil::StringPiece& method_name) const {
     return MaxConcurrencyOf(FindMethodPropertyByFullName(
                                 full_service_name, method_name));
 }
 
 AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(google::protobuf::Service* service,
-                              const butil::StringPiece& method_name) {
+                              const mutil::StringPiece& method_name) {
     return MaxConcurrencyOf(service->GetDescriptor()->full_name(), method_name);
 }
 
 int Server::MaxConcurrencyOf(google::protobuf::Service* service,
-                             const butil::StringPiece& method_name) const {
+                             const mutil::StringPiece& method_name) const {
     return MaxConcurrencyOf(service->GetDescriptor()->full_name(), method_name);
 }
 
@@ -2253,7 +2253,7 @@ int Server::SSLSwitchCTXByHostname(struct ssl_st* ssl,
         return strict_sni ? SSL_TLSEXT_ERR_ALERT_FATAL : SSL_TLSEXT_ERR_NOACK;
     }
 
-    butil::DoublyBufferedData<CertMaps>::ScopedPtr s;
+    mutil::DoublyBufferedData<CertMaps>::ScopedPtr s;
     if (server->_reload_cert_maps.Read(&s) != 0) {
         return SSL_TLSEXT_ERR_ALERT_FATAL;
     }

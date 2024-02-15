@@ -24,8 +24,8 @@
 #include "echo.pb.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/server.h"
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/endpoint.h"
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/endpoint.h"
 
 DEFINE_string(listen_addr, "0.0.0.0:8011", "Server listen address.");
 
@@ -62,7 +62,7 @@ public:
         auto&& ssl_options = server_options.mutable_ssl_options();
         ssl_options->default_cert.certificate = "cert1.crt";
         ssl_options->default_cert.private_key = "cert1.key";
-        ssl_options->alpns = "http, h2, baidu_std";
+        ssl_options->alpns = "http, h2, melon_std";
 
         EXPECT_EQ(0, _server.AddService(&_echo_server_impl,
                                         melon::SERVER_DOESNT_OWN_SERVICE));
@@ -88,11 +88,11 @@ public:
                 reinterpret_cast<const unsigned char*>(raw_alpn.data()), raw_alpn.size());
     
         // TCP connect.
-        butil::EndPoint endpoint;
-        butil::str2endpoint(FLAGS_listen_addr.data(), &endpoint);
+        mutil::EndPoint endpoint;
+        mutil::str2endpoint(FLAGS_listen_addr.data(), &endpoint);
 
-        int cli_fd = butil::tcp_connect(endpoint, nullptr);
-        butil::fd_guard guard(cli_fd);
+        int cli_fd = mutil::tcp_connect(endpoint, nullptr);
+        mutil::fd_guard guard(cli_fd);
         EXPECT_NE(0, cli_fd);
 
         // SSL handshake.
@@ -113,13 +113,13 @@ private:
 };
 
 TEST_F(ALPNTest, Server) {
-    // Server alpn support h2 http baidu_std, test the following case:
+    // Server alpn support h2 http melon_std, test the following case:
     // 1. Client provides 1 protocol which is in the list supported by the server.
     // 2. Server select protocol according to priority.
     // 3. Server does not support the protocol provided by the client.
 
-    EXPECT_EQ("baidu_std", ALPNTest::HandshakeWithServer({"baidu_std"}));
-    EXPECT_EQ("h2", ALPNTest::HandshakeWithServer({"baidu_std", "h2"}));
+    EXPECT_EQ("melon_std", ALPNTest::HandshakeWithServer({"melon_std"}));
+    EXPECT_EQ("h2", ALPNTest::HandshakeWithServer({"melon_std", "h2"}));
     EXPECT_EQ("", ALPNTest::HandshakeWithServer({"nshead"}));
 }
 

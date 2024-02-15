@@ -20,22 +20,22 @@
 #define MELON_COMPRESS_SNAPPY_COMPRESS_H_
 
 #include <google/protobuf/message.h>          // Message
-#include "melon/butil/iobuf.h"                       // IOBuf
+#include "melon/utility/iobuf.h"                       // IOBuf
 
 
 namespace melon::compress {
 
     // Compress serialized `msg' into `buf'.
-    bool SnappyCompress(const google::protobuf::Message &msg, butil::IOBuf *buf);
+    bool SnappyCompress(const google::protobuf::Message &msg, mutil::IOBuf *buf);
 
     // Parse `msg' from decompressed `buf'
-    bool SnappyDecompress(const butil::IOBuf &data, google::protobuf::Message *msg);
+    bool SnappyDecompress(const mutil::IOBuf &data, google::protobuf::Message *msg);
 
     // Put compressed `in' into `out'.
-    bool SnappyCompress(const butil::IOBuf &in, butil::IOBuf *out);
+    bool SnappyCompress(const mutil::IOBuf &in, mutil::IOBuf *out);
 
     // Put decompressed `in' into `out'.
-    bool SnappyDecompress(const butil::IOBuf &in, butil::IOBuf *out);
+    bool SnappyDecompress(const mutil::IOBuf &in, mutil::IOBuf *out);
 
 } // namespace melon::compress
 

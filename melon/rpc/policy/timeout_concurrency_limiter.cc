@@ -91,15 +91,15 @@ void TimeoutConcurrencyLimiter::OnResponded(int error_code,
         return;
     }
 
-    const int64_t now_time_us = butil::gettimeofday_us();
+    const int64_t now_time_us = mutil::gettimeofday_us();
     int64_t last_sampling_time_us =
-        _last_sampling_time_us.load(butil::memory_order_relaxed);
+        _last_sampling_time_us.load(mutil::memory_order_relaxed);
 
     if (last_sampling_time_us == 0 ||
         now_time_us - last_sampling_time_us >=
             FLAGS_timeout_cl_sampling_interval_ms * 1000) {
         bool sample_this_call = _last_sampling_time_us.compare_exchange_strong(
-            last_sampling_time_us, now_time_us, butil::memory_order_relaxed);
+            last_sampling_time_us, now_time_us, mutil::memory_order_relaxed);
         if (sample_this_call) {
             bool sample_window_submitted =
                 AddSample(error_code, latency_us, now_time_us);
@@ -119,7 +119,7 @@ int TimeoutConcurrencyLimiter::MaxConcurrency() {
 
 bool TimeoutConcurrencyLimiter::AddSample(int error_code, int64_t latency_us,
                                           int64_t sampling_time_us) {
-    std::unique_lock<butil::Mutex> lock_guard(_sw_mutex);
+    std::unique_lock<mutil::Mutex> lock_guard(_sw_mutex);
     if (_sw.start_time_us == 0) {
         _sw.start_time_us = sampling_time_us;
     }

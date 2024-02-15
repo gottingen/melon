@@ -4,10 +4,10 @@
 
 #include <vector>
 
-#include "melon/butil/scoped_generic.h"
+#include "melon/utility/scoped_generic.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -150,4 +150,4 @@ TEST(ScopedGenericTest, NoCompile) {
 }
 #endif
 
-}  // namespace butil
+}  // namespace mutil

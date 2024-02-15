@@ -18,10 +18,10 @@
 
 #include <algorithm>
 
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/lb/weighted_round_robin_load_balancer.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/strings/string_number_conversions.h"
 
 namespace {
 
@@ -77,7 +77,7 @@ namespace melon::lb {
             bg.server_list.reserve(128);
         }
         uint32_t weight = 0;
-        if (!butil::StringToUint(id.tag, &weight) || weight <= 0) {
+        if (!mutil::StringToUint(id.tag, &weight) || weight <= 0) {
             if (FLAGS_default_weight_of_wlb > 0) {
                 LOG(WARNING) << "Invalid weight is set: " << id.tag
                              << ". Now, 'weight' has been set to 'FLAGS_default_weight_of_wlb' by default.";
@@ -156,7 +156,7 @@ namespace melon::lb {
     }
 
     int WeightedRoundRobinLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-        butil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             return ENOMEM;
         }
@@ -166,7 +166,7 @@ namespace melon::lb {
         TLS &tls = s.tls();
         if (tls.IsNeededCalculateNewStride(s->weight_sum, s->server_list.size())) {
             if (tls.stride == 0) {
-                tls.position = butil::fast_rand_less_than(s->server_list.size());
+                tls.position = mutil::fast_rand_less_than(s->server_list.size());
             }
             tls.stride = GetStride(s->weight_sum, s->server_list.size());
         }
@@ -247,7 +247,7 @@ namespace melon::lb {
     }
 
     LoadBalancer *WeightedRoundRobinLoadBalancer::New(
-            const butil::StringPiece &) const {
+            const mutil::StringPiece &) const {
         return new(std::nothrow) WeightedRoundRobinLoadBalancer;
     }
 
@@ -262,7 +262,7 @@ namespace melon::lb {
             return;
         }
         os << "WeightedRoundRobin{";
-        butil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             os << "fail to read _db_servers";
         } else {

@@ -17,9 +17,9 @@
 
 #include <algorithm>
 #include <gtest/gtest.h>
-#include "melon/butil/find_cstr.h"
-#include "melon/butil/time.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/find_cstr.h"
+#include "melon/utility/time.h"
+#include "melon/utility/logging.h"
 
 namespace {
 class FindCstrTest : public ::testing::Test{
@@ -43,7 +43,7 @@ TEST_F(FindCstrTest, sanity) {
         // nothing.
     }
     t1["hello"] = 0xdeadbeef;
-    std::map<std::string, int>::iterator it = butil::find_cstr(t1, "hello");
+    std::map<std::string, int>::iterator it = mutil::find_cstr(t1, "hello");
     ASSERT_TRUE(it != t1.end());
     ASSERT_EQ("hello", it->first);
     ASSERT_EQ(0xdeadbeef, (unsigned int)it->second);
@@ -77,10 +77,10 @@ TEST_F(FindCstrTest, perf) {
     }
     std::random_shuffle(all_keys.begin(), all_keys.end());
     int sum = 0;
-    butil::Timer tm;
+    mutil::Timer tm;
     tm.start();
     for (size_t i = 0; i < all_keys.size(); ++i) {
-        sum += butil::find_cstr(t1, all_keys[i])->second;
+        sum += mutil::find_cstr(t1, all_keys[i])->second;
     }
     tm.stop();
     int64_t elp1 = tm.n_elapsed();

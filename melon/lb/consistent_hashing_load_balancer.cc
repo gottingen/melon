@@ -19,9 +19,9 @@
 #include <algorithm>                                           // std::set_union
 #include <array>
 #include <gflags/gflags.h>
-#include "melon/butil/containers/flat_map.h"
-#include "melon/butil/errno.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/containers/flat_map.h"
+#include "melon/utility/errno.h"
+#include "melon/utility/strings/string_number_conversions.h"
 #include "melon/rpc/socket.h"
 #include "melon/lb/consistent_hashing_load_balancer.h"
 #include "melon/rpc/policy/hasher.h"
@@ -178,7 +178,7 @@ namespace melon::lb {
             bg = fg;
             return 0;
         }
-        butil::FlatSet<ServerId> id_set;
+        mutil::FlatSet<ServerId> id_set;
         bool use_set = true;
         if (id_set.init(servers.size() * 2) == 0) {
             for (size_t i = 0; i < servers.size(); ++i) {
@@ -276,7 +276,7 @@ namespace melon::lb {
         return n;
     }
 
-    LoadBalancer *ConsistentHashingLoadBalancer::New(const butil::StringPiece &params) const {
+    LoadBalancer *ConsistentHashingLoadBalancer::New(const mutil::StringPiece &params) const {
         ConsistentHashingLoadBalancer *lb =
                 new(std::nothrow) ConsistentHashingLoadBalancer(_type);
         if (lb && !lb->SetParameters(params)) {
@@ -300,7 +300,7 @@ namespace melon::lb {
             LOG(ERROR) << "request_code must be 32-bit currently";
             return EINVAL;
         }
-        butil::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
+        mutil::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
         if (_db_hash_ring.Read(&s) != 0) {
             return ENOMEM;
         }
@@ -336,14 +336,14 @@ namespace melon::lb {
         os << "ConsistentHashingLoadBalancer {\n"
            << "  hash function: " << GetReplicaPolicy(_type)->name() << '\n'
            << "  replica per host: " << _num_replicas << '\n';
-        std::map<butil::EndPoint, double> load_map;
+        std::map<mutil::EndPoint, double> load_map;
         GetLoads(&load_map);
         os << "  number of hosts: " << load_map.size() << '\n';
         os << "  load of hosts: {\n";
         double expected_load_per_server = 1.0 / load_map.size();
         double load_sum = 0;
         double load_sqr_sum = 0;
-        for (std::map<butil::EndPoint, double>::iterator
+        for (std::map<mutil::EndPoint, double>::iterator
                      it = load_map.begin(); it != load_map.end(); ++it) {
             os << "    " << it->first << ": " << it->second << '\n';
             double normalized_load = it->second / expected_load_per_server;
@@ -358,11 +358,11 @@ namespace melon::lb {
     }
 
     void ConsistentHashingLoadBalancer::GetLoads(
-            std::map<butil::EndPoint, double> *load_map) {
+            std::map<mutil::EndPoint, double> *load_map) {
         load_map->clear();
-        std::map<butil::EndPoint, uint32_t> count_map;
+        std::map<mutil::EndPoint, uint32_t> count_map;
         do {
-            butil::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
+            mutil::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
             if (_db_hash_ring.Read(&s) != 0) {
                 break;
             }
@@ -376,21 +376,21 @@ namespace melon::lb {
                         (*s.get())[i].hash - (*s.get())[i - 1].hash;
             }
         } while (0);
-        for (std::map<butil::EndPoint, uint32_t>::iterator
+        for (std::map<mutil::EndPoint, uint32_t>::iterator
                      it = count_map.begin(); it != count_map.end(); ++it) {
             (*load_map)[it->first] = (double) it->second / UINT_MAX;
         }
     }
 
-    bool ConsistentHashingLoadBalancer::SetParameters(const butil::StringPiece &params) {
-        for (butil::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
+    bool ConsistentHashingLoadBalancer::SetParameters(const mutil::StringPiece &params) {
+        for (mutil::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
              sp; ++sp) {
             if (sp.value().empty()) {
                 LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
                 return false;
             }
             if (sp.key() == "replicas") {
-                if (!butil::StringToSizeT(sp.value(), &_num_replicas)) {
+                if (!mutil::StringToSizeT(sp.value(), &_num_replicas)) {
                     return false;
                 }
                 continue;

@@ -4,14 +4,14 @@
 
 // Tests of CancellationFlag class.
 
-#include "melon/butil/synchronization/cancellation_flag.h"
+#include "melon/utility/synchronization/cancellation_flag.h"
 
-#include "melon/butil/logging.h"
-#include "melon/butil/synchronization/spin_wait.h"
-#include "melon/butil/time/time.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/synchronization/spin_wait.h"
+#include "melon/utility/time/time.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -33,4 +33,4 @@ TEST(CancellationFlagTest, DoubleSetTest) {
 
 }  // namespace
 
-}  // namespace butil
+}  // namespace mutil

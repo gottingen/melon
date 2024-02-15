@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_SNAPSHOT_EXECUTOR_H_
 #define  MELON_RAFT_SNAPSHOT_EXECUTOR_H_
@@ -44,7 +43,7 @@ namespace melon::raft {
         NodeImpl *node;
         LogManager *log_manager;
         int64_t init_term;
-        butil::EndPoint addr;
+        mutil::EndPoint addr;
         bool filter_before_copy_remote;
         bool usercode_in_pthread;
         bool copy_file = true;
@@ -53,7 +52,7 @@ namespace melon::raft {
     };
 
 // Executing Snapshot related stuff
-    class BAIDU_CACHELINE_ALIGNMENT SnapshotExecutor {
+    class MELON_CACHELINE_ALIGNMENT SnapshotExecutor {
         DISALLOW_COPY_AND_ASSIGN(SnapshotExecutor);
 
     public:
@@ -107,7 +106,7 @@ namespace melon::raft {
             //    the lastest _loading_snapshot
             // _downloading_snapshot is NULL when then downloading was successfully
             // interrupted or installing has finished
-            return _downloading_snapshot.load(butil::memory_order_acquire/*1*/);
+            return _downloading_snapshot.load(mutil::memory_order_acquire/*1*/);
         }
 
         // Return the backing snapshot storage
@@ -129,9 +128,9 @@ namespace melon::raft {
 
         friend class InstallSnapshotDone;
 
-        void on_snapshot_load_done(const butil::Status &st);
+        void on_snapshot_load_done(const mutil::Status &st);
 
-        int on_snapshot_save_done(const butil::Status &st,
+        int on_snapshot_save_done(const mutil::Status &st,
                                   const SnapshotMeta &meta,
                                   SnapshotWriter *writer);
 
@@ -171,9 +170,9 @@ namespace melon::raft {
         //   ownership belongs with the downloding thread
         // - After we push the load task to FSMCaller, the ownership belongs to the
         //   closure which is called after the Snapshot replaces FSM
-        butil::atomic<DownloadingSnapshot *> _downloading_snapshot;
+        mutil::atomic<DownloadingSnapshot *> _downloading_snapshot;
         SnapshotMeta _loading_snapshot_meta;
-        bthread::CountdownEvent _running_jobs;
+        fiber::CountdownEvent _running_jobs;
         scoped_refptr<SnapshotThrottle> _snapshot_throttle;
     };
 

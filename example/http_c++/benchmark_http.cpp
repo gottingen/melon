@@ -18,15 +18,15 @@
 // Benchmark http-server by multiple threads.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
+#include <melon/fiber/fiber.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include <melon/var/var.h>
 
 DEFINE_string(data, "", "POST this data to the http server");
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(url, "0.0.0.0:8010/HttpService/Echo", "url of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
@@ -66,7 +66,7 @@ static void* sender(void* arg) {
             // is a specific sleeping to prevent this thread from spinning too
             // fast. You should continue the business logic in a production 
             // server rather than sleeping.
-            bthread_usleep(100000);
+            fiber_usleep(100000);
         }
     }
     return nullptr;
@@ -90,9 +90,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
@@ -103,9 +103,9 @@ int main(int argc, char* argv[]) {
     } else {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], nullptr, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -124,10 +124,10 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "benchmark_http is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], nullptr);
         } else {
-            bthread_join(bids[i], nullptr);
+            fiber_join(bids[i], nullptr);
         }
     }
 

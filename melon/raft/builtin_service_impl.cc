@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Ge,Jun(gejun@baiud.com)
+
 
 #include "melon/raft/builtin_service_impl.h"
 
@@ -52,7 +51,7 @@ namespace melon::raft {
         } else {
             cntl->http_response().set_content_type("text/plain");
         }
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         if (html) {
             os << "<!DOCTYPE html><html><head>\n"
                << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"

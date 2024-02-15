@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/coroutine.h>
@@ -39,7 +39,7 @@ public:
         melon::ChannelOptions options;
         options.timeout_ms = FLAGS_sleep_us / 1000 * 2 + 100;
         options.max_retry = 0;
-        CHECK(_channel.Init(butil::EndPoint(butil::IP_ANY, FLAGS_port), &options) == 0);
+        CHECK(_channel.Init(mutil::EndPoint(mutil::IP_ANY, FLAGS_port), &options) == 0);
     }
 
     virtual ~EchoServiceImpl() {}
@@ -55,7 +55,7 @@ public:
             Coroutine(EchoAsync(request, response, done), true);
         } else {
             melon::ClosureGuard done_guard(done);
-            bthread_usleep(FLAGS_sleep_us);
+            fiber_usleep(FLAGS_sleep_us);
             response->set_message(request->message());
         }
     }
@@ -108,7 +108,7 @@ private:
 }  // namespace example
 
 int main(int argc, char* argv[]) {
-    bthread_setconcurrency(BTHREAD_MIN_CONCURRENCY);
+    fiber_setconcurrency(FIBER_MIN_CONCURRENCY);
 
     // Parse gflags. We recommend you to use gflags as well.
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // Start the server.
     melon::ServerOptions options;
-    options.num_threads = BTHREAD_MIN_CONCURRENCY;
+    options.num_threads = FIBER_MIN_CONCURRENCY;
     if (server.Start(FLAGS_port, &options) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";
         return -1;

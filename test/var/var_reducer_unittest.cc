@@ -19,10 +19,10 @@
 
 #include "melon/var/reducer.h"
 
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/string_printf.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/string_splitter.h"
 
 #include <gtest/gtest.h>
 
@@ -61,7 +61,7 @@ const size_t OPS_PER_THREAD = 500000;
 
 static void *thread_counter(void *arg) {
     melon::var::Adder<uint64_t> *reducer = (melon::var::Adder<uint64_t> *)arg;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
         (*reducer) << 2;
@@ -71,18 +71,18 @@ static void *thread_counter(void *arg) {
 }
 
 void *add_atomic(void *arg) {
-    butil::atomic<uint64_t> *counter = (butil::atomic<uint64_t> *)arg;
-    butil::Timer timer;
+    mutil::atomic<uint64_t> *counter = (mutil::atomic<uint64_t> *)arg;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD / 100; ++i) {
-        counter->fetch_add(2, butil::memory_order_relaxed);
+        counter->fetch_add(2, mutil::memory_order_relaxed);
     }
     timer.stop();
     return (void *)(timer.n_elapsed());
 }
 
 static long start_perf_test_with_atomic(size_t num_thread) {
-    butil::atomic<uint64_t> counter(0);
+    mutil::atomic<uint64_t> counter(0);
     pthread_t threads[num_thread];
     for (size_t i = 0; i < num_thread; ++i) {
         pthread_create(&threads[i], NULL, &add_atomic, (void *)&counter);
@@ -213,14 +213,14 @@ void ReducerTest_window() {
     const int N = 6000;
     int count = 0;
     int total_count = 0;
-    int64_t last_time = butil::gettimeofday_us();
+    int64_t last_time = mutil::gettimeofday_us();
     for (int i = 1; i <= N; ++i) {
         c1 << 1;
         c2 << N - i;
         c3 << i;
         ++count;
         ++total_count;
-        int64_t now = butil::gettimeofday_us();
+        int64_t now = mutil::gettimeofday_us();
         if (now - last_time >= 1000000L) {
             last_time = now;
             ASSERT_EQ(total_count, c1.get_value());
@@ -282,7 +282,7 @@ struct StringAppenderResult {
 static void* string_appender(void* arg) {
     melon::var::Adder<std::string>* cater = (melon::var::Adder<std::string>*)arg;
     int count = 0;
-    std::string id = butil::string_printf("%lld", (long long)pthread_self());
+    std::string id = mutil::string_printf("%lld", (long long)pthread_self());
     std::string tmp = "a";
     for (count = 0; !count || !g_stop; ++count) {
         *cater << id << ":";
@@ -307,20 +307,20 @@ TEST_F(ReducerTest, non_primitive_mt) {
     }
     usleep(50000);
     g_stop = true;
-    butil::hash_map<pthread_t, int> appended_count;
+    mutil::hash_map<pthread_t, int> appended_count;
     for (size_t i = 0; i < arraysize(th); ++i) {
         StringAppenderResult* res = NULL;
         pthread_join(th[i], (void**)&res);
         appended_count[th[i]] = res->count;
         delete res;
     }
-    butil::hash_map<pthread_t, int> got_count;
+    mutil::hash_map<pthread_t, int> got_count;
     std::string res = cater.get_value();
-    for (butil::StringSplitter sp(res.c_str(), '.'); sp; ++sp) {
+    for (mutil::StringSplitter sp(res.c_str(), '.'); sp; ++sp) {
         char* endptr = NULL;
         ++got_count[(pthread_t)strtoll(sp.field(), &endptr, 10)];
         ASSERT_EQ(27LL, sp.field() + sp.length() - endptr)
-            << butil::StringPiece(sp.field(), sp.length());
+            << mutil::StringPiece(sp.field(), sp.length());
         ASSERT_EQ(0, memcmp(":abcdefghijklmnopqrstuvwxyz", endptr, 27));
     }
     ASSERT_EQ(appended_count.size(), got_count.size());

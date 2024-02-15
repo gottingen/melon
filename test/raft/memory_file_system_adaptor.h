@@ -1,8 +1,6 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2017 Baidu.com, Inc. All Rights Reserved
 
-// Author: ZhengPengFei (zhengpengfei@baidu.com)
-// Date: 2017/06/16 10:35:45
 
 #ifndef  BRAFT_MEMORY_FILE_SYSTEM_ADAPTOR_H
 #define  BRAFT_MEMORY_FILE_SYSTEM_ADAPTOR_H
@@ -38,14 +36,14 @@ private:
 };
 
 struct TreeNode;
-struct TreeNodeImpl : public butil::RefCountedThreadSafe<TreeNodeImpl> {
-    bthread::Mutex mutex;
+struct TreeNodeImpl : public mutil::RefCountedThreadSafe<TreeNodeImpl> {
+    fiber::Mutex mutex;
     bool file;
-    butil::IOBuf content;
+    mutil::IOBuf content;
     std::list<scoped_refptr<TreeNode> > childs;
 };
 
-struct TreeNode : public butil::RefCountedThreadSafe<TreeNode> {
+struct TreeNode : public mutil::RefCountedThreadSafe<TreeNode> {
     std::string name;
     scoped_refptr<TreeNodeImpl> impl;
     TreeNode() {}
@@ -55,10 +53,10 @@ class MemoryFileAdaptor : public melon::raft::FileAdaptor {
 public:
     MemoryFileAdaptor(TreeNodeImpl* node_impl) : _node_impl(node_impl) {}
 
-    ssize_t write(const butil::IOBuf& data, off_t offset) {
-        std::unique_lock<bthread::Mutex> lck(_node_impl->mutex);
+    ssize_t write(const mutil::IOBuf& data, off_t offset) {
+        std::unique_lock<fiber::Mutex> lck(_node_impl->mutex);
         size_t file_size = _node_impl->content.size();
-        butil::IOBuf content = _node_impl->content;
+        mutil::IOBuf content = _node_impl->content;
         _node_impl->content.clear();
 
         size_t prefix_len = std::min(file_size, size_t(offset));
@@ -68,20 +66,20 @@ public:
         _node_impl->content.resize(offset);
         _node_impl->content.append(data);
         if (content.size() > data.size()) {
-            butil::IOBuf tmp_buf;
+            mutil::IOBuf tmp_buf;
             content.cutn(&tmp_buf, data.size());
         }
         _node_impl->content.append(content);
         return data.size();
     }
 
-    ssize_t read(butil::IOPortal* portal, off_t offset, size_t size) {
-        std::unique_lock<bthread::Mutex> lck(_node_impl->mutex);
-        butil::IOBuf content = _node_impl->content;
+    ssize_t read(mutil::IOPortal* portal, off_t offset, size_t size) {
+        std::unique_lock<fiber::Mutex> lck(_node_impl->mutex);
+        mutil::IOBuf content = _node_impl->content;
         if (content.size() <= size_t(offset)) {
             return 0;
         }
-        butil::IOBuf tmp_buf;
+        mutil::IOBuf tmp_buf;
         content.cutn(&tmp_buf, offset);
         ssize_t readn = std::min(content.size(), size);
         content.cutn(portal, readn);
@@ -89,7 +87,7 @@ public:
     }
 
     ssize_t size() {
-        std::unique_lock<bthread::Mutex> lck(_node_impl->mutex);
+        std::unique_lock<fiber::Mutex> lck(_node_impl->mutex);
         return _node_impl->content.size();
     }
 
@@ -110,7 +108,7 @@ class MemoryFileSystemAdaptor : public melon::raft::FileSystemAdaptor {
 public:
     MemoryFileSystemAdaptor() : melon::raft::FileSystemAdaptor() {
         _root = new TreeNode;
-        _root->name = butil::FilePath::kCurrentDirectory;
+        _root->name = mutil::FilePath::kCurrentDirectory;
         _root->impl = new TreeNodeImpl;
         _root->impl->file = false;
     }
@@ -119,19 +117,19 @@ public:
 
     melon::raft::FileAdaptor* open(const std::string& path, int oflag,
                             const ::google::protobuf::Message* file_meta,
-                            butil::File::Error* e) {
+                            mutil::File::Error* e) {
         (void) file_meta;
         if (e) {
-            *e = butil::File::FILE_OK;
+            *e = mutil::File::FILE_OK;
         }
-        std::unique_lock<bthread::Mutex> lck(_mutex);
-        butil::FilePath p(path);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
+        mutil::FilePath p(path);
         scoped_refptr<TreeNode>* node_ptr = find_tree_node(p);
         if (node_ptr) {
             scoped_refptr<TreeNode>& node = *node_ptr;
             if (!node->impl->file) {
                 if (e) {
-                    *e = butil::File::FILE_ERROR_NOT_A_FILE;
+                    *e = mutil::File::FILE_ERROR_NOT_A_FILE;
                 }
                 return NULL;
             }
@@ -142,14 +140,14 @@ public:
         }
         if (!(oflag & O_CREAT)) {
             if (e) {
-                *e = butil::File::FILE_ERROR_NOT_FOUND;
+                *e = mutil::File::FILE_ERROR_NOT_FOUND;
             }
             return NULL;
         }
         scoped_refptr<TreeNode>* parent_node_ptr = find_tree_node(p.DirName());
         if (!parent_node_ptr || (*parent_node_ptr)->impl->file) {
             if (e) {
-                *e = butil::File::FILE_ERROR_NOT_FOUND;
+                *e = mutil::File::FILE_ERROR_NOT_FOUND;
             }
             return NULL;
         }
@@ -162,15 +160,15 @@ public:
     }
 
     bool delete_file(const std::string& path, bool recursive) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
         return unsafe_delete_file(path, recursive);
     }
 
     bool rename(const std::string& old_path, 
                 const std::string& new_path) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
-        butil::FilePath old_p(old_path);
-        butil::FilePath new_p(new_path);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
+        mutil::FilePath old_p(old_path);
+        mutil::FilePath new_p(new_path);
         scoped_refptr<TreeNode>* old_node_ptr = find_tree_node(old_p);
         if (!old_node_ptr) {
             return false;
@@ -208,9 +206,9 @@ public:
     }
 
     bool link(const std::string& old_path, const std::string& new_path) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
-        butil::FilePath old_p(old_path);
-        butil::FilePath new_p(new_path);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
+        mutil::FilePath old_p(old_path);
+        mutil::FilePath new_p(new_path);
         scoped_refptr<TreeNode>* old_node_ptr = find_tree_node(old_p);
         if (!old_node_ptr) {
             return false;
@@ -229,30 +227,30 @@ public:
     }
 
     bool create_directory(const std::string& path, 
-                          butil::File::Error* error,
+                          mutil::File::Error* error,
                           bool create_parent_directories) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
         return unsafe_create_directory(path, error, create_parent_directories);
     }
 
     bool path_exists(const std::string& path) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
-        butil::FilePath p(path);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
+        mutil::FilePath p(path);
         scoped_refptr<TreeNode>* node_ptr = find_tree_node(p);
         return node_ptr != NULL;
     }
 
     bool directory_exists(const std::string& path) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
-        butil::FilePath p(path);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
+        mutil::FilePath p(path);
         scoped_refptr<TreeNode>* node_ptr = find_tree_node(p);
         return node_ptr != NULL && !((*node_ptr)->impl->file);
     }
 
     melon::raft::DirReader* directory_reader(const std::string& path) {
-        std::unique_lock<bthread::Mutex> lck(_mutex);
+        std::unique_lock<fiber::Mutex> lck(_mutex);
         std::vector<std::string> names;
-        butil::FilePath p(path);
+        mutil::FilePath p(path);
         scoped_refptr<TreeNode>* node_ptr = find_tree_node(p);
         if (node_ptr) {
             std::list<scoped_refptr<TreeNode> >& childs = (*node_ptr)->impl->childs;
@@ -266,11 +264,11 @@ public:
 
 private:
 
-    scoped_refptr<TreeNode>* find_tree_node(const butil::FilePath& path) {
-        std::vector<butil::FilePath> subpaths;
+    scoped_refptr<TreeNode>* find_tree_node(const mutil::FilePath& path) {
+        std::vector<mutil::FilePath> subpaths;
         subpaths.push_back(path.BaseName());
         int ignore = 0;
-        for (butil::FilePath sub_path = path.DirName();
+        for (mutil::FilePath sub_path = path.DirName();
                 sub_path.value() != _root->name; sub_path = sub_path.DirName()) {
             if (sub_path.BaseName().value() == "/" || sub_path.BaseName().value() == ".") {
                 continue;
@@ -283,7 +281,7 @@ private:
             }
         }
         scoped_refptr<TreeNode>* node = &_root;
-        std::vector<butil::FilePath>::reverse_iterator i;
+        std::vector<mutil::FilePath>::reverse_iterator i;
         for (i = subpaths.rbegin(); i != subpaths.rend(); ++i) {
             if (i->value() == "/") {
                 continue;
@@ -309,7 +307,7 @@ private:
     }
 
     bool unsafe_delete_file(const std::string& path, bool recursive) {
-        butil::FilePath p(path);
+        mutil::FilePath p(path);
         scoped_refptr<TreeNode>* node_ptr = find_tree_node(p);
         if (!node_ptr) {
             return true;
@@ -343,16 +341,16 @@ private:
     }
 
     bool unsafe_create_directory(const std::string& path, 
-                                 butil::File::Error* error,
+                                 mutil::File::Error* error,
                                  bool create_parent_directories) {
         if (error) {
-            *error = butil::File::FILE_OK;
+            *error = mutil::File::FILE_OK;
         }
-        butil::FilePath p(path);
-        std::vector<butil::FilePath> subpaths;
+        mutil::FilePath p(path);
+        std::vector<mutil::FilePath> subpaths;
         subpaths.push_back(p.BaseName());
         int ignore = 0;
-        for (butil::FilePath sub_path = p.DirName();
+        for (mutil::FilePath sub_path = p.DirName();
                 sub_path.value() != _root->name; sub_path = sub_path.DirName()) {
             if (sub_path.BaseName().value() == "/" || sub_path.BaseName().value() == ".") {
                 continue;
@@ -365,7 +363,7 @@ private:
             }
         }
         scoped_refptr<TreeNode>* node = &_root;
-        std::vector<butil::FilePath>::reverse_iterator i;
+        std::vector<mutil::FilePath>::reverse_iterator i;
         for (i = subpaths.rbegin(); i != subpaths.rend(); ++i) {
             if (i->value() == "/") {
                 continue;
@@ -392,13 +390,13 @@ private:
         if (i == subpaths.rend()) {
             bool ret = !(*node)->impl->file;
             if (!ret && error) {
-                *error = butil::File::FILE_ERROR_EXISTS;
+                *error = mutil::File::FILE_ERROR_EXISTS;
             }
             return ret;
         }
         if (!create_parent_directories && (i + 1) != subpaths.rend()) {
             if (error) {
-                *error = butil::File::FILE_ERROR_NOT_FOUND;
+                *error = mutil::File::FILE_ERROR_NOT_FOUND;
             }
             return false;
         }
@@ -412,7 +410,7 @@ private:
         return true;
     }
 
-    bthread::Mutex _mutex;
+    fiber::Mutex _mutex;
     scoped_refptr<TreeNode> _root;
 };
 

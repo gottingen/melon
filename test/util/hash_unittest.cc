@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/hash.h"
+#include "melon/utility/hash.h"
 
 #include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(HashTest, String) {
   std::string str;
@@ -79,4 +79,4 @@ TEST(HashTest, CString) {
   EXPECT_EQ(2794219650u, Hash(str, strlen("hello world")));
 }
 
-}  // namespace butil
+}  // namespace mutil

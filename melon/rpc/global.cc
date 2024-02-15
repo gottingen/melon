@@ -29,7 +29,7 @@
 #include <fcntl.h>                               // O_RDONLY
 #include <signal.h>
 
-#include "melon/butil/build_config.h"                  // OS_LINUX
+#include "melon/utility/build_config.h"                  // OS_LINUX
 // Naming services
 #include "melon/naming/file_naming_service.h"
 #include "melon/naming/list_naming_service.h"
@@ -56,7 +56,7 @@
 
 // Protocols
 #include "melon/rpc/protocol.h"
-#include "melon/rpc/policy/baidu_rpc_protocol.h"
+#include "melon/rpc/policy/melon_rpc_protocol.h"
 #include "melon/rpc/policy/http_rpc_protocol.h"
 #include "melon/rpc/policy/http2_rpc_protocol.h"
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
@@ -90,12 +90,12 @@
 
 #endif
 
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/files/file_watcher.h"
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/files/file_watcher.h"
 
 extern "C" {
 // defined in gperftools/malloc_extension_c.h
-void BAIDU_WEAK MallocExtension_ReleaseFreeMemory(void);
+void MELON_WEAK MallocExtension_ReleaseFreeMemory(void);
 }
 
 namespace melon {
@@ -151,7 +151,7 @@ namespace melon {
     static GlobalExtensions *g_ext = nullptr;
 
     static long ReadPortOfDummyServer(const char *filename) {
-        butil::fd_guard fd(open(filename, O_RDONLY));
+        mutil::fd_guard fd(open(filename, O_RDONLY));
         if (fd < 0) {
             LOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
             return -1;
@@ -176,28 +176,28 @@ namespace melon {
         return port;
     }
 
-// Expose counters of butil::IOBuf
+// Expose counters of mutil::IOBuf
     static int64_t GetIOBufBlockCount(void *) {
-        return butil::IOBuf::block_count();
+        return mutil::IOBuf::block_count();
     }
 
     static int64_t GetIOBufBlockCountHitTLSThreshold(void *) {
-        return butil::IOBuf::block_count_hit_tls_threshold();
+        return mutil::IOBuf::block_count_hit_tls_threshold();
     }
 
     static int64_t GetIOBufNewBigViewCount(void *) {
-        return butil::IOBuf::new_bigview_count();
+        return mutil::IOBuf::new_bigview_count();
     }
 
     static int64_t GetIOBufBlockMemory(void *) {
-        return butil::IOBuf::block_memory();
+        return mutil::IOBuf::block_memory();
     }
 
 // Defined in server.cpp
-    extern butil::static_atomic<int> g_running_server_count;
+    extern mutil::static_atomic<int> g_running_server_count;
 
     static int GetRunningServerCount(void *) {
-        return g_running_server_count.load(butil::memory_order_relaxed);
+        return g_running_server_count.load(mutil::memory_order_relaxed);
     }
 
 // Update global stuff periodically.
@@ -217,22 +217,22 @@ namespace melon {
         melon::var::PassiveStatus<int> var_running_server_count(
                 "rpc_server_count", GetRunningServerCount, nullptr);
 
-        butil::FileWatcher fw;
+        mutil::FileWatcher fw;
         if (fw.init_from_not_exist(DUMMY_SERVER_PORT_FILE) < 0) {
             LOG(FATAL) << "Fail to init FileWatcher on `" << DUMMY_SERVER_PORT_FILE << "'";
             return nullptr;
         }
 
         std::vector<SocketId> conns;
-        const int64_t start_time_us = butil::gettimeofday_us();
+        const int64_t start_time_us = mutil::gettimeofday_us();
         const int WARN_NOSLEEP_THRESHOLD = 2;
         int64_t last_time_us = start_time_us;
         int consecutive_nosleep = 0;
         int64_t last_return_free_memory_time = start_time_us;
         while (1) {
-            const int64_t sleep_us = 1000000L + last_time_us - butil::gettimeofday_us();
+            const int64_t sleep_us = 1000000L + last_time_us - mutil::gettimeofday_us();
             if (sleep_us > 0) {
-                if (bthread_usleep(sleep_us) < 0) {
+                if (fiber_usleep(sleep_us) < 0) {
                     PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
                     break;
                 }
@@ -243,12 +243,12 @@ namespace melon {
                     LOG(WARNING) << __FUNCTION__ << " is too busy!";
                 }
             }
-            last_time_us = butil::gettimeofday_us();
+            last_time_us = mutil::gettimeofday_us();
 
             TrackMe();
 
             if (!IsDummyServerRunning()
-                && g_running_server_count.load(butil::memory_order_relaxed) == 0
+                && g_running_server_count.load(mutil::memory_order_relaxed) == 0
                 && fw.check_and_consume() > 0) {
                 long port = ReadPortOfDummyServer(DUMMY_SERVER_PORT_FILE);
                 if (port >= 0) {
@@ -257,7 +257,7 @@ namespace melon {
             }
 
             SocketMapList(&conns);
-            const int64_t now_ms = butil::cpuwide_time_ms();
+            const int64_t now_ms = mutil::cpuwide_time_ms();
             for (size_t i = 0; i < conns.size(); ++i) {
                 SocketUniquePtr ptr;
                 if (Socket::Address(conns[i], &ptr) == 0) {
@@ -387,12 +387,12 @@ namespace melon {
         }
 
         // Protocols
-        Protocol baidu_protocol = {ParseRpcMessage,
+        Protocol melon_protocol = {ParseRpcMessage,
                                    SerializeRequestDefault, PackRpcRequest,
                                    ProcessRpcRequest, ProcessRpcResponse,
                                    VerifyRpcRequest, nullptr, nullptr,
-                                   CONNECTION_TYPE_ALL, "baidu_std"};
-        if (RegisterProtocol(PROTOCOL_BAIDU_STD, baidu_protocol) != 0) {
+                                   CONNECTION_TYPE_ALL, "melon_std"};
+        if (RegisterProtocol(PROTOCOL_MELON_STD, melon_protocol) != 0) {
             exit(1);
         }
 
@@ -596,8 +596,8 @@ namespace melon {
         }
 
         // We never join GlobalUpdate, let it quit with the process.
-        bthread_t th;
-        CHECK(bthread_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
+        fiber_t th;
+        CHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
         << "Fail to start GlobalUpdate";
     }
 

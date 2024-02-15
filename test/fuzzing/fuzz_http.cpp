@@ -31,7 +31,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     std::string input(reinterpret_cast<const char*>(data), size);
 
     {
-        butil::IOBuf buf;
+        mutil::IOBuf buf;
         buf.append(input);
         melon::HttpMessage http_message;
         http_message.ParseFromIOBuf(buf);

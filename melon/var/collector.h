@@ -20,10 +20,10 @@
 #ifndef MELON_VAR_COLLECTOR_H_
 #define MELON_VAR_COLLECTOR_H_
 
-#include "melon/butil/containers/linked_list.h"
-#include "melon/butil/fast_rand.h"
-#include "melon/butil/time.h"
-#include "melon/butil/atomicops.h"
+#include "melon/utility/containers/linked_list.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/utility/time.h"
+#include "melon/utility/atomicops.h"
 #include "melon/var/passive_status.h"
 
 namespace melon::var {
@@ -33,14 +33,14 @@ namespace melon::var {
         // [Managed by Collector, don't change!]
         size_t sampling_range;
         bool ever_grabbed;
-        butil::static_atomic<int> count_before_grabbed;
+        mutil::static_atomic<int> count_before_grabbed;
         int64_t first_sample_real_us;
     };
 
     static const size_t COLLECTOR_SAMPLING_BASE = 16384;
 
 #define MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER                          \
-    { ::melon::var::COLLECTOR_SAMPLING_BASE, false, BUTIL_STATIC_ATOMIC_INIT(0), 0 }
+    { ::melon::var::COLLECTOR_SAMPLING_BASE, false, MUTIL_STATIC_ATOMIC_INIT(0), 0 }
 
     class Collected;
 
@@ -56,7 +56,7 @@ namespace melon::var {
     //  1. Implement Collected
     //  2. Create an instance and fill in data.
     //  3. submit() the instance.
-    class Collected : public butil::LinkNode<Collected> {
+    class Collected : public mutil::LinkNode<Collected> {
     public:
         virtual ~Collected() {}
 
@@ -66,20 +66,20 @@ namespace melon::var {
         // interleaving status of threads even in highly contended situations.
         // You should also create the sample using a malloc() impl. that are
         // unlikely to contend, keeping interruptions minimal.
-        // `cpuwide_us' should be got from butil::cpuwide_time_us(). If it's far
+        // `cpuwide_us' should be got from mutil::cpuwide_time_us(). If it's far
         // from the timestamp updated by collecting thread(which basically means
         // the thread is not scheduled by OS in time), this sample is directly
         // destroy()-ed to avoid memory explosion.
         void submit(int64_t cpuwide_us);
 
-        void submit() { submit(butil::cpuwide_time_us()); }
+        void submit() { submit(mutil::cpuwide_time_us()); }
 
         // Implement this method to dump the sample into files and destroy it.
         // This method is called in a separate thread and can be blocked
         // indefinitely long(not recommended). If too many samples wait for
         // this funcion due to previous sample's blocking, they'll be destroy()-ed.
         // If you need to run destruction code upon thread's exit, use
-        // butil::thread_atexit. Dumping thread run this function in batch, each
+        // mutil::thread_atexit. Dumping thread run this function in batch, each
         // batch is counted as one "round", `round_index' is the round that
         // dumping thread is currently at, counting from 1.
         virtual void dump_and_destroy(size_t round_index) = 0;
@@ -116,7 +116,7 @@ namespace melon::var {
         if (speed_limit->ever_grabbed) { // most common case
             const size_t sampling_range = speed_limit->sampling_range;
             // fast_rand is faster than fast_rand_in
-            if ((butil::fast_rand() & (COLLECTOR_SAMPLING_BASE - 1)) >= sampling_range) {
+            if ((mutil::fast_rand() & (COLLECTOR_SAMPLING_BASE - 1)) >= sampling_range) {
                 return 0;
             }
             return sampling_range;

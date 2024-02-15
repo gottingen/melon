@@ -34,7 +34,7 @@ inline OutputStream::Area::Area(const Area& rhs)
     , _addional_area(NULL) {
 
     if (rhs._addional_area) {
-        _addional_area = new std::vector<butil::StringPiece>(*rhs._addional_area);
+        _addional_area = new std::vector<mutil::StringPiece>(*rhs._addional_area);
     }
 }
 
@@ -66,9 +66,9 @@ inline void OutputStream::Area::add(void* data, size_t n) {
         _size2 = n;
     } else {
         if (_addional_area == NULL) {
-            _addional_area = new std::vector<butil::StringPiece>;
+            _addional_area = new std::vector<mutil::StringPiece>;
         }
-        _addional_area->push_back(butil::StringPiece((const char*)data, n));
+        _addional_area->push_back(mutil::StringPiece((const char*)data, n));
     }
 }
 
@@ -83,7 +83,7 @@ inline void OutputStream::Area::assign(const void* data) const {
             return;
         }
         size_t offset = _size1 + _size2;
-        for (std::vector<butil::StringPiece>::const_iterator iter =
+        for (std::vector<mutil::StringPiece>::const_iterator iter =
                 _addional_area->begin(); iter != _addional_area->end(); ++iter) {
             fast_memcpy((void*)iter->data(), (const char*)data + offset, iter->size());
             offset += iter->size();

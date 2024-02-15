@@ -2793,7 +2793,7 @@ sub AddFetchTimeout {
   if (defined($timeout)) {
     if ($fetcher =~ m/\bcurl -s/) {
       $fetcher .= sprintf(" --max-time %d", $timeout);
-    } elsif ($fetcher =~ m/\brpcget\b/) {
+    } elsif ($fetcher =~ m/\melonget\b/) {
       $fetcher .= sprintf(" --deadline=%d", $timeout);
     }
   }

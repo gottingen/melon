@@ -33,12 +33,12 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         const std::string &constraint = cntl->http_request().unresolved_path();
 
         if (constraint.empty()) {
             os << "# Use /sockets/<SocketId>\n"
-               << butil::describe_resources<Socket>() << '\n';
+               << mutil::describe_resources<Socket>() << '\n';
         } else {
             char *endptr = NULL;
             SocketId sid = strtoull(constraint.c_str(), &endptr, 10);

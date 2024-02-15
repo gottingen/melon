@@ -18,8 +18,8 @@
 
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
 #include <gflags/gflags.h>
-#include "melon/butil/status.h"
-#include "melon/butil/strings/string_util.h"          // StringToLowerASCII
+#include "melon/utility/status.h"
+#include "melon/utility/strings/string_util.h"          // StringToLowerASCII
 #include "melon/rpc/redis/redis.h"
 #include "melon/rpc/redis/redis_command.h"
 
@@ -137,11 +137,11 @@ namespace melon {
         }
     }
 
-    bool RedisRequest::AddCommand(const butil::StringPiece &command) {
+    bool RedisRequest::AddCommand(const mutil::StringPiece &command) {
         if (_has_error) {
             return false;
         }
-        const butil::Status st = RedisCommandNoFormat(&_buf, command);
+        const mutil::Status st = RedisCommandNoFormat(&_buf, command);
         if (st.ok()) {
             ++_ncommand;
             return true;
@@ -152,12 +152,12 @@ namespace melon {
         }
     }
 
-    bool RedisRequest::AddCommandByComponents(const butil::StringPiece *components,
+    bool RedisRequest::AddCommandByComponents(const mutil::StringPiece *components,
                                               size_t n) {
         if (_has_error) {
             return false;
         }
-        const butil::Status st = RedisCommandByComponents(&_buf, components, n);
+        const mutil::Status st = RedisCommandByComponents(&_buf, components, n);
         if (st.ok()) {
             ++_ncommand;
             return true;
@@ -174,7 +174,7 @@ namespace melon {
         }
         va_list ap;
         va_start(ap, fmt);
-        const butil::Status st = RedisCommandFormatV(&_buf, fmt, ap);
+        const mutil::Status st = RedisCommandFormatV(&_buf, fmt, ap);
         va_end(ap);
         if (st.ok()) {
             ++_ncommand;
@@ -190,7 +190,7 @@ namespace melon {
         if (_has_error) {
             return false;
         }
-        const butil::Status st = RedisCommandFormatV(&_buf, fmt, ap);
+        const mutil::Status st = RedisCommandFormatV(&_buf, fmt, ap);
         if (st.ok()) {
             ++_ncommand;
             return true;
@@ -201,7 +201,7 @@ namespace melon {
         }
     }
 
-    bool RedisRequest::SerializeTo(butil::IOBuf *buf) const {
+    bool RedisRequest::SerializeTo(mutil::IOBuf *buf) const {
         if (_has_error) {
             LOG(ERROR) << "Reject serialization due to error in AddCommand[V]";
             return false;
@@ -222,8 +222,8 @@ namespace melon {
     }
 
     void RedisRequest::Print(std::ostream &os) const {
-        butil::IOBuf cp = _buf;
-        butil::IOBuf seg;
+        mutil::IOBuf cp = _buf;
+        mutil::IOBuf seg;
         while (cp.cut_until(&seg, "\r\n") == 0) {
             os << seg;
             if (FLAGS_redis_verbose_crlf2space) {
@@ -395,7 +395,7 @@ namespace melon {
 
 // ===================================================================
 
-    ParseError RedisResponse::ConsumePartialIOBuf(butil::IOBuf &buf, int reply_count) {
+    ParseError RedisResponse::ConsumePartialIOBuf(mutil::IOBuf &buf, int reply_count) {
         size_t oldsize = buf.size();
         if (reply_size() == 0) {
             ParseError err = _first_reply.ConsumePartialIOBuf(buf);
@@ -462,7 +462,7 @@ namespace melon {
         return true;
     }
 
-    RedisCommandHandler *RedisService::FindCommandHandler(const butil::StringPiece &name) const {
+    RedisCommandHandler *RedisService::FindCommandHandler(const mutil::StringPiece &name) const {
         auto it = _command_map.find(name.as_string());
         if (it != _command_map.end()) {
             return it->second;

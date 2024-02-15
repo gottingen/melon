@@ -20,10 +20,10 @@
 #define BRPC_PROGRESSIVE_ATTACHMENT_H
 
 #include "melon/rpc/callback.h"
-#include "melon/butil/atomicops.h"
-#include "melon/butil/iobuf.h"
-#include "melon/butil/endpoint.h"       // butil::EndPoint
-#include "melon/bthread/types.h"        // bthread_id_t
+#include "melon/utility/atomicops.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/endpoint.h"       // mutil::EndPoint
+#include "melon/fiber/types.h"        // fiber_session_t
 #include "melon/rpc/socket_id.h"       // SocketUniquePtr
 #include "melon/rpc/shared_object.h"   // SharedObject
 
@@ -36,12 +36,12 @@ public:
     // Write `data' as one HTTP chunk to peer ASAP.
     // Returns 0 on success, -1 otherwise and errno is set.
     // Errnos are same as what Socket.Write may set.
-    int Write(const butil::IOBuf& data);
+    int Write(const mutil::IOBuf& data);
     int Write(const void* data, size_t n);
 
     // Get ip/port of peer/self.
-    butil::EndPoint remote_side() const;
-    butil::EndPoint local_side() const;
+    mutil::EndPoint remote_side() const;
+    mutil::EndPoint local_side() const;
 
     // [Not thread-safe and can only be called once]
     // Run the callback when the underlying connection is broken (thus
@@ -65,11 +65,11 @@ protected:
     
     bool _before_http_1_1;
     bool _pause_from_mark_rpc_as_done;
-    butil::atomic<int> _rpc_state;
-    butil::Mutex _mutex;
+    mutil::atomic<int> _rpc_state;
+    mutil::Mutex _mutex;
     SocketUniquePtr _httpsock;
-    butil::IOBuf _saved_buf;
-    bthread_id_t _notify_id;
+    mutil::IOBuf _saved_buf;
+    fiber_session_t _notify_id;
 
 private:
     static const int RPC_RUNNING;

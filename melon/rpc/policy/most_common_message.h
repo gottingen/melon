@@ -19,7 +19,7 @@
 #ifndef BRPC_POLICY_MOST_COMMON_MESSAGE_H
 #define BRPC_POLICY_MOST_COMMON_MESSAGE_H
 
-#include "melon/butil/object_pool.h"
+#include "melon/utility/object_pool.h"
 #include "melon/rpc/input_messenger.h"
 
 
@@ -30,13 +30,13 @@ namespace policy {
 // Process() to maximize usage of ObjectPool<MostCommonMessage>, otherwise
 // you have to new the messages or use a separate ObjectPool (which is likely
 // to waste more memory)
-struct BAIDU_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
-    butil::IOBuf meta;
-    butil::IOBuf payload;
+struct MELON_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
+    mutil::IOBuf meta;
+    mutil::IOBuf payload;
     PipelinedInfo pi;
 
     inline static MostCommonMessage* Get() {
-        return butil::get_object<MostCommonMessage>();
+        return mutil::get_object<MostCommonMessage>();
     }
 
     // @InputMessageBase
@@ -44,7 +44,7 @@ struct BAIDU_CACHELINE_ALIGNMENT MostCommonMessage : public InputMessageBase {
         meta.clear();
         payload.clear();
         pi.reset();
-        butil::return_object(this);
+        mutil::return_object(this);
     }
 };
 

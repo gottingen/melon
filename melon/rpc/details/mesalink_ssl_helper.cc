@@ -25,9 +25,9 @@
 #include <mesalink/openssl/bio.h>
 #include <mesalink/openssl/evp.h>
 #include <mesalink/openssl/pem.h>
-#include "melon/butil/unique_ptr.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/unique_ptr.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/string_splitter.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/ssl_options.h"
 #include "melon/rpc/details/ssl_helper.h"
@@ -61,10 +61,10 @@ const char* SSLStateToString(SSLState s) {
 
 static int ParseSSLProtocols(const std::string& str_protocol) {
     int protocol_flag = 0;
-    butil::StringSplitter sp(str_protocol.data(),
+    mutil::StringSplitter sp(str_protocol.data(),
                              str_protocol.data() + str_protocol.size(), ',');
     for (; sp; ++sp) {
-        butil::StringPiece protocol(sp.field(), sp.length());
+        mutil::StringPiece protocol(sp.field(), sp.length());
         protocol.trim_spaces();
         if (strncasecmp(protocol.data(), "SSLv3", protocol.size()) == 0
             || strncasecmp(protocol.data(), "TLSv1", protocol.size()) == 0

@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"

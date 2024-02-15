@@ -18,7 +18,7 @@
 // A server sleeping for even-th requests to trigger backup request of client.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -57,7 +57,7 @@ public:
                   << " to " << cntl->local_side() << noflush;
         // Sleep a while for 0th, 2nd, 4th, 6th ... requests to trigger backup request
         // at client-side.
-        bool do_sleep = (_count.fetch_add(1, butil::memory_order_relaxed) % 2 == 0);
+        bool do_sleep = (_count.fetch_add(1, mutil::memory_order_relaxed) % 2 == 0);
         if (do_sleep) {
             LOG(INFO) << ", sleep " << FLAGS_sleep_ms 
                       << " ms to trigger backup request" << noflush;
@@ -68,11 +68,11 @@ public:
         response->set_index(request->index());
 
         if (do_sleep) {
-            bthread_usleep(FLAGS_sleep_ms * 1000);
+            fiber_usleep(FLAGS_sleep_ms * 1000);
         }
     }
 private:
-    butil::atomic<int> _count;
+    mutil::atomic<int> _count;
 };
 }  // namespace example
 

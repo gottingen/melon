@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #include <errno.h>
-#include <melon/butil/time.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/file_util.h>                         // butil::CreateDirectory
+#include <melon/utility/time.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/file_util.h>                         // mutil::CreateDirectory
 #include <gflags/gflags.h>
 #include <melon/rpc/reloadable_flags.h>
 #include "melon/raft/util.h"
@@ -88,7 +86,7 @@ namespace melon::raft {
             if (mss == NULL) {
                 return 0;
             }
-            butil::Status status = mss->delete_meta(v_group_id);
+            mutil::Status status = mss->delete_meta(v_group_id);
             if (!status.ok()) {
                 return -1;
             }
@@ -105,7 +103,7 @@ namespace melon::raft {
 
         typedef std::map<std::string, scoped_refptr<KVBasedMergedMetaStorageImpl> >
                 MetaStorageMap;
-        typedef butil::DoublyBufferedData<MetaStorageMap> DoublyBufferedMetaStorageMap;
+        typedef mutil::DoublyBufferedData<MetaStorageMap> DoublyBufferedMetaStorageMap;
 
         static size_t _add(MetaStorageMap &m, const std::string &path,
                            const scoped_refptr<KVBasedMergedMetaStorageImpl> &mss) {
@@ -134,20 +132,20 @@ namespace melon::raft {
                                            std::string &merged_path,
                                            std::string &single_path) {
         // here uri has removed protocol already, check just for safety
-        butil::StringPiece copied_uri(uri);
+        mutil::StringPiece copied_uri(uri);
         size_t pos = copied_uri.find("://");
-        if (pos != butil::StringPiece::npos) {
+        if (pos != mutil::StringPiece::npos) {
             copied_uri.remove_prefix(pos + 3/* length of '://' */);
         }
 
         pos = copied_uri.find("merged_path=");
-        if (pos == butil::StringPiece::npos) {
+        if (pos == mutil::StringPiece::npos) {
             return -1;
         }
         copied_uri.remove_prefix(pos + 12/* length of 'merged_path=' */);
 
         pos = copied_uri.find("&&single_path=");
-        if (pos == butil::StringPiece::npos) {
+        if (pos == mutil::StringPiece::npos) {
             return -1;
         }
         merged_path = copied_uri.substr(0, pos).as_string();
@@ -195,8 +193,8 @@ namespace melon::raft {
         }
     }
 
-    butil::Status MixedMetaStorage::init() {
-        butil::Status status;
+    mutil::Status MixedMetaStorage::init() {
+        mutil::Status status;
         if (_is_inited) {
             return status;
         }
@@ -232,7 +230,7 @@ namespace melon::raft {
         StableMetaClosure(const int64_t term, const PeerId &votedfor,
                           const VersionedGroupId &vgid, const std::string &path)
                 : _term(term), _votedfor(votedfor), _vgid(vgid), _path(path),
-                  _start_time_us(butil::cpuwide_time_us()) {}
+                  _start_time_us(mutil::cpuwide_time_us()) {}
 
         ~StableMetaClosure() {}
 
@@ -242,7 +240,7 @@ namespace melon::raft {
                            << " term " << _term << " vote for " << _votedfor
                            << ", path: " << _path << ", error: " << status();
             } else {
-                int64_t u_elapsed = butil::cpuwide_time_us() - _start_time_us;
+                int64_t u_elapsed = mutil::cpuwide_time_us() - _start_time_us;
                 g_save_kv_raft_meta << u_elapsed;
                 LOG(INFO) << "Saved merged stable meta, path " << _path
                           << " group " << _vgid
@@ -265,9 +263,9 @@ namespace melon::raft {
         SynchronizedClosure _sync;
     };
 
-    butil::Status MixedMetaStorage::set_term_and_votedfor(const int64_t term,
+    mutil::Status MixedMetaStorage::set_term_and_votedfor(const int64_t term,
                                                           const PeerId &peer_id, const VersionedGroupId &group) {
-        butil::Status status;
+        mutil::Status status;
         if (!_is_inited) {
             LOG(WARNING) << "MixedMetaStorage not init, path: " << _path;
             status.set_error(EINVAL, "MixedMetaStorage of group %s not init, path: %s",
@@ -295,9 +293,9 @@ namespace melon::raft {
 //      case 2: last set_term_and_votedfor succeeded in Single but failed in Merged
 // 2. Merged is newer than Single:
 //      case: downgrade storage from Merged to Mixed, data in Single is stale
-    butil::Status MixedMetaStorage::get_term_and_votedfor(int64_t *term, PeerId *peer_id,
+    mutil::Status MixedMetaStorage::get_term_and_votedfor(int64_t *term, PeerId *peer_id,
                                                           const VersionedGroupId &group) {
-        butil::Status status;
+        mutil::Status status;
         if (!_is_inited) {
             LOG(WARNING) << "MixedMetaStorage not init, path: " << _path;
             status.set_error(EINVAL, "MixedMetaStorage of group %s not init, path: %s",
@@ -398,9 +396,9 @@ namespace melon::raft {
         return new MixedMetaStorage(uri);
     }
 
-    butil::Status MixedMetaStorage::gc_instance(const std::string &uri,
+    mutil::Status MixedMetaStorage::gc_instance(const std::string &uri,
                                                 const VersionedGroupId &vgid) const {
-        butil::Status status;
+        mutil::Status status;
         std::string merged_path;
         std::string single_path;
 
@@ -431,15 +429,15 @@ namespace melon::raft {
     }
 
 // FileBasedSingleMetaStorage
-    butil::Status FileBasedSingleMetaStorage::init() {
-        butil::Status status;
+    mutil::Status FileBasedSingleMetaStorage::init() {
+        mutil::Status status;
         if (_is_inited) {
             return status;
         }
 
-        butil::FilePath dir_path(_path);
-        butil::File::Error e;
-        if (!butil::CreateDirectoryAndGetError(
+        mutil::FilePath dir_path(_path);
+        mutil::File::Error e;
+        if (!mutil::CreateDirectoryAndGetError(
                 dir_path, &e, FLAGS_raft_create_parent_directories)) {
             LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             status.set_error(e, "Fail to create dir when init SingleMetaStorage, "
@@ -460,9 +458,9 @@ namespace melon::raft {
         return status;
     }
 
-    butil::Status FileBasedSingleMetaStorage::set_term_and_votedfor(const int64_t term,
+    mutil::Status FileBasedSingleMetaStorage::set_term_and_votedfor(const int64_t term,
                                                                     const PeerId &peer_id, const VersionedGroupId &) {
-        butil::Status status;
+        mutil::Status status;
         if (!_is_inited) {
             status.set_error(EINVAL, "SingleMetaStorage not init, path: %s",
                              _path.c_str());
@@ -478,9 +476,9 @@ namespace melon::raft {
         return status;
     }
 
-    butil::Status FileBasedSingleMetaStorage::get_term_and_votedfor(int64_t *term,
+    mutil::Status FileBasedSingleMetaStorage::get_term_and_votedfor(int64_t *term,
                                                                     PeerId *peer_id, const VersionedGroupId &group) {
-        butil::Status status;
+        mutil::Status status;
         if (!_is_inited) {
             status.set_error(EINVAL, "SingleMetaStorage not init, path: %s",
                              _path.c_str());
@@ -492,7 +490,7 @@ namespace melon::raft {
     }
 
     int FileBasedSingleMetaStorage::load() {
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
 
         std::string path(_path);
@@ -524,7 +522,7 @@ namespace melon::raft {
     }
 
     int FileBasedSingleMetaStorage::save() {
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
 
         StablePBMeta meta;
@@ -553,9 +551,9 @@ namespace melon::raft {
         return new FileBasedSingleMetaStorage(uri);
     }
 
-    butil::Status FileBasedSingleMetaStorage::gc_instance(const std::string &uri,
+    mutil::Status FileBasedSingleMetaStorage::gc_instance(const std::string &uri,
                                                           const VersionedGroupId &vgid) const {
-        butil::Status status;
+        mutil::Status status;
         if (0 != gc_dir(uri)) {
             LOG(WARNING) << "Group " << vgid << " failed to gc single stable storage"
                                                 ", path: " << uri;
@@ -579,11 +577,11 @@ namespace melon::raft {
         }
     }
 
-    butil::Status KVBasedMergedMetaStorage::init() {
+    mutil::Status KVBasedMergedMetaStorage::init() {
         return _merged_impl->init();
     };
 
-    butil::Status KVBasedMergedMetaStorage::set_term_and_votedfor(const int64_t term,
+    mutil::Status KVBasedMergedMetaStorage::set_term_and_votedfor(const int64_t term,
                                                                   const PeerId &peer_id,
                                                                   const VersionedGroupId &group) {
         StableMetaClosure done(term, peer_id, group, "");
@@ -593,7 +591,7 @@ namespace melon::raft {
         return done.status();
     };
 
-    butil::Status KVBasedMergedMetaStorage::get_term_and_votedfor(int64_t *term,
+    mutil::Status KVBasedMergedMetaStorage::get_term_and_votedfor(int64_t *term,
                                                                   PeerId *peer_id, const VersionedGroupId &group) {
         return _merged_impl->get_term_and_votedfor(term, peer_id, group);
     };
@@ -603,9 +601,9 @@ namespace melon::raft {
         return new KVBasedMergedMetaStorage(uri);
     }
 
-    butil::Status KVBasedMergedMetaStorage::gc_instance(const std::string &uri,
+    mutil::Status KVBasedMergedMetaStorage::gc_instance(const std::string &uri,
                                                         const VersionedGroupId &vgid) const {
-        butil::Status status;
+        mutil::Status status;
         if (0 != global_mss_manager->
                 remove_instance_from_meta_storage(uri, vgid)) {
             LOG(WARNING) << "Group " << vgid << " failed to gc kv, path: " << uri;
@@ -617,23 +615,23 @@ namespace melon::raft {
         return status;
     };
 
-    butil::Status KVBasedMergedMetaStorage::delete_meta(
+    mutil::Status KVBasedMergedMetaStorage::delete_meta(
             const VersionedGroupId &group) {
         return _merged_impl->delete_meta(group);
     };
 
 // KVBasedMergedMetaStorageImpl
-    butil::Status KVBasedMergedMetaStorageImpl::init() {
+    mutil::Status KVBasedMergedMetaStorageImpl::init() {
         std::unique_lock<raft_mutex_t> lck(_mutex);
 
-        butil::Status status;
+        mutil::Status status;
         if (_is_inited) {
             return status;
         }
 
-        butil::FilePath dir_path(_path);
-        butil::File::Error e;
-        if (!butil::CreateDirectoryAndGetError(
+        mutil::FilePath dir_path(_path);
+        mutil::File::Error e;
+        if (!mutil::CreateDirectoryAndGetError(
                 dir_path, &e, FLAGS_raft_create_parent_directories)) {
             lck.unlock();
             LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
@@ -657,10 +655,10 @@ namespace melon::raft {
         }
 
         // start execution_queue
-        bthread::ExecutionQueueOptions execq_opt;
-        execq_opt.bthread_attr = BTHREAD_ATTR_NORMAL;
+        fiber::ExecutionQueueOptions execq_opt;
+        execq_opt.fiber_attr = FIBER_ATTR_NORMAL;
         //execq_opt.max_tasks_size = 256;
-        if (bthread::execution_queue_start(&_queue_id,
+        if (fiber::execution_queue_start(&_queue_id,
                                            &execq_opt,
                                            KVBasedMergedMetaStorageImpl::run,
                                            this) != 0) {
@@ -684,24 +682,24 @@ namespace melon::raft {
         if (!st.ok()) {
             LOG(ERROR) << "Fail to write batch into db, path: " << _path
                        << ", error: " << st.ToString();
-            butil::Status status;
+            mutil::Status status;
             status.set_error(EIO, "MergedMetaStorage failed to write batch"
                                   ", path: %s, error: %s",
                              _path.c_str(), st.ToString().c_str());
             for (size_t i = 0; i < size; ++i) {
                 dones[i]->status() = status;
-                run_closure_in_bthread_nosig(dones[i]);
+                run_closure_in_fiber_nosig(dones[i]);
             }
         } else {
             for (size_t i = 0; i < size; ++i) {
-                run_closure_in_bthread_nosig(dones[i]);
+                run_closure_in_fiber_nosig(dones[i]);
             }
         }
-        bthread_flush();
+        fiber_flush();
     }
 
     int KVBasedMergedMetaStorageImpl::run(void *meta,
-                                          bthread::TaskIterator<WriteTask> &iter) {
+                                          fiber::TaskIterator<WriteTask> &iter) {
         if (iter.is_queue_stopped()) {
             return 0;
         }
@@ -749,7 +747,7 @@ namespace melon::raft {
         if (!_is_inited) {
             done->status().set_error(EINVAL, "MergedMetaStorage of group %s not"
                                              " init, path: %s", group.c_str(), _path.c_str());
-            return run_closure_in_bthread(done);
+            return run_closure_in_fiber(done);
         }
 
         WriteTask task;
@@ -757,22 +755,22 @@ namespace melon::raft {
         task.votedfor = peer_id;
         task.vgid = group;
         task.done = done;
-        if (bthread::execution_queue_execute(_queue_id, task) != 0) {
+        if (fiber::execution_queue_execute(_queue_id, task) != 0) {
             task.done->status().set_error(EIO, "Failed to put task into queue");
-            return run_closure_in_bthread(task.done);
+            return run_closure_in_fiber(task.done);
         }
     }
 
-    butil::Status KVBasedMergedMetaStorageImpl::get_term_and_votedfor(int64_t *term,
+    mutil::Status KVBasedMergedMetaStorageImpl::get_term_and_votedfor(int64_t *term,
                                                                       PeerId *peer_id, const VersionedGroupId &group) {
-        butil::Status status;
+        mutil::Status status;
         if (!_is_inited) {
             status.set_error(EINVAL, "MergedMetaStorage of group %s not init, path: %s",
                              group.c_str(), _path.c_str());
             return status;
         }
 
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
         leveldb::Slice key(group.data(), group.size());
         std::string value;
@@ -830,16 +828,16 @@ namespace melon::raft {
         return status;
     }
 
-    butil::Status KVBasedMergedMetaStorageImpl::delete_meta(
+    mutil::Status KVBasedMergedMetaStorageImpl::delete_meta(
             const VersionedGroupId &group) {
-        butil::Status status;
+        mutil::Status status;
         if (!_is_inited) {
             status.set_error(EINVAL, "MergedMetaStorage of group %s not init, path: %s",
                              group.c_str(), _path.c_str());
             return status;
         }
 
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
         leveldb::WriteOptions options;
         options.sync = raft_sync_meta();

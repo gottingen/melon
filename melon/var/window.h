@@ -23,7 +23,7 @@
 #include <limits>                                 // std::numeric_limits
 #include <math.h>                                 // round
 #include <gflags/gflags_declare.h>
-#include "melon/butil/logging.h"                         // LOG
+#include "melon/utility/logging.h"                         // LOG
 #include "melon/var/detail/sampler.h"
 #include "melon/var/detail/series.h"
 #include "melon/var/variable.h"
@@ -116,7 +116,7 @@ namespace melon::var {
             value_type get_value() const { return get_value(_window_size); }
 
             void describe(std::ostream &os, bool quote_string) const override {
-                if (butil::is_same<value_type, std::string>::value && quote_string) {
+                if (mutil::is_same<value_type, std::string>::value && quote_string) {
                     os << '"' << get_value() << '"';
                 } else {
                     os << get_value();
@@ -143,8 +143,8 @@ namespace melon::var {
             }
 
         protected:
-            int expose_impl(const butil::StringPiece &prefix,
-                            const butil::StringPiece &name,
+            int expose_impl(const mutil::StringPiece &prefix,
+                            const mutil::StringPiece &name,
                             DisplayFilter display_filter) override {
                 const int rc = Variable::expose_impl(prefix, name, display_filter);
                 if (rc == 0 &&
@@ -182,13 +182,13 @@ namespace melon::var {
         // of Window is largely affected by window_size while PerSecond is not.
         Window(R *var, time_t window_size) : Base(var, window_size) {}
 
-        Window(const butil::StringPiece &name, R *var, time_t window_size)
+        Window(const mutil::StringPiece &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose(name);
         }
 
-        Window(const butil::StringPiece &prefix,
-               const butil::StringPiece &name, R *var, time_t window_size)
+        Window(const mutil::StringPiece &prefix,
+               const mutil::StringPiece &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose_as(prefix, name);
         }
@@ -208,23 +208,23 @@ namespace melon::var {
 
         PerSecond(R *var, time_t window_size) : Base(var, window_size) {}
 
-        PerSecond(const butil::StringPiece &name, R *var) : Base(var, -1) {
+        PerSecond(const mutil::StringPiece &name, R *var) : Base(var, -1) {
             this->expose(name);
         }
 
-        PerSecond(const butil::StringPiece &name, R *var, time_t window_size)
+        PerSecond(const mutil::StringPiece &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose(name);
         }
 
-        PerSecond(const butil::StringPiece &prefix,
-                  const butil::StringPiece &name, R *var)
+        PerSecond(const mutil::StringPiece &prefix,
+                  const mutil::StringPiece &name, R *var)
                 : Base(var, -1) {
             this->expose_as(prefix, name);
         }
 
-        PerSecond(const butil::StringPiece &prefix,
-                  const butil::StringPiece &name, R *var, time_t window_size)
+        PerSecond(const mutil::StringPiece &prefix,
+                  const mutil::StringPiece &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose_as(prefix, name);
         }
@@ -239,7 +239,7 @@ namespace melon::var {
             if (s.time_us <= 0) {
                 return static_cast<value_type>(0);
             }
-            if (butil::is_floating_point<value_type>::value) {
+            if (mutil::is_floating_point<value_type>::value) {
                 return static_cast<value_type>(s.data * 1000000.0 / s.time_us);
             } else {
                 return static_cast<value_type>(round(s.data * 1000000.0 / s.time_us));
@@ -304,7 +304,7 @@ namespace melon::var {
 
             // Implement Variable::describe()
             void describe(std::ostream &os, bool quote_string) const {
-                if (butil::is_same<value_type, std::string>::value && quote_string) {
+                if (mutil::is_same<value_type, std::string>::value && quote_string) {
                     os << '"' << get_value() << '"';
                 } else {
                     os << get_value();
@@ -335,12 +335,12 @@ namespace melon::var {
 
         WindowEx() : Base(window_size) {}
 
-        WindowEx(const butil::StringPiece &name) : Base(window_size) {
+        WindowEx(const mutil::StringPiece &name) : Base(window_size) {
             this->expose(name);
         }
 
-        WindowEx(const butil::StringPiece &prefix,
-                 const butil::StringPiece &name)
+        WindowEx(const mutil::StringPiece &prefix,
+                 const mutil::StringPiece &name)
                 : Base(window_size) {
             this->expose_as(prefix, name);
         }
@@ -359,12 +359,12 @@ namespace melon::var {
 
         PerSecondEx() : Base(window_size) {}
 
-        PerSecondEx(const butil::StringPiece &name) : Base(window_size) {
+        PerSecondEx(const mutil::StringPiece &name) : Base(window_size) {
             this->expose(name);
         }
 
-        PerSecondEx(const butil::StringPiece &prefix,
-                    const butil::StringPiece &name)
+        PerSecondEx(const mutil::StringPiece &prefix,
+                    const mutil::StringPiece &name)
                 : Base(window_size) {
             this->expose_as(prefix, name);
         }

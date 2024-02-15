@@ -15,13 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRPC_ADAPTIVE_MAX_CONCURRENCY_H
-#define BRPC_ADAPTIVE_MAX_CONCURRENCY_H
+#ifndef MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
+#define MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
 
-#include "melon/butil/strings/string_piece.h"
+
+#include "melon/utility/strings/string_piece.h"
 #include "melon/proto/rpc/options.pb.h"
 
 namespace melon {
@@ -36,7 +35,7 @@ class AdaptiveMaxConcurrency{
 public:
     explicit AdaptiveMaxConcurrency();
     explicit AdaptiveMaxConcurrency(int max_concurrency);
-    explicit AdaptiveMaxConcurrency(const butil::StringPiece& value);
+    explicit AdaptiveMaxConcurrency(const mutil::StringPiece& value);
     explicit AdaptiveMaxConcurrency(const TimeoutConcurrencyConf& value);
 
     // Non-trivial destructor to prevent AdaptiveMaxConcurrency from being
@@ -47,7 +46,7 @@ public:
     ~AdaptiveMaxConcurrency() {}
 
     void operator=(int max_concurrency);
-    void operator=(const butil::StringPiece& value);
+    void operator=(const mutil::StringPiece& value);
     void operator=(const TimeoutConcurrencyConf& value);
 
     // 0  for type="unlimited"
@@ -80,19 +79,19 @@ inline std::ostream& operator<<(std::ostream& os, const AdaptiveMaxConcurrency& 
 }
 
 bool operator==(const AdaptiveMaxConcurrency& adaptive_concurrency,
-                       const butil::StringPiece& concurrency);
+                       const mutil::StringPiece& concurrency);
 
-inline bool operator==(const butil::StringPiece& concurrency,
+inline bool operator==(const mutil::StringPiece& concurrency,
                        const AdaptiveMaxConcurrency& adaptive_concurrency) {
     return adaptive_concurrency == concurrency;
 }
 
 inline bool operator!=(const AdaptiveMaxConcurrency& adaptive_concurrency,
-                       const butil::StringPiece& concurrency) {
+                       const mutil::StringPiece& concurrency) {
     return !(adaptive_concurrency == concurrency);
 }
 
-inline bool operator!=(const butil::StringPiece& concurrency,
+inline bool operator!=(const mutil::StringPiece& concurrency,
                   const AdaptiveMaxConcurrency& adaptive_concurrency) {
     return !(adaptive_concurrency == concurrency);
 }
@@ -100,4 +99,4 @@ inline bool operator!=(const butil::StringPiece& concurrency,
 }  // namespace melon
 
 
-#endif // BRPC_ADAPTIVE_MAX_CONCURRENCY_H
+#endif // MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_

@@ -73,7 +73,7 @@ public:
 
     // Starts this node
     int start() {
-        butil::EndPoint addr(butil::my_ip(), FLAGS_port);
+        mutil::EndPoint addr(mutil::my_ip(), FLAGS_port);
         melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
             LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
@@ -109,12 +109,12 @@ public:
         // will be inconsistent with others in this group.
         
         // Serialize request to IOBuf
-        const int64_t term = _leader_term.load(butil::memory_order_relaxed);
+        const int64_t term = _leader_term.load(mutil::memory_order_relaxed);
         if (term < 0) {
             return redirect(response);
         }
-        butil::IOBuf log;
-        butil::IOBufAsZeroCopyOutputStream wrapper(&log);
+        mutil::IOBuf log;
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&log);
         if (!request->SerializeToZeroCopyStream(&wrapper)) {
             LOG(ERROR) << "Fail to serialize request";
             response->set_success(false);
@@ -146,11 +146,11 @@ public:
 
         // This is the leader and is up-to-date. It's safe to respond client
         response->set_success(true);
-        response->set_value(_value.load(butil::memory_order_relaxed));
+        response->set_value(_value.load(mutil::memory_order_relaxed));
     }
 
     bool is_leader() const 
-    { return _leader_term.load(butil::memory_order_acquire) > 0; }
+    { return _leader_term.load(mutil::memory_order_acquire) > 0; }
 
     // Shut this node down.
     void shutdown() {
@@ -197,7 +197,7 @@ friend class FetchAddClosure;
                 detal_value = c->request()->value();
             } else {
                 // Have to parse FetchAddRequest from this log.
-                butil::IOBufAsZeroCopyInputStream wrapper(iter.data());
+                mutil::IOBufAsZeroCopyInputStream wrapper(iter.data());
                 FetchAddRequest request;
                 CHECK(request.ParseFromZeroCopyStream(&wrapper));
                 detal_value = request.value();
@@ -206,7 +206,7 @@ friend class FetchAddClosure;
             // Now the log has been parsed. Update this state machine by this
             // operation.
             const int64_t prev = _value.fetch_add(detal_value, 
-                                                  butil::memory_order_relaxed);
+                                                  mutil::memory_order_relaxed);
             if (response) {
                 response->set_success(true);
                 response->set_value(prev);
@@ -252,15 +252,15 @@ friend class FetchAddClosure;
     }
 
     void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
-        // Save current StateMachine in memory and starts a new bthread to avoid
+        // Save current StateMachine in memory and starts a new fiber to avoid
         // blocking StateMachine since it's a bit slow to write data to disk
         // file.
         SnapshotArg* arg = new SnapshotArg;
-        arg->value = _value.load(butil::memory_order_relaxed);
+        arg->value = _value.load(mutil::memory_order_relaxed);
         arg->writer = writer;
         arg->done = done;
-        bthread_t tid;
-        bthread_start_urgent(&tid, NULL, save_snapshot, arg);
+        fiber_t tid;
+        fiber_start_urgent(&tid, NULL, save_snapshot, arg);
     }
 
     int on_snapshot_load(melon::raft::SnapshotReader* reader) {
@@ -277,16 +277,16 @@ friend class FetchAddClosure;
             LOG(ERROR) << "Fail to load snapshot from " << snapshot_path;
             return -1;
         }
-        _value.store(s.value(), butil::memory_order_relaxed);
+        _value.store(s.value(), mutil::memory_order_relaxed);
         return 0;
     }
 
     void on_leader_start(int64_t term) {
-        _leader_term.store(term, butil::memory_order_release);
+        _leader_term.store(term, mutil::memory_order_release);
         LOG(INFO) << "Node becomes leader";
     }
-    void on_leader_stop(const butil::Status& status) {
-        _leader_term.store(-1, butil::memory_order_release);
+    void on_leader_stop(const mutil::Status& status) {
+        _leader_term.store(-1, mutil::memory_order_release);
         LOG(INFO) << "Node stepped down : " << status;
     }
 
@@ -309,8 +309,8 @@ friend class FetchAddClosure;
 
 private:
     melon::raft::Node* volatile _node;
-    butil::atomic<int64_t> _value;
-    butil::atomic<int64_t> _leader_term;
+    mutil::atomic<int64_t> _value;
+    mutil::atomic<int64_t> _leader_term;
 };
 
 void FetchAddClosure::Run() {
@@ -350,7 +350,7 @@ private:
 
 int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
-    butil::AtExitManager exit_manager;
+    mutil::AtExitManager exit_manager;
 
     // Generally you only need one Server.
     melon::Server server;

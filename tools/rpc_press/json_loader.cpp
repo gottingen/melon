@@ -16,7 +16,7 @@
 // under the License.
 
 #include <algorithm>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/json2pb/pb_to_json.h>
 #include <melon/json2pb/json_to_pb.h>
 #include "pb_util.h"
@@ -42,7 +42,7 @@ public:
         _file_buf.append(jsons);
     }
 
-    bool get_next_json(butil::IOBuf* json1);
+    bool get_next_json(mutil::IOBuf* json1);
     bool read_some();
 
 private:
@@ -50,7 +50,7 @@ private:
     int _brace_depth;
     bool _quoted; // quoted by " or '
     char _quote_char;
-    butil::IOPortal _file_buf;
+    mutil::IOPortal _file_buf;
 };
 
 // Load data from the file.
@@ -73,8 +73,8 @@ bool JsonLoader::Reader::read_some() {
 }
 
 // Ignore json only with spaces and newline
-static bool possibly_valid_json(const butil::IOBuf& json) {
-    butil::IOBufAsZeroCopyInputStream it(json);
+static bool possibly_valid_json(const mutil::IOBuf& json) {
+    mutil::IOBufAsZeroCopyInputStream it(json);
     const void* data = NULL;
     for (int size = 0; it.Next(&data, &size); ) {
         for (int i = 0; i < size; ++i) {
@@ -88,7 +88,7 @@ static bool possibly_valid_json(const butil::IOBuf& json) {
 }
 
 // Separate jsons with closed braces.
-bool JsonLoader::Reader::get_next_json(butil::IOBuf* json1) {
+bool JsonLoader::Reader::get_next_json(mutil::IOBuf* json1) {
     if (_file_buf.empty()) {
         if (!read_some()) {
             return false;
@@ -96,7 +96,7 @@ bool JsonLoader::Reader::get_next_json(butil::IOBuf* json1) {
     }
     json1->clear();
     while (1) {
-        butil::IOBufAsZeroCopyInputStream it(_file_buf);
+        mutil::IOBufAsZeroCopyInputStream it(_file_buf);
         const void* data = NULL;
         int size = 0;
         int total_size = 0;
@@ -193,13 +193,13 @@ void JsonLoader::load_messages(
     JsonLoader::Reader* ctx,
     std::deque<google::protobuf::Message*>* out_msgs) {
     out_msgs->clear();
-    butil::IOBuf request_json;
+    mutil::IOBuf request_json;
     while (ctx->get_next_json(&request_json)) {
         VLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
                 << request_json << '\'';
         std::string error;
         google::protobuf::Message* request = _request_prototype->New();
-        butil::IOBufAsZeroCopyInputStream wrapper(request_json);
+        mutil::IOBufAsZeroCopyInputStream wrapper(request_json);
         if (!json2pb::JsonToProtoMessage(&wrapper, request, &error)) {
             LOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
                          << request_json << '\'';

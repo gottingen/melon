@@ -4,12 +4,12 @@
 
 #include <algorithm>
 
-#include "melon/butil/logging.h"
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/strings/utf_offset_string_conversions.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/strings/utf_offset_string_conversions.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -220,8 +220,8 @@ TEST(UTFOffsetStringConversionsTest, UnadjustOffsets) {
   }
 }
 
-// MergeSequentialAdjustments is used by net/butil/escape.{h,cc} and
-// net/butil/net_util.{h,cc}.  The two tests EscapeTest.AdjustOffset and
+// MergeSequentialAdjustments is used by net/escape.{h,cc} and
+// net/net_util.{h,cc}.  The two tests EscapeTest.AdjustOffset and
 // NetUtilTest.FormatUrlWithOffsets test its behavior extensively.  This
 // is simply a short, additional test.
 TEST(UTFOffsetStringConversionsTest, MergeSequentialAdjustments) {
@@ -293,4 +293,4 @@ TEST(UTFOffsetStringConversionsTest, MergeSequentialAdjustments) {
   EXPECT_EQ(2u, adjustments_on_adjusted_string[5].output_length);
 }
 
-}  // namespace butil
+}  // namespace mutil

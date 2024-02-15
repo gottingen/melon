@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include <map>                  // std::map
 #include <gflags/gflags.h>      // google::ParseCommandLineFlags
-#include <melon/butil/string_printf.h>
+#include <melon/utility/string_printf.h>
 #include <melon/raft/cli.h>          // raft::cli::*
 
 namespace melon::raft {
@@ -54,7 +53,7 @@ int add_peer() {
     CliOptions opt;
     opt.timeout_ms = FLAGS_timeout_ms;
     opt.max_retry = FLAGS_max_retry;
-    butil::Status st = add_peer(FLAGS_group, conf, new_peer, opt);
+    mutil::Status st = add_peer(FLAGS_group, conf, new_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to add_peer : " << st;
         return -1;
@@ -79,7 +78,7 @@ int remove_peer() {
     CliOptions opt;
     opt.timeout_ms = FLAGS_timeout_ms;
     opt.max_retry = FLAGS_max_retry;
-    butil::Status st = remove_peer(FLAGS_group, conf, removing_peer, opt);
+    mutil::Status st = remove_peer(FLAGS_group, conf, removing_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to remove_peer : " << st;
         return -1;
@@ -104,7 +103,7 @@ int change_peers() {
     CliOptions opt;
     opt.timeout_ms = FLAGS_timeout_ms;
     opt.max_retry = FLAGS_max_retry;
-    butil::Status st = change_peers(FLAGS_group, conf, new_peers, opt);
+    mutil::Status st = change_peers(FLAGS_group, conf, new_peers, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to change_peers : " << st;
         return -1;
@@ -129,7 +128,7 @@ int reset_peer() {
     CliOptions opt;
     opt.timeout_ms = FLAGS_timeout_ms;
     opt.max_retry = FLAGS_max_retry;
-    butil::Status st = reset_peer(FLAGS_group, target_peer, new_peers, opt);
+    mutil::Status st = reset_peer(FLAGS_group, target_peer, new_peers, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to reset_peer : " << st;
         return -1;
@@ -148,7 +147,7 @@ int snapshot() {
     CliOptions opt;
     opt.timeout_ms = FLAGS_timeout_ms;
     opt.max_retry = FLAGS_max_retry;
-    butil::Status st = snapshot(FLAGS_group, target_peer, opt);
+    mutil::Status st = snapshot(FLAGS_group, target_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to make snapshot : " << st;
         return -1;
@@ -173,7 +172,7 @@ int transfer_leader() {
     CliOptions opt;
     opt.timeout_ms = FLAGS_timeout_ms;
     opt.max_retry = FLAGS_max_retry;
-    butil::Status st = transfer_leader(FLAGS_group, conf, target_peer, opt);
+    mutil::Status st = transfer_leader(FLAGS_group, conf, target_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to transfer_leader: " << st;
         return -1;
@@ -215,7 +214,7 @@ int main(int argc , char* argv[]) {
         ++proc_name;
     }
     std::string help_str;
-    butil::string_printf(&help_str,
+    mutil::string_printf(&help_str,
                         "Usage: %s [Command] [OPTIONS...]\n"
                         "Command:\n"
                         "  add_peer --group=$group_id "

@@ -17,9 +17,9 @@
 
 
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/sys_byteorder.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/find_cstr.h"
+#include "melon/utility/sys_byteorder.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/find_cstr.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/rtmp/amf.h"
 
@@ -151,14 +151,14 @@ namespace melon {
 
     const AMFField *AMFObject::Find(const char *name) const {
         std::map<std::string, AMFField>::const_iterator it =
-                butil::find_cstr(_fields, name);
+                mutil::find_cstr(_fields, name);
         if (it != _fields.end()) {
             return &it->second;
         }
         return NULL;
     }
 
-    void AMFField::SetString(const butil::StringPiece &str) {
+    void AMFField::SetString(const mutil::StringPiece &str) {
         // TODO: Try to reuse the space.
         Clear();
         if (str.size() < SSO_LIMIT) {
@@ -236,7 +236,7 @@ namespace melon {
 
 // ============= AMFObject =============
 
-    void AMFObject::SetString(const std::string &name, const butil::StringPiece &str) {
+    void AMFObject::SetString(const std::string &name, const mutil::StringPiece &str) {
         _fields[name].SetString(str);
     }
 
@@ -981,7 +981,7 @@ namespace melon {
 
 // [ Write ]
 
-    void WriteAMFString(const butil::StringPiece &str, AMFOutputStream *stream) {
+    void WriteAMFString(const mutil::StringPiece &str, AMFOutputStream *stream) {
         if (str.size() < 65536u) {
             stream->put_u8(AMF_MARKER_STRING);
             stream->put_u16(str.size());
@@ -1114,14 +1114,14 @@ namespace melon {
                 break;
             case AMF_MARKER_STRING: {
                 stream->put_u8(AMF_MARKER_STRING);
-                const butil::StringPiece str = field.AsString();
+                const mutil::StringPiece str = field.AsString();
                 stream->put_u16(str.size());
                 stream->putn(str.data(), str.size());
             }
                 break;
             case AMF_MARKER_LONG_STRING: {
                 stream->put_u8(AMF_MARKER_LONG_STRING);
-                const butil::StringPiece str = field.AsString();
+                const mutil::StringPiece str = field.AsString();
                 stream->put_u32(str.size());
                 stream->putn(str.data(), str.size());
             }

@@ -19,8 +19,8 @@
 #ifndef MELON_RPC_EXCLUDED_SERVERS_H_
 #define MELON_RPC_EXCLUDED_SERVERS_H_
 
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/containers/bounded_queue.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/containers/bounded_queue.h"
 #include "melon/rpc/socket_id.h"                       // SocketId
 
 
@@ -51,15 +51,15 @@ namespace melon {
 
     private:
         ExcludedServers(int cap)
-                : _l(_space, sizeof(SocketId) * cap, butil::NOT_OWN_STORAGE) {}
+                : _l(_space, sizeof(SocketId) * cap, mutil::NOT_OWN_STORAGE) {}
 
         ~ExcludedServers() {}
 
         // Controller::_accessed may be shared by sub channels in schan, protect
         // all mutable methods with this mutex. In ordinary channels, this mutex
         // is never contended.
-        mutable butil::Mutex _mutex;
-        butil::BoundedQueue<SocketId> _l;
+        mutable mutil::Mutex _mutex;
+        mutil::BoundedQueue<SocketId> _l;
         SocketId _space[0];
     };
 

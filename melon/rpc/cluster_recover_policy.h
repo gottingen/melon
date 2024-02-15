@@ -21,9 +21,9 @@
 
 #include <cstdint>
 #include <memory>
-#include "melon/butil/synchronization/lock.h"
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/synchronization/lock.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/strings/string_number_conversions.h"
 
 namespace melon {
 
@@ -71,7 +71,7 @@ private:
 private:
     bool _recovering;
     int64_t _min_working_instances;
-    butil::Mutex _mutex;
+    mutil::Mutex _mutex;
     uint64_t _last_usable;
     int64_t _last_usable_change_time_ms;
     int64_t _hold_seconds;
@@ -80,7 +80,7 @@ private:
 };
 
 // Return a DefaultClusterRecoverPolicy object by params.
-bool GetRecoverPolicyByParams(const butil::StringPiece& params,
+bool GetRecoverPolicyByParams(const mutil::StringPiece& params,
                               std::shared_ptr<ClusterRecoverPolicy>* ptr_out);
 
 } // namespace melon

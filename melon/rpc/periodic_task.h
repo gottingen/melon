@@ -25,7 +25,7 @@ namespace melon {
 // the task is completed, the method should return false; Otherwise the method
 // should return true and set `next_abstime' to the time that the task should
 // be run next time.
-// Each call to OnTriggeringTask() is run in a separated bthread which can be
+// Each call to OnTriggeringTask() is run in a separated fiber which can be
 // suspended. To preserve states between different calls, put the states as
 // fields of (subclass of) PeriodicTask.
 // If any error occurs or OnTriggeringTask() returns false, the task is called

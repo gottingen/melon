@@ -1,25 +1,24 @@
 // Copyright (c) 2016 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2016/02/23 16:22:15
+
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <gtest/gtest.h>
-#include <melon/butil/fd_guard.h>
-#include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/time.h>
+#include <melon/utility/logging.h>
 
 class FsyncTest : public testing::Test {
 };
 
 TEST_F(FsyncTest, benchmark_append) {
-    butil::fd_guard fd(::open("fsync.data", O_RDWR | O_CREAT | O_TRUNC, 0644));
+    mutil::fd_guard fd(::open("fsync.data", O_RDWR | O_CREAT | O_TRUNC, 0644));
     ASSERT_NE(-1, fd);
     char buf[1024];
-    butil::Timer timer;
+    mutil::Timer timer;
     const size_t N = 1000;
     timer.start();
     for (size_t i = 0; i < N; ++i) {

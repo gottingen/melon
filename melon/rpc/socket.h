@@ -22,13 +22,13 @@
 #include <iostream>                            // std::ostream
 #include <deque>                               // std::deque
 #include <set>                                 // std::set
-#include "melon/butil/atomicops.h"                    // butil::atomic
-#include "melon/bthread/types.h"                      // bthread_id_t
-#include "melon/butil/iobuf.h"                        // butil::IOBuf, IOPortal
-#include "melon/butil/macros.h"                       // DISALLOW_COPY_AND_ASSIGN
-#include "melon/butil/endpoint.h"                     // butil::EndPoint
-#include "melon/butil/resource_pool.h"                // butil::ResourceId
-#include "melon/bthread/butex.h"                      // butex_create_checked
+#include "melon/utility/atomicops.h"                    // mutil::atomic
+#include "melon/fiber/types.h"                      // fiber_session_t
+#include "melon/utility/iobuf.h"                        // mutil::IOBuf, IOPortal
+#include "melon/utility/macros.h"                       // DISALLOW_COPY_AND_ASSIGN
+#include "melon/utility/endpoint.h"                     // mutil::EndPoint
+#include "melon/utility/resource_pool.h"                // mutil::ResourceId
+#include "melon/fiber/butex.h"                      // butex_create_checked
 #include "melon/rpc/authenticator.h"           // Authenticator
 #include "melon/proto/rpc/errno.pb.h"                // EFAILEDSOCKET
 #include "melon/rpc/details/ssl_helper.h"      // SSLState
@@ -92,8 +92,8 @@ public:
                         int (*on_connect)(int, int, void*), void*) = 0;
 
     // Cut IOBufs into fd or SSL Channel
-    virtual ssize_t CutMessageIntoFileDescriptor(int, butil::IOBuf**, size_t) = 0;
-    virtual ssize_t CutMessageIntoSSLChannel(SSL*, butil::IOBuf**, size_t) = 0;
+    virtual ssize_t CutMessageIntoFileDescriptor(int, mutil::IOBuf**, size_t) = 0;
+    virtual ssize_t CutMessageIntoSSLChannel(SSL*, mutil::IOBuf**, size_t) = 0;
 };
 
 // Application-level connect. After TCP connected, the client sends some
@@ -159,11 +159,11 @@ struct PipelinedInfo {
     void reset() {
         count = 0;
         auth_flags = 0;
-        id_wait = INVALID_BTHREAD_ID;
+        id_wait = INVALID_FIBER_ID;
     }
     uint32_t count;
     uint32_t auth_flags;
-    bthread_id_t id_wait;
+    fiber_session_t id_wait;
 };
 
 struct SocketSSLContext {
@@ -197,7 +197,7 @@ struct SocketOptions {
     // ownership. Socket will close the fd(if needed) and call
     // user->BeforeRecycle() before recycling.
     int fd;
-    butil::EndPoint remote_side;
+    mutil::EndPoint remote_side;
     SocketUser* user;
     // When *edge-triggered* events happen on the file descriptor, callback
     // `on_edge_triggered_events' will be called. Inside the callback, user
@@ -211,7 +211,7 @@ struct SocketOptions {
     bool force_ssl;
     std::shared_ptr<SocketSSLContext> initial_ssl_ctx;
     bool use_rdma;
-    bthread_keytable_pool_t* keytable_pool;
+    fiber_keytable_pool_t* keytable_pool;
     SocketConnection* conn;
     std::shared_ptr<AppConnect> app_connect;
     // The created socket will set parsing_context with this value.
@@ -221,12 +221,12 @@ struct SocketOptions {
     // Refer to `SocketKeepaliveOptions' for details.
     std::shared_ptr<SocketKeepaliveOptions> keepalive_options;
     // Tag of this socket
-    bthread_tag_t bthread_tag;
+    fiber_tag_t fiber_tag;
 };
 
 // Abstractions on reading from and writing into file descriptors.
 // NOTE: accessed by multiple threads(frequently), align it by cacheline.
-class BAIDU_CACHELINE_ALIGNMENT/*note*/ Socket {
+class MELON_CACHELINE_ALIGNMENT/*note*/ Socket {
 friend class EventDispatcher;
 friend class InputMessenger;
 friend class Acceptor;
@@ -270,10 +270,10 @@ public:
     // - Wait-free when contended.
     struct WriteOptions {
         // `id_wait' is signalled when this Socket is SetFailed. To disable
-        // the signal, set this field to INVALID_BTHREAD_ID.
+        // the signal, set this field to INVALID_FIBER_ID.
         // `on_reset' of `id_wait' is NOT called when Write() returns non-zero.
-        // Default: INVALID_BTHREAD_ID
-        bthread_id_t id_wait;
+        // Default: INVALID_FIBER_ID
+        fiber_session_t id_wait;
         // If no connection exists, a connection will be established to
         // remote_side() regarding deadline `abstime'. NULL means no timeout.
         // Default: NULL
@@ -304,24 +304,24 @@ public:
         bool write_in_background;
 
         WriteOptions()
-            : id_wait(INVALID_BTHREAD_ID), abstime(NULL)
+            : id_wait(INVALID_FIBER_ID), abstime(NULL)
             , pipelined_count(0), auth_flags(0)
             , ignore_eovercrowded(false), write_in_background(false) {}
     };
-    int Write(butil::IOBuf *msg, const WriteOptions* options = NULL);
+    int Write(mutil::IOBuf *msg, const WriteOptions* options = NULL);
 
     // Write an user-defined message. `msg' is released when Write() is
     // successful and *may* remain unchanged otherwise.
     int Write(SocketMessagePtr<>& msg, const WriteOptions* options = NULL);
 
     // The file descriptor
-    int fd() const { return _fd.load(butil::memory_order_relaxed); }
+    int fd() const { return _fd.load(mutil::memory_order_relaxed); }
 
     // ip/port of the local end of the connection
-    butil::EndPoint local_side() const { return _local_side; }
+    mutil::EndPoint local_side() const { return _local_side; }
 
     // ip/port of the other end of the connection.
-    butil::EndPoint remote_side() const { return _remote_side; }
+    mutil::EndPoint remote_side() const { return _remote_side; }
 
     // Initialized by SocketOptions.health_check_interval_s.
     int health_check_interval() const { return _health_check_interval_s; }
@@ -340,7 +340,7 @@ public:
     bool IsHCRelatedRefHeld() const { return _is_hc_related_ref_held; }
 
     // After health checking is complete, set _hc_started to false.
-    void AfterHCCompleted() { _hc_started.store(false, butil::memory_order_relaxed); }
+    void AfterHCCompleted() { _hc_started.store(false, mutil::memory_order_relaxed); }
 
     // The unique identifier.
     SocketId id() const { return _this_id; }
@@ -357,7 +357,7 @@ public:
     void reset_parsing_context(Destroyable*);
     Destroyable* release_parsing_context();
     Destroyable* parsing_context() const
-    { return _parsing_context.load(butil::memory_order_consume); }
+    { return _parsing_context.load(mutil::memory_order_consume); }
     // Try to set _parsing_context to *ctx when _parsing_context is NULL.
     // If _parsing_context is NULL, the set is successful and true is returned.
     // Otherwise, *ctx is Destroy()-ed and replaced with the value of
@@ -412,12 +412,12 @@ public:
     bool Failed() const;
 
     bool DidReleaseAdditionalRereference() const {
-        return _additional_ref_status.load(butil::memory_order_relaxed) == REF_RECYCLED;
+        return _additional_ref_status.load(mutil::memory_order_relaxed) == REF_RECYCLED;
     }
 
-    // Notify `id' object (by calling bthread_id_error) when this Socket
+    // Notify `id' object (by calling fiber_session_error) when this Socket
     // has been `SetFailed'. If it already has, notify `id' immediately
-    void NotifyOnFailed(bthread_id_t id);
+    void NotifyOnFailed(fiber_session_t id);
 
     // Release the additional reference which added inside `Create'
     // before so that `Socket' will be recycled automatically once
@@ -439,7 +439,7 @@ public:
     // Start to process edge-triggered events from the fd.
     // This function does not block caller.
     static int StartInputEvent(SocketId id, uint32_t events,
-                               const bthread_attr_t& thread_attr);
+                               const fiber_attr_t& thread_attr);
 
     static const int PROGRESS_INIT = 1;
     bool MoreReadEvents(int* progress);
@@ -573,8 +573,8 @@ public:
     // Last cpuwide-time at when this socket was read or write.
     int64_t last_active_time_us() const {
         return std::max(
-            _last_readtime_us.load(butil::memory_order_relaxed),
-            _last_writetime_us.load(butil::memory_order_relaxed));
+            _last_readtime_us.load(mutil::memory_order_relaxed),
+            _last_writetime_us.load(mutil::memory_order_relaxed));
     }
 
     // A brief description of this socket, consistent with os << *this
@@ -583,7 +583,7 @@ public:
     // Returns true if the remote side is overcrowded.
     bool is_overcrowded() const { return _overcrowded; }
 
-    bthread_keytable_pool_t* keytable_pool() const { return _keytable_pool; }
+    fiber_keytable_pool_t* keytable_pool() const { return _keytable_pool; }
 
     void set_http_request_method(const HttpMethod& method) { _http_request_method = method; }
     HttpMethod http_request_method() const { return _http_request_method; }
@@ -598,7 +598,7 @@ private:
         RDMA_UNKNOWN
     };
 
-    int ConductError(bthread_id_t);
+    int ConductError(fiber_session_t);
     int StartWrite(WriteRequest*, const WriteOptions&);
 
     int Dereference();
@@ -607,7 +607,7 @@ friend void DereferenceSocket(Socket*);
     static int Status(SocketId, int32_t* nref = NULL);  // for unit-test.
 
     // Perform SSL handshake after TCP connection has been established.
-    // Create SSL session inside and block (in bthread) until handshake
+    // Create SSL session inside and block (in fiber) until handshake
     // has completed. Application layer I/O is forbidden during this
     // process to avoid concurrent I/O on the underlying fd
     // Returns 0 on success, -1 otherwise
@@ -742,34 +742,34 @@ private:
     //   also the version encoded in SocketId.
     // * Failed version: = created version + 1, SetFailed()-ed but returned.
     // * Other versions: the socket is already recycled.
-    butil::atomic<uint64_t> _versioned_ref;
+    mutil::atomic<uint64_t> _versioned_ref;
 
     // In/Out bytes/messages, SocketPool etc
     // _shared_part is shared by a main socket and all its pooled sockets.
     // Can't use intrusive_ptr because the creation is based on optimistic
     // locking and relies on atomic CAS. We manage references manually.
-    butil::atomic<SharedPart*> _shared_part;
+    mutil::atomic<SharedPart*> _shared_part;
 
     // [ Set in dispatcher ]
-    // To keep the callback in at most one bthread at any time. Read comments
+    // To keep the callback in at most one fiber at any time. Read comments
     // about ProcessEvent in socket.cpp to understand the tricks.
-    butil::atomic<int> _nevent;
+    mutil::atomic<int> _nevent;
 
     // May be set by Acceptor to share keytables between reading threads
     // on sockets created by the Acceptor.
-    bthread_keytable_pool_t* _keytable_pool;
+    fiber_keytable_pool_t* _keytable_pool;
 
     // [ Set in ResetFileDescriptor ]
-    butil::atomic<int> _fd;  // -1 when not connected.
-    bthread_tag_t _bthread_tag;  // bthread tag of this socket
+    mutil::atomic<int> _fd;  // -1 when not connected.
+    fiber_tag_t _fiber_tag;  // fiber tag of this socket
     int _tos;                // Type of service which is actually only 8bits.
     int64_t _reset_fd_real_us; // When _fd was reset, in microseconds.
 
     // Address of peer. Initialized by SocketOptions.remote_side.
-    butil::EndPoint _remote_side;
+    mutil::EndPoint _remote_side;
 
     // Address of self. Initialized in ResetFileDescriptor().
-    butil::EndPoint _local_side;
+    mutil::EndPoint _local_side;
 
     // Called when edge-triggered events happened on `_fd'. Read comments
     // of EventDispatcher::AddConsumer (event_dispatcher.h)
@@ -804,13 +804,13 @@ private:
     uint32_t _avg_msg_size;
 
     // Storing data read from `_fd' but cut-off yet.
-    butil::IOPortal _read_buf;
+    mutil::IOPortal _read_buf;
 
     // Set with cpuwide_time_us() at last read operation
-    butil::atomic<int64_t> _last_readtime_us;
+    mutil::atomic<int64_t> _last_readtime_us;
 
     // Saved context for parsing, reset before trying other protocols.
-    butil::atomic<Destroyable*> _parsing_context;
+    mutil::atomic<Destroyable*> _parsing_context;
 
     // Saving the correlation_id of RPC on protocols that cannot put
     // correlation_id on-wire and do not send multiple requests on one
@@ -827,14 +827,14 @@ private:
 
     // Default: false.
     // true, if health checking is started.
-    butil::atomic<bool> _hc_started;
+    mutil::atomic<bool> _hc_started;
 
     // +-1 bit-+---31 bit---+
     // |  flag |   counter  |
     // +-------+------------+
     // 1-bit flag to ensure `SetEOF' to be called only once
     // 31-bit counter of requests that are currently being processed
-    butil::atomic<uint32_t> _ninprocess;
+    mutil::atomic<uint32_t> _ninprocess;
 
     // +---32 bit---+---32 bit---+
     // |  auth flag | auth error |
@@ -843,8 +843,8 @@ private:
     // 0 - not authenticated yet
     // 1 - authentication completed (whether it succeeded or not
     //     depends on `auth error')
-    butil::atomic<uint64_t> _auth_flag_error;
-    bthread_id_t _auth_id;
+    mutil::atomic<uint64_t> _auth_flag_error;
+    fiber_session_t _auth_id;
 
     // Stores authentication result/context of this socket. This only
     // exists in server side
@@ -855,7 +855,7 @@ private:
     SSLState _ssl_state;
     // SSL objects cannot be read and written at the same time.
     // Use mutex to protect SSL objects when ssl_state is SSL_CONNECTED.
-    mutable butil::Mutex _ssl_session_mutex;
+    mutable mutil::Mutex _ssl_session_mutex;
     SSL* _ssl_session;               // owner
     std::shared_ptr<SocketSSLContext> _ssl_ctx;
 
@@ -866,7 +866,7 @@ private:
 
     // Pass from controller, for progressive reading.
     ConnectionType _connection_type_for_progressive_read;
-    butil::atomic<bool> _controller_released_socket;
+    mutil::atomic<bool> _controller_released_socket;
 
     // True if the socket is too full to write.
     volatile bool _overcrowded;
@@ -874,7 +874,7 @@ private:
     bool _fail_me_at_server_stop;
 
     // Set by SetLogOff
-    butil::atomic<bool> _logoff_flag;
+    mutil::atomic<bool> _logoff_flag;
 
     // Status flag used to mark that
     enum AdditionalRefStatus {
@@ -889,7 +889,7 @@ private:
     // `Socket'、`Create': REF_USING
     // `SetFailed': REF_USING -> REF_RECYCLED
     // `Revive' REF_RECYCLED -> REF_REVIVING -> REF_USING
-    butil::atomic<AdditionalRefStatus> _additional_ref_status;
+    mutil::atomic<AdditionalRefStatus> _additional_ref_status;
 
     // Concrete error information from SetFailed()
     // Accesses to these 2 fields(especially _error_text) must be protected
@@ -897,31 +897,31 @@ private:
     int _error_code;
     std::string _error_text;
 
-    butil::atomic<SocketId> _agent_socket_id;
+    mutil::atomic<SocketId> _agent_socket_id;
 
-    butil::Mutex _pipeline_mutex;
+    mutil::Mutex _pipeline_mutex;
     std::deque<PipelinedInfo>* _pipeline_q;
 
     // For storing call-id of in-progress RPC.
     pthread_mutex_t _id_wait_list_mutex;
-    bthread_id_list_t _id_wait_list;
+    fiber_session_list_t _id_wait_list;
 
     // Set with cpuwide_time_us() at last write operation
-    butil::atomic<int64_t> _last_writetime_us;
+    mutil::atomic<int64_t> _last_writetime_us;
     // Queued but written
-    butil::atomic<int64_t> _unwritten_bytes;
+    mutil::atomic<int64_t> _unwritten_bytes;
 
     // Butex to wait for EPOLLOUT event
-    butil::atomic<int>* _epollout_butex;
+    mutil::atomic<int>* _epollout_butex;
 
     // Storing data that are not flushed into `fd' yet.
-    butil::atomic<WriteRequest*> _write_head;
+    mutil::atomic<WriteRequest*> _write_head;
 
-    butil::Mutex _stream_mutex;
+    mutil::Mutex _stream_mutex;
     std::set<StreamId> *_stream_set;
-    butil::atomic<int64_t> _total_streams_unconsumed_size;
+    mutil::atomic<int64_t> _total_streams_unconsumed_size;
 
-    butil::atomic<int64_t> _ninflight_app_health_check;
+    mutil::atomic<int64_t> _ninflight_app_health_check;
 
     // Socket keepalive related options.
     // Refer to `SocketKeepaliveOptions' for details.
@@ -948,7 +948,7 @@ private:
             }                                                           \
             sleep_time *= 2;                                            \
             if (sleep_time > 2000) { sleep_time = 2000; }               \
-            ::bthread_usleep(sleep_time);                               \
+            ::fiber_usleep(sleep_time);                               \
         }                                                               \
         __ret_code__;                                                   \
     })
@@ -966,7 +966,7 @@ private:
             }                                                           \
             sleep_time *= 2;                                            \
             if (sleep_time > 2000) { sleep_time = 2000; }               \
-            ::bthread_usleep(sleep_time);                               \
+            ::fiber_usleep(sleep_time);                               \
         }                                                               \
         __ret_code__;                                                   \
     })

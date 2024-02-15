@@ -22,7 +22,7 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/dynamic_message.h>
-#include "melon/proto/rpc/baidu_rpc_meta.pb.h"
+#include "melon/proto/rpc/melon_rpc_meta.pb.h"
 #include "echo.pb.h"
 
 namespace {

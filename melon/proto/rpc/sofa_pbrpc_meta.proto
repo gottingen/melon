@@ -16,7 +16,6 @@
 // under the License.
 
 syntax="proto2";
-// Meta of sofa-pbrpc https://github.com/baidu/sofa-pbrpc
 
 package melon.policy;
 option java_package = "com.brpc.policy";

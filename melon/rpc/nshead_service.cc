@@ -16,14 +16,14 @@
 // under the License.
 
 
-#include "melon/butil/class_name.h"
+#include "melon/utility/class_name.h"
 #include "melon/rpc/nshead_service.h"
 #include "melon/rpc/details/method_status.h"
 
 
 namespace melon {
 
-BAIDU_CASSERT(sizeof(nshead_t) == 36, sizeof_nshead_must_be_36);
+MELON_CASSERT(sizeof(nshead_t) == 36, sizeof_nshead_must_be_36);
 
 NsheadService::NsheadService() : _additional_space(0) {
     _status = new (std::nothrow) MethodStatus;
@@ -44,11 +44,11 @@ NsheadService::~NsheadService() {
 }
 
 void NsheadService::Describe(std::ostream &os, const DescribeOptions&) const {
-    os << butil::class_name_str(*this);
+    os << mutil::class_name_str(*this);
 }
 
-void NsheadService::Expose(const butil::StringPiece& prefix) {
-    _cached_name = butil::class_name_str(*this);
+void NsheadService::Expose(const mutil::StringPiece& prefix) {
+    _cached_name = mutil::class_name_str(*this);
     if (_status == NULL) {
         return;
     }

@@ -8,7 +8,7 @@ add_library(VAR_DEBUG_LIB OBJECT ${VAR_SOURCES})
 file(GLOB TEST_VAR_SRCS "var_*_unittest.cc")
 add_executable(test_var ${TEST_VAR_SRCS}
         $<TARGET_OBJECTS:VAR_DEBUG_LIB>
-        $<TARGET_OBJECTS:BUTIL_DEBUG_LIB>)
+        $<TARGET_OBJECTS:MUTIL_DEBUG_LIB>)
 target_link_libraries(test_var gtest
         ${GPERFTOOLS_LIBRARIES}
         ${DYNAMIC_LIB})

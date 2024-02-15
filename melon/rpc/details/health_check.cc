@@ -23,8 +23,8 @@
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/global.h"
 #include "melon/rpc/log.h"
-#include "melon/bthread/unstable.h"
-#include "melon/bthread/bthread.h"
+#include "melon/fiber/unstable.h"
+#include "melon/fiber/fiber.h"
 
 namespace melon {
 
@@ -93,7 +93,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
     if (done->channel.Init(id, &options) != 0) {
         LOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
         ptr->_ninflight_app_health_check.fetch_sub(
-                    1, butil::memory_order_relaxed);
+                    1, mutil::memory_order_relaxed);
         delete done;
         return;
     }
@@ -105,7 +105,7 @@ void* HealthCheckManager::AppCheck(void* arg) {
     done->cntl.Reset();
     done->cntl.http_request().uri() = FLAGS_health_check_path;
     ControllerPrivateAccessor(&done->cntl).set_health_check_call();
-    done->last_check_time_ms = butil::gettimeofday_ms();
+    done->last_check_time_ms = mutil::gettimeofday_ms();
     done->channel.CallMethod(NULL, &done->cntl, NULL, NULL, done);
     return NULL;
 }
@@ -125,20 +125,20 @@ void OnAppHealthCheckDone::Run() {
         // if ptr->Failed(), previous SetFailed would trigger next round
         // of hc, just return here.
         ptr->_ninflight_app_health_check.fetch_sub(
-                    1, butil::memory_order_relaxed);
+                    1, mutil::memory_order_relaxed);
         return;
     }
     RPC_VLOG << "Fail to check path=" << FLAGS_health_check_path
         << ", " << cntl.ErrorText();
 
     int64_t sleep_time_ms =
-        last_check_time_ms + interval_s * 1000 - butil::gettimeofday_ms();
+        last_check_time_ms + interval_s * 1000 - mutil::gettimeofday_ms();
     if (sleep_time_ms > 0) {
         // TODO(zhujiashun): we need to handle the case when timer fails
-        // and bthread_usleep returns immediately. In most situations,
+        // and fiber_usleep returns immediately. In most situations,
         // the possibility of this case is quite small, so currently we
         // just keep sending the hc call.
-        bthread_usleep(sleep_time_ms * 1000);
+        fiber_usleep(sleep_time_ms * 1000);
     }
     HealthCheckManager::AppCheck(self_guard.release());
 }
@@ -211,7 +211,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
         }
         if (!FLAGS_health_check_path.empty()) {
             ptr->_ninflight_app_health_check.fetch_add(
-                    1, butil::memory_order_relaxed);
+                    1, mutil::memory_order_relaxed);
         }
         ptr->Revive();
         ptr->_hc_count = 0;
@@ -226,7 +226,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
         return false;
     }
     ++ ptr->_hc_count;
-    *next_abstime = butil::seconds_from_now(ptr->_health_check_interval_s);
+    *next_abstime = mutil::seconds_from_now(ptr->_health_check_interval_s);
     return true;
 }
 
@@ -236,7 +236,7 @@ void HealthCheckTask::OnDestroyingTask() {
 
 void StartHealthCheck(SocketId id, int64_t delay_ms) {
     PeriodicTaskManager::StartTaskAt(new HealthCheckTask(id),
-            butil::milliseconds_from_now(delay_ms));
+            mutil::milliseconds_from_now(delay_ms));
 }
 
 } // namespace melon

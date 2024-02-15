@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen (chenzhangyi01@baidu.com)
 
 #include "melon/raft/route_table.h"
 
 #include <gflags/gflags.h>
-#include <melon/butil/memory/singleton.h>
-#include <melon/butil/containers/doubly_buffered_data.h>
-#include <melon/butil/containers/flat_map.h>
+#include <melon/utility/memory/singleton.h>
+#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/utility/containers/flat_map.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
 #include "melon/proto/raft/cli.pb.h"
@@ -96,8 +95,8 @@ namespace melon::raft {
                 Configuration conf;
             };
 
-            typedef butil::FlatMap<GroupId, GroupConf> GroupMap;
-            typedef butil::DoublyBufferedData<GroupMap> DbMap;
+            typedef mutil::FlatMap<GroupId, GroupConf> GroupMap;
+            typedef mutil::DoublyBufferedData<GroupMap> DbMap;
 
             static size_t modify_conf(GroupMap &m, const GroupId &group,
                                       const Configuration &conf) {
@@ -169,14 +168,14 @@ namespace melon::raft {
             return update_leader(group, leader_id);
         }
 
-        butil::Status refresh_leader(const GroupId &group, int timeout_ms) {
+        mutil::Status refresh_leader(const GroupId &group, int timeout_ms) {
             RouteTable *const rtb = RouteTable::GetInstance();
             Configuration conf;
             if (rtb->list_conf(group, &conf) != 0) {
-                return butil::Status(ENOENT, "group %s is not reistered in RouteTable",
+                return mutil::Status(ENOENT, "group %s is not reistered in RouteTable",
                                      group.c_str());
             }
-            butil::Status error;
+            mutil::Status error;
             for (Configuration::const_iterator
                          iter = conf.begin(); iter != conf.end(); ++iter) {
                 melon::Channel channel;
@@ -201,7 +200,7 @@ namespace melon::raft {
                 stub.get_leader(&cntl, &request, &respones, NULL);
                 if (!cntl.Failed()) {
                     update_leader(group, respones.leader_id());
-                    return butil::Status::OK();
+                    return mutil::Status::OK();
                 }
                 if (error.ok()) {
                     error.set_error(cntl.ErrorCode(), "[%s] %s",

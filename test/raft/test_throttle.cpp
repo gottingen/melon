@@ -1,11 +1,9 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2017 Baidu.com, Inc. All Rights Reserved
 
-// Author: Xiong Kai (xiongkai@baidu.com)
-// Date: 2017/09/07 14:06:13
 
 #include <gtest/gtest.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot_throttle.h"
@@ -74,7 +72,7 @@ TEST_F(TestUsageSuits, throttle_functioning) {
     // test aligning time
     for (int i = 0; i < 10; ++i) {
         usleep(0.8 * cycle_time);
-        int64_t now = butil::cpuwide_time_us();
+        int64_t now = mutil::cpuwide_time_us();
         int64_t aligning_time = melon::raft::caculate_check_time_us(now, cycles);
         ASSERT_TRUE(aligning_time % cycle_time == 0);
         LOG(INFO) << "Time now: " << now << ", aligning time: " << aligning_time;

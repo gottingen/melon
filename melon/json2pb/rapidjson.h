@@ -27,19 +27,19 @@
 
 #endif
 
-#include "melon/butil/third_party/rapidjson/allocators.h"
-#include "melon/butil/third_party/rapidjson/document.h"
-#include "melon/butil/third_party/rapidjson/encodedstream.h"
-#include "melon/butil/third_party/rapidjson/encodings.h"
-#include "melon/butil/third_party/rapidjson/filereadstream.h"
-#include "melon/butil/third_party/rapidjson/filewritestream.h"
-#include "melon/butil/third_party/rapidjson/prettywriter.h"
-#include "melon/butil/third_party/rapidjson/rapidjson.h"
-#include "melon/butil/third_party/rapidjson/reader.h"
-#include "melon/butil/third_party/rapidjson/stringbuffer.h"
-#include "melon/butil/third_party/rapidjson/writer.h"
-#include "melon/butil/third_party/rapidjson/optimized_writer.h"
-#include "melon/butil/third_party/rapidjson/error/en.h"  // GetErrorCode_En
+#include "melon/utility/third_party/rapidjson/allocators.h"
+#include "melon/utility/third_party/rapidjson/document.h"
+#include "melon/utility/third_party/rapidjson/encodedstream.h"
+#include "melon/utility/third_party/rapidjson/encodings.h"
+#include "melon/utility/third_party/rapidjson/filereadstream.h"
+#include "melon/utility/third_party/rapidjson/filewritestream.h"
+#include "melon/utility/third_party/rapidjson/prettywriter.h"
+#include "melon/utility/third_party/rapidjson/rapidjson.h"
+#include "melon/utility/third_party/rapidjson/reader.h"
+#include "melon/utility/third_party/rapidjson/stringbuffer.h"
+#include "melon/utility/third_party/rapidjson/writer.h"
+#include "melon/utility/third_party/rapidjson/optimized_writer.h"
+#include "melon/utility/third_party/rapidjson/error/en.h"  // GetErrorCode_En
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
 #pragma GCC diagnostic pop

@@ -17,17 +17,17 @@
 
 #include "melon/rpc/policy/redis_authenticator.h"
 
-#include "melon/butil/base64.h"
-#include "melon/butil/iobuf.h"
-#include "melon/butil/string_printf.h"
-#include "melon/butil/sys_byteorder.h"
+#include "melon/utility/base64.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/sys_byteorder.h"
 #include "melon/rpc/redis/redis_command.h"
 
 namespace melon {
 namespace policy {
 
 int RedisAuthenticator::GenerateCredential(std::string* auth_str) const {
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     if (!passwd_.empty()) {
         melon::RedisCommandFormat(&buf, "AUTH %s", passwd_.c_str());
     }

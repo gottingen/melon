@@ -18,9 +18,9 @@
 
 #include <stdio.h>                                  // snprintf
 
-#include "melon/butil/logging.h"                           // BAIDU_*
-#include "melon/butil/macros.h"                            // ARRAY_SIZE
-#include "melon/butil/thread_local.h"                      // thread_local
+#include "melon/utility/logging.h"                           // MELON_*
+#include "melon/utility/macros.h"                            // ARRAY_SIZE
+#include "melon/utility/thread_local.h"                      // thread_local
 #include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/http/http_status_code.h"
 
@@ -100,7 +100,7 @@ static void InitReasonPhrases() {
     }
 }
 
-static BAIDU_THREAD_LOCAL char tls_phrase_cache[64];
+static MELON_THREAD_LOCAL char tls_phrase_cache[64];
 
 const char *HttpReasonPhrase(int status_code) {
     pthread_once(&init_reason_phrases_once, InitReasonPhrases);

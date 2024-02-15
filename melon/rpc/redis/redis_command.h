@@ -22,26 +22,26 @@
 #include <limits>
 #include <memory>           // std::unique_ptr
 #include <vector>
-#include "melon/butil/iobuf.h"
-#include "melon/butil/status.h"
-#include "melon/butil/arena.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/status.h"
+#include "melon/utility/arena.h"
 #include "melon/rpc/parse_result.h"
 
 namespace melon {
 
     // Format a redis command and append it to `buf'.
-    // Returns butil::Status::OK() on success.
-    butil::Status RedisCommandFormat(butil::IOBuf *buf, const char *fmt, ...);
+    // Returns mutil::Status::OK() on success.
+    mutil::Status RedisCommandFormat(mutil::IOBuf *buf, const char *fmt, ...);
 
-    butil::Status RedisCommandFormatV(butil::IOBuf *buf, const char *fmt, va_list args);
+    mutil::Status RedisCommandFormatV(mutil::IOBuf *buf, const char *fmt, va_list args);
 
     // Just convert the command to the text format of redis without processing the
     // specifiers(%) inside.
-    butil::Status RedisCommandNoFormat(butil::IOBuf *buf, const butil::StringPiece &command);
+    mutil::Status RedisCommandNoFormat(mutil::IOBuf *buf, const mutil::StringPiece &command);
 
     // Concatenate components to form a redis command.
-    butil::Status RedisCommandByComponents(butil::IOBuf *buf,
-                                           const butil::StringPiece *components,
+    mutil::Status RedisCommandByComponents(mutil::IOBuf *buf,
+                                           const mutil::StringPiece *components,
                                            size_t num_components);
 
     // A parser used to parse redis raw command.
@@ -52,8 +52,8 @@ namespace melon {
         // Parse raw message from `buf'. Return PARSE_OK and set the parsed command
         // to `args' and length to `len' if successful. Memory of args are allocated
         // in `arena'.
-        ParseError Consume(butil::IOBuf &buf, std::vector<butil::StringPiece> *args,
-                           butil::Arena *arena);
+        ParseError Consume(mutil::IOBuf &buf, std::vector<mutil::StringPiece> *args,
+                           mutil::Arena *arena);
 
         size_t ParsedArgsSize();
 
@@ -64,7 +64,7 @@ namespace melon {
         bool _parsing_array;            // if the parser has met array indicator '*'
         int _length;                    // array length
         int _index;                     // current parsing array index
-        std::vector<butil::StringPiece> _args;  // parsed command string
+        std::vector<mutil::StringPiece> _args;  // parsed command string
     };
 
 } // namespace melon

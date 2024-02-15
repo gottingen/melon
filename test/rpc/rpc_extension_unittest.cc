@@ -23,8 +23,8 @@
 #include <sys/socket.h>
 #include <map>
 #include <gtest/gtest.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/extension.h"
 
 class ExtensionTest : public ::testing::Test{

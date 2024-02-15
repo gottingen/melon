@@ -16,12 +16,12 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fast_rand.h"
 
-#define BAIDU_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
-#include "melon/butil/resource_pool.h"
+#define MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
+#include "melon/utility/resource_pool.h"
 
 namespace {
 struct MyObject {};
@@ -29,7 +29,7 @@ struct MyObject {};
 int nfoo_dtor = 0;
 struct Foo {
     Foo() {
-        x = butil::fast_rand() % 2;
+        x = mutil::fast_rand() % 2;
     }
     ~Foo() {
         ++nfoo_dtor;
@@ -38,7 +38,7 @@ struct Foo {
 };
 }
 
-namespace butil {
+namespace mutil {
 template <> struct ResourcePoolBlockMaxSize<MyObject> {
     static const size_t value = 128;
 };
@@ -60,7 +60,7 @@ template <> struct ResourcePoolValidator<Foo> {
 }
 
 namespace {
-using namespace butil;
+using namespace mutil;
 
 class ResourcePoolTest : public ::testing::Test{
 protected:
@@ -77,13 +77,13 @@ protected:
 TEST_F(ResourcePoolTest, atomic_array_init) {
     for (int i = 0; i < 2; ++i) {
         if (i == 0) {
-            butil::atomic<int> a[2];
+            mutil::atomic<int> a[2];
             a[0] = 1;
             // The folowing will cause compile error with gcc3.4.5 and the
             // reason is unknown
             // a[1] = 2;
         } else if (i == 2) {
-            butil::atomic<int> a[2];
+            mutil::atomic<int> a[2];
             ASSERT_EQ(0, a[0]);
             ASSERT_EQ(0, a[1]);
         }
@@ -194,7 +194,7 @@ TEST_F(ResourcePoolTest, get_int) {
     // Perf of this test is affected by previous case.
     const size_t N = 100000;
     
-    butil::Timer tm;
+    mutil::Timer tm;
     ResourceId<int> id;
 
     // warm up
@@ -250,7 +250,7 @@ TEST_F(ResourcePoolTest, get_perf) {
     new_list.reserve(N);
     ResourceId<SilentObj> id;
     
-    butil::Timer tm1, tm2;
+    mutil::Timer tm1, tm2;
 
     // warm up
     if (get_resource(&id)) {
@@ -291,7 +291,7 @@ void* get_and_return_int(void*) {
     const size_t N = 100000;
     std::vector<ResourceId<D> > v;
     v.reserve(N);
-    butil::Timer tm0, tm1, tm2;
+    mutil::Timer tm0, tm1, tm2;
     ResourceId<D> id = {0};
     D tmp = D();
     int sr = 0;
@@ -338,7 +338,7 @@ void* new_and_delete_int(void*) {
     const size_t N = 100000;
     std::vector<D*> v2;
     v2.reserve(N);
-    butil::Timer tm0, tm1, tm2;
+    mutil::Timer tm0, tm1, tm2;
     D tmp = D();
 
     for (int j = 0; j < 3; ++j) {

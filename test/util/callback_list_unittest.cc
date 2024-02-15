@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/callback_list.h"
+#include "melon/utility/callback_list.h"
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/bind.h"
-#include "melon/butil/bind_helpers.h"
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/bind.h"
+#include "melon/utility/bind_helpers.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace {
 
 class Listener {
@@ -288,4 +288,4 @@ TEST(CallbackListTest, EmptyList) {
 }
 
 }  // namespace
-}  // namespace butil
+}  // namespace mutil

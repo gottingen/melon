@@ -25,7 +25,7 @@ CXXFLAGS+=$(CPPFLAGS) -std=c++20 -DNDEBUG -O2 -pipe -W -Wall -Wno-unused-paramet
 #CXXFLAGS+= -fsanitize=address
 #STATIC_LINKINGS+= -Wl,-Bstatic -lasan -Wl,-Bdynamic
 ifeq ($(NEED_GPERFTOOLS), 1)
-	CXXFLAGS+=-DBRPC_ENABLE_CPU_PROFILER
+	CXXFLAGS+=-DMELON_ENABLE_CPU_PROFILER
 endif
 HDRS+=$(BRPC_PATH)/src
 #HDRS+=$(BRPC_PATH)/output/include

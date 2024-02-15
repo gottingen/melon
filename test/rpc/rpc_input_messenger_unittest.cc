@@ -23,12 +23,12 @@
 #include <sys/socket.h>
 #include <netdb.h>                   //
 #include <gtest/gtest.h>
-#include "melon/butil/gperftools_profiler.h"
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/fd_utility.h"
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/unix_socket.h"
+#include "melon/utility/gperftools_profiler.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fd_utility.h"
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/unix_socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/policy/hulu_pbrpc_protocol.h"
 
@@ -78,12 +78,12 @@ inline uint32_t fmix32 ( uint32_t h ) {
 
 volatile bool client_stop = false;
 
-struct BAIDU_CACHELINE_ALIGNMENT ClientMeta {
+struct MELON_CACHELINE_ALIGNMENT ClientMeta {
     size_t times;
     size_t bytes;
 };
 
-butil::atomic<size_t> client_index(0);
+mutil::atomic<size_t> client_index(0);
 
 void* client_thread(void* arg) {
     ClientMeta* m = (ClientMeta*)arg;
@@ -103,14 +103,14 @@ void* client_thread(void* arg) {
     char socket_name[64];
     snprintf(socket_name, sizeof(socket_name), "input_messenger.socket%lu",
              (id % NEPOLL));
-    butil::fd_guard fd(butil::unix_socket_connect(socket_name));
+    mutil::fd_guard fd(mutil::unix_socket_connect(socket_name));
     if (fd < 0) {
         PLOG(FATAL) << "Fail to connect to " << socket_name;
         return NULL;
     }
 #else
-    butil::EndPoint point(butil::IP_ANY, 7878);
-    butil::fd_guard fd(butil::tcp_connect(point, NULL));
+    mutil::EndPoint point(mutil::IP_ANY, 7878);
+    mutil::fd_guard fd(mutil::tcp_connect(point, NULL));
     if (fd < 0) {
         PLOG(FATAL) << "Fail to connect to " << point;
         return NULL;
@@ -162,12 +162,12 @@ TEST_F(MessengerTest, dispatch_tasks) {
 #ifdef USE_UNIX_DOMAIN_SOCKET
         char buf[64];
         snprintf(buf, sizeof(buf), "input_messenger.socket%lu", i);
-        int listening_fd = butil::unix_socket_listen(buf);
+        int listening_fd = mutil::unix_socket_listen(buf);
 #else
-        int listening_fd = tcp_listen(butil::EndPoint(butil::IP_ANY, 7878));
+        int listening_fd = tcp_listen(mutil::EndPoint(mutil::IP_ANY, 7878));
 #endif
         ASSERT_TRUE(listening_fd > 0);
-        butil::make_non_blocking(listening_fd);
+        mutil::make_non_blocking(listening_fd);
         ASSERT_EQ(0, messenger[i].AddHandler(pairs[0]));
         ASSERT_EQ(0, messenger[i].StartAccept(listening_fd, -1, NULL, false));
     }
@@ -188,7 +188,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
     for (size_t i = 0; i < NCLIENT; ++i) {
         start_client_bytes += cm[i]->bytes;
     }
-    butil::Timer tm;
+    mutil::Timer tm;
     tm.start();
     
     sleep(5);

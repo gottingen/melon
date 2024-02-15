@@ -37,7 +37,7 @@ for ((i = 0; i < $num_servers; ++i)); do
     pids[$i]=$!
 done
 usleep 100000
-./echo_client -use_bthread -thread_num 400 -timeout_ms -1 --health_check_interval 1 -dont_fail > echo_client.log 2>&1 &
+./echo_client -use_fiber -thread_num 400 -timeout_ms -1 --health_check_interval 1 -dont_fail > echo_client.log 2>&1 &
 
 echo ${pids[*]}
 

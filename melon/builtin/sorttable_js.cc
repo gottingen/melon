@@ -23,14 +23,14 @@
 namespace melon {
 
     static pthread_once_t s_sorttable_buf_once = PTHREAD_ONCE_INIT;
-    static butil::IOBuf *s_sorttable_buf = NULL;
+    static mutil::IOBuf *s_sorttable_buf = NULL;
 
     static void InitSortTableBuf() {
-        s_sorttable_buf = new butil::IOBuf;
+        s_sorttable_buf = new mutil::IOBuf;
         s_sorttable_buf->append(sorttable_js());
     }
 
-    const butil::IOBuf &sorttable_js_iobuf() {
+    const mutil::IOBuf &sorttable_js_iobuf() {
         pthread_once(&s_sorttable_buf_once, InitSortTableBuf);
         return *s_sorttable_buf;
     }

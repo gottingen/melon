@@ -23,7 +23,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <google/protobuf/dynamic_message.h>
-#include <melon/butil/iobuf.h>
+#include <melon/utility/iobuf.h>
 
 namespace melon {
 

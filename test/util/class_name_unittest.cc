@@ -16,10 +16,10 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/class_name.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/class_name.h"
+#include "melon/utility/logging.h"
 
-namespace butil {
+namespace mutil {
 namespace foobar {
 struct MyClass {};
 }
@@ -34,29 +34,29 @@ protected:
 };
 
 TEST_F(ClassNameTest, demangle) {
-    ASSERT_EQ("add_something", butil::demangle("add_something"));
-    ASSERT_EQ("guard variable for butil::my_ip()::ip",
-              butil::demangle("_ZGVZN5butil5my_ipEvE2ip"));
+    ASSERT_EQ("add_something", mutil::demangle("add_something"));
+    ASSERT_EQ("guard variable for mutil::my_ip()::ip",
+              mutil::demangle("_ZGVZN5mutil5my_ipEvE2ip"));
     ASSERT_EQ("dp::FiberPBCommand<proto::PbRouteTable, proto::PbRouteAck>::marshal(dp::ParamWriter*)::__FUNCTION__",
-              butil::demangle("_ZZN2dp14FiberPBCommandIN5proto12PbRouteTableENS1_10PbRouteAckEE7marshalEPNS_11ParamWriterEE12__FUNCTION__"));
-    ASSERT_EQ("7&8", butil::demangle("7&8"));
+              mutil::demangle("_ZZN2dp14FiberPBCommandIN5proto12PbRouteTableENS1_10PbRouteAckEE7marshalEPNS_11ParamWriterEE12__FUNCTION__"));
+    ASSERT_EQ("7&8", mutil::demangle("7&8"));
 }
 
 TEST_F(ClassNameTest, class_name_sanity) {
-    ASSERT_EQ("char", butil::class_name_str('\0'));
-    ASSERT_STREQ("short", butil::class_name<short>());
-    ASSERT_EQ("long", butil::class_name_str(1L));
-    ASSERT_EQ("unsigned long", butil::class_name_str(1UL));
-    ASSERT_EQ("float", butil::class_name_str(1.1f));
-    ASSERT_EQ("double", butil::class_name_str(1.1));
-    ASSERT_STREQ("char*", butil::class_name<char*>());
-    ASSERT_STREQ("char const*", butil::class_name<const char*>());
-    ASSERT_STREQ("butil::foobar::MyClass", butil::class_name<butil::foobar::MyClass>());
+    ASSERT_EQ("char", mutil::class_name_str('\0'));
+    ASSERT_STREQ("short", mutil::class_name<short>());
+    ASSERT_EQ("long", mutil::class_name_str(1L));
+    ASSERT_EQ("unsigned long", mutil::class_name_str(1UL));
+    ASSERT_EQ("float", mutil::class_name_str(1.1f));
+    ASSERT_EQ("double", mutil::class_name_str(1.1));
+    ASSERT_STREQ("char*", mutil::class_name<char*>());
+    ASSERT_STREQ("char const*", mutil::class_name<const char*>());
+    ASSERT_STREQ("mutil::foobar::MyClass", mutil::class_name<mutil::foobar::MyClass>());
 
     int array[32];
-    ASSERT_EQ("int [32]", butil::class_name_str(array));
+    ASSERT_EQ("int [32]", mutil::class_name_str(array));
 
-    LOG(INFO) << butil::class_name_str(this);
-    LOG(INFO) << butil::class_name_str(*this);
+    LOG(INFO) << mutil::class_name_str(this);
+    LOG(INFO) << mutil::class_name_str(*this);
 }
 }

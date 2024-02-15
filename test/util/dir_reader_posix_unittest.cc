@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/files/dir_reader_posix.h"
+#include "melon/utility/files/dir_reader_posix.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -10,14 +10,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 #include <gtest/gtest.h>
 
 #if defined(OS_ANDROID)
-#include "melon/butil/os_compat_android.h"
+#include "melon/utility/os_compat_android.h"
 #endif
 
-namespace butil {
+namespace mutil {
 
 TEST(DirReaderPosixUnittest, Read) {
   static const unsigned kNumFiles = 100;
@@ -89,4 +89,4 @@ TEST(DirReaderPosixUnittest, Read) {
   EXPECT_EQ(kNumFiles, seen.size());
 }
 
-}  // namespace butil
+}  // namespace mutil

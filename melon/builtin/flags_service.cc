@@ -21,8 +21,8 @@
 #include <set>
 #include <gflags/gflags.h>                  // GetAllFlags
 // CommandLineFlagInfo
-#include "melon/butil/string_printf.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/string_splitter.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
@@ -121,7 +121,7 @@ namespace melon {
             cntl->SetFailed(ENOMETHOD, "No such gflag");
             return;
         }
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         const bool is_string = (info.type == "string");
         os << "<!DOCTYPE html><html><body>"
               "<form action='' method='get'>"
@@ -184,7 +184,7 @@ namespace melon {
                                 (value_str->empty() ? "empty string" : value_str->c_str()));
                 return;
             }
-            butil::IOBufBuilder os;
+            mutil::IOBufBuilder os;
             os << "Set `" << constraint << "' to " << *value_str;
             if (use_html) {
                 os << "<br><a href='/flags'>[back to flags]</a>";
@@ -197,7 +197,7 @@ namespace melon {
         std::vector<std::string> wildcards;
         std::set<std::string> exact;
         if (!constraint.empty()) {
-            for (butil::StringMultiSplitter sp(constraint.c_str(), ",;"); sp != NULL; ++sp) {
+            for (mutil::StringMultiSplitter sp(constraint.c_str(), ",;"); sp != NULL; ++sp) {
                 std::string name(sp.field(), sp.length());
                 if (name.find_first_of("$*") != std::string::npos) {
                     wildcards.push_back(name);
@@ -208,7 +208,7 @@ namespace melon {
         }
 
         // Print header of the table
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n" << gridtable_style()
                << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"

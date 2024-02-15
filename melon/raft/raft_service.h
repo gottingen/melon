@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
 
 #ifndef MELON_RAFT_RAFT_SERVICE_H_
 #define MELON_RAFT_RAFT_SERVICE_H_
@@ -23,7 +22,7 @@ namespace melon::raft {
 
     class RaftServiceImpl : public RaftService {
     public:
-        explicit RaftServiceImpl(butil::EndPoint addr)
+        explicit RaftServiceImpl(mutil::EndPoint addr)
                 : _addr(addr) {}
 
         ~RaftServiceImpl();
@@ -54,7 +53,7 @@ namespace melon::raft {
                          ::google::protobuf::Closure *done);
 
     private:
-        butil::EndPoint _addr;
+        mutil::EndPoint _addr;
     };
 
 }

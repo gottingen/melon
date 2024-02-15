@@ -22,8 +22,8 @@
 #include <stdint.h>                                     // uint32_t
 #include <functional>
 #include <vector>                                       // std::vector
-#include "melon/butil/endpoint.h"                              // butil::EndPoint
-#include "melon/butil/containers/doubly_buffered_data.h"
+#include "melon/utility/endpoint.h"                              // mutil::EndPoint
+#include "melon/utility/containers/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 
 
@@ -45,7 +45,7 @@ namespace melon::lb {
         struct Node {
             uint32_t hash;
             ServerId server_sock;
-            butil::EndPoint server_addr;  // To make sorting stable among all clients
+            mutil::EndPoint server_addr;  // To make sorting stable among all clients
             bool operator<(const Node &rhs) const {
                 if (hash < rhs.hash) { return true; }
                 if (hash > rhs.hash) { return false; }
@@ -67,7 +67,7 @@ namespace melon::lb {
 
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
 
-        LoadBalancer *New(const butil::StringPiece &params) const;
+        LoadBalancer *New(const mutil::StringPiece &params) const;
 
         void Destroy();
 
@@ -76,9 +76,9 @@ namespace melon::lb {
         void Describe(std::ostream &os, const DescribeOptions &options);
 
     private:
-        bool SetParameters(const butil::StringPiece &params);
+        bool SetParameters(const mutil::StringPiece &params);
 
-        void GetLoads(std::map<butil::EndPoint, double> *load_map);
+        void GetLoads(std::map<mutil::EndPoint, double> *load_map);
 
         static size_t AddBatch(std::vector<Node> &bg, const std::vector<Node> &fg,
                                const std::vector<Node> &servers, bool *executed);
@@ -91,7 +91,7 @@ namespace melon::lb {
 
         size_t _num_replicas;
         ConsistentHashingLoadBalancerType _type;
-        butil::DoublyBufferedData<std::vector<Node> > _db_hash_ring;
+        mutil::DoublyBufferedData<std::vector<Node> > _db_hash_ring;
     };
 
 } // namespace melon::lb

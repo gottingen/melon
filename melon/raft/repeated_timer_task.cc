@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Ma,Jingwei(majingwei@baidu.com)
 
 #include "melon/raft/repeated_timer_task.h"
 #include "melon/raft/util.h"
@@ -33,7 +31,7 @@ namespace melon::raft {
         _destroyed = false;
         _stopped = true;
         _running = false;
-        _timer = bthread_timer_t();
+        _timer = fiber_timer_t();
         return 0;
     }
 
@@ -42,7 +40,7 @@ namespace melon::raft {
         BRAFT_RETURN_IF(_stopped);
         _stopped = true;
         CHECK(_running);
-        const int rc = bthread_timer_del(_timer);
+        const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             _running = false;
             return;
@@ -94,7 +92,7 @@ namespace melon::raft {
 
     void RepeatedTimerTask::run_once_now() {
         std::unique_lock<raft_mutex_t> lck(_mutex);
-        if (bthread_timer_del(_timer) == 0) {
+        if (fiber_timer_del(_timer) == 0) {
             lck.unlock();
             on_timedout(this);
         }
@@ -107,21 +105,21 @@ namespace melon::raft {
     }
 
     void RepeatedTimerTask::on_timedout(void *arg) {
-        // Start a bthread to invoke run() so we won't block the timer thread.
+        // Start a fiber to invoke run() so we won't block the timer thread.
         // as run() might access the disk so the time it takes is probably beyond
         // expection
-        bthread_t tid;
-        if (bthread_start_background(
+        fiber_t tid;
+        if (fiber_start_background(
                 &tid, NULL, run_on_timedout_in_new_thread, arg) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             run_on_timedout_in_new_thread(arg);
         }
     }
 
     void RepeatedTimerTask::schedule(std::unique_lock<raft_mutex_t> &lck) {
         _next_duetime =
-                butil::milliseconds_from_now(adjust_timeout_ms(_timeout_ms));
-        if (bthread_timer_add(&_timer, _next_duetime, on_timedout, this) != 0) {
+                mutil::milliseconds_from_now(adjust_timeout_ms(_timeout_ms));
+        if (fiber_timer_add(&_timer, _next_duetime, on_timedout, this) != 0) {
             lck.unlock();
             LOG(ERROR) << "Fail to add timer";
             return on_timedout(this);
@@ -132,7 +130,7 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         BRAFT_RETURN_IF(_stopped);
         CHECK(_running);
-        const int rc = bthread_timer_del(_timer);
+        const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             return schedule(lck);
         }
@@ -144,7 +142,7 @@ namespace melon::raft {
         _timeout_ms = timeout_ms;
         BRAFT_RETURN_IF(_stopped);
         CHECK(_running);
-        const int rc = bthread_timer_del(_timer);
+        const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             return schedule(lck);
         }
@@ -163,7 +161,7 @@ namespace melon::raft {
         }
         BRAFT_RETURN_IF(_stopped);
         _stopped = true;
-        const int rc = bthread_timer_del(_timer);
+        const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             _running = false;
             lck.unlock();
@@ -195,7 +193,7 @@ namespace melon::raft {
                 os << " INVOKING";
             } else {
                 os << " SCHEDULING(in "
-                   << butil::timespec_to_milliseconds(duetime) - butil::gettimeofday_ms()
+                   << mutil::timespec_to_milliseconds(duetime) - mutil::gettimeofday_ms()
                    << "ms)";
             }
         }

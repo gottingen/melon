@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <algorithm>   // for min()
 
-#include "melon/butil/atomicops.h"
+#include "melon/utility/atomicops.h"
 #include <gtest/gtest.h>
 
 // Number of bits in a size_t.
@@ -104,47 +104,47 @@ static void TestAtomicIncrement() {
   s.count = 0;
   s.next_word = next_word_value;
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, 1), 1);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, 1), 1);
   EXPECT_EQ(s.count, 1);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, 2), 3);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, 2), 3);
   EXPECT_EQ(s.count, 3);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, 3), 6);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, 3), 6);
   EXPECT_EQ(s.count, 6);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, -3), 3);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, -3), 3);
   EXPECT_EQ(s.count, 3);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, -2), 1);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, -2), 1);
   EXPECT_EQ(s.count, 1);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, -1), 0);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, -1), 0);
   EXPECT_EQ(s.count, 0);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, -1), -1);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, -1), -1);
   EXPECT_EQ(s.count, -1);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, -4), -5);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, -4), -5);
   EXPECT_EQ(s.count, -5);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
 
-  EXPECT_EQ(butil::subtle::NoBarrier_AtomicIncrement(&s.count, 5), 0);
+  EXPECT_EQ(mutil::subtle::NoBarrier_AtomicIncrement(&s.count, 5), 0);
   EXPECT_EQ(s.count, 0);
   EXPECT_EQ(s.prev_word, prev_word_value);
   EXPECT_EQ(s.next_word, next_word_value);
@@ -157,7 +157,7 @@ static void TestAtomicIncrement() {
 template <class AtomicType>
 static void TestCompareAndSwap() {
   AtomicType value = 0;
-  AtomicType prev = butil::subtle::NoBarrier_CompareAndSwap(&value, 0, 1);
+  AtomicType prev = mutil::subtle::NoBarrier_CompareAndSwap(&value, 0, 1);
   EXPECT_EQ(1, value);
   EXPECT_EQ(0, prev);
 
@@ -166,12 +166,12 @@ static void TestCompareAndSwap() {
   const AtomicType k_test_val = (static_cast<uint64_t>(1) <<
                                  (NUM_BITS(AtomicType) - 2)) + 11;
   value = k_test_val;
-  prev = butil::subtle::NoBarrier_CompareAndSwap(&value, 0, 5);
+  prev = mutil::subtle::NoBarrier_CompareAndSwap(&value, 0, 5);
   EXPECT_EQ(k_test_val, value);
   EXPECT_EQ(k_test_val, prev);
 
   value = k_test_val;
-  prev = butil::subtle::NoBarrier_CompareAndSwap(&value, k_test_val, 5);
+  prev = mutil::subtle::NoBarrier_CompareAndSwap(&value, k_test_val, 5);
   EXPECT_EQ(5, value);
   EXPECT_EQ(k_test_val, prev);
 }
@@ -180,7 +180,7 @@ static void TestCompareAndSwap() {
 template <class AtomicType>
 static void TestAtomicExchange() {
   AtomicType value = 0;
-  AtomicType new_value = butil::subtle::NoBarrier_AtomicExchange(&value, 1);
+  AtomicType new_value = mutil::subtle::NoBarrier_AtomicExchange(&value, 1);
   EXPECT_EQ(1, value);
   EXPECT_EQ(0, new_value);
 
@@ -189,12 +189,12 @@ static void TestAtomicExchange() {
   const AtomicType k_test_val = (static_cast<uint64_t>(1) <<
                                  (NUM_BITS(AtomicType) - 2)) + 11;
   value = k_test_val;
-  new_value = butil::subtle::NoBarrier_AtomicExchange(&value, k_test_val);
+  new_value = mutil::subtle::NoBarrier_AtomicExchange(&value, k_test_val);
   EXPECT_EQ(k_test_val, value);
   EXPECT_EQ(k_test_val, new_value);
 
   value = k_test_val;
-  new_value = butil::subtle::NoBarrier_AtomicExchange(&value, 5);
+  new_value = mutil::subtle::NoBarrier_AtomicExchange(&value, 5);
   EXPECT_EQ(5, value);
   EXPECT_EQ(k_test_val, new_value);
 }
@@ -206,11 +206,11 @@ static void TestAtomicIncrementBounds() {
   // It is primarily for testing at the 32-bit boundary for 64-bit atomic type.
   AtomicType test_val = static_cast<uint64_t>(1) << (NUM_BITS(AtomicType) / 2);
   AtomicType value = test_val - 1;
-  AtomicType new_value = butil::subtle::NoBarrier_AtomicIncrement(&value, 1);
+  AtomicType new_value = mutil::subtle::NoBarrier_AtomicIncrement(&value, 1);
   EXPECT_EQ(test_val, value);
   EXPECT_EQ(value, new_value);
 
-  butil::subtle::NoBarrier_AtomicIncrement(&value, -1);
+  mutil::subtle::NoBarrier_AtomicIncrement(&value, -1);
   EXPECT_EQ(test_val - 1, value);
 }
 
@@ -223,19 +223,19 @@ static void TestStore() {
 
   AtomicType value;
 
-  butil::subtle::NoBarrier_Store(&value, kVal1);
+  mutil::subtle::NoBarrier_Store(&value, kVal1);
   EXPECT_EQ(kVal1, value);
-  butil::subtle::NoBarrier_Store(&value, kVal2);
+  mutil::subtle::NoBarrier_Store(&value, kVal2);
   EXPECT_EQ(kVal2, value);
 
-  butil::subtle::Acquire_Store(&value, kVal1);
+  mutil::subtle::Acquire_Store(&value, kVal1);
   EXPECT_EQ(kVal1, value);
-  butil::subtle::Acquire_Store(&value, kVal2);
+  mutil::subtle::Acquire_Store(&value, kVal2);
   EXPECT_EQ(kVal2, value);
 
-  butil::subtle::Release_Store(&value, kVal1);
+  mutil::subtle::Release_Store(&value, kVal1);
   EXPECT_EQ(kVal1, value);
-  butil::subtle::Release_Store(&value, kVal2);
+  mutil::subtle::Release_Store(&value, kVal2);
   EXPECT_EQ(kVal2, value);
 }
 
@@ -249,19 +249,19 @@ static void TestLoad() {
   AtomicType value;
 
   value = kVal1;
-  EXPECT_EQ(kVal1, butil::subtle::NoBarrier_Load(&value));
+  EXPECT_EQ(kVal1, mutil::subtle::NoBarrier_Load(&value));
   value = kVal2;
-  EXPECT_EQ(kVal2, butil::subtle::NoBarrier_Load(&value));
+  EXPECT_EQ(kVal2, mutil::subtle::NoBarrier_Load(&value));
 
   value = kVal1;
-  EXPECT_EQ(kVal1, butil::subtle::Acquire_Load(&value));
+  EXPECT_EQ(kVal1, mutil::subtle::Acquire_Load(&value));
   value = kVal2;
-  EXPECT_EQ(kVal2, butil::subtle::Acquire_Load(&value));
+  EXPECT_EQ(kVal2, mutil::subtle::Acquire_Load(&value));
 
   value = kVal1;
-  EXPECT_EQ(kVal1, butil::subtle::Release_Load(&value));
+  EXPECT_EQ(kVal1, mutil::subtle::Release_Load(&value));
   value = kVal2;
-  EXPECT_EQ(kVal2, butil::subtle::Release_Load(&value));
+  EXPECT_EQ(kVal2, mutil::subtle::Release_Load(&value));
 }
 
 template <class AtomicType>
@@ -336,19 +336,19 @@ static void TestNothrowNew(void* (*func)(size_t)) {
 //-----------------------------------------------------------------------------
 
 TEST(Atomics, AtomicIncrementWord) {
-    TestAtomicIncrement<butil::subtle::AtomicWord>();
+    TestAtomicIncrement<mutil::subtle::AtomicWord>();
 }
 
 TEST(Atomics, AtomicIncrement32) {
-    TestAtomicIncrement<butil::subtle::Atomic32>();
+    TestAtomicIncrement<mutil::subtle::Atomic32>();
 }
 
 TEST(Atomics, AtomicOpsWord) {
-    TestAtomicIncrement<butil::subtle::AtomicWord>();
+    TestAtomicIncrement<mutil::subtle::AtomicWord>();
 }
 
 TEST(Atomics, AtomicOps32) {
-    TestAtomicIncrement<butil::subtle::Atomic32>();
+    TestAtomicIncrement<mutil::subtle::Atomic32>();
 }
 
 TEST(Allocators, Malloc) {

@@ -24,13 +24,13 @@
 #include <fcntl.h>  // F_GETFD
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include "melon/butil/gperftools_profiler.h"
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/fd_utility.h"
-#include <melon/butil/fd_guard.h>
-#include "melon/bthread/unstable.h"
-#include "melon/bthread/task_control.h"
+#include "melon/utility/gperftools_profiler.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fd_utility.h"
+#include <melon/utility/fd_guard.h>
+#include "melon/fiber/unstable.h"
+#include "melon/fiber/task_control.h"
 #include "melon/rpc/socket.h"
 #include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/acceptor.h"
@@ -49,7 +49,7 @@
 
 #define CONNECT_IN_KEEPWRITE 1;
 
-namespace bthread {
+namespace fiber {
 extern TaskControl* g_task_control;
 }
 
@@ -78,18 +78,18 @@ int main(int argc, char* argv[]) {
 }
 
 struct WaitData {
-    bthread_id_t id;
+    fiber_session_t id;
     int error_code;
     std::string error_text;
 
-    WaitData() : id(INVALID_BTHREAD_ID), error_code(0) {}
+    WaitData() : id(INVALID_FIBER_ID), error_code(0) {}
 };
-int OnWaitIdReset(bthread_id_t id, void* data, int error_code,
+int OnWaitIdReset(fiber_session_t id, void* data, int error_code,
                   const std::string& error_text) {
     static_cast<WaitData*>(data)->id = id;
     static_cast<WaitData*>(data)->error_code = error_code;
     static_cast<WaitData*>(data)->error_text = error_text;
-    return bthread_id_unlock_and_destroy(id);
+    return fiber_session_unlock_and_destroy(id);
 }
 
 class SocketTest : public ::testing::Test{
@@ -119,7 +119,7 @@ TEST_F(SocketTest, not_recycle_until_zero_nref) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     melon::SocketId id = 8888;
-    butil::EndPoint dummy;
+    mutil::EndPoint dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::SocketOptions options;
     options.fd = fds[1];
@@ -144,11 +144,11 @@ TEST_F(SocketTest, not_recycle_until_zero_nref) {
     ASSERT_EQ(-1, melon::Socket::Address(id, &ptr));
 }
 
-butil::atomic<int> winner_count(0);
+mutil::atomic<int> winner_count(0);
 const int AUTH_ERR = -9;
 
 void* auth_fighter(void* arg) {
-    bthread_usleep(10000);
+    fiber_usleep(10000);
     int auth_error = 0;
     melon::Socket* s = (melon::Socket*)arg;
     if (s->FightAuthentication(&auth_error) == 0) {
@@ -167,12 +167,12 @@ TEST_F(SocketTest, authentication) {
     melon::SocketUniquePtr s;
     ASSERT_EQ(0, melon::Socket::Address(id, &s));
     
-    bthread_t th[64];
+    fiber_t th[64];
     for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
-        ASSERT_EQ(0, bthread_start_urgent(&th[i], NULL, auth_fighter, s.get()));
+        ASSERT_EQ(0, fiber_start_urgent(&th[i], NULL, auth_fighter, s.get()));
     }
     for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
-        ASSERT_EQ(0, bthread_join(th[i], NULL));
+        ASSERT_EQ(0, fiber_join(th[i], NULL));
     }
     // Only one fighter wins
     ASSERT_EQ(1, winner_count.load());
@@ -185,19 +185,19 @@ TEST_F(SocketTest, authentication) {
     ASSERT_TRUE(melon::Socket::Address(s->id(), NULL));
 }
 
-static butil::atomic<int> g_called_seq(1);
+static mutil::atomic<int> g_called_seq(1);
 class MyMessage : public melon::SocketMessage {
 public:
     MyMessage(const char* str, size_t len, int* called = NULL)
         : _str(str), _len(len), _called(called) {}
 private:
-    butil::Status AppendAndDestroySelf(butil::IOBuf* out_buf, melon::Socket*) {
+    mutil::Status AppendAndDestroySelf(mutil::IOBuf* out_buf, melon::Socket*) {
         out_buf->append(_str, _len);
         if (_called) {
-            *_called = g_called_seq.fetch_add(1, butil::memory_order_relaxed);
+            *_called = g_called_seq.fetch_add(1, mutil::memory_order_relaxed);
         }
         delete this;
-        return butil::Status::OK();
+        return mutil::Status::OK();
     };
     const char* _str;
     size_t _len;
@@ -206,19 +206,19 @@ private:
 
 class MyErrorMessage : public melon::SocketMessage {
 public:
-    explicit MyErrorMessage(const butil::Status& st) : _status(st) {}
+    explicit MyErrorMessage(const mutil::Status& st) : _status(st) {}
 private:
-    butil::Status AppendAndDestroySelf(butil::IOBuf*, melon::Socket*) {
+    mutil::Status AppendAndDestroySelf(mutil::IOBuf*, melon::Socket*) {
         return _status;
     };
-    butil::Status _status;
+    mutil::Status _status;
 };
 
 TEST_F(SocketTest, single_threaded_write) {
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
     melon::SocketId id = 8888;
-    butil::EndPoint dummy;
+    mutil::EndPoint dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::SocketOptions options;
     options.fd = fds[1];
@@ -242,14 +242,14 @@ TEST_F(SocketTest, single_threaded_write) {
                 ASSERT_EQ(0, s->Write(msg));
             } else if (i % 4 == 1) {
                 melon::SocketMessagePtr<MyErrorMessage> msg(
-                    new MyErrorMessage(butil::Status(EINVAL, "Invalid input")));
-                bthread_id_t wait_id;
+                    new MyErrorMessage(mutil::Status(EINVAL, "Invalid input")));
+                fiber_session_t wait_id;
                 WaitData data;
-                ASSERT_EQ(0, bthread_id_create2(&wait_id, &data, OnWaitIdReset));
+                ASSERT_EQ(0, fiber_session_create2(&wait_id, &data, OnWaitIdReset));
                 melon::Socket::WriteOptions wopt;
                 wopt.id_wait = wait_id;
                 ASSERT_EQ(0, s->Write(msg, &wopt));
-                ASSERT_EQ(0, bthread_id_join(wait_id));
+                ASSERT_EQ(0, fiber_session_join(wait_id));
                 ASSERT_EQ(wait_id.value, data.id.value);
                 ASSERT_EQ(EINVAL, data.error_code);
                 ASSERT_EQ("Invalid input", data.error_text);
@@ -277,7 +277,7 @@ TEST_F(SocketTest, single_threaded_write) {
                     ASSERT_LT(seq[j-1], seq[j]) << "j=" << j;
                 }
             } else {
-                butil::IOBuf src;
+                mutil::IOBuf src;
                 src.append(buf);
                 ASSERT_EQ(len, src.length());
                 ASSERT_EQ(0, s->Write(&src));
@@ -296,7 +296,7 @@ TEST_F(SocketTest, single_threaded_write) {
 void EchoProcessHuluRequest(melon::InputMessageBase* msg_base) {
     melon::DestroyingPtr<melon::policy::MostCommonMessage> msg(
         static_cast<melon::policy::MostCommonMessage*>(msg_base));
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     buf.append(msg->meta);
     buf.append(msg->payload);
     ASSERT_EQ(0, msg->socket()->Write(&buf));
@@ -334,10 +334,10 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
           EchoProcessHuluRequest, NULL, NULL, "dummy_hulu" }
     };
 
-    butil::EndPoint point(butil::IP_ANY, 7878);
+    mutil::EndPoint point(mutil::IP_ANY, 7878);
     int listening_fd = tcp_listen(point);
     ASSERT_TRUE(listening_fd > 0);
-    butil::make_non_blocking(listening_fd);
+    mutil::make_non_blocking(listening_fd);
     ASSERT_EQ(0, messenger->AddHandler(pairs[0]));
     ASSERT_EQ(0, messenger->StartAccept(listening_fd, -1, NULL, false));
 
@@ -374,7 +374,7 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
                     new MyMessage(buf, 12 + meta_len + len, &called));
                 ASSERT_EQ(0, s->Write(msg));
             } else {
-                butil::IOBuf src;
+                mutil::IOBuf src;
                 src.append(buf, 12 + meta_len + len);
                 ASSERT_EQ(12 + meta_len + len, src.length());
                 ASSERT_EQ(0, s->Write(&src));
@@ -383,22 +383,22 @@ TEST_F(SocketTest, single_threaded_connect_and_write) {
             if (i == 0) {
                 // connection needs to be established at first time.
                 // Should be intentionally blocked in app_connect.
-                bthread_usleep(10000);
+                fiber_usleep(10000);
                 ASSERT_TRUE(my_connect->is_start_connect_called());
                 ASSERT_LT(0, s->fd()); // already tcp connected
                 ASSERT_EQ(0, called); // request is not serialized yet.
                 my_connect->MakeConnectDone();
                 ASSERT_LT(0, called); // serialized
             }
-            int64_t start_time = butil::gettimeofday_us();
+            int64_t start_time = mutil::gettimeofday_us();
             while (s->fd() < 0) {
-                bthread_usleep(1000);
-                ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
+                fiber_usleep(1000);
+                ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
             }
 #if defined(OS_LINUX)
-            ASSERT_EQ(0, bthread_fd_wait(s->fd(), EPOLLIN));
+            ASSERT_EQ(0, fiber_fd_wait(s->fd(), EPOLLIN));
 #elif defined(OS_MACOSX)
-            ASSERT_EQ(0, bthread_fd_wait(s->fd(), EVFILT_READ));
+            ASSERT_EQ(0, fiber_fd_wait(s->fd(), EVFILT_READ));
 #endif
             char dest[sizeof(buf)];
             ASSERT_EQ(meta_len + len, (size_t)read(s->fd(), dest, sizeof(dest)));
@@ -434,16 +434,16 @@ void* FailedWriter(void* void_arg) {
     }
     char buf[32];
     for (size_t i = 0; i < arg->times; ++i) {
-        bthread_id_t id;
-        EXPECT_EQ(0, bthread_id_create(&id, NULL, NULL));
-        snprintf(buf, sizeof(buf), "%0" BAIDU_SYMBOLSTR(NUMBER_WIDTH) "lu",
+        fiber_session_t id;
+        EXPECT_EQ(0, fiber_session_create(&id, NULL, NULL));
+        snprintf(buf, sizeof(buf), "%0" MELON_SYMBOLSTR(NUMBER_WIDTH) "lu",
                  i + arg->offset);
-        butil::IOBuf src;
+        mutil::IOBuf src;
         src.append(buf);
         melon::Socket::WriteOptions wopt;
         wopt.id_wait = id;
         sock->Write(&src, &wopt);
-        EXPECT_EQ(0, bthread_id_join(id));
+        EXPECT_EQ(0, fiber_session_join(id));
         // Only the first connect can see ECONNREFUSED and then
         // calls `SetFailed' making others' error_code=EINVAL
         //EXPECT_EQ(ECONNREFUSED, error_code);
@@ -453,7 +453,7 @@ void* FailedWriter(void* void_arg) {
 
 TEST_F(SocketTest, fail_to_connect) {
     const size_t REP = 10;
-    butil::EndPoint point(butil::IP_ANY, 7563/*not listened*/);
+    mutil::EndPoint point(mutil::IP_ANY, 7563/*not listened*/);
     melon::SocketId id = 8888;
     melon::SocketOptions options;
     options.remote_side = point;
@@ -482,10 +482,10 @@ TEST_F(SocketTest, fail_to_connect) {
         ASSERT_EQ(-1, s->fd());
     }
     // KeepWrite is possibly still running.
-    int64_t start_time = butil::gettimeofday_us();
+    int64_t start_time = mutil::gettimeofday_us();
     while (global_sock != NULL) {
-        bthread_usleep(1000);
-        ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
+        fiber_usleep(1000);
+        ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
     }
     ASSERT_EQ(-1, melon::Socket::Status(id));
     // The id is invalid.
@@ -495,7 +495,7 @@ TEST_F(SocketTest, fail_to_connect) {
 
 TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
     melon::SocketId id = 8888;
-    butil::EndPoint point(butil::IP_ANY, 7584/*not listened*/);
+    mutil::EndPoint point(mutil::IP_ANY, 7584/*not listened*/);
     melon::SocketOptions options;
     options.remote_side = point;
     options.user = new CheckRecycle;
@@ -521,20 +521,20 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
         // HULU uses host byte order directly...
         *(uint32_t*)(buf + 4) = len + meta_len;
         *(uint32_t*)(buf + 8) = meta_len;
-        butil::IOBuf src;
+        mutil::IOBuf src;
         src.append(buf, 12 + meta_len + len);
         ASSERT_EQ(12 + meta_len + len, src.length());
 #ifdef CONNECT_IN_KEEPWRITE
-        bthread_id_t wait_id;
+        fiber_session_t wait_id;
         WaitData data;
-        ASSERT_EQ(0, bthread_id_create2(&wait_id, &data, OnWaitIdReset));
+        ASSERT_EQ(0, fiber_session_create2(&wait_id, &data, OnWaitIdReset));
         melon::Socket::WriteOptions wopt;
         wopt.id_wait = wait_id;
         ASSERT_EQ(0, s->Write(&src, &wopt));
-        ASSERT_EQ(0, bthread_id_join(wait_id));
+        ASSERT_EQ(0, fiber_session_join(wait_id));
         ASSERT_EQ(wait_id.value, data.id.value);
         ASSERT_EQ(ECONNREFUSED, data.error_code);
-        ASSERT_TRUE(butil::StringPiece(data.error_text).starts_with(
+        ASSERT_TRUE(mutil::StringPiece(data.error_text).starts_with(
                         "Fail to connect "));
 #else
         ASSERT_EQ(-1, s->Write(&src));
@@ -547,10 +547,10 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
     // is NULL(set in CheckRecycle::BeforeRecycle). Notice that you should
     // not spin until Socket::Status(id) becomes -1 and assert global_sock
     // to be NULL because invalidating id happens before calling BeforeRecycle.
-    const int64_t start_time = butil::gettimeofday_us();
+    const int64_t start_time = mutil::gettimeofday_us();
     while (global_sock != NULL) {
-        bthread_usleep(1000);
-        ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L);
+        fiber_usleep(1000);
+        ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L);
     }
     ASSERT_EQ(-1, melon::Socket::Status(id));
 }
@@ -568,7 +568,7 @@ public:
         melon::ClosureGuard done_guard(done);
         melon::Controller* cntl = (melon::Controller*)cntl_base;
         if (_sleep_flag) {
-            bthread_usleep(510000 /* 510ms, a little bit longer than the default
+            fiber_usleep(510000 /* 510ms, a little bit longer than the default
                                      timeout of health check rpc */);
         }
         cntl->response_attachment().append("OK");
@@ -582,7 +582,7 @@ TEST_F(SocketTest, app_level_health_check) {
     GFLAGS_NS::SetCommandLineOption("health_check_path", "/HealthCheckTestService");
     GFLAGS_NS::SetCommandLineOption("health_check_interval", "1");
 
-    butil::EndPoint point(butil::IP_ANY, 7777);
+    mutil::EndPoint point(mutil::IP_ANY, 7777);
     melon::ChannelOptions options;
     options.protocol = "http";
     options.max_retry = 0;
@@ -600,12 +600,12 @@ TEST_F(SocketTest, app_level_health_check) {
     // sending-rpc state. Because the remote is not down, so hc rpc would keep
     // sending.
     int listening_fd = tcp_listen(point);
-    bthread_usleep(2000000);
+    fiber_usleep(2000000);
 
     // 2s to make sure HealthCheckTask find socket is failed and correct impl
     // should trigger next round of hc
     close(listening_fd);
-    bthread_usleep(2000000);
+    fiber_usleep(2000000);
    
     melon::Server server;
     HealthCheckTestServiceImpl hc_service;
@@ -619,10 +619,10 @@ TEST_F(SocketTest, app_level_health_check) {
         cntl.http_request().uri() = "/";
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_EQ(EHOSTDOWN, cntl.ErrorCode());
-        bthread_usleep(1000000 /*1s*/);
+        fiber_usleep(1000000 /*1s*/);
     }
     hc_service._sleep_flag = false;
-    bthread_usleep(2000000 /* a little bit longer than hc rpc timeout + hc interval */);
+    fiber_usleep(2000000 /* a little bit longer than hc rpc timeout + hc interval */);
     // should recover now
     {
         melon::Controller cntl;
@@ -643,7 +643,7 @@ TEST_F(SocketTest, health_check) {
     melon::Acceptor* messenger = new melon::Acceptor;
 
     melon::SocketId id = 8888;
-    butil::EndPoint point(butil::IP_ANY, 7878);
+    mutil::EndPoint point(mutil::IP_ANY, 7878);
     const int kCheckInteval = 1;
     melon::SocketOptions options;
     options.remote_side = point;
@@ -673,10 +673,10 @@ TEST_F(SocketTest, health_check) {
     // HULU uses host byte order directly...
     *(uint32_t*)(buf + 4) = len + meta_len;
     *(uint32_t*)(buf + 8) = meta_len;
-    const bool use_my_message = (butil::fast_rand_less_than(2) == 0);
+    const bool use_my_message = (mutil::fast_rand_less_than(2) == 0);
     melon::SocketMessagePtr<MyMessage> msg;
     int appended_msg = 0;
-    butil::IOBuf src;
+    mutil::IOBuf src;
     if (use_my_message) {
         LOG(INFO) << "Use MyMessage";
         msg.reset(new MyMessage(buf, 12 + meta_len + len, &appended_msg));
@@ -685,9 +685,9 @@ TEST_F(SocketTest, health_check) {
         ASSERT_EQ(12 + meta_len + len, src.length());
     }
 #ifdef CONNECT_IN_KEEPWRITE
-    bthread_id_t wait_id;
+    fiber_session_t wait_id;
     WaitData data;
-    ASSERT_EQ(0, bthread_id_create2(&wait_id, &data, OnWaitIdReset));
+    ASSERT_EQ(0, fiber_session_create2(&wait_id, &data, OnWaitIdReset));
     melon::Socket::WriteOptions wopt;
     wopt.id_wait = wait_id;
     if (use_my_message) {
@@ -695,10 +695,10 @@ TEST_F(SocketTest, health_check) {
     } else {
         ASSERT_EQ(0, s->Write(&src, &wopt));
     }
-    ASSERT_EQ(0, bthread_id_join(wait_id));
+    ASSERT_EQ(0, fiber_session_join(wait_id));
     ASSERT_EQ(wait_id.value, data.id.value);
     ASSERT_EQ(ECONNREFUSED, data.error_code);
-    ASSERT_TRUE(butil::StringPiece(data.error_text).starts_with(
+    ASSERT_TRUE(mutil::StringPiece(data.error_text).starts_with(
                     "Fail to connect "));
     if (use_my_message) {
         ASSERT_TRUE(appended_msg);
@@ -725,15 +725,15 @@ TEST_F(SocketTest, health_check) {
 
     int listening_fd = tcp_listen(point);
     ASSERT_TRUE(listening_fd > 0);
-    butil::make_non_blocking(listening_fd);
+    mutil::make_non_blocking(listening_fd);
     ASSERT_EQ(0, messenger->AddHandler(pairs[0]));
     ASSERT_EQ(0, messenger->StartAccept(listening_fd, -1, NULL, false));
 
-    int64_t start_time = butil::gettimeofday_us();
+    int64_t start_time = mutil::gettimeofday_us();
     nref = -1;
     while (melon::Socket::Status(id, &nref) != 0) {
-        bthread_usleep(1000);
-        ASSERT_LT(butil::gettimeofday_us(),
+        fiber_usleep(1000);
+        ASSERT_LT(mutil::gettimeofday_us(),
                   start_time + kCheckInteval * 1000000L + 100000L/*100ms*/);
     }
     //ASSERT_EQ(2, nref);
@@ -750,10 +750,10 @@ TEST_F(SocketTest, health_check) {
     // SetFailed again, should reconnect and succeed soon.
     ASSERT_EQ(0, s->SetFailed());
     ASSERT_EQ(fd, s->fd());
-    start_time = butil::gettimeofday_us();
+    start_time = mutil::gettimeofday_us();
     while (melon::Socket::Status(id) != 0) {
-        bthread_usleep(1000);
-        ASSERT_LT(butil::gettimeofday_us(), start_time + 1200000L);
+        fiber_usleep(1000);
+        ASSERT_LT(mutil::gettimeofday_us(), start_time + 1200000L);
     }
     ASSERT_TRUE(global_sock);
 
@@ -774,10 +774,10 @@ TEST_F(SocketTest, health_check) {
 
     ASSERT_EQ(0, melon::Socket::SetFailed(id));
     // StartHealthCheck is possibly still addressing the Socket.
-    start_time = butil::gettimeofday_us();
+    start_time = mutil::gettimeofday_us();
     while (global_sock != NULL) {
-        bthread_usleep(1000);
-        ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L);
+        fiber_usleep(1000);
+        ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L);
     }
     ASSERT_EQ(-1, melon::Socket::Status(id));
     // The id is invalid.
@@ -794,14 +794,14 @@ void* Writer(void* void_arg) {
     }
     char buf[32];
     for (size_t i = 0; i < arg->times; ++i) {
-        snprintf(buf, sizeof(buf), "%0" BAIDU_SYMBOLSTR(NUMBER_WIDTH) "lu",
+        snprintf(buf, sizeof(buf), "%0" MELON_SYMBOLSTR(NUMBER_WIDTH) "lu",
                  i + arg->offset);
-        butil::IOBuf src;
+        mutil::IOBuf src;
         src.append(buf);
         if (sock->Write(&src) != 0) {
             if (errno == melon::EOVERCROWDED) {
                 // The buf is full, sleep a while and retry.
-                bthread_usleep(1000);
+                fiber_usleep(1000);
                 --i;
                 continue;
             }
@@ -825,7 +825,7 @@ TEST_F(SocketTest, multi_threaded_write) {
         result.reserve(ARRAY_SIZE(th) * REP);
 
         melon::SocketId id = 8888;
-        butil::EndPoint dummy;
+        mutil::EndPoint dummy;
         ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
         melon::SocketOptions options;
         options.fd = fds[1];
@@ -840,7 +840,7 @@ TEST_F(SocketTest, multi_threaded_write) {
         ASSERT_EQ(fds[1], s->fd());
         ASSERT_EQ(dummy, s->remote_side());
         ASSERT_EQ(id, s->id());
-        butil::make_non_blocking(fds[0]);
+        mutil::make_non_blocking(fds[0]);
 
         for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
             args[i].times = REP;
@@ -851,11 +851,11 @@ TEST_F(SocketTest, multi_threaded_write) {
 
         if (k == 1) {
             printf("sleep 100ms to block writers\n");
-            bthread_usleep(100000);
+            fiber_usleep(100000);
         }
         
-        butil::IOPortal dest;
-        const int64_t start_time = butil::gettimeofday_us();
+        mutil::IOPortal dest;
+        const int64_t start_time = mutil::gettimeofday_us();
         for (;;) {
             ssize_t nr = dest.append_from_file_descriptor(fds[0], 32768);
             if (nr < 0) {
@@ -865,8 +865,8 @@ TEST_F(SocketTest, multi_threaded_write) {
                 if (EAGAIN != errno) {
                     ASSERT_EQ(EAGAIN, errno) << berror();
                 }
-                bthread_usleep(1000);
-                if (butil::gettimeofday_us() >= start_time + 2000000L) {
+                fiber_usleep(1000);
+                if (mutil::gettimeofday_us() >= start_time + 2000000L) {
                     LOG(FATAL) << "Wait too long!";
                     break;
                 }
@@ -887,7 +887,7 @@ TEST_F(SocketTest, multi_threaded_write) {
             ASSERT_EQ(0, pthread_join(th[i], NULL));
         }
         ASSERT_TRUE(dest.empty());
-        bthread::g_task_control->print_rq_sizes(std::cout);
+        fiber::g_task_control->print_rq_sizes(std::cout);
         std::cout << std::endl;
 
         ASSERT_EQ(REP * ARRAY_SIZE(th), result.size()) 
@@ -914,16 +914,16 @@ void* FastWriter(void* void_arg) {
         return NULL;
     }
     char buf[] = "hello reader side!";
-    int64_t begin_ts = butil::cpuwide_time_us();
+    int64_t begin_ts = mutil::cpuwide_time_us();
     int64_t nretry = 0;
     size_t c = 0;
     for (; c < arg->times; ++c) {
-        butil::IOBuf src;
+        mutil::IOBuf src;
         src.append(buf, 16);
         if (sock->Write(&src) != 0) {
             if (errno == melon::EOVERCROWDED) {
                 // The buf is full, sleep a while and retry.
-                bthread_usleep(1000);
+                fiber_usleep(1000);
                 --c;
                 ++nretry;
                 continue;
@@ -933,7 +933,7 @@ void* FastWriter(void* void_arg) {
             break;
         }
     }
-    int64_t end_ts = butil::cpuwide_time_us();
+    int64_t end_ts = mutil::cpuwide_time_us();
     int64_t total_time = end_ts - begin_ts;
     printf("total=%ld count=%ld nretry=%ld\n",
            (long)total_time * 1000/ c, (long)c, (long)nretry);
@@ -967,11 +967,11 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
     const size_t REP = 1000000000;
     int fds[2];
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
-    bthread_t th[3];
+    fiber_t th[3];
     WriterArg args[ARRAY_SIZE(th)];
 
     melon::SocketId id = 8888;
-    butil::EndPoint dummy;
+    mutil::EndPoint dummy;
     ASSERT_EQ(0, str2endpoint("192.168.1.26:8080", &dummy));
     melon::SocketOptions options;
     options.fd = fds[1];
@@ -992,14 +992,14 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
         args[i].times = REP;
         args[i].offset = i * REP;
         args[i].socket_id = id;
-        bthread_start_background(&th[i], NULL, FastWriter, &args[i]);
+        fiber_start_background(&th[i], NULL, FastWriter, &args[i]);
     }
 
     pthread_t rth;
     ReaderArg reader_arg = { fds[0], 0 };
     pthread_create(&rth, NULL, reader, &reader_arg);
 
-    butil::Timer tm;
+    mutil::Timer tm;
     ProfilerStart("write.prof");
     const uint64_t old_nread = reader_arg.nread;
     tm.start();
@@ -1014,7 +1014,7 @@ TEST_F(SocketTest, multi_threaded_write_perf) {
         args[i].times = 0;
     }
     for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
-        ASSERT_EQ(0, bthread_join(th[i], NULL));
+        ASSERT_EQ(0, fiber_join(th[i], NULL));
     }
     ASSERT_EQ(0, s->SetFailed());
     s.release()->Dereference();
@@ -1098,7 +1098,7 @@ TEST_F(SocketTest, keepalive) {
     int default_keepalive_interval = 0;
     int default_keepalive_count = 0;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         GetKeepaliveValue(sockfd,
                           default_keepalive,
                           default_keepalive_idle,
@@ -1108,7 +1108,7 @@ TEST_F(SocketTest, keepalive) {
 
     // Disable keepalive.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         melon::SocketId id;
@@ -1124,7 +1124,7 @@ TEST_F(SocketTest, keepalive) {
     int keepalive_count = 2;
     // Enable keepalive.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1142,7 +1142,7 @@ TEST_F(SocketTest, keepalive) {
 
     // Enable keepalive and set keepalive idle.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1162,7 +1162,7 @@ TEST_F(SocketTest, keepalive) {
 
     // Enable keepalive and set keepalive interval.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1182,7 +1182,7 @@ TEST_F(SocketTest, keepalive) {
 
     // Enable keepalive and set keepalive count.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1202,7 +1202,7 @@ TEST_F(SocketTest, keepalive) {
 
     // Enable keepalive and set keepalive idle, interval, count.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1232,7 +1232,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     int default_keepalive_interval = 0;
     int default_keepalive_count = 0;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         GetKeepaliveValue(sockfd,
                           default_keepalive,
                           default_keepalive_idle,
@@ -1242,7 +1242,7 @@ TEST_F(SocketTest, keepalive_input_message) {
 
     // Disable keepalive.
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         melon::SocketId id;
@@ -1257,7 +1257,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     // Enable keepalive.
     melon::FLAGS_socket_keepalive = true;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         melon::SocketId id;
@@ -1276,7 +1276,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     // Enable keepalive and set keepalive idle.
     melon::FLAGS_socket_keepalive_idle_s = 10;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         melon::SocketId id;
@@ -1295,7 +1295,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     // Enable keepalive and set keepalive idle, interval.
     melon::FLAGS_socket_keepalive_interval_s = 10;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         melon::SocketId id;
@@ -1314,7 +1314,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     // Enable keepalive and set keepalive idle, interval, count.
     melon::FLAGS_socket_keepalive_count = 10;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         melon::SocketId id;
@@ -1335,7 +1335,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     int keepalive_interval = 2;
     int keepalive_count = 2;
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1355,7 +1355,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     }
 
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1375,7 +1375,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     }
 
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();
@@ -1395,7 +1395,7 @@ TEST_F(SocketTest, keepalive_input_message) {
     }
 
     {
-        butil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
+        mutil::fd_guard sockfd(socket(AF_INET, SOCK_STREAM, 0));
         melon::SocketOptions options;
         options.fd = sockfd;
         options.keepalive_options = std::make_shared<melon::SocketKeepaliveOptions>();

@@ -21,11 +21,11 @@
 #include <memory>
 #include <iostream>
 
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 
 #include "melon/var/detail/agent_group.h"
-#include "melon/butil/atomicops.h"
+#include "melon/utility/atomicops.h"
 
 #include <gtest/gtest.h>
 
@@ -42,7 +42,7 @@ const size_t OPS_PER_THREAD = 2000000;
 
 class AgentGroupTest : public testing::Test {
 protected:
-    typedef butil::atomic<uint64_t>                             agent_type;
+    typedef mutil::atomic<uint64_t>                             agent_type;
     void SetUp() {}
     void TearDown() {}
 
@@ -53,20 +53,20 @@ protected:
             EXPECT_TRUE(false);
             return NULL;
         }
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
         for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
             agent_type *element = AgentGroup<agent_type>::get_or_create_tls_agent(id);
-            uint64_t old_value = element->load(butil::memory_order_relaxed);
+            uint64_t old_value = element->load(mutil::memory_order_relaxed);
             uint64_t new_value;
             do {
                 new_value = old_value + 2;
             } while (__builtin_expect(!element->compare_exchange_weak(old_value, new_value, 
-                                                     butil::memory_order_relaxed,
-                                                     butil::memory_order_relaxed), 0));
-            //element->store(element->load(butil::memory_order_relaxed) + 2, 
-            //               butil::memory_order_relaxed);
-            //element->fetch_add(2, butil::memory_order_relaxed);
+                                                     mutil::memory_order_relaxed,
+                                                     mutil::memory_order_relaxed), 0));
+            //element->store(element->load(mutil::memory_order_relaxed) + 2,
+            //               mutil::memory_order_relaxed);
+            //element->fetch_add(2, mutil::memory_order_relaxed);
         }
         timer.stop();
         return (void *)(timer.n_elapsed());
@@ -81,13 +81,13 @@ TEST_F(AgentGroupTest, test_sanity) {
     AgentGroup<agent_type>::destroy_agent(id);
 }
 
-butil::atomic<uint64_t> g_counter(0);
+mutil::atomic<uint64_t> g_counter(0);
 
 void *global_add(void *) {
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
-        g_counter.fetch_add(2, butil::memory_order_relaxed);
+        g_counter.fetch_add(2, mutil::memory_order_relaxed);
     }
     timer.stop();
     return (void *)(timer.n_elapsed());
@@ -101,7 +101,7 @@ TEST_F(AgentGroupTest, test_perf) {
         ids[i] = AgentGroup<agent_type>::create_new_agent();
         ASSERT_TRUE(ids[i] >= 0);
     }
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < loops; ++i) {
         for (size_t j = 0; j < id_num; ++j) {
@@ -135,7 +135,7 @@ TEST_F(AgentGroupTest, test_all_perf) {
     LOG(INFO) << "ThreadAgent takes " 
               << totol_time / (OPS_PER_THREAD * ARRAY_SIZE(threads));
     totol_time = 0;
-    g_counter.store(0, butil::memory_order_relaxed);
+    g_counter.store(0, mutil::memory_order_relaxed);
     for (size_t i = 0; i < ARRAY_SIZE(threads); ++i) {
         pthread_create(&threads[i], NULL, global_add, (void *)id);
     }

@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/strings/stringprintf.h"
+#include "melon/utility/strings/stringprintf.h"
 
 #include <errno.h>
 
-#include "melon/butil/basictypes.h"
+#include "melon/utility/basictypes.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -185,4 +185,4 @@ TEST(StringPrintfTest, StringPrintfErrno) {
   EXPECT_EQ(1, errno);
 }
 
-}  // namespace butil
+}  // namespace mutil

@@ -18,7 +18,7 @@
 // Date: 2015/09/15 15:14:32
 
 #include "melon/var/detail/percentile.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 
 namespace melon::var {
     namespace detail {
@@ -110,7 +110,7 @@ namespace melon::var {
 
         Percentile &Percentile::operator<<(int64_t latency) {
             agent_type *agent = _combiner->get_or_create_tls_agent();
-            if (BAIDU_UNLIKELY(!agent)) {
+            if (MELON_UNLIKELY(!agent)) {
                 LOG(FATAL) << "Fail to create agent";
                 return *this;
             }

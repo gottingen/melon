@@ -16,16 +16,15 @@
 // under the License.
 
 
-#ifndef BRPC_CHANNEL_H
-#define BRPC_CHANNEL_H
+#ifndef MELON_RPC_CHANNEL_H_
+#define MELON_RPC_CHANNEL_H_
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include <ostream>                          // std::ostream
-#include "melon/bthread/errno.h"                  // Redefine errno
-#include "melon/butil/intrusive_ptr.hpp"          // butil::intrusive_ptr
-#include "melon/butil/ptr_container.h"
+#include "melon/fiber/errno.h"                  // Redefine errno
+#include "melon/utility/intrusive_ptr.hpp"          // mutil::intrusive_ptr
+#include "melon/utility/ptr_container.h"
 #include "melon/rpc/ssl_options.h"               // ChannelSSLOptions
 #include "melon/rpc/channel_base.h"              // ChannelBase
 #include "melon/rpc/adaptive_protocol_type.h"    // AdaptiveProtocolType
@@ -78,7 +77,7 @@ struct ChannelOptions {
 
     // Serialization protocol, defined in src/brpc/options.proto
     // NOTE: You can assign name of the protocol to this field as well, for
-    // Example: options.protocol = "baidu_std";
+    // Example: options.protocol = "melon_std";
     AdaptiveProtocolType protocol;
 
     // Type of connection to server. If unset, use the default connection type
@@ -136,7 +135,7 @@ struct ChannelOptions {
 private:
     // SSLOptions is large and not often used, allocate it on heap to
     // prevent ChannelOptions from being bloated in most cases.
-    butil::PtrContainer<ChannelSSLOptions> _ssl_options;
+    mutil::PtrContainer<ChannelSSLOptions> _ssl_options;
 };
 
 // A Channel represents a communication line to one server or multiple servers
@@ -159,7 +158,7 @@ public:
 
     // Connect this channel to a single server whose address is given by the
     // first parameter. Use default options if `options' is NULL.
-    int Init(butil::EndPoint server_addr_and_port, const ChannelOptions* options);
+    int Init(mutil::EndPoint server_addr_and_port, const ChannelOptions* options);
     int Init(const char* server_addr_and_port, const ChannelOptions* options);
     int Init(const char* server_addr, int port, const ChannelOptions* options);
 
@@ -219,14 +218,14 @@ protected:
     static void CallMethodImpl(Controller* controller, SharedLoadBalancer* lb);
 
     int InitChannelOptions(const ChannelOptions* options);
-    int InitSingle(const butil::EndPoint& server_addr_and_port,
+    int InitSingle(const mutil::EndPoint& server_addr_and_port,
                    const char* raw_server_address,
                    const ChannelOptions* options,
                    int raw_port = -1);
 
     std::string _service_name;
     std::string _scheme;
-    butil::EndPoint _server_address;
+    mutil::EndPoint _server_address;
     SocketId _server_id;
     Protocol::SerializeRequest _serialize_request;
     Protocol::PackRequest _pack_request;
@@ -235,7 +234,7 @@ protected:
     // are in the middle of RPC procedure using this channel.
     // It will be destroyed after channel's destruction and all
     // the RPC above has finished
-    butil::intrusive_ptr<SharedLoadBalancer> _lb;
+    mutil::intrusive_ptr<SharedLoadBalancer> _lb;
     ChannelOptions _options;
     int _preferred_index;
 };
@@ -247,4 +246,4 @@ enum ChannelOwnership {
 
 } // namespace melon
 
-#endif  // BRPC_CHANNEL_H
+#endif  // MELON_RPC_CHANNEL_H_

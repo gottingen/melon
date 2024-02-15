@@ -21,7 +21,7 @@
 
 #include <google/protobuf/message.h>              // Message
 #include <google/protobuf/io/gzip_stream.h>
-#include "melon/butil/iobuf.h"                           // butil::IOBuf
+#include "melon/utility/iobuf.h"                           // mutil::IOBuf
 
 
 namespace melon::compress {
@@ -29,23 +29,23 @@ namespace melon::compress {
     typedef google::protobuf::io::GzipOutputStream::Options GzipCompressOptions;
 
     // Compress serialized `msg' into `buf'.
-    bool GzipCompress(const google::protobuf::Message &msg, butil::IOBuf *buf);
+    bool GzipCompress(const google::protobuf::Message &msg, mutil::IOBuf *buf);
 
-    bool ZlibCompress(const google::protobuf::Message &msg, butil::IOBuf *buf);
+    bool ZlibCompress(const google::protobuf::Message &msg, mutil::IOBuf *buf);
 
     // Parse `msg' from decompressed `buf'.
-    bool GzipDecompress(const butil::IOBuf &buf, google::protobuf::Message *msg);
+    bool GzipDecompress(const mutil::IOBuf &buf, google::protobuf::Message *msg);
 
-    bool ZlibDecompress(const butil::IOBuf &buf, google::protobuf::Message *msg);
+    bool ZlibDecompress(const mutil::IOBuf &buf, google::protobuf::Message *msg);
 
     // Put compressed `in' into `out'.
-    bool GzipCompress(const butil::IOBuf &in, butil::IOBuf *out,
+    bool GzipCompress(const mutil::IOBuf &in, mutil::IOBuf *out,
                       const GzipCompressOptions *);
 
     // Put decompressed `in' into `out'.
-    bool GzipDecompress(const butil::IOBuf &in, butil::IOBuf *out);
+    bool GzipDecompress(const mutil::IOBuf &in, mutil::IOBuf *out);
 
-    bool ZlibDecompress(const butil::IOBuf &in, butil::IOBuf *out);
+    bool ZlibDecompress(const mutil::IOBuf &in, mutil::IOBuf *out);
 
 } // namespace melon::compress
 

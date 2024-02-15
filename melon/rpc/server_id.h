@@ -19,12 +19,11 @@
 #ifndef BRPC_SERVER_ID_H
 #define BRPC_SERVER_ID_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include <vector>
-#include "melon/butil/containers/hash_tables.h"   // hash
-#include "melon/butil/containers/flat_map.h"
+#include "melon/utility/containers/hash_tables.h"   // hash
+#include "melon/utility/containers/flat_map.h"
 #include "melon/rpc/socket_id.h"
 
 namespace melon {
@@ -71,14 +70,14 @@ public:
     // Returns list of SocketId that do not exist after.
     std::vector<SocketId>& RemoveServers(const std::vector<ServerId>& servers);
 private:
-    butil::FlatMap<SocketId, int> _nref_map;
+    mutil::FlatMap<SocketId, int> _nref_map;
     std::vector<SocketId> _tmp;
 };
 
 } // namespace melon
 
 
-namespace BUTIL_HASH_NAMESPACE {
+namespace MUTIL_HASH_NAMESPACE {
 #if defined(COMPILER_GCC)
 template<>
 struct hash<melon::ServerId> {

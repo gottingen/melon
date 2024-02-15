@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/containers/hash_tables.h"
+#include "melon/utility/containers/hash_tables.h"
 
-#include "melon/butil/basictypes.h"
+#include "melon/utility/basictypes.h"
 #include <gtest/gtest.h>
 
 namespace {
@@ -15,7 +15,7 @@ class HashPairTest : public testing::Test {
 #define INSERT_PAIR_TEST(Type, value1, value2) \
   { \
     Type pair(value1, value2); \
-    butil::hash_map<Type, int> map; \
+    mutil::hash_map<Type, int> map; \
     map[pair] = 1; \
   }
 

@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/string_splitter.h"
 #include <stdlib.h>
 
 namespace {
@@ -34,7 +34,7 @@ protected:
 
 TEST_F(StringSplitterTest, sanity) {
     const char* str = "hello there!   man ";
-    butil::StringSplitter ss(str, ' ');
+    mutil::StringSplitter ss(str, ' ');
     // "hello"
     ASSERT_TRUE(ss != NULL);
     ASSERT_EQ(5ul, ss.length());
@@ -58,7 +58,7 @@ TEST_F(StringSplitterTest, sanity) {
     ASSERT_EQ(ss.field(), str + strlen(str));
 
     // consecutive separators are treated as zero-length field inside
-    butil::StringSplitter ss2(str, ' ', butil::ALLOW_EMPTY_FIELD);
+    mutil::StringSplitter ss2(str, ' ', mutil::ALLOW_EMPTY_FIELD);
 
     // "hello"
     ASSERT_TRUE(ss2);
@@ -99,7 +99,7 @@ TEST_F(StringSplitterTest, sanity) {
 TEST_F(StringSplitterTest, single_word)
 {
     const char* str = "apple";
-    butil::StringSplitter ss(str, ' ');
+    mutil::StringSplitter ss(str, ' ');
     // "apple"
     ASSERT_TRUE(ss);
     ASSERT_EQ(5ul, ss.length());
@@ -113,7 +113,7 @@ TEST_F(StringSplitterTest, single_word)
 
 TEST_F(StringSplitterTest, starting_with_separator) {
     const char* str = "  apple";
-    butil::StringSplitter ss(str, ' ');
+    mutil::StringSplitter ss(str, ' ');
     // "apple"
     ASSERT_TRUE(ss);
     ASSERT_EQ(5ul, ss.length());
@@ -124,7 +124,7 @@ TEST_F(StringSplitterTest, starting_with_separator) {
     ASSERT_EQ(0ul, ss.length());
     ASSERT_EQ(ss.field(), str + strlen(str));
 
-    butil::StringSplitter ss2(str, ' ', butil::ALLOW_EMPTY_FIELD);
+    mutil::StringSplitter ss2(str, ' ', mutil::ALLOW_EMPTY_FIELD);
     // ""
     ASSERT_TRUE(ss2);
     ASSERT_EQ(0ul, ss2.length());
@@ -150,7 +150,7 @@ TEST_F(StringSplitterTest, starting_with_separator) {
 
 TEST_F(StringSplitterTest, site_id_as_example) {
     const char* str = "|123|12||1|21|4321";
-    butil::StringSplitter ss(str, '|');
+    mutil::StringSplitter ss(str, '|');
     ASSERT_TRUE(ss);
     ASSERT_EQ(3ul, ss.length());
     ASSERT_FALSE(strncmp(ss.field(), "123", ss.length()));
@@ -183,7 +183,7 @@ TEST_F(StringSplitterTest, site_id_as_example) {
 
 TEST_F(StringSplitterTest, number_list) {
     const char* str = " 123,,12,1,  21 4321\00056";
-    butil::StringMultiSplitter ss(str, ", ");
+    mutil::StringMultiSplitter ss(str, ", ");
     ASSERT_TRUE(ss);
     ASSERT_EQ(3ul, ss.length());
     ASSERT_FALSE(strncmp(ss.field(), "123", ss.length()));
@@ -215,7 +215,7 @@ TEST_F(StringSplitterTest, number_list) {
 
     // contains embedded '\0'
     const size_t str_len = 23;
-    butil::StringMultiSplitter ss2(str, str + str_len, ", ");
+    mutil::StringMultiSplitter ss2(str, str + str_len, ", ");
     ASSERT_TRUE(ss2);
     ASSERT_EQ(3ul, ss2.length());
     ASSERT_FALSE(strncmp(ss2.field(), "123", ss2.length()));
@@ -257,7 +257,7 @@ TEST_F(StringSplitterTest, cast_type) {
     float f = 0.0;
     double d = 0.0;
     
-    butil::StringSplitter ss(str, '\t');
+    mutil::StringSplitter ss(str, '\t');
     ASSERT_TRUE(ss);
 
     ASSERT_EQ(0, ss.to_int(&i));
@@ -308,7 +308,7 @@ TEST_F(StringSplitterTest, cast_type) {
 
 TEST_F(StringSplitterTest, split_limit_len) {
     const char* str = "1\t1\0003\t111\t1\t10\t11\t1.3\t3.1415926";
-    butil::StringSplitter ss(str, str + 5, '\t');
+    mutil::StringSplitter ss(str, str + 5, '\t');
 
     ASSERT_TRUE(ss);
     ASSERT_EQ(1ul, ss.length());
@@ -323,7 +323,7 @@ TEST_F(StringSplitterTest, split_limit_len) {
     ASSERT_FALSE(ss);
 
     // Allows using '\0' as separator
-    butil::StringSplitter ss2(str, str + 5, '\0');
+    mutil::StringSplitter ss2(str, str + 5, '\0');
 
     ASSERT_TRUE(ss2);
     ASSERT_EQ(3ul, ss2.length());
@@ -337,9 +337,9 @@ TEST_F(StringSplitterTest, split_limit_len) {
     ++ss2;
     ASSERT_FALSE(ss2);
 
-    butil::StringPiece sp(str, 5);
+    mutil::StringPiece sp(str, 5);
     // Allows using '\0' as separator
-    butil::StringSplitter ss3(sp, '\0');
+    mutil::StringSplitter ss3(sp, '\0');
 
     ASSERT_TRUE(ss3);
     ASSERT_EQ(3ul, ss3.length());
@@ -358,16 +358,16 @@ TEST_F(StringSplitterTest, key_value_pairs_splitter_sanity) {
     std::string kvstr = "key1=value1&&&key2=value2&key3=value3&===&key4=&=&=value5";
     for (int i = 0 ; i < 3; ++i) {
         // Test three constructors
-        butil::KeyValuePairsSplitter* psplitter = NULL;
+        mutil::KeyValuePairsSplitter* psplitter = NULL;
         if (i == 0) {
-            psplitter = new butil::KeyValuePairsSplitter(kvstr, '&', '=');
+            psplitter = new mutil::KeyValuePairsSplitter(kvstr, '&', '=');
         } else if (i == 1) {
-            psplitter = new butil::KeyValuePairsSplitter(
+            psplitter = new mutil::KeyValuePairsSplitter(
                     kvstr.data(), kvstr.data() + kvstr.size(), '&', '=');
         } else if (i == 2) {
-            psplitter = new butil::KeyValuePairsSplitter(kvstr.c_str(), '&', '=');
+            psplitter = new mutil::KeyValuePairsSplitter(kvstr.c_str(), '&', '=');
         }
-        butil::KeyValuePairsSplitter& splitter = *psplitter;
+        mutil::KeyValuePairsSplitter& splitter = *psplitter;
 
         ASSERT_TRUE(splitter);
         ASSERT_EQ(splitter.key(), "key1");

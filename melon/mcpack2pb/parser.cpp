@@ -76,11 +76,11 @@ private:
 } __attribute__((__packed__));
 
 // Assert type sizes:
-BAIDU_CASSERT(sizeof(FieldFixedHead) == 2, size_assert);
-BAIDU_CASSERT(sizeof(FieldShortHead) == 3, size_assert);
-BAIDU_CASSERT(sizeof(FieldLongHead) == 6, size_assert);
-BAIDU_CASSERT(sizeof(ItemsHead) == 4, size_assert);
-BAIDU_CASSERT(sizeof(IsoItemsHead) == 1, size_assert);
+MELON_CASSERT(sizeof(FieldFixedHead) == 2, size_assert);
+MELON_CASSERT(sizeof(FieldShortHead) == 3, size_assert);
+MELON_CASSERT(sizeof(FieldLongHead) == 6, size_assert);
+MELON_CASSERT(sizeof(ItemsHead) == 4, size_assert);
+MELON_CASSERT(sizeof(IsoItemsHead) == 1, size_assert);
 
 void ObjectIterator::operator++() {
     if (_stream->popped_bytes() != _expected_popped_bytes) {

@@ -19,8 +19,8 @@
 
 #include <map>
 #include <gflags/gflags.h>
-#include "melon/butil/memory/singleton_on_pthread_once.h"
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/memory/singleton_on_pthread_once.h"
+#include "melon/utility/threading/platform_thread.h"
 #include "melon/var/var.h"
 #include "melon/var/collector.h"
 
@@ -37,7 +37,7 @@ namespace melon::var {
     // CAUTION: Don't change this value unless you know exactly what it means.
     static const int64_t COLLECTOR_GRAB_INTERVAL_US = 100000L; // 100ms
 
-    BAIDU_CASSERT(!(COLLECTOR_SAMPLING_BASE & (COLLECTOR_SAMPLING_BASE - 1)),
+    MELON_CASSERT(!(COLLECTOR_SAMPLING_BASE & (COLLECTOR_SAMPLING_BASE - 1)),
                   must_be_power_of_2);
 
     // Combine two circular linked list into one.
@@ -78,13 +78,13 @@ namespace melon::var {
                                 int64_t interval_us);
 
         static void *run_grab_thread(void *arg) {
-            butil::PlatformThread::SetName("bvar_collector_grabber");
+            mutil::PlatformThread::SetName("bvar_collector_grabber");
             static_cast<Collector *>(arg)->grab_thread();
             return NULL;
         }
 
         static void *run_dump_thread(void *arg) {
-            butil::PlatformThread::SetName("bvar_collector_dumper");
+            mutil::PlatformThread::SetName("bvar_collector_dumper");
             static_cast<Collector *>(arg)->dump_thread();
             return NULL;
         }
@@ -103,18 +103,18 @@ namespace melon::var {
         bool _stop;         // Set to true in dtor.
         pthread_t _grab_thread;     // For joining.
         pthread_t _dump_thread;
-        int64_t _ngrab BAIDU_CACHELINE_ALIGNMENT;
+        int64_t _ngrab MELON_CACHELINE_ALIGNMENT;
         int64_t _ndrop;
         int64_t _ndump;
         pthread_mutex_t _dump_thread_mutex;
         pthread_cond_t _dump_thread_cond;
-        butil::LinkNode<Collected> _dump_root;
+        mutil::LinkNode<Collected> _dump_root;
         pthread_mutex_t _sleep_mutex;
         pthread_cond_t _sleep_cond;
     };
 
     Collector::Collector()
-            : _last_active_cpuwide_us(butil::cpuwide_time_us()), _created(false), _stop(false), _grab_thread(0),
+            : _last_active_cpuwide_us(mutil::cpuwide_time_us()), _created(false), _stop(false), _grab_thread(0),
               _dump_thread(0), _ngrab(0), _ndrop(0), _ndump(0) {
         pthread_mutex_init(&_dump_thread_mutex, NULL);
         pthread_cond_init(&_dump_thread_cond, NULL);
@@ -149,7 +149,7 @@ namespace melon::var {
     static CollectorSpeedLimit g_null_speed_limit = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
 
     void Collector::grab_thread() {
-        _last_active_cpuwide_us = butil::cpuwide_time_us();
+        _last_active_cpuwide_us = mutil::cpuwide_time_us();
         int64_t last_before_update_sl = _last_active_cpuwide_us;
 
         // This is the thread for collecting TLS submissions. User's callbacks are
@@ -190,22 +190,22 @@ namespace melon::var {
             }
 
             // Collect TLS submissions and give them to dump_thread.
-            butil::LinkNode<Collected> *head = this->reset();
+            mutil::LinkNode<Collected> *head = this->reset();
             if (head) {
-                butil::LinkNode<Collected> tmp_root;
+                mutil::LinkNode<Collected> tmp_root;
                 head->InsertBeforeAsList(&tmp_root);
                 head = NULL;
 
                 // Group samples by preprocessors.
-                for (butil::LinkNode<Collected> *p = tmp_root.next(); p != &tmp_root;) {
-                    butil::LinkNode<Collected> *saved_next = p->next();
+                for (mutil::LinkNode<Collected> *p = tmp_root.next(); p != &tmp_root;) {
+                    mutil::LinkNode<Collected> *saved_next = p->next();
                     p->RemoveFromList();
                     CollectorPreprocessor *prep = p->value()->preprocessor();
                     prep_map[prep].push_back(p->value());
                     p = saved_next;
                 }
                 // Iterate prep_map
-                butil::LinkNode<Collected> root;
+                mutil::LinkNode<Collected> root;
                 for (PreprocessorMap::iterator it = prep_map.begin();
                      it != prep_map.end(); ++it) {
                     std::vector<Collected *> &list = it->second;
@@ -239,14 +239,14 @@ namespace melon::var {
                 }
                 // Give the samples to dump_thread
                 if (root.next() != &root) {  // non empty
-                    butil::LinkNode<Collected> *head2 = root.next();
+                    mutil::LinkNode<Collected> *head2 = root.next();
                     root.RemoveFromList();
                     MELON_SCOPED_LOCK(_dump_thread_mutex);
                     head2->InsertBeforeAsList(&_dump_root);
                     pthread_cond_signal(&_dump_thread_cond);
                 }
             }
-            int64_t now = butil::cpuwide_time_us();
+            int64_t now = mutil::cpuwide_time_us();
             int64_t interval = now - last_before_update_sl;
             last_before_update_sl = now;
             for (GrapMap::iterator it = ngrab_map.begin();
@@ -255,19 +255,19 @@ namespace melon::var {
                                    it->second, interval);
             }
 
-            now = butil::cpuwide_time_us();
+            now = mutil::cpuwide_time_us();
             // calcuate thread usage.
             busy_seconds += (now - _last_active_cpuwide_us) / 1000000.0;
             _last_active_cpuwide_us = now;
 
             // sleep for the next round.
             if (!_stop && abstime > now) {
-                timespec abstimespec = butil::microseconds_from_now(abstime - now);
+                timespec abstimespec = mutil::microseconds_from_now(abstime - now);
                 pthread_mutex_lock(&_sleep_mutex);
                 pthread_cond_timedwait(&_sleep_cond, &_sleep_mutex, &abstimespec);
                 pthread_mutex_unlock(&_sleep_mutex);
             }
-            _last_active_cpuwide_us = butil::cpuwide_time_us();
+            _last_active_cpuwide_us = mutil::cpuwide_time_us();
         }
         // make sure _stop is true, we may have other reasons to quit above loop
         {
@@ -301,7 +301,7 @@ namespace melon::var {
         const size_t old_sampling_range = sl->sampling_range;
         if (!sl->ever_grabbed) {
             if (sl->first_sample_real_us) {
-                interval_us = butil::gettimeofday_us() - sl->first_sample_real_us;
+                interval_us = mutil::gettimeofday_us() - sl->first_sample_real_us;
                 if (interval_us < 0) {
                     interval_us = 0;
                 }
@@ -343,11 +343,11 @@ namespace melon::var {
     size_t is_collectable_before_first_time_grabbed(CollectorSpeedLimit *sl) {
         if (!sl->ever_grabbed) {
             int before_add = sl->count_before_grabbed.fetch_add(
-                    1, butil::memory_order_relaxed);
+                    1, mutil::memory_order_relaxed);
             if (before_add == 0) {
-                sl->first_sample_real_us = butil::gettimeofday_us();
+                sl->first_sample_real_us = mutil::gettimeofday_us();
             } else if (before_add >= FLAGS_bvar_collector_expected_per_second) {
-                butil::get_leaky_singleton<Collector>()->wakeup_grab_thread();
+                mutil::get_leaky_singleton<Collector>()->wakeup_grab_thread();
             }
         }
         return sl->sampling_range;
@@ -355,7 +355,7 @@ namespace melon::var {
 
 // Call user's callbacks in this thread.
     void Collector::dump_thread() {
-        int64_t last_ns = butil::cpuwide_time_ns();
+        int64_t last_ns = mutil::cpuwide_time_ns();
 
         // vars
         double busy_seconds = 0;
@@ -367,21 +367,21 @@ namespace melon::var {
         melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > ndumped_second(
                 "melon::var::collector_dump_second", &ndumped_var);
 
-        butil::LinkNode<Collected> root;
+        mutil::LinkNode<Collected> root;
         size_t round = 0;
 
         // The main loop
         while (!_stop) {
             ++round;
             // Get new samples set by grab_thread.
-            butil::LinkNode<Collected> *newhead = NULL;
+            mutil::LinkNode<Collected> *newhead = NULL;
             {
                 MELON_SCOPED_LOCK(_dump_thread_mutex);
                 while (!_stop && _dump_root.next() == &_dump_root) {
-                    const int64_t now_ns = butil::cpuwide_time_ns();
+                    const int64_t now_ns = mutil::cpuwide_time_ns();
                     busy_seconds += (now_ns - last_ns) / 1000000000.0;
                     pthread_cond_wait(&_dump_thread_cond, &_dump_thread_mutex);
-                    last_ns = butil::cpuwide_time_ns();
+                    last_ns = mutil::cpuwide_time_ns();
                 }
                 if (_stop) {
                     break;
@@ -393,9 +393,9 @@ namespace melon::var {
             newhead->InsertBeforeAsList(&root);
 
             // Call callbacks.
-            for (butil::LinkNode<Collected> *p = root.next(); !_stop && p != &root;) {
+            for (mutil::LinkNode<Collected> *p = root.next(); !_stop && p != &root;) {
                 // We remove p from the list, save next first.
-                butil::LinkNode<Collected> *saved_next = p->next();
+                mutil::LinkNode<Collected> *saved_next = p->next();
                 p->RemoveFromList();
                 Collected *s = p->value();
                 s->dump_and_destroy(round);
@@ -406,7 +406,7 @@ namespace melon::var {
     }
 
     void Collected::submit(int64_t cpuwide_us) {
-        Collector *d = butil::get_leaky_singleton<Collector>();
+        Collector *d = mutil::get_leaky_singleton<Collector>();
         // Destroy the sample in-place if the grab_thread did not run for twice
         // of the normal interval. This also applies to the situation that
         // grab_thread aborts due to severe errors.

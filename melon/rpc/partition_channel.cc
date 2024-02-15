@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/butil/containers/flat_map.h"
+#include "melon/utility/containers/flat_map.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/load_balancer.h"
 #include "melon/naming/naming_service_thread.h"
@@ -414,7 +414,7 @@ private:
         SelectiveChannel::ChannelHandle handle;  // uninitialized
         std::vector<ServerId> tmp;
     };
-    typedef butil::FlatMap<int, SubPartitionChannel*> PartChanMap;
+    typedef mutil::FlatMap<int, SubPartitionChannel*> PartChanMap;
     
     PartChanMap _part_chan_map;
     SelectiveChannel* _schan;

@@ -19,7 +19,7 @@
 #ifndef  BRPC_METHOD_STATUS_H
 #define  BRPC_METHOD_STATUS_H
 
-#include "melon/butil/macros.h"                  // DISALLOW_COPY_AND_ASSIGN
+#include "melon/utility/macros.h"                  // DISALLOW_COPY_AND_ASSIGN
 #include "melon/var/var.h"                    // vars
 #include "melon/rpc/describable.h"
 #include "melon/rpc/concurrency_limiter.h"
@@ -50,7 +50,7 @@ public:
 
     // Expose internal vars.
     // Return 0 on success, -1 otherwise.
-    int Expose(const butil::StringPiece& prefix);
+    int Expose(const mutil::StringPiece& prefix);
 
     // Describe internal vars, used by /status
     void Describe(std::ostream &os, const DescribeOptions&) const override;
@@ -67,7 +67,7 @@ friend class Server;
     void SetConcurrencyLimiter(ConcurrencyLimiter* cl);
 
     std::unique_ptr<ConcurrencyLimiter> _cl;
-    butil::atomic<int> _nconcurrency;
+    mutil::atomic<int> _nconcurrency;
     melon::var::Adder<int64_t>  _nerror_bvar;
     melon::var::LatencyRecorder _latency_rec;
     melon::var::PassiveStatus<int>  _nconcurrency_bvar;
@@ -90,7 +90,7 @@ private:
 };
 
 inline bool MethodStatus::OnRequested(int* rejected_cc, Controller* cntl) {
-    const int cc = _nconcurrency.fetch_add(1, butil::memory_order_relaxed) + 1;
+    const int cc = _nconcurrency.fetch_add(1, mutil::memory_order_relaxed) + 1;
     if (NULL == _cl || _cl->OnRequested(cc, cntl)) {
         return true;
     } 
@@ -101,7 +101,7 @@ inline bool MethodStatus::OnRequested(int* rejected_cc, Controller* cntl) {
 }
 
 inline void MethodStatus::OnResponded(int error_code, int64_t latency) {
-    _nconcurrency.fetch_sub(1, butil::memory_order_relaxed);
+    _nconcurrency.fetch_sub(1, mutil::memory_order_relaxed);
     if (0 == error_code) {
         _latency_rec << latency;
     } else {

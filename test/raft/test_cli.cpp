@@ -1,11 +1,10 @@
 // Copyright (c) 2018 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2018/01/12 12:56:17
+
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/butil/unique_ptr.h>
+#include <melon/utility/unique_ptr.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/cli.h"
@@ -45,16 +44,16 @@ public:
         }
         melon::raft::NodeOptions options;
         std::string prefix;
-        butil::string_printf(&prefix, "local://./data/%d", port);
+        mutil::string_printf(&prefix, "local://./data/%d", port);
         options.log_uri = prefix + "/log";
         options.raft_meta_uri = prefix + "/raft_meta";
         options.snapshot_uri = prefix + "/snapshot";
         options.fsm = &_fsm;
         options.node_owns_fsm = false;
         options.disable_cli = false;
-        butil::ip_t my_ip;
-        EXPECT_EQ(0, butil::str2ip("127.0.0.1", &my_ip));
-        butil::EndPoint addr(my_ip, port);
+        mutil::ip_t my_ip;
+        EXPECT_EQ(0, mutil::str2ip("127.0.0.1", &my_ip));
+        mutil::EndPoint addr(my_ip, port);
         melon::raft::PeerId my_id(addr, 0);
         if (is_leader) {
             options.initial_conf.add_peer(my_id);
@@ -81,7 +80,7 @@ TEST_F(CliTest, add_and_remove_peer) {
     RaftNode node1;
     ASSERT_EQ(0, node1.start(9500, true));
     // Add a non-exists peer should return ECATCHUP
-    butil::Status st;
+    mutil::Status st;
     melon::raft::Configuration old_conf;
     melon::raft::PeerId peer1 = node1.peer_id();
     old_conf.add_peer(peer1);
@@ -125,7 +124,7 @@ TEST_F(CliTest, set_peer) {
         peer_id.addr.port += i;
         conf1.add_peer(peer_id);
     }
-    butil::Status st;
+    mutil::Status st;
     st = melon::raft::cli::reset_peer("test", node1.peer_id(), conf1,
                                 melon::raft::cli::CliOptions());
     ASSERT_TRUE(st.ok());
@@ -147,7 +146,7 @@ TEST_F(CliTest, change_peers) {
         peer_id.addr.port += i;
         conf1.add_peer(peer_id);
     }
-    butil::Status st;
+    mutil::Status st;
     st = melon::raft::cli::reset_peer("test", node1.peer_id(), conf1,
                                 melon::raft::cli::CliOptions());
     ASSERT_TRUE(st.ok());
@@ -171,7 +170,7 @@ TEST_F(CliTest, change_peer) {
     for (size_t i = 0; i < N; ++i) {
         conf.add_peer("127.0.0.1:" + std::to_string(9500 + i));
     }
-    butil::Status st;
+    mutil::Status st;
     for (size_t i = 0; i < N; ++i) {
         usleep(1000 * 1000);
         melon::raft::Configuration new_conf;

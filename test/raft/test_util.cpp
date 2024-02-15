@@ -1,15 +1,13 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: WangYao (fisherman), wangyao02@baidu.com
-// Date: 2015/10/08 17:00:05
 
 #include <gtest/gtest.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <melon/butil/files/scoped_temp_dir.h>
+#include <melon/utility/files/scoped_temp_dir.h>
 
 #include "melon/raft/util.h"
 
@@ -39,18 +37,18 @@ void* run_lock_guard(void *arg) {
 TEST_F(TestUsageSuits, lock) {
     raft_mutex_t mutex;
 
-    // bthread lock guard
+    // fiber lock guard
     LockMeta meta;
     meta.value = 0;
     meta.mutex = &mutex;
 
-    bthread_t tids[10];
+    fiber_t tids[10];
     for (int i = 0; i < 10; i++) {
-        bthread_start_background(&tids[i], &BTHREAD_ATTR_NORMAL, run_lock_guard, &meta);
+        fiber_start_background(&tids[i], &FIBER_ATTR_NORMAL, run_lock_guard, &meta);
     }
 
     for (int i = 0; i < 10; i++) {
-        bthread_join(tids[i], NULL);
+        fiber_join(tids[i], NULL);
     }
 
     ASSERT_EQ(meta.value, 10*10000);
@@ -63,7 +61,7 @@ TEST_F(TestUsageSuits, murmurhash) {
     }
     int32_t val1 = melon::raft::murmurhash32(data, 1024*1024);
 
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     for (int i = 0; i < 1024 * 1024; i++) {
         char c = 'a' + i % 26;
         buf.push_back(c);
@@ -76,11 +74,11 @@ TEST_F(TestUsageSuits, murmurhash) {
 TEST_F(TestUsageSuits, pread_pwrite) {
     int fd = ::open("./pread_pwrite.data", O_CREAT | O_TRUNC | O_RDWR, 0644);
 
-    butil::IOPortal portal;
+    mutil::IOPortal portal;
     ssize_t nread = melon::raft::file_pread(&portal, fd, 1000, 10);
     ASSERT_EQ(nread, 0);
 
-    butil::IOBuf data;
+    mutil::IOBuf data;
     data.append("hello");
     ssize_t nwritten = melon::raft::file_pwrite(data, fd, 1000);
     ASSERT_EQ(nwritten, data.size());
@@ -104,14 +102,14 @@ TEST_F(TestUsageSuits, FileSegData) {
     for (uint64_t i = 10; i < 20UL; i++) {
         char buf[1024];
         snprintf(buf, sizeof(buf), "iobuf hello %" PRIu64, i);
-        butil::IOBuf piece_buf;
+        mutil::IOBuf piece_buf;
         piece_buf.append(buf, strlen(buf));
         seg_writer.append(piece_buf, 1000 * i);
     }
 
     melon::raft::FileSegData seg_reader(seg_writer.data());
     uint64_t seg_offset = 0;
-    butil::IOBuf seg_data;
+    mutil::IOBuf seg_data;
     uint64_t index = 0;
     while (0 != seg_reader.next(&seg_offset, &seg_data)) {
         ASSERT_EQ(index * 1000, seg_offset);
@@ -141,7 +139,7 @@ TEST_F(TestUsageSuits, crc32) {
     }
     int32_t val1 = melon::raft::crc32(data, 1024*1024);
 
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     for (int i = 0; i < 1024 * 1024; i++) {
         char c = 'a' + i % 26;
         buf.push_back(c);
@@ -199,9 +197,9 @@ int is_zero_memcmp(const char* buff, size_t size) {
 
 #define IS_ZERO_TEST(func, size)                                               \
     do {                                                                       \
-        int64_t start = butil::detail::clock_cycles();                          \
+        int64_t start = mutil::detail::clock_cycles();                          \
         ASSERT_TRUE(func(data, size));                                         \
-        int64_t end = butil::detail::clock_cycles();                            \
+        int64_t end = mutil::detail::clock_cycles();                            \
         LOG(INFO) << #func << " cycle: " << end - start;     \
     } while (0)
 
@@ -252,13 +250,13 @@ TEST_F(TestUsageSuits, is_zero) {
 }
 
 TEST_F(TestUsageSuits, file_path) {
-    butil::FilePath path("dir/");
+    mutil::FilePath path("dir/");
     LOG(INFO) << "dir_name=" << path.DirName().value()
               << " base_name=" << path.BaseName().value();
-    path = butil::FilePath("dir");
+    path = mutil::FilePath("dir");
     LOG(INFO) << "dir_name=" << path.DirName().value()
               << " base_name=" << path.BaseName().value();
-    path = butil::FilePath("../sub4/sub5/dir");
+    path = mutil::FilePath("../sub4/sub5/dir");
     LOG(INFO) << path.ReferencesParent();
 }
 

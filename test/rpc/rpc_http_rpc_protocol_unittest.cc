@@ -24,7 +24,7 @@
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <melon/butil/build_config.h> // OS_MACOSX
+#include <melon/utility/build_config.h> // OS_MACOSX
 #if defined(OS_MACOSX)
 #include <sys/event.h>
 #endif
@@ -32,15 +32,15 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/text_format.h>
 #include <unistd.h>
-#include <melon/butil/strings/string_number_conversions.h>
+#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/policy/http_rpc_protocol.h>
-#include <melon/butil/base64.h>
+#include <melon/utility/base64.h>
 #include "melon/rpc/http/http_method.h"
-#include "melon/butil/iobuf.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/files/scoped_file.h"
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/file_util.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/files/scoped_file.h"
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/file_util.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -53,7 +53,7 @@
 #include "melon/json2pb/json_to_pb.h"
 #include "melon/rpc/details/method_status.h"
 #include "melon/rpc/dump/rpc_dump.h"
-#include "melon/bthread/unstable.h"
+#include "melon/fiber/unstable.h"
 
 namespace melon {
 DECLARE_bool(rpc_dump);
@@ -96,7 +96,7 @@ public:
     }
 
     int VerifyCredential(const std::string& auth_str,
-                         const butil::EndPoint&,
+                         const mutil::EndPoint&,
                          melon::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);
@@ -116,7 +116,7 @@ public:
         const std::string* sleep_ms_str =
             cntl->http_request().uri().GetQuery("sleep_ms");
         if (sleep_ms_str) {
-            bthread_usleep(strtol(sleep_ms_str->data(), NULL, 10) * 1000);
+            fiber_usleep(strtol(sleep_ms_str->data(), NULL, 10) * 1000);
         }
         res->set_message(EXP_RESPONSE);
     }
@@ -180,7 +180,7 @@ protected:
 
         test::EchoRequest req;
         req.set_message(EXP_REQUEST);
-        butil::IOBufAsZeroCopyOutputStream req_stream(&msg->body());
+        mutil::IOBufAsZeroCopyOutputStream req_stream(&msg->body());
         EXPECT_TRUE(json2pb::ProtoMessageToJson(req, &req_stream, NULL));
         return msg;
     }
@@ -194,7 +194,7 @@ protected:
 
         test::EchoRequest req;
         req.set_message(EXP_REQUEST);
-        butil::IOBufAsZeroCopyOutputStream req_stream(&msg->body());
+        mutil::IOBufAsZeroCopyOutputStream req_stream(&msg->body());
         EXPECT_TRUE(google::protobuf::TextFormat::Print(req, &req_stream));
         return msg;
     }
@@ -214,7 +214,7 @@ protected:
         
         test::EchoResponse res;
         res.set_message(EXP_RESPONSE);
-        butil::IOBufAsZeroCopyOutputStream res_stream(&msg->body());
+        mutil::IOBufAsZeroCopyOutputStream res_stream(&msg->body());
         EXPECT_TRUE(json2pb::ProtoMessageToJson(res, &res_stream, NULL));
         return msg;
     }
@@ -228,7 +228,7 @@ protected:
         }
 
         EXPECT_GT(bytes_in_pipe, 0);
-        butil::IOPortal buf;
+        mutil::IOPortal buf;
         EXPECT_EQ((ssize_t)bytes_in_pipe,
                   buf.append_from_file_descriptor(_pipe_fds[0], 1024));
         melon::ParseResult pr =
@@ -241,8 +241,8 @@ protected:
         msg->Destroy();
     }
 
-    void MakeH2EchoRequestBuf(butil::IOBuf* out, melon::Controller* cntl, int* h2_stream_id) {
-        butil::IOBuf request_buf;
+    void MakeH2EchoRequestBuf(mutil::IOBuf* out, melon::Controller* cntl, int* h2_stream_id) {
+        mutil::IOBuf request_buf;
         test::EchoRequest req;
         req.set_message(EXP_REQUEST);
         cntl->http_request().set_method(melon::HTTP_METHOD_POST);
@@ -253,22 +253,22 @@ protected:
         melon::SocketMessage* socket_message = NULL;
         melon::policy::PackH2Request(NULL, &socket_message, cntl->call_id().value,
                                     NULL, cntl, request_buf, NULL);
-        butil::Status st = socket_message->AppendAndDestroySelf(out, _h2_client_sock.get());
+        mutil::Status st = socket_message->AppendAndDestroySelf(out, _h2_client_sock.get());
         ASSERT_TRUE(st.ok());
         *h2_stream_id = h2_req->_stream_id;
     }
 
-    void MakeH2EchoResponseBuf(butil::IOBuf* out, int h2_stream_id) {
+    void MakeH2EchoResponseBuf(mutil::IOBuf* out, int h2_stream_id) {
         melon::Controller cntl;
         test::EchoResponse res;
         res.set_message(EXP_RESPONSE);
         cntl.http_request().set_content_type("application/proto");
         {
-            butil::IOBufAsZeroCopyOutputStream wrapper(&cntl.response_attachment());
+            mutil::IOBufAsZeroCopyOutputStream wrapper(&cntl.response_attachment());
             EXPECT_TRUE(res.SerializeToZeroCopyStream(&wrapper));
         }
         melon::policy::H2UnsentResponse* h2_res = melon::policy::H2UnsentResponse::New(&cntl, h2_stream_id, false /*is grpc*/);
-        butil::Status st = h2_res->AppendAndDestroySelf(out, _h2_client_sock.get());
+        mutil::Status st = h2_res->AppendAndDestroySelf(out, _h2_client_sock.get());
         ASSERT_TRUE(st.ok());
     }
 
@@ -296,32 +296,32 @@ TEST_F(HttpTest, indenting_ostream) {
 
 TEST_F(HttpTest, parse_http_address) {
     const std::string EXP_HOSTNAME = "www.baidu.com:9876";
-    butil::EndPoint EXP_ENDPOINT;
+    mutil::EndPoint EXP_ENDPOINT;
     {
         std::string url = "https://" + EXP_HOSTNAME;
         EXPECT_TRUE(melon::policy::ParseHttpServerAddress(&EXP_ENDPOINT, url.c_str()));
     }
     {
-        butil::EndPoint ep;
+        mutil::EndPoint ep;
         std::string url = "http://" +
                           std::string(endpoint2str(EXP_ENDPOINT).c_str());
         EXPECT_TRUE(melon::policy::ParseHttpServerAddress(&ep, url.c_str()));
         EXPECT_EQ(EXP_ENDPOINT, ep);
     }
     {
-        butil::EndPoint ep;
+        mutil::EndPoint ep;
         std::string url = "https://" +
-            std::string(butil::ip2str(EXP_ENDPOINT.ip).c_str());
+            std::string(mutil::ip2str(EXP_ENDPOINT.ip).c_str());
         EXPECT_TRUE(melon::policy::ParseHttpServerAddress(&ep, url.c_str()));
         EXPECT_EQ(EXP_ENDPOINT.ip, ep.ip);
         EXPECT_EQ(443, ep.port);
     }
     {
-        butil::EndPoint ep;
+        mutil::EndPoint ep;
         EXPECT_FALSE(melon::policy::ParseHttpServerAddress(&ep, "invalid_url"));
     }
     {
-        butil::EndPoint ep;
+        mutil::EndPoint ep;
         EXPECT_FALSE(melon::policy::ParseHttpServerAddress(
             &ep, "https://no.such.machine:9090"));
     }
@@ -443,8 +443,8 @@ TEST_F(HttpTest, process_response_error_code) {
 }
 
 TEST_F(HttpTest, complete_flow) {
-    butil::IOBuf request_buf;
-    butil::IOBuf total_buf;
+    mutil::IOBuf request_buf;
+    mutil::IOBuf total_buf;
     melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
@@ -471,7 +471,7 @@ TEST_F(HttpTest, complete_flow) {
     ProcessMessage(melon::policy::ProcessHttpRequest, req_msg, false);
 
     // Read response from pipe
-    butil::IOPortal response_buf;
+    mutil::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::ParseResult res_pr =
             melon::policy::ParseHttpMessage(&response_buf, _socket.get(), false, NULL);
@@ -493,7 +493,7 @@ TEST_F(HttpTest, chunked_uploading) {
     const std::string req = "{\"message\":\"hello\"}";
     const std::string res_fname = "curl.out";
     std::string cmd;
-    butil::string_printf(&cmd, "curl -X POST -d '%s' -H 'Transfer-Encoding:chunked' "
+    mutil::string_printf(&cmd, "curl -X POST -d '%s' -H 'Transfer-Encoding:chunked' "
                         "-H 'Content-Type:application/json' -o %s "
                         "http://localhost:%d/EchoService/Echo",
                         req.c_str(), res_fname.c_str(), port);
@@ -501,7 +501,7 @@ TEST_F(HttpTest, chunked_uploading) {
 
     // Check response
     const std::string exp_res = "{\"message\":\"world\"}";
-    butil::ScopedFILE fp(res_fname.c_str(), "r");
+    mutil::ScopedFILE fp(res_fname.c_str(), "r");
     char buf[128];
     ASSERT_TRUE(fgets(buf, sizeof(buf), fp));
     EXPECT_EQ(exp_res, std::string(buf));
@@ -541,7 +541,7 @@ public:
         cntl->http_response().set_content_type("text/plain");
         melon::StopStyle stop_style = (_nrep == std::numeric_limits<size_t>::max()
                 ? melon::FORCE_STOP : melon::WAIT_FOR_STOP);
-        butil::intrusive_ptr<melon::ProgressiveAttachment> pa
+        mutil::intrusive_ptr<melon::ProgressiveAttachment> pa
             = cntl->CreateProgressiveAttachment(stop_style);
         if (pa == NULL) {
             cntl->SetFailed("The socket was just failed");
@@ -558,7 +558,7 @@ public:
                 if (errno == melon::EOVERCROWDED) {
                     LOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
                     _ever_full = true;
-                    bthread_usleep(10000);
+                    fiber_usleep(10000);
                     continue;
                 } else {
                     _last_errno = errno;
@@ -589,7 +589,7 @@ public:
         cntl->http_response().set_content_type("text/plain");
         melon::StopStyle stop_style = (_nrep == std::numeric_limits<size_t>::max()
                 ? melon::FORCE_STOP : melon::WAIT_FOR_STOP);
-        butil::intrusive_ptr<melon::ProgressiveAttachment> pa
+        mutil::intrusive_ptr<melon::ProgressiveAttachment> pa
             = cntl->CreateProgressiveAttachment(stop_style);
         if (pa == NULL) {
             cntl->SetFailed("The socket was just failed");
@@ -600,7 +600,7 @@ public:
             if (pa->Write(buf, sizeof(buf)) != 0) {
                 if (errno == melon::EOVERCROWDED) {
                     LOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
-                    bthread_usleep(10000);
+                    fiber_usleep(10000);
                     continue;
                 } else {
                     _last_errno = errno;
@@ -645,7 +645,7 @@ TEST_F(HttpTest, read_chunked_response_normally) {
         melon::Channel channel;
         melon::ChannelOptions options;
         options.protocol = melon::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
         melon::Controller cntl;
         cntl.http_request().uri() = "/DownloadService/Download";
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
@@ -667,7 +667,7 @@ TEST_F(HttpTest, read_failed_chunked_response) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
 
     melon::Controller cntl;
     cntl.http_request().uri() = "/DownloadService/DownloadFailed";
@@ -689,10 +689,10 @@ public:
         : _nread(0)
         , _ncount(0)
         , _destroyed(false) {
-        butil::intrusive_ptr<ReadBody>(this).detach(); // ref
+        mutil::intrusive_ptr<ReadBody>(this).detach(); // ref
     }
                 
-    butil::Status OnReadOnePart(const void* data, size_t length) {
+    mutil::Status OnReadOnePart(const void* data, size_t length) {
         _nread += length;
         while (length > 0) {
             size_t nappend = std::min(_buf.size() + length, PA_DATA_LEN) - _buf.size();
@@ -708,10 +708,10 @@ public:
                 _buf.clear();
             }
         }
-        return butil::Status::OK();
+        return mutil::Status::OK();
     }
-    void OnEndOfMessage(const butil::Status& st) {
-        butil::intrusive_ptr<ReadBody>(this, false); // deref
+    void OnEndOfMessage(const mutil::Status& st) {
+        mutil::intrusive_ptr<ReadBody>(this, false); // deref
         ASSERT_LT(_buf.size(), PA_DATA_LEN);
         ASSERT_EQ(0, memcmp(_buf.data(), PA_DATA, _buf.size()));
         _destroyed = true;
@@ -719,20 +719,20 @@ public:
         LOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
     }
     bool destroyed() const { return _destroyed; }
-    const butil::Status& destroying_status() const { return _destroying_st; }
+    const mutil::Status& destroying_status() const { return _destroying_st; }
     size_t read_bytes() const { return _nread; }
 private:
     std::string _buf;
     size_t _nread;
     size_t _ncount;
     bool _destroyed;
-    butil::Status _destroying_st;
+    mutil::Status _destroying_st;
 };
 
 static const int GENERAL_DELAY_US = 300000; // 0.3s
 
 TEST_F(HttpTest, read_long_body_progressively) {
-    butil::intrusive_ptr<ReadBody> reader;
+    mutil::intrusive_ptr<ReadBody> reader;
     {
         const int port = 8923;
         melon::Server server;
@@ -744,7 +744,7 @@ TEST_F(HttpTest, read_long_body_progressively) {
             melon::Channel channel;
             melon::ChannelOptions options;
             options.protocol = melon::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
             {
                 melon::Controller cntl;
                 cntl.response_will_be_read_progressively();
@@ -781,7 +781,7 @@ TEST_F(HttpTest, read_long_body_progressively) {
 }
 
 TEST_F(HttpTest, read_short_body_progressively) {
-    butil::intrusive_ptr<ReadBody> reader;
+    mutil::intrusive_ptr<ReadBody> reader;
     const int port = 8923;
     melon::Server server;
     const int NREP = 10000;
@@ -792,7 +792,7 @@ TEST_F(HttpTest, read_short_body_progressively) {
         melon::Channel channel;
         melon::ChannelOptions options;
         options.protocol = melon::PROTOCOL_HTTP;
-        ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+        ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
         {
             melon::Controller cntl;
             cntl.response_will_be_read_progressively();
@@ -819,7 +819,7 @@ TEST_F(HttpTest, read_short_body_progressively) {
 }
 
 TEST_F(HttpTest, read_progressively_after_cntl_destroys) {
-    butil::intrusive_ptr<ReadBody> reader;
+    mutil::intrusive_ptr<ReadBody> reader;
     {
         const int port = 8923;
         melon::Server server;
@@ -831,7 +831,7 @@ TEST_F(HttpTest, read_progressively_after_cntl_destroys) {
             melon::Channel channel;
             melon::ChannelOptions options;
             options.protocol = melon::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
             {
                 melon::Controller cntl;
                 cntl.response_will_be_read_progressively();
@@ -865,7 +865,7 @@ TEST_F(HttpTest, read_progressively_after_cntl_destroys) {
 }
 
 TEST_F(HttpTest, read_progressively_after_long_delay) {
-    butil::intrusive_ptr<ReadBody> reader;
+    mutil::intrusive_ptr<ReadBody> reader;
     {
         const int port = 8923;
         melon::Server server;
@@ -877,7 +877,7 @@ TEST_F(HttpTest, read_progressively_after_long_delay) {
             melon::Channel channel;
             melon::ChannelOptions options;
             options.protocol = melon::PROTOCOL_HTTP;
-            ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+            ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
             {
                 melon::Controller cntl;
                 cntl.response_will_be_read_progressively();
@@ -924,7 +924,7 @@ TEST_F(HttpTest, skip_progressive_reading) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
     {
         melon::Controller cntl;
         cntl.response_will_be_read_progressively();
@@ -946,10 +946,10 @@ TEST_F(HttpTest, skip_progressive_reading) {
 class AlwaysFailRead : public melon::ProgressiveReader {
 public:
     // @ProgressiveReader
-    butil::Status OnReadOnePart(const void* /*data*/, size_t /*length*/) {
-        return butil::Status(-1, "intended fail at %s:%d", __FILE__, __LINE__);
+    mutil::Status OnReadOnePart(const void* /*data*/, size_t /*length*/) {
+        return mutil::Status(-1, "intended fail at %s:%d", __FILE__, __LINE__);
     }
-    void OnEndOfMessage(const butil::Status& st) {
+    void OnEndOfMessage(const mutil::Status& st) {
         LOG(INFO) << "Destroy " << this << ": " << st;
         delete this;
     }
@@ -965,7 +965,7 @@ TEST_F(HttpTest, failed_on_read_one_part) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
     {
         melon::Controller cntl;
         cntl.response_will_be_read_progressively();
@@ -981,7 +981,7 @@ TEST_F(HttpTest, failed_on_read_one_part) {
 }
 
 TEST_F(HttpTest, broken_socket_stops_progressive_reading) {
-    butil::intrusive_ptr<ReadBody> reader;
+    mutil::intrusive_ptr<ReadBody> reader;
     const int port = 8923;
     melon::Server server;
     DownloadServiceImpl svc(DONE_BEFORE_CREATE_PA,
@@ -992,7 +992,7 @@ TEST_F(HttpTest, broken_socket_stops_progressive_reading) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
     {
         melon::Controller cntl;
         cntl.response_will_be_read_progressively();
@@ -1035,8 +1035,8 @@ public:
         , _done(done) {}
 
     // @ProgressiveReader
-    void OnEndOfMessage(const butil::Status& st) {
-        butil::intrusive_ptr<ReadBody>(this);
+    void OnEndOfMessage(const mutil::Status& st) {
+        mutil::intrusive_ptr<ReadBody>(this);
         melon::ClosureGuard done_guard(_done);
         ASSERT_LT(_buf.size(), PA_DATA_LEN);
         ASSERT_EQ(0, memcmp(_buf.data(), PA_DATA, _buf.size()));
@@ -1057,11 +1057,11 @@ public:
         , _done(done) {}
 
     // @ProgressiveReader
-    butil::Status OnReadOnePart(const void* /*data*/, size_t /*length*/) {
-        return butil::Status(-1, "intended fail at %s:%d", __FILE__, __LINE__);
+    mutil::Status OnReadOnePart(const void* /*data*/, size_t /*length*/) {
+        return mutil::Status(-1, "intended fail at %s:%d", __FILE__, __LINE__);
     }    
 
-    void OnEndOfMessage(const butil::Status& st) {
+    void OnEndOfMessage(const mutil::Status& st) {
         melon::ClosureGuard done_guard(_done);
         CHECK_EQ(-1, st.error_code());
         _cntl->SetFailed("Must Failed");
@@ -1116,7 +1116,7 @@ TEST_F(HttpTest, server_end_read_short_body_progressively) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
     melon::Controller cntl;
     cntl.http_request().uri() = "/UploadService/Upload";
     cntl.http_request().SetHeader(TEST_PROGRESSIVE_HEADER, TEST_PROGRESSIVE_HEADER_VAL);
@@ -1153,7 +1153,7 @@ TEST_F(HttpTest, server_end_read_failed) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
     melon::Controller cntl;
     cntl.http_request().uri() = "/UploadService/UploadFailed";
     cntl.http_request().SetHeader(TEST_PROGRESSIVE_HEADER, TEST_PROGRESSIVE_HEADER_VAL);
@@ -1186,7 +1186,7 @@ TEST_F(HttpTest, http2_sanity) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = "h2";
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
 
     // Check that the first request with size larger than the default window can
     // be sent out, when remote settings are not received.
@@ -1222,7 +1222,7 @@ TEST_F(HttpTest, http2_sanity) {
     EXPECT_EQ(melon::Socket::Address(channel._server_id, &main_ptr), 0);
     EXPECT_EQ(main_ptr->GetAgentSocket(&agent_ptr, NULL), 0);
     melon::policy::H2Context* ctx = static_cast<melon::policy::H2Context*>(agent_ptr->parsing_context());
-    ASSERT_GT(ctx->_remote_window_left.load(butil::memory_order_relaxed),
+    ASSERT_GT(ctx->_remote_window_left.load(mutil::memory_order_relaxed),
              melon::H2Settings::DEFAULT_INITIAL_WINDOW_SIZE / 2);
 }
 
@@ -1231,11 +1231,11 @@ TEST_F(HttpTest, http2_ping) {
     melon::Controller cntl;
 
     // Prepare request
-    butil::IOBuf req_out;
+    mutil::IOBuf req_out;
     int h2_stream_id = 0;
     MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
     // Prepare response
-    butil::IOBuf res_out;
+    mutil::IOBuf res_out;
     char pingbuf[9 /*FRAME_HEAD_SIZE*/ + 8 /*Opaque Data*/];
     melon::policy::SerializeFrameHead(pingbuf, 8, melon::policy::H2_FRAME_PING, 0, 0);
     // insert ping before header and data
@@ -1263,11 +1263,11 @@ inline void SaveUint32(void* out, uint32_t v) {
 TEST_F(HttpTest, http2_rst_before_header) {
     melon::Controller cntl;
     // Prepare request
-    butil::IOBuf req_out;
+    mutil::IOBuf req_out;
     int h2_stream_id = 0;
     MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
     // Prepare response
-    butil::IOBuf res_out;
+    mutil::IOBuf res_out;
     char rstbuf[9 /*FRAME_HEAD_SIZE*/ + 4];
     melon::policy::SerializeFrameHead(rstbuf, 4, melon::policy::H2_FRAME_RST_STREAM, 0, h2_stream_id);
     SaveUint32(rstbuf + 9, melon::H2_INTERNAL_ERROR);
@@ -1287,11 +1287,11 @@ TEST_F(HttpTest, http2_rst_before_header) {
 TEST_F(HttpTest, http2_rst_after_header_and_data) {
     melon::Controller cntl;
     // Prepare request
-    butil::IOBuf req_out;
+    mutil::IOBuf req_out;
     int h2_stream_id = 0;
     MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
     // Prepare response
-    butil::IOBuf res_out;
+    mutil::IOBuf res_out;
     MakeH2EchoResponseBuf(&res_out, h2_stream_id);
     char rstbuf[9 /*FRAME_HEAD_SIZE*/ + 4];
     melon::policy::SerializeFrameHead(rstbuf, 4, melon::policy::H2_FRAME_RST_STREAM, 0, h2_stream_id);
@@ -1309,7 +1309,7 @@ TEST_F(HttpTest, http2_rst_after_header_and_data) {
 
 TEST_F(HttpTest, http2_window_used_up) {
     melon::Controller cntl;
-    butil::IOBuf request_buf;
+    mutil::IOBuf request_buf;
     test::EchoRequest req;
     // longer message to trigger using up window size sooner
     req.set_message("FLOW_CONTROL_FLOW_CONTROL");
@@ -1321,7 +1321,7 @@ TEST_F(HttpTest, http2_window_used_up) {
     melon::H2Settings h2_settings;
     const size_t nb = melon::policy::SerializeH2Settings(h2_settings, settingsbuf + melon::policy::FRAME_HEAD_SIZE);
     melon::policy::SerializeFrameHead(settingsbuf, nb, melon::policy::H2_FRAME_SETTINGS, 0, 0);
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     buf.append(settingsbuf, melon::policy::FRAME_HEAD_SIZE + nb);
     melon::policy::ParseH2Message(&buf, _h2_client_sock.get(), false, NULL);
 
@@ -1332,13 +1332,13 @@ TEST_F(HttpTest, http2_window_used_up) {
         melon::SocketMessage* socket_message = NULL;
         melon::policy::PackH2Request(NULL, &socket_message, cntl.call_id().value,
                                     NULL, &cntl, request_buf, NULL);
-        butil::IOBuf dummy;
-        butil::Status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
+        mutil::IOBuf dummy;
+        mutil::Status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
         if (i == nsuc) {
             // the last message should fail according to flow control policy.
             ASSERT_FALSE(st.ok());
             ASSERT_TRUE(st.error_code() == melon::ELIMIT);
-            ASSERT_TRUE(butil::StringPiece(st.error_str()).starts_with("remote_window_left is not enough"));
+            ASSERT_TRUE(mutil::StringPiece(st.error_str()).starts_with("remote_window_left is not enough"));
         } else {
             ASSERT_TRUE(st.ok());
         }
@@ -1354,7 +1354,7 @@ TEST_F(HttpTest, http2_settings) {
     h2_settings.stream_window_size= (1u << 29) - 1;
     const size_t nb = melon::policy::SerializeH2Settings(h2_settings, settingsbuf + melon::policy::FRAME_HEAD_SIZE);
     melon::policy::SerializeFrameHead(settingsbuf, nb, melon::policy::H2_FRAME_SETTINGS, 0, 0);
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     buf.append(settingsbuf, melon::policy::FRAME_HEAD_SIZE + nb);
 
     melon::policy::H2Context* ctx = new melon::policy::H2Context(_socket.get(), NULL);
@@ -1364,11 +1364,11 @@ TEST_F(HttpTest, http2_settings) {
     // parse settings
     melon::policy::ParseH2Message(&buf, _socket.get(), false, NULL);
 
-    butil::IOPortal response_buf;
+    mutil::IOPortal response_buf;
     CHECK_EQ(response_buf.append_from_file_descriptor(_pipe_fds[0], 1024),
              (ssize_t)melon::policy::FRAME_HEAD_SIZE);
     melon::policy::H2FrameHead frame_head;
-    butil::IOBufBytesIterator it(response_buf);
+    mutil::IOBufBytesIterator it(response_buf);
     ctx->ConsumeFrameHead(it, &frame_head);
     CHECK_EQ(frame_head.type, melon::policy::H2_FRAME_SETTINGS);
     CHECK_EQ(frame_head.flags, 0x01 /* H2_FLAGS_ACK */);
@@ -1409,7 +1409,7 @@ TEST_F(HttpTest, http2_not_closing_socket_when_rpc_timeout) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = "h2";
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
 
     test::EchoRequest req;
     test::EchoResponse res;
@@ -1426,7 +1426,7 @@ TEST_F(HttpTest, http2_not_closing_socket_when_rpc_timeout) {
 
     melon::SocketUniquePtr main_ptr;
     EXPECT_EQ(melon::Socket::Address(channel._server_id, &main_ptr), 0);
-    melon::SocketId agent_id = main_ptr->_agent_socket_id.load(butil::memory_order_relaxed);
+    melon::SocketId agent_id = main_ptr->_agent_socket_id.load(mutil::memory_order_relaxed);
 
     for (int i = 0; i < 4; i++) {
         melon::Controller cntl;
@@ -1437,7 +1437,7 @@ TEST_F(HttpTest, http2_not_closing_socket_when_rpc_timeout) {
         ASSERT_TRUE(cntl.Failed());
 
         melon::SocketUniquePtr ptr;
-        melon::SocketId id = main_ptr->_agent_socket_id.load(butil::memory_order_relaxed);
+        melon::SocketId id = main_ptr->_agent_socket_id.load(mutil::memory_order_relaxed);
         EXPECT_EQ(id, agent_id);
     }
 
@@ -1450,7 +1450,7 @@ TEST_F(HttpTest, http2_not_closing_socket_when_rpc_timeout) {
         ASSERT_FALSE(cntl.Failed());
         ASSERT_EQ(EXP_RESPONSE, res.message());
         melon::SocketUniquePtr ptr;
-        melon::SocketId id = main_ptr->_agent_socket_id.load(butil::memory_order_relaxed);
+        melon::SocketId id = main_ptr->_agent_socket_id.load(mutil::memory_order_relaxed);
         EXPECT_EQ(id, agent_id);
     }
 }
@@ -1459,24 +1459,24 @@ TEST_F(HttpTest, http2_header_after_data) {
     melon::Controller cntl;
 
     // Prepare request
-    butil::IOBuf req_out;
+    mutil::IOBuf req_out;
     int h2_stream_id = 0;
     MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
 
     // Prepare response to res_out
-    butil::IOBuf res_out;
+    mutil::IOBuf res_out;
     {
-        butil::IOBuf data_buf;
+        mutil::IOBuf data_buf;
         test::EchoResponse res;
         res.set_message(EXP_RESPONSE);
         {
-            butil::IOBufAsZeroCopyOutputStream wrapper(&data_buf);
+            mutil::IOBufAsZeroCopyOutputStream wrapper(&data_buf);
             EXPECT_TRUE(res.SerializeToZeroCopyStream(&wrapper));
         }
         melon::policy::H2Context* ctx =
             static_cast<melon::policy::H2Context*>(_h2_client_sock->parsing_context());
         melon::HPacker& hpacker = ctx->hpacker();
-        butil::IOBufAppender header1_appender;
+        mutil::IOBufAppender header1_appender;
         melon::HPackOptions options;
         options.encode_name = false;    /* disable huffman encoding */
         options.encode_value = false;
@@ -1486,7 +1486,7 @@ TEST_F(HttpTest, http2_header_after_data) {
         }
         {
             melon::HPacker::Header header("content-length",
-                    butil::string_printf("%llu", (unsigned long long)data_buf.size()));
+                    mutil::string_printf("%llu", (unsigned long long)data_buf.size()));
             hpacker.Encode(&header1_appender, header, options);
         }
         {
@@ -1501,7 +1501,7 @@ TEST_F(HttpTest, http2_header_after_data) {
             melon::HPacker::Header header("user-defined1", "a");
             hpacker.Encode(&header1_appender, header, options);
         }
-        butil::IOBuf header1;
+        mutil::IOBuf header1;
         header1_appender.move_to(header1);
 
         char headbuf[melon::policy::FRAME_HEAD_SIZE];
@@ -1509,15 +1509,15 @@ TEST_F(HttpTest, http2_header_after_data) {
                 melon::policy::H2_FRAME_HEADERS, 0, h2_stream_id);
         // append header1
         res_out.append(headbuf, sizeof(headbuf));
-        res_out.append(butil::IOBuf::Movable(header1));
+        res_out.append(mutil::IOBuf::Movable(header1));
 
         melon::policy::SerializeFrameHead(headbuf, data_buf.size(),
             melon::policy::H2_FRAME_DATA, 0, h2_stream_id);
         // append data
         res_out.append(headbuf, sizeof(headbuf));
-        res_out.append(butil::IOBuf::Movable(data_buf));
+        res_out.append(mutil::IOBuf::Movable(data_buf));
 
-        butil::IOBufAppender header2_appender;
+        mutil::IOBufAppender header2_appender;
         {
             melon::HPacker::Header header("user-defined1", "overwrite-a");
             hpacker.Encode(&header2_appender, header, options);
@@ -1526,7 +1526,7 @@ TEST_F(HttpTest, http2_header_after_data) {
             melon::HPacker::Header header("user-defined2", "b");
             hpacker.Encode(&header2_appender, header, options);
         }
-        butil::IOBuf header2;
+        mutil::IOBuf header2;
         header2_appender.move_to(header2);
 
         melon::policy::SerializeFrameHead(headbuf, header2.size(),
@@ -1534,7 +1534,7 @@ TEST_F(HttpTest, http2_header_after_data) {
                 h2_stream_id);
         // append header2
         res_out.append(headbuf, sizeof(headbuf));
-        res_out.append(butil::IOBuf::Movable(header2));
+        res_out.append(mutil::IOBuf::Movable(header2));
     }
     // parse response
     melon::ParseResult res_pr =
@@ -1556,11 +1556,11 @@ TEST_F(HttpTest, http2_header_after_data) {
 TEST_F(HttpTest, http2_goaway_sanity) {
     melon::Controller cntl;
     // Prepare request
-    butil::IOBuf req_out;
+    mutil::IOBuf req_out;
     int h2_stream_id = 0;
     MakeH2EchoRequestBuf(&req_out, &cntl, &h2_stream_id);
     // Prepare response
-    butil::IOBuf res_out;
+    mutil::IOBuf res_out;
     MakeH2EchoResponseBuf(&res_out, h2_stream_id);
     // append goaway
     char goawaybuf[9 /*FRAME_HEAD_SIZE*/ + 8];
@@ -1585,9 +1585,9 @@ TEST_F(HttpTest, http2_goaway_sanity) {
     cntl._current_call.stream_user_data = h2_req;
     melon::SocketMessage* socket_message = NULL;
     melon::policy::PackH2Request(NULL, &socket_message, cntl.call_id().value,
-                                NULL, &cntl, butil::IOBuf(), NULL);
-    butil::IOBuf dummy;
-    butil::Status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
+                                NULL, &cntl, mutil::IOBuf(), NULL);
+    mutil::IOBuf dummy;
+    mutil::Status st = socket_message->AppendAndDestroySelf(&dummy, _h2_client_sock.get());
     ASSERT_EQ(st.error_code(), melon::ELOGOFF);
     ASSERT_TRUE(st.error_data().ends_with("the connection just issued GOAWAY"));
 }
@@ -1602,8 +1602,8 @@ public:
 };
 
 TEST_F(HttpTest, http2_handle_goaway_streams) {
-    const butil::EndPoint ep(butil::IP_ANY, 5961);
-    butil::fd_guard listenfd(butil::tcp_listen(ep));
+    const mutil::EndPoint ep(mutil::IP_ANY, 5961);
+    mutil::fd_guard listenfd(mutil::tcp_listen(ep));
     ASSERT_GT(listenfd, 0);
 
     melon::Channel channel;
@@ -1625,7 +1625,7 @@ TEST_F(HttpTest, http2_handle_goaway_streams) {
     int servfd = accept(listenfd, NULL, NULL);
     ASSERT_GT(servfd, 0);
     // Sleep for a while to make sure that server has received all data.
-    bthread_usleep(2000);
+    fiber_usleep(2000);
     char goawaybuf[melon::policy::FRAME_HEAD_SIZE + 8];
     SerializeFrameHead(goawaybuf, 8, melon::policy::H2_FRAME_GOAWAY, 0, 0);
     SaveUint32(goawaybuf + melon::policy::FRAME_HEAD_SIZE, 0);
@@ -1647,7 +1647,7 @@ TEST_F(HttpTest, spring_protobuf_content_type) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = "http";
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
 
     melon::Controller cntl;
     test::EchoRequest req;
@@ -1695,7 +1695,7 @@ TEST_F(HttpTest, dump_http_request) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = "http";
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
 
     // send request and dump it to file
     {
@@ -1748,7 +1748,7 @@ TEST_F(HttpTest, dump_http_request) {
     }
 
     // delete dump directory
-    butil::DeleteFile(butil::FilePath(melon::FLAGS_rpc_dump_dir), true);
+    mutil::DeleteFile(mutil::FilePath(melon::FLAGS_rpc_dump_dir), true);
 
     // restore gflag and global variable
     melon::FLAGS_rpc_dump = false;
@@ -1767,7 +1767,7 @@ TEST_F(HttpTest, spring_protobuf_text_content_type) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = "http";
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
 
     melon::Controller cntl;
     test::EchoRequest req;
@@ -1797,7 +1797,7 @@ class HttpServiceImpl : public ::test::HttpService {
         const std::string* index = cntl->http_request().GetHeader("x-db-index");
         ASSERT_NE(nullptr, index);
         int i;
-        ASSERT_TRUE(butil::StringToInt(*index, &i));
+        ASSERT_TRUE(mutil::StringToInt(*index, &i));
         cntl->http_response().set_content_type("text/plain");
         if (i % 2 == 0) {
             cntl->http_response().SetHeader("Content-Length",
@@ -1832,12 +1832,12 @@ TEST_F(HttpTest, http_head) {
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    ASSERT_EQ(0, channel.Init(butil::EndPoint(butil::my_ip(), port), &options));
+    ASSERT_EQ(0, channel.Init(mutil::EndPoint(mutil::my_ip(), port), &options));
     for (int i = 0; i < 100; ++i) {
         melon::Controller cntl;
         cntl.http_request().set_method(melon::HTTP_METHOD_HEAD);
         cntl.http_request().uri().set_path("/HttpService/Head");
-        cntl.http_request().SetHeader("x-db-index", butil::IntToString(i));
+        cntl.http_request().SetHeader("x-db-index", mutil::IntToString(i));
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
 
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -1857,10 +1857,10 @@ TEST_F(HttpTest, http_head) {
 
 #define BRPC_CRLF "\r\n"
 
-void MakeHttpRequestHeaders(butil::IOBuf* out,
+void MakeHttpRequestHeaders(mutil::IOBuf* out,
                             melon::HttpHeader* h,
-                            const butil::EndPoint& remote_side) {
-    butil::IOBufBuilder os;
+                            const mutil::EndPoint& remote_side) {
+    mutil::IOBufBuilder os;
     os << HttpMethod2Str(h->method()) << ' ';
     const melon::URI& uri = h->uri();
     uri.PrintWithoutHost(os); // host is sent by "Host" header.
@@ -1909,7 +1909,7 @@ void MakeHttpRequestHeaders(butil::IOBuf* out,
         // characters in this part and even if users did, most of them are
         // invalid and rejected by http_parser_parse_url().
         std::string encoded_user_info;
-        butil::Base64Encode(user_info, &encoded_user_info);
+        mutil::Base64Encode(user_info, &encoded_user_info);
         os << "Authorization: Basic " << encoded_user_info << BRPC_CRLF;
     }
     os << BRPC_CRLF;  // CRLF before content
@@ -1921,21 +1921,21 @@ void MakeHttpRequestHeaders(butil::IOBuf* out,
 void ReadOneResponse(melon::SocketUniquePtr& sock,
     melon::DestroyingPtr<melon::policy::HttpContext>& imsg_guard) {
 #if defined(OS_LINUX)
-    ASSERT_EQ(0, bthread_fd_wait(sock->fd(), EPOLLIN));
+    ASSERT_EQ(0, fiber_fd_wait(sock->fd(), EPOLLIN));
 #elif defined(OS_MACOSX)
-    ASSERT_EQ(0, bthread_fd_wait(sock->fd(), EVFILT_READ));
+    ASSERT_EQ(0, fiber_fd_wait(sock->fd(), EVFILT_READ));
 #endif
 
-    butil::IOPortal read_buf;
-    int64_t start_time = butil::gettimeofday_us();
+    mutil::IOPortal read_buf;
+    int64_t start_time = mutil::gettimeofday_us();
     while (true) {
         const ssize_t nr = read_buf.append_from_file_descriptor(sock->fd(), 4096);
         LOG(INFO) << "nr=" << nr;
-        LOG(INFO) << butil::ToPrintableString(read_buf);
+        LOG(INFO) << mutil::ToPrintableString(read_buf);
         ASSERT_TRUE(nr > 0 || (nr < 0 && errno == EAGAIN));
         if (errno == EAGAIN) {
-            ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
-            bthread_usleep(1000);
+            ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
+            fiber_usleep(1000);
             continue;
         }
         melon::ParseResult pr = melon::policy::ParseHttpMessage(&read_buf, sock.get(), false, NULL);
@@ -1955,8 +1955,8 @@ TEST_F(HttpTest, http_expect) {
     EXPECT_EQ(0, server.AddService(&svc, melon::SERVER_DOESNT_OWN_SERVICE));
     EXPECT_EQ(0, server.Start(port, NULL));
 
-    butil::EndPoint ep;
-    ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:8923", &ep));
+    mutil::EndPoint ep;
+    ASSERT_EQ(0, mutil::str2endpoint("127.0.0.1:8923", &ep));
     melon::SocketOptions options;
     options.remote_side = ep;
     melon::SocketId id;
@@ -1964,24 +1964,24 @@ TEST_F(HttpTest, http_expect) {
     melon::SocketUniquePtr sock;
     ASSERT_EQ(0, melon::Socket::Address(id, &sock));
 
-    butil::IOBuf content;
+    mutil::IOBuf content;
     content.append("hello");
     melon::HttpHeader header;
     header.set_method(melon::HTTP_METHOD_POST);
     header.uri().set_path("/HttpService/Expect");
     header.SetHeader("Expect", "100-continue");
     header.SetHeader("Content-Length", std::to_string(content.size()));
-    butil::IOBuf header_buf;
+    mutil::IOBuf header_buf;
     MakeHttpRequestHeaders(&header_buf, &header, ep);
-    LOG(INFO) << butil::ToPrintableString(header_buf);
-    butil::IOBuf request_buf(header_buf);
+    LOG(INFO) << mutil::ToPrintableString(header_buf);
+    mutil::IOBuf request_buf(header_buf);
     request_buf.append(content);
 
     ASSERT_EQ(0, sock->Write(&header_buf));
-    int64_t start_time = butil::gettimeofday_us();
+    int64_t start_time = mutil::gettimeofday_us();
     while (sock->fd() < 0) {
-        bthread_usleep(1000);
-        ASSERT_LT(butil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
+        fiber_usleep(1000);
+        ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
     }
     // 100 Continue
     melon::DestroyingPtr<melon::policy::HttpContext> imsg_guard;

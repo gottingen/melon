@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen (chenzhangyi01@baidu.com)
 
 #ifndef  BRAFT_ROUTE_TABLE_H
 #define  BRAFT_ROUTE_TABLE_H
@@ -43,7 +42,7 @@ namespace melon::raft {
         int update_leader(const GroupId &group, const std::string &leader_str);
 
             // Blocking the thread until query_leader finishes
-        butil::Status refresh_leader(const GroupId &group, int timeout_ms);
+        mutil::Status refresh_leader(const GroupId &group, int timeout_ms);
 
         // Remove this group from route table
         int remove_group(const GroupId &group);

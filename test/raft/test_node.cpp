@@ -1,21 +1,19 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: WangYao (fisherman), wangyao02@baidu.com
-// Date: 2015/10/08 17:00:05
 
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/files/file_path.h>
-#include <melon/butil/file_util.h>
-#include <melon/butil/fast_rand.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/file_util.h>
+#include <melon/utility/fast_rand.h>
 #include <melon/rpc/closure_guard.h>
-#include <melon/bthread/bthread.h>
-#include <melon/bthread/countdown_event.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/countdown_event.h>
 #include "util.h"
 
 namespace melon::raft {
@@ -67,7 +65,7 @@ protected:
         }
     }
 private:
-    butil::ShadowingAtExitManager exit_manager_;
+    mutil::ShadowingAtExitManager exit_manager_;
 };
 
 TEST_P(NodeTest, InitShutdown) {
@@ -77,20 +75,20 @@ TEST_P(NodeTest, InitShutdown) {
     ASSERT_EQ(0, server.Start("0.0.0.0:5006", NULL));
 
     melon::raft::NodeOptions options;
-    options.fsm = new MockFSM(butil::EndPoint());
+    options.fsm = new MockFSM(mutil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
 
-    melon::raft::Node node("unittest", melon::raft::PeerId(butil::EndPoint(butil::my_ip(), 5006), 0));
+    melon::raft::Node node("unittest", melon::raft::PeerId(mutil::EndPoint(mutil::my_ip(), 5006), 0));
     ASSERT_EQ(0, node.init(options));
 
     node.shutdown(NULL);
     node.join();
 
     //FIXME:
-    bthread::CountdownEvent cond;
-    butil::IOBuf data;
+    fiber::CountdownEvent cond;
+    mutil::IOBuf data;
     data.append("hello");
     melon::raft::Task task;
     task.data = &data;
@@ -116,7 +114,7 @@ TEST_P(NodeTest, SingleNode) {
     ASSERT_EQ(0, ret);
 
     melon::raft::PeerId peer;
-    peer.addr.ip = butil::my_ip();
+    peer.addr.ip = mutil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
     std::vector<melon::raft::PeerId> peers;
@@ -125,7 +123,7 @@ TEST_P(NodeTest, SingleNode) {
     melon::raft::NodeOptions options;
     options.election_timeout_ms = 300;
     options.initial_conf = melon::raft::Configuration(peers);
-    options.fsm = new MockFSM(butil::EndPoint());
+    options.fsm = new MockFSM(mutil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
@@ -133,9 +131,9 @@ TEST_P(NodeTest, SingleNode) {
     melon::raft::Node node("unittest", peer);
     ASSERT_EQ(0, node.init(options));
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -158,7 +156,7 @@ TEST_P(NodeTest, NoLeader) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -176,9 +174,9 @@ TEST_P(NodeTest, NoLeader) {
     melon::raft::Node* follower = nodes[0];
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -191,7 +189,7 @@ TEST_P(NodeTest, NoLeader) {
 
     // add peer1
     melon::raft::PeerId peer3;
-    peer3.addr.ip = butil::my_ip();
+    peer3.addr.ip = mutil::my_ip();
     peer3.addr.port = 5006 + 3;
     peer3.idx = 0;
 
@@ -202,7 +200,7 @@ TEST_P(NodeTest, NoLeader) {
 
     // remove peer1
     melon::raft::PeerId peer0;
-    peer0.addr.ip = butil::my_ip();
+    peer0.addr.ip = mutil::my_ip();
     peer0.addr.port = 5006 + 0;
     peer0.idx = 0;
 
@@ -216,7 +214,7 @@ TEST_P(NodeTest, TripleNode) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -236,9 +234,9 @@ TEST_P(NodeTest, TripleNode) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -251,7 +249,7 @@ TEST_P(NodeTest, TripleNode) {
     cond.wait();
 
     {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "no closure");
         data.append(data_buf);
@@ -305,7 +303,7 @@ TEST_P(NodeTest, LeaderFail) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -325,9 +323,9 @@ TEST_P(NodeTest, LeaderFail) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -340,7 +338,7 @@ TEST_P(NodeTest, LeaderFail) {
     cond.wait();
 
     // stop leader
-    butil::EndPoint old_leader = leader->node_id().peer_id.addr;
+    mutil::EndPoint old_leader = leader->node_id().peer_id.addr;
     LOG(WARNING) << "stop leader " << leader->node_id();
     cluster.stop(leader->node_id().peer_id.addr);
 
@@ -349,7 +347,7 @@ TEST_P(NodeTest, LeaderFail) {
     cluster.followers(&nodes);
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "follower apply: %d", i + 1);
         data.append(data_buf);
@@ -369,7 +367,7 @@ TEST_P(NodeTest, LeaderFail) {
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -387,7 +385,7 @@ TEST_P(NodeTest, LeaderFail) {
     // apply something
     cond.reset(10);
     for (int i = 20; i < 30; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -418,7 +416,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         if (i == 0) {
@@ -440,9 +438,9 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -455,7 +453,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     cond.wait();
 
     // stop leader
-    butil::EndPoint old_leader = leader->node_id().peer_id.addr;
+    mutil::EndPoint old_leader = leader->node_id().peer_id.addr;
     LOG(WARNING) << "stop leader " << leader->node_id();
     cluster.stop(leader->node_id().peer_id.addr);
 
@@ -464,7 +462,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     cluster.followers(&nodes);
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "follower apply: %d", i + 1);
         data.append(data_buf);
@@ -485,7 +483,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -503,7 +501,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
     // apply something
     cond.reset(10);
     for (int i = 20; i < 30; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -533,7 +531,7 @@ TEST_P(NodeTest, LeaderFailWithWitness) {
 TEST_P(NodeTest, JoinNode) {
     std::vector<melon::raft::PeerId> peers;
     melon::raft::PeerId peer0;
-    peer0.addr.ip = butil::my_ip();
+    peer0.addr.ip = mutil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
 
@@ -550,10 +548,10 @@ TEST_P(NodeTest, JoinNode) {
     ASSERT_EQ(leader->node_id().peer_id, peer0);
     LOG(WARNING) << "leader is " << leader->node_id();
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -567,7 +565,7 @@ TEST_P(NodeTest, JoinNode) {
 
     // start peer1
     melon::raft::PeerId peer1;
-    peer1.addr.ip = butil::my_ip();
+    peer1.addr.ip = mutil::my_ip();
     peer1.addr.port = 5006 + 1;
     peer1.idx = 0;
     ASSERT_EQ(0, cluster.start(peer1.addr, true));
@@ -585,7 +583,7 @@ TEST_P(NodeTest, JoinNode) {
 
     // add peer2 when peer not start
     melon::raft::PeerId peer2;
-    peer2.addr.ip = butil::my_ip();
+    peer2.addr.ip = mutil::my_ip();
     peer2.addr.port = 5006 + 2;
     peer2.idx = 0;
 
@@ -624,7 +622,7 @@ TEST_P(NodeTest, JoinNode) {
 TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     std::vector<melon::raft::PeerId> peers;
     melon::raft::PeerId peer0;
-    peer0.addr.ip = butil::my_ip();
+    peer0.addr.ip = mutil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
 
@@ -641,10 +639,10 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     ASSERT_EQ(leader->node_id().peer_id, peer0);
     LOG(WARNING) << "leader is " << leader->node_id();
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data; 
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(256 * 1024, 'a');
         data.append(data_buf);
@@ -665,7 +663,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     cond.reset(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(256 * 1024, 'b');
         data.append(data_buf);
@@ -685,7 +683,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
 
     // start peer1
     melon::raft::PeerId peer1;
-    peer1.addr.ip = butil::my_ip();
+    peer1.addr.ip = mutil::my_ip();
     peer1.addr.port = 5006 + 1;
     peer1.idx = 0;
     ASSERT_EQ(0, cluster.start(peer1.addr, true));
@@ -717,7 +715,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
 
     LOG(INFO) << "leader " << leader->node_id() 
                 << " step_down because of some error";
-    butil::Status status;
+    mutil::Status status;
     status.set_error(melon::raft::ERAFTTIMEDOUT, "Majority of the group dies");
     leader->_impl->step_down(leader->_impl->_current_term, false, status);
     cond.wait(); 
@@ -741,7 +739,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -761,9 +759,9 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(256 * 1024, 'a');
         data.append(data_buf);
@@ -783,13 +781,13 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
 
     // stop follower
     LOG(WARNING) << "stop follower";
-    butil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
+    mutil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
     cluster.stop(follower_addr);
 
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(256 * 1024, 'b');
         data.append(data_buf);
@@ -810,7 +808,7 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
     // apply something
     cond.reset(10);
     for (int i = 20; i < 30; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(256 * 1024, 'c');
         data.append(data_buf);
@@ -845,7 +843,7 @@ TEST_P(NodeTest, RemoveFollower) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -863,10 +861,10 @@ TEST_P(NodeTest, RemoveFollower) {
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -885,7 +883,7 @@ TEST_P(NodeTest, RemoveFollower) {
     ASSERT_EQ(2, nodes.size());
 
     const melon::raft::PeerId follower_id = nodes[0]->node_id().peer_id;
-    const butil::EndPoint follower_addr = follower_id.addr;
+    const mutil::EndPoint follower_addr = follower_id.addr;
     // stop follower
     LOG(WARNING) << "stop and clean follower " << follower_addr;
     cluster.stop(follower_addr);
@@ -900,7 +898,7 @@ TEST_P(NodeTest, RemoveFollower) {
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -918,7 +916,7 @@ TEST_P(NodeTest, RemoveFollower) {
     peers.clear();
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -947,7 +945,7 @@ TEST_P(NodeTest, RemoveLeader) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -965,10 +963,10 @@ TEST_P(NodeTest, RemoveLeader) {
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -980,7 +978,7 @@ TEST_P(NodeTest, RemoveLeader) {
     }
     cond.wait();
 
-    butil::EndPoint old_leader_addr = leader->node_id().peer_id.addr;
+    mutil::EndPoint old_leader_addr = leader->node_id().peer_id.addr;
     LOG(WARNING) << "remove leader " << old_leader_addr;
     cond.reset(1);
     leader->remove_peer(leader->node_id().peer_id, NEW_REMOVEPEERCLOSURE(&cond, 0));
@@ -994,7 +992,7 @@ TEST_P(NodeTest, RemoveLeader) {
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1019,7 +1017,7 @@ TEST_P(NodeTest, RemoveLeader) {
     peers.clear();
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1041,7 +1039,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1061,9 +1059,9 @@ TEST_P(NodeTest, restart_without_stable_meta) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1083,16 +1081,16 @@ TEST_P(NodeTest, restart_without_stable_meta) {
 
     // stop follower
     LOG(WARNING) << "stop follower";
-    butil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
+    mutil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
     cluster.stop(follower_addr);
 
-    ::system(butil::string_printf("rm -rf ./data/%s/stable/*",
-                                 butil::endpoint2str(follower_addr).c_str()).c_str());
+    ::system(mutil::string_printf("rm -rf ./data/%s/stable/*",
+                                 mutil::endpoint2str(follower_addr).c_str()).c_str());
 
     LOG(INFO) << "restart follower";
     ASSERT_EQ(0, cluster.start(follower_addr));
 
-    bthread_usleep(1000*1000);
+    fiber_usleep(1000*1000);
     cluster.wait_leader();
     leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
@@ -1101,7 +1099,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
     // apply something
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1123,7 +1121,7 @@ TEST_P(NodeTest, PreVote) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1141,10 +1139,10 @@ TEST_P(NodeTest, PreVote) {
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1162,7 +1160,7 @@ TEST_P(NodeTest, PreVote) {
     cluster.followers(&nodes);
     ASSERT_EQ(2, nodes.size());
     const melon::raft::PeerId follower_id = nodes[0]->node_id().peer_id;
-    const butil::EndPoint follower_addr = follower_id.addr;
+    const mutil::EndPoint follower_addr = follower_id.addr;
 
     const int64_t saved_term = leader->_impl->_current_term;
     //remove follower
@@ -1174,7 +1172,7 @@ TEST_P(NodeTest, PreVote) {
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1193,7 +1191,7 @@ TEST_P(NodeTest, PreVote) {
     peers.clear();
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1216,7 +1214,7 @@ TEST_P(NodeTest, Vote_timedout) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 2; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1240,7 +1238,7 @@ TEST_P(NodeTest, Vote_timedout) {
     cluster.followers(&nodes);
     ASSERT_FALSE(nodes.empty());
     // stop follower, only one node left 
-    const butil::EndPoint follower_addr = nodes[0]->_impl->_server_id.addr;
+    const mutil::EndPoint follower_addr = nodes[0]->_impl->_server_id.addr;
     cluster.stop(follower_addr);
     
     // wait old leader to step down 
@@ -1267,7 +1265,7 @@ TEST_P(NodeTest, SetPeer1) {
     // bootstrap from null
     Cluster cluster("unittest", std::vector<melon::raft::PeerId>());
     melon::raft::PeerId boot_peer;
-    boot_peer.addr.ip = butil::my_ip();
+    boot_peer.addr.ip = mutil::my_ip();
     boot_peer.addr.port = 5006;
     boot_peer.idx = 0;
 
@@ -1287,7 +1285,7 @@ TEST_P(NodeTest, SetPeer2) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1304,14 +1302,14 @@ TEST_P(NodeTest, SetPeer2) {
     cluster.wait_leader();
     melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
-    butil::EndPoint leader_addr = leader->node_id().peer_id.addr;
+    mutil::EndPoint leader_addr = leader->node_id().peer_id.addr;
     LOG(WARNING) << "leader is " << leader->node_id();
     std::cout << "Here" << std::endl;
 
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     // apply something
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1339,7 +1337,7 @@ TEST_P(NodeTest, SetPeer2) {
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1357,7 +1355,7 @@ TEST_P(NodeTest, SetPeer2) {
     LOG(WARNING) << "set peer to " << leader_addr;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1414,7 +1412,7 @@ TEST_P(NodeTest, RestoreSnapshot) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1432,12 +1430,12 @@ TEST_P(NodeTest, RestoreSnapshot) {
     melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     LOG(WARNING) << "leader is " << leader->node_id();
-    butil::EndPoint leader_addr = leader->node_id().peer_id.addr;
+    mutil::EndPoint leader_addr = leader->node_id().peer_id.addr;
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1476,7 +1474,7 @@ TEST_P(NodeTest, InstallSnapshot) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1496,9 +1494,9 @@ TEST_P(NodeTest, InstallSnapshot) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1518,13 +1516,13 @@ TEST_P(NodeTest, InstallSnapshot) {
 
     // stop follower
     LOG(WARNING) << "stop follower";
-    butil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
+    mutil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
     cluster.stop(follower_addr);
 
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1545,7 +1543,7 @@ TEST_P(NodeTest, InstallSnapshot) {
     // apply something
     cond.reset(10);
     for (int i = 20; i < 30; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1579,7 +1577,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 5; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1599,9 +1597,9 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1621,15 +1619,15 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
 
     // stop follower
     LOG(WARNING) << "stop follower";
-    butil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
-    butil::EndPoint follower_addr2 = nodes[1]->node_id().peer_id.addr;
+    mutil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
+    mutil::EndPoint follower_addr2 = nodes[1]->node_id().peer_id.addr;
     cluster.stop(follower_addr);
     cluster.stop(follower_addr2);
 
     // apply something
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data; 
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(128 * 1024, 'a');
         data.append(data_buf);
@@ -1650,7 +1648,7 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
     // apply something
     cond.reset(10);
     for (int i = 20; i < 30; i++) {
-        butil::IOBuf data; 
+        mutil::IOBuf data;
         std::string data_buf;
         data_buf.resize(128 * 1024, 'b');
         data.append(data_buf);
@@ -1689,7 +1687,7 @@ TEST_P(NodeTest, NoSnapshot) {
     ASSERT_EQ(0, server.Start(5006, &server_options));
 
     melon::raft::PeerId peer;
-    peer.addr.ip = butil::my_ip();
+    peer.addr.ip = mutil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
     std::vector<melon::raft::PeerId> peers;
@@ -1698,7 +1696,7 @@ TEST_P(NodeTest, NoSnapshot) {
     melon::raft::NodeOptions options;
     options.election_timeout_ms = 300;
     options.initial_conf = melon::raft::Configuration(peers);
-    options.fsm = new MockFSM(butil::EndPoint());
+    options.fsm = new MockFSM(mutil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
 
@@ -1709,9 +1707,9 @@ TEST_P(NodeTest, NoSnapshot) {
     sleep(2);
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1746,7 +1744,7 @@ TEST_P(NodeTest, AutoSnapshot) {
     ASSERT_EQ(0, server.Start(5006, &server_options));
 
     melon::raft::PeerId peer;
-    peer.addr.ip = butil::my_ip();
+    peer.addr.ip = mutil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
     std::vector<melon::raft::PeerId> peers;
@@ -1755,7 +1753,7 @@ TEST_P(NodeTest, AutoSnapshot) {
     melon::raft::NodeOptions options;
     options.election_timeout_ms = 300;
     options.initial_conf = melon::raft::Configuration(peers);
-    options.fsm = new MockFSM(butil::EndPoint());
+    options.fsm = new MockFSM(mutil::EndPoint());
     options.log_uri = "local://./data/log";
     options.raft_meta_uri = "local://./data/raft_meta";
     options.snapshot_uri = "local://./data/snapshot";
@@ -1768,9 +1766,9 @@ TEST_P(NodeTest, AutoSnapshot) {
     sleep(2);
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1799,7 +1797,7 @@ TEST_P(NodeTest, LeaderShouldNotChange) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1831,7 +1829,7 @@ TEST_P(NodeTest, RecoverFollower) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1854,13 +1852,13 @@ TEST_P(NodeTest, RecoverFollower) {
     std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_FALSE(nodes.empty());
-    const butil::EndPoint follower_addr = nodes[0]->_impl->_server_id.addr;
+    const mutil::EndPoint follower_addr = nodes[0]->_impl->_server_id.addr;
     cluster.stop(follower_addr);
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1872,7 +1870,7 @@ TEST_P(NodeTest, RecoverFollower) {
     }
     cond.wait();
     {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "no closure");
         data.append(data_buf);
@@ -1897,7 +1895,7 @@ TEST_P(NodeTest, leader_transfer) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -1930,7 +1928,7 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         if (i == 0) {
@@ -1957,9 +1955,9 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
     melon::raft::PeerId follower = follower_node->node_id().peer_id;
     cluster.stop(follower.addr);
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -1971,7 +1969,7 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
     cond.wait();
 
     // stop leader
-    butil::EndPoint old_leader = leader->node_id().peer_id.addr;
+    mutil::EndPoint old_leader = leader->node_id().peer_id.addr;
     LOG(WARNING) << "stop leader " << leader->node_id();
     cluster.stop(leader->node_id().peer_id.addr);
 
@@ -2008,7 +2006,7 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -2030,9 +2028,9 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
     melon::raft::PeerId target = nodes[0]->node_id().peer_id;
     cluster.stop(target.addr);
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2045,7 +2043,7 @@ TEST_P(NodeTest, leader_transfer_before_log_is_compleleted) {
     ASSERT_EQ(EHOSTUNREACH, leader->transfer_leadership_to(target));
     cond.reset(1);
     melon::raft::Task task;
-    butil::IOBuf data;
+    mutil::IOBuf data;
     data.resize(5, 'a');
     task.data = &data;
     task.done = NEW_APPLYCLOSURE(&cond, 0);
@@ -2066,7 +2064,7 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -2088,9 +2086,9 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
     melon::raft::PeerId target = nodes[0]->node_id().peer_id;
     cluster.stop(target.addr);
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2104,7 +2102,7 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
     melon::raft::Node* saved_leader = leader;
     cond.reset(1);
     melon::raft::Task task;
-    butil::IOBuf data;
+    mutil::IOBuf data;
     data.resize(5, 'a');
     task.data = &data;
     task.done = NEW_APPLYCLOSURE(&cond, 0);
@@ -2131,7 +2129,7 @@ TEST_P(NodeTest, leader_transfer_resume_on_failure) {
 
 class MockFSM1 : public MockFSM {
 protected:
-    MockFSM1() : MockFSM(butil::EndPoint()) {}
+    MockFSM1() : MockFSM(mutil::EndPoint()) {}
     virtual int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         (void)reader;
         return -1;
@@ -2145,7 +2143,7 @@ TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
     ASSERT_EQ(0, ret);
 
     melon::raft::PeerId peer;
-    peer.addr.ip = butil::my_ip();
+    peer.addr.ip = mutil::my_ip();
     peer.addr.port = 5006;
     peer.idx = 0;
     std::vector<melon::raft::PeerId> peers;
@@ -2162,9 +2160,9 @@ TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
         melon::raft::Node node("unittest", peer);
         ASSERT_EQ(0, node.init(options));
         sleep(1);
-        bthread::CountdownEvent cond(10);
+        fiber::CountdownEvent cond(10);
         for (int i = 0; i < 10; i++) {
-            butil::IOBuf data;
+            mutil::IOBuf data;
             char data_buf[128];
             snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
             data.append(data_buf);
@@ -2205,7 +2203,7 @@ TEST_P(NodeTest, shutting_leader_triggers_timeout_now) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         peers.push_back(peer);
@@ -2233,7 +2231,7 @@ TEST_P(NodeTest, removing_leader_triggers_timeout_now) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         peers.push_back(peer);
@@ -2248,7 +2246,7 @@ TEST_P(NodeTest, removing_leader_triggers_timeout_now) {
     ASSERT_TRUE(leader != NULL);
     melon::raft::PeerId old_leader_id = leader->node_id().peer_id;
     LOG(WARNING) << "remove leader " << old_leader_id;
-    bthread::CountdownEvent cond;
+    fiber::CountdownEvent cond;
     leader->remove_peer(old_leader_id, NEW_REMOVEPEERCLOSURE(&cond, 0));
     cond.wait();
     usleep(100 * 1000);
@@ -2262,7 +2260,7 @@ TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
     std::vector<melon::raft::PeerId> peers;
     for (size_t i = 0; i < 3; ++i) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         peers.push_back(peer);
@@ -2275,9 +2273,9 @@ TEST_P(NodeTest, transfer_should_work_after_install_snapshot) {
     cluster.wait_leader();
     melon::raft::Node* leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2319,7 +2317,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     // five nodes
     for (int i = 0; i < 5; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         peers.push_back(peer);
@@ -2338,9 +2336,9 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2355,7 +2353,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     std::vector<melon::raft::Node*> nodes;
     cluster.followers(&nodes);
     ASSERT_EQ(nodes.size(), 4);
-    butil::EndPoint error_follower = nodes[0]->node_id().peer_id.addr;
+    mutil::EndPoint error_follower = nodes[0]->node_id().peer_id.addr;
     melon::raft::Node* error_follower_node = nodes[0];
     LOG(WARNING) << "set follower error " << nodes[0]->node_id();
     melon::raft::NodeImpl *node_impl = nodes[0]->_impl;
@@ -2367,7 +2365,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     node_impl->Release();
 
     // increase term  by stopping leader and electing a new leader again
-    butil::EndPoint old_leader = leader->node_id().peer_id.addr;
+    mutil::EndPoint old_leader = leader->node_id().peer_id.addr;
     LOG(WARNING) << "stop leader " << leader->node_id();
     cluster.stop(old_leader);
     // elect new leader
@@ -2379,7 +2377,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     // apply something again 
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2414,7 +2412,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     // five nodes
     for (int i = 0; i < 5; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         peers.push_back(peer);
@@ -2435,9 +2433,9 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
                  << leader_first->_impl->_options.election_timeout_ms;
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2461,7 +2459,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     }
 
     // stop old leader and elect a new one
-    butil::EndPoint leader_first_endpoint = leader_first->node_id().peer_id.addr;
+    mutil::EndPoint leader_first_endpoint = leader_first->node_id().peer_id.addr;
     LOG(WARNING) << "stop leader_first " << leader_first->node_id();
     cluster.stop(leader_first_endpoint);
     // elect new leader
@@ -2473,7 +2471,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     // apply something
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2514,7 +2512,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     // apply something
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2557,7 +2555,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
         peers.push_back(peer);
@@ -2576,9 +2574,9 @@ TEST_P(NodeTest, read_committed_user_log) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2593,7 +2591,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     // index == 1 is a CONFIGURATION log, so real_index will be 2 when returned.
     int64_t index = 1;
     melon::raft::UserLog* user_log = new melon::raft::UserLog();
-    butil::Status status = leader->read_committed_user_log(index, user_log);
+    mutil::Status status = leader->read_committed_user_log(index, user_log);
     ASSERT_EQ(0, status.error_code());
     ASSERT_EQ(2, user_log->log_index());
     LOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
@@ -2644,7 +2642,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     std::vector<melon::raft::PeerId> new_peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -2659,7 +2657,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     // apply something again
     cond.reset(10);
     for (int i = 10; i < 20; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2712,11 +2710,11 @@ TEST_P(NodeTest, read_committed_user_log) {
 }
 
 TEST_P(NodeTest, boostrap_with_snapshot) {
-    butil::EndPoint addr;
-    ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:5006", &addr));
+    mutil::EndPoint addr;
+    ASSERT_EQ(0, mutil::str2endpoint("127.0.0.1:5006", &addr));
     MockFSM fsm(addr);
     for (char c = 'a'; c <= 'z'; ++c) {
-        butil::IOBuf buf;
+        mutil::IOBuf buf;
         buf.resize(100, c);
         fsm.logs.push_back(buf);
     }
@@ -2754,8 +2752,8 @@ TEST_P(NodeTest, boostrap_with_snapshot) {
 }
 
 TEST_P(NodeTest, boostrap_without_snapshot) {
-    butil::EndPoint addr;
-    ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:5006", &addr));
+    mutil::EndPoint addr;
+    ASSERT_EQ(0, mutil::str2endpoint("127.0.0.1:5006", &addr));
     melon::raft::BootstrapOptions boptions;
     boptions.last_log_index = 0;
     boptions.log_uri = "local://./data/log";
@@ -2785,7 +2783,7 @@ TEST_P(NodeTest, boostrap_without_snapshot) {
 TEST_P(NodeTest, change_peers) {
     std::vector<melon::raft::PeerId> peers;
     melon::raft::PeerId peer0;
-    peer0.addr.ip = butil::my_ip();
+    peer0.addr.ip = mutil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
 
@@ -2796,9 +2794,9 @@ TEST_P(NodeTest, change_peers) {
     LOG(INFO) << "start single cluster " << peer0;
     cluster.wait_leader();
     melon::raft::Node* leader = cluster.leader();
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2835,7 +2833,7 @@ TEST_P(NodeTest, change_peers) {
 TEST_P(NodeTest, change_peers_add_multiple_node) {
     std::vector<melon::raft::PeerId> peers;
     melon::raft::PeerId peer0;
-    peer0.addr.ip = butil::my_ip();
+    peer0.addr.ip = mutil::my_ip();
     peer0.addr.port = 5006;
     peer0.idx = 0;
 
@@ -2846,9 +2844,9 @@ TEST_P(NodeTest, change_peers_add_multiple_node) {
     LOG(INFO) << "start single cluster " << peer0;
     cluster.wait_leader();
     melon::raft::Node* leader = cluster.leader();
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2899,9 +2897,9 @@ TEST_P(NodeTest, change_peers_steps_down_in_joint_consensus) {
     LOG(INFO) << "start single cluster " << peer0;
     cluster.wait_leader();
     melon::raft::Node* leader = cluster.leader();
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     for (int i = 0; i < 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -2973,7 +2971,7 @@ static void* change_routine(void* arg) {
             conf.add_peer(ca->peers[0]);
         }
         for (size_t i = 0; i < ca->peers.size(); ++i) {
-            bool select = butil::fast_rand_less_than(64) < 32;
+            bool select = mutil::fast_rand_less_than(64) < 32;
             if (select) {
                 conf.add_peer(ca->peers[i]);
             }
@@ -3018,7 +3016,7 @@ TEST_P(NodeTest, change_peers_chaos_with_snapshot) {
         if (!leader) {
             continue;
         }
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -3067,7 +3065,7 @@ TEST_P(NodeTest, change_peers_chaos_without_snapshot) {
         if (!leader) {
             continue;
         }
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i + 1);
         data.append(data_buf);
@@ -3121,7 +3119,7 @@ public:
     }
 
 private:
-    bthread::CountdownEvent _event;
+    fiber::CountdownEvent _event;
     melon::raft::AppendEntriesRequest _request;
     melon::raft::AppendEntriesResponse _response;
     melon::Controller* _cntl;
@@ -3135,7 +3133,7 @@ void follower_append_entries(
     request.set_prev_log_index(prev_log_index);
     for (int i = 0; i < entry_size; ++i) {
         melon::raft::EntryMeta em;
-        butil::IOBuf data;
+        mutil::IOBuf data;
         data.append("hello");
         em.set_data_len(data.size());
         em.set_type(melon::raft::ENTRY_TYPE_DATA);
@@ -3151,7 +3149,7 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -3180,7 +3178,7 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
         int64_t local_index = followers[0]->_impl->_log_manager->last_log_index();
         followers[0]->_impl->_mutex.unlock();
         if (local_index == 0) {
-            bthread_usleep(1000);
+            fiber_usleep(1000);
             continue;
         } else {
             break;
@@ -3379,7 +3377,7 @@ TEST_P(NodeTest, readonly) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 0; i < 3; i++) {
         melon::raft::PeerId peer;
-        peer.addr.ip = butil::my_ip();
+        peer.addr.ip = mutil::my_ip();
         peer.addr.port = 5006 + i;
         peer.idx = 0;
 
@@ -3399,10 +3397,10 @@ TEST_P(NodeTest, readonly) {
     LOG(WARNING) << "leader is " << leader->node_id();
 
     // apply something
-    bthread::CountdownEvent cond(10);
+    fiber::CountdownEvent cond(10);
     int start_index = 0;
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
@@ -3420,7 +3418,7 @@ TEST_P(NodeTest, readonly) {
     cond.reset(10);
     start_index += 10;
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
@@ -3438,7 +3436,7 @@ TEST_P(NodeTest, readonly) {
     cond.reset(10);
     start_index += 10;
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
@@ -3456,11 +3454,11 @@ TEST_P(NodeTest, readonly) {
 
     // Let follower 0 enter readonly mode, still can accept user logs
     followers[0]->enter_readonly_mode();
-    bthread_usleep(2000 * 1000); // wait a while for heartbeat
+    fiber_usleep(2000 * 1000); // wait a while for heartbeat
     cond.reset(10);
     start_index += 10;
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
@@ -3476,13 +3474,13 @@ TEST_P(NodeTest, readonly) {
     followers[1]->enter_readonly_mode();
     int retry = 5;
     while (!leader->readonly() && --retry >= 0) {
-        bthread_usleep(1000 * 1000);
+        fiber_usleep(1000 * 1000);
     }
     ASSERT_TRUE(leader->readonly());
     cond.reset(10);
     start_index += 10;
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
@@ -3496,11 +3494,11 @@ TEST_P(NodeTest, readonly) {
 
     // Add a new follower
     melon::raft::PeerId peer3;
-    peer3.addr.ip = butil::my_ip();
+    peer3.addr.ip = mutil::my_ip();
     peer3.addr.port = 5006 + 3;
     peer3.idx = 0;
     ASSERT_EQ(0, cluster.start(peer3.addr, true));
-    bthread_usleep(1000* 1000);
+    fiber_usleep(1000* 1000);
     cond.reset(1);
     leader->add_peer(peer3, NEW_ADDPEERCLOSURE(&cond, 0));
     cond.wait();
@@ -3513,13 +3511,13 @@ TEST_P(NodeTest, readonly) {
     // 2/4 readonly, leader still in readonly
     retry = 5;
     while (!leader->readonly() && --retry >= 0) {
-        bthread_usleep(1000 * 1000);
+        fiber_usleep(1000 * 1000);
     }
     ASSERT_TRUE(leader->readonly());
     start_index += 10;
     cond.reset(10);
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);
@@ -3540,13 +3538,13 @@ TEST_P(NodeTest, readonly) {
     // 1/3 readonly, leader leave Readonly
     retry = 5;
     while (leader->readonly() && --retry >= 0) {
-        bthread_usleep(1000 * 1000);
+        fiber_usleep(1000 * 1000);
     }
     ASSERT_TRUE(!leader->readonly());
     cond.reset(10);
     start_index += 10;
     for (int i = start_index; i < start_index + 10; i++) {
-        butil::IOBuf data;
+        mutil::IOBuf data;
         char data_buf[128];
         snprintf(data_buf, sizeof(data_buf), "hello: %d", i);
         data.append(data_buf);

@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zheng,PengFei(zhengpengfei@baidu.com)
 
 #ifndef  MELON_RAFT_FILE_SYSTEM_ADAPTOR_H_
 #define  MELON_RAFT_FILE_SYSTEM_ADAPTOR_H_
 
 #include <fcntl.h>
-#include <melon/butil/file_util.h>
-#include <melon/butil/files/file.h>                        // butil::File
-#include <melon/butil/files/dir_reader_posix.h>            // butil::DirReaderPosix
-#include <melon/butil/memory/ref_counted.h>                // butil::RefCountedThreadSafe
-#include <melon/butil/memory/singleton.h>                  // Singleton
+#include <melon/utility/file_util.h>
+#include <melon/utility/files/file.h>                        // mutil::File
+#include <melon/utility/files/dir_reader_posix.h>            // mutil::DirReaderPosix
+#include <melon/utility/memory/ref_counted.h>                // mutil::RefCountedThreadSafe
+#include <melon/utility/memory/singleton.h>                  // Singleton
 #include <google/protobuf/message.h>                // google::protobuf::Message
 #include "melon/raft/util.h"
 #include "melon/raft/fsync.h"
@@ -71,13 +70,13 @@ namespace melon::raft {
         // Write to the file. Different from posix ::pwrite(), write will retry automatically
         // when occur EINTR.
         // Return |data.size()| if successful, -1 otherwise.
-        virtual ssize_t write(const butil::IOBuf &data, off_t offset) = 0;
+        virtual ssize_t write(const mutil::IOBuf &data, off_t offset) = 0;
 
         // Read from the file. Different from posix ::pread(), read will retry automatically
         // when occur EINTR.
         // Return a non-negative integer less than or equal to |size| if successful, -1 otherwise.
         // In the case of EOF, the return value is a non-negative integer less than |size|.
-        virtual ssize_t read(butil::IOPortal *portal, off_t offset, size_t size) = 0;
+        virtual ssize_t read(mutil::IOPortal *portal, off_t offset, size_t size) = 0;
 
         // Get the size of the file
         virtual ssize_t size() = 0;
@@ -96,7 +95,7 @@ namespace melon::raft {
         DISALLOW_COPY_AND_ASSIGN(FileAdaptor);
     };
 
-    class FileSystemAdaptor : public butil::RefCountedThreadSafe<FileSystemAdaptor> {
+    class FileSystemAdaptor : public mutil::RefCountedThreadSafe<FileSystemAdaptor> {
     public:
         FileSystemAdaptor() {}
 
@@ -107,7 +106,7 @@ namespace melon::raft {
         // be valid until the file is destroyed.
         virtual FileAdaptor *open(const std::string &path, int oflag,
                                   const ::google::protobuf::Message *file_meta,
-                                  butil::File::Error *e) = 0;
+                                  mutil::File::Error *e) = 0;
 
         // Deletes the given path, whether it's a file or a directory. If it's a directory,
         // it's perfectly happy to delete all of the directory's contents. Passing true to
@@ -126,7 +125,7 @@ namespace melon::raft {
         // will be created if not exist, otherwise, the create operation will fail.
         // Returns 'true' on successful creation, or if the directory already exists.
         virtual bool create_directory(const std::string &path,
-                                      butil::File::Error *error,
+                                      mutil::File::Error *error,
                                       bool create_parent_directories) = 0;
 
         // Returns true if the given path exists on the filesystem, false otherwise.
@@ -173,7 +172,7 @@ namespace melon::raft {
         PosixDirReader(const std::string &path) : _dir_reader(path.c_str()) {}
 
     private:
-        butil::DirReaderPosix _dir_reader;
+        mutil::DirReaderPosix _dir_reader;
     };
 
     class PosixFileAdaptor : public FileAdaptor {
@@ -182,9 +181,9 @@ namespace melon::raft {
     public:
         virtual ~PosixFileAdaptor();
 
-        virtual ssize_t write(const butil::IOBuf &data, off_t offset);
+        virtual ssize_t write(const mutil::IOBuf &data, off_t offset);
 
-        virtual ssize_t read(butil::IOPortal *portal, off_t offset, size_t size);
+        virtual ssize_t read(mutil::IOPortal *portal, off_t offset, size_t size);
 
         virtual ssize_t size();
 
@@ -203,12 +202,12 @@ namespace melon::raft {
     public:
         virtual ~BufferedSequentialReadFileAdaptor() {}
 
-        virtual ssize_t write(const butil::IOBuf &data, off_t offset) {
+        virtual ssize_t write(const mutil::IOBuf &data, off_t offset) {
             CHECK(false);
             return -1;
         }
 
-        virtual ssize_t read(butil::IOPortal *portal, off_t offset, size_t size);
+        virtual ssize_t read(mutil::IOPortal *portal, off_t offset, size_t size);
 
         virtual bool sync() {
             CHECK(false);
@@ -230,10 +229,10 @@ namespace melon::raft {
         // The |need_count| here is just a suggestion, |nread| can be larger than |need_count|
         // actually, if needed. This is useful for some special cases, in which data must be
         // read atomically. If |nread| < |need_count|, the wrapper think eof is reached.
-        virtual int do_read(butil::IOPortal *portal, size_t need_count, size_t *nread) = 0;
+        virtual int do_read(mutil::IOPortal *portal, size_t need_count, size_t *nread) = 0;
 
     private:
-        butil::IOBuf _buffer;
+        mutil::IOBuf _buffer;
         off_t _buffer_offset;
         size_t _buffer_size;
         bool _reach_file_eof;
@@ -244,9 +243,9 @@ namespace melon::raft {
     public:
         virtual ~BufferedSequentialWriteFileAdaptor() {}
 
-        virtual ssize_t write(const butil::IOBuf &data, off_t offset);
+        virtual ssize_t write(const mutil::IOBuf &data, off_t offset);
 
-        virtual ssize_t read(butil::IOPortal *portal, off_t offset, size_t size) {
+        virtual ssize_t read(mutil::IOPortal *portal, off_t offset, size_t size) {
             CHECK(false);
             return -1;
         }
@@ -273,7 +272,7 @@ namespace melon::raft {
         // Write |data| into underlayer device with its current offset, |nwrite|
         // is set to the number of written bytes
         // Return 0 on success
-        virtual int do_write(const butil::IOBuf &data, size_t *nwrite) = 0;
+        virtual int do_write(const mutil::IOBuf &data, size_t *nwrite) = 0;
 
         // Seek to a given offset when there is hole
         // NOTICE: Only seek to bigger offset
@@ -281,7 +280,7 @@ namespace melon::raft {
             _buffer_offset = offset;
         }
 
-        butil::IOBuf _buffer;
+        mutil::IOBuf _buffer;
         off_t _buffer_offset;
         size_t _buffer_size;
         int _error;
@@ -295,7 +294,7 @@ namespace melon::raft {
 
         virtual FileAdaptor *open(const std::string &path, int oflag,
                                   const ::google::protobuf::Message *file_meta,
-                                  butil::File::Error *e);
+                                  mutil::File::Error *e);
 
         virtual bool delete_file(const std::string &path, bool recursive);
 
@@ -304,7 +303,7 @@ namespace melon::raft {
         virtual bool link(const std::string &old_path, const std::string &new_path);
 
         virtual bool create_directory(const std::string &path,
-                                      butil::File::Error *error,
+                                      mutil::File::Error *error,
                                       bool create_parent_directories);
 
         virtual bool path_exists(const std::string &path);
@@ -317,8 +316,8 @@ namespace melon::raft {
     // Get a default file system adapotor, it's a singleton PosixFileSystemAdaptor.
     FileSystemAdaptor *default_file_system();
 
-    // Convert butil::File::Error to os error
-    int file_error_to_os_error(butil::File::Error e);
+    // Convert mutil::File::Error to os error
+    int file_error_to_os_error(mutil::File::Error e);
 
     // Create a sub directory of an existing |parent_path|. Requiring that
     // |parent_path| must exist.
@@ -327,7 +326,7 @@ namespace melon::raft {
     bool create_sub_directory(const std::string &parent_path,
                               const std::string &sub_path,
                               FileSystemAdaptor *fs = NULL,
-                              butil::File::Error *error = NULL);
+                              mutil::File::Error *error = NULL);
 
 } //  namespace melon::raft
 

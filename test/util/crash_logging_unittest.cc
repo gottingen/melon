@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/debug/crash_logging.h"
+#include "melon/utility/debug/crash_logging.h"
 
 #include <map>
 #include <string>
@@ -19,38 +19,38 @@ class CrashLoggingTest : public testing::Test {
  public:
   virtual void SetUp() {
     key_values_ = new std::map<std::string, std::string>;
-    butil::debug::SetCrashKeyReportingFunctions(
+    mutil::debug::SetCrashKeyReportingFunctions(
         &CrashLoggingTest::SetKeyValue,
         &CrashLoggingTest::ClearKeyValue);
   }
 
   virtual void TearDown() {
-    butil::debug::ResetCrashLoggingForTesting();
+    mutil::debug::ResetCrashLoggingForTesting();
 
     delete key_values_;
     key_values_ = NULL;
   }
 
  private:
-  static void SetKeyValue(const butil::StringPiece& key,
-                          const butil::StringPiece& value) {
+  static void SetKeyValue(const mutil::StringPiece& key,
+                          const mutil::StringPiece& value) {
     (*key_values_)[key.as_string()] = value.as_string();
   }
 
-  static void ClearKeyValue(const butil::StringPiece& key) {
+  static void ClearKeyValue(const mutil::StringPiece& key) {
     key_values_->erase(key.as_string());
   }
 };
 
 TEST_F(CrashLoggingTest, SetClearSingle) {
   const char* kTestKey = "test-key";
-  butil::debug::CrashKey keys[] = { { kTestKey, 255 } };
-  butil::debug::InitCrashKeys(keys, arraysize(keys), 255);
+  mutil::debug::CrashKey keys[] = { { kTestKey, 255 } };
+  mutil::debug::InitCrashKeys(keys, arraysize(keys), 255);
 
-  butil::debug::SetCrashKeyValue(kTestKey, "value");
+  mutil::debug::SetCrashKeyValue(kTestKey, "value");
   EXPECT_EQ("value", (*key_values_)[kTestKey]);
 
-  butil::debug::ClearCrashKey(kTestKey);
+  mutil::debug::ClearCrashKey(kTestKey);
   EXPECT_TRUE(key_values_->end() == key_values_->find(kTestKey));
 }
 
@@ -59,27 +59,27 @@ TEST_F(CrashLoggingTest, SetChunked) {
   const char* kChunk1 = "chunky-1";
   const char* kChunk2 = "chunky-2";
   const char* kChunk3 = "chunky-3";
-  butil::debug::CrashKey keys[] = { { kTestKey, 15 } };
-  butil::debug::InitCrashKeys(keys, arraysize(keys), 5);
+  mutil::debug::CrashKey keys[] = { { kTestKey, 15 } };
+  mutil::debug::InitCrashKeys(keys, arraysize(keys), 5);
 
   std::map<std::string, std::string>& values = *key_values_;
 
   // Fill only the first chunk.
-  butil::debug::SetCrashKeyValue(kTestKey, "foo");
+  mutil::debug::SetCrashKeyValue(kTestKey, "foo");
   EXPECT_EQ(1u, values.size());
   EXPECT_EQ("foo", values[kChunk1]);
   EXPECT_TRUE(values.end() == values.find(kChunk2));
   EXPECT_TRUE(values.end() == values.find(kChunk3));
 
   // Fill three chunks with truncation (max length is 15, this string is 20).
-  butil::debug::SetCrashKeyValue(kTestKey, "five four three two");
+  mutil::debug::SetCrashKeyValue(kTestKey, "five four three two");
   EXPECT_EQ(3u, values.size());
   EXPECT_EQ("five ", values[kChunk1]);
   EXPECT_EQ("four ", values[kChunk2]);
   EXPECT_EQ("three", values[kChunk3]);
 
   // Clear everything.
-  butil::debug::ClearCrashKey(kTestKey);
+  mutil::debug::ClearCrashKey(kTestKey);
   EXPECT_EQ(0u, values.size());
   EXPECT_TRUE(values.end() == values.find(kChunk1));
   EXPECT_TRUE(values.end() == values.find(kChunk2));
@@ -87,15 +87,15 @@ TEST_F(CrashLoggingTest, SetChunked) {
 
   // Refill all three chunks with truncation, then test that setting a smaller
   // value clears the third chunk.
-  butil::debug::SetCrashKeyValue(kTestKey, "five four three two");
-  butil::debug::SetCrashKeyValue(kTestKey, "allays");
+  mutil::debug::SetCrashKeyValue(kTestKey, "five four three two");
+  mutil::debug::SetCrashKeyValue(kTestKey, "allays");
   EXPECT_EQ(2u, values.size());
   EXPECT_EQ("allay", values[kChunk1]);
   EXPECT_EQ("s", values[kChunk2]);
   EXPECT_TRUE(values.end() == values.find(kChunk3));
 
   // Clear everything.
-  butil::debug::ClearCrashKey(kTestKey);
+  mutil::debug::ClearCrashKey(kTestKey);
   EXPECT_EQ(0u, values.size());
   EXPECT_TRUE(values.end() == values.find(kChunk1));
   EXPECT_TRUE(values.end() == values.find(kChunk2));
@@ -104,13 +104,13 @@ TEST_F(CrashLoggingTest, SetChunked) {
 
 TEST_F(CrashLoggingTest, ScopedCrashKey) {
   const char* kTestKey = "test-key";
-  butil::debug::CrashKey keys[] = { { kTestKey, 255 } };
-  butil::debug::InitCrashKeys(keys, arraysize(keys), 255);
+  mutil::debug::CrashKey keys[] = { { kTestKey, 255 } };
+  mutil::debug::InitCrashKeys(keys, arraysize(keys), 255);
 
   EXPECT_EQ(0u, key_values_->size());
   EXPECT_TRUE(key_values_->end() == key_values_->find(kTestKey));
   {
-    butil::debug::ScopedCrashKey scoped_crash_key(kTestKey, "value");
+    mutil::debug::ScopedCrashKey scoped_crash_key(kTestKey, "value");
     EXPECT_EQ("value", (*key_values_)[kTestKey]);
     EXPECT_EQ(1u, key_values_->size());
   }
@@ -119,27 +119,27 @@ TEST_F(CrashLoggingTest, ScopedCrashKey) {
 }
 
 TEST_F(CrashLoggingTest, InitSize) {
-  butil::debug::CrashKey keys[] = {
+  mutil::debug::CrashKey keys[] = {
     { "chunked-3", 15 },
     { "single", 5 },
     { "chunked-6", 30 },
   };
 
-  size_t num_keys = butil::debug::InitCrashKeys(keys, arraysize(keys), 5);
+  size_t num_keys = mutil::debug::InitCrashKeys(keys, arraysize(keys), 5);
 
   EXPECT_EQ(10u, num_keys);
 
-  EXPECT_TRUE(butil::debug::LookupCrashKey("chunked-3"));
-  EXPECT_TRUE(butil::debug::LookupCrashKey("single"));
-  EXPECT_TRUE(butil::debug::LookupCrashKey("chunked-6"));
-  EXPECT_FALSE(butil::debug::LookupCrashKey("chunked-6-4"));
+  EXPECT_TRUE(mutil::debug::LookupCrashKey("chunked-3"));
+  EXPECT_TRUE(mutil::debug::LookupCrashKey("single"));
+  EXPECT_TRUE(mutil::debug::LookupCrashKey("chunked-6"));
+  EXPECT_FALSE(mutil::debug::LookupCrashKey("chunked-6-4"));
 }
 
 TEST_F(CrashLoggingTest, ChunkValue) {
-  using butil::debug::ChunkCrashKeyValue;
+  using mutil::debug::ChunkCrashKeyValue;
 
   // Test truncation.
-  butil::debug::CrashKey key = { "chunky", 10 };
+  mutil::debug::CrashKey key = { "chunky", 10 };
   std::vector<std::string> results =
       ChunkCrashKeyValue(key, "hello world", 64);
   ASSERT_EQ(1u, results.size());
@@ -176,6 +176,6 @@ TEST_F(CrashLoggingTest, ChunkValue) {
 TEST_F(CrashLoggingTest, ChunkRounding) {
   // If max_length=12 and max_chunk_length=5, there should be 3 chunks,
   // not 2.
-  butil::debug::CrashKey key = { "round", 12 };
-  EXPECT_EQ(3u, butil::debug::InitCrashKeys(&key, 1, 5));
+  mutil::debug::CrashKey key = { "round", 12 };
+  EXPECT_EQ(3u, mutil::debug::InitCrashKeys(&key, 1, 5));
 }

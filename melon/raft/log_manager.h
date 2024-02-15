@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
 
 #ifndef  MELON_RAFT_LOG_MANAGER_H_
 #define  MELON_RAFT_LOG_MANAGER_H_
 
-#include <melon/butil/macros.h>                        // BAIDU_CACHELINE_ALIGNMENT
-#include <melon/butil/containers/flat_map.h>           // butil::FlatMap
+#include <melon/utility/macros.h>                        // MELON_CACHELINE_ALIGNMENT
+#include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
 #include <deque>                                // std::deque
-#include <melon/bthread/execution_queue.h>            // bthread::ExecutionQueueId
+#include <melon/fiber/execution_queue.h>            // fiber::ExecutionQueueId
 
 #include "melon/raft/raft.h"                          // Closure
 #include "melon/raft/util.h"                          // raft_mutex_t
@@ -55,7 +53,7 @@ namespace melon::raft {
 
     class SnapshotMeta;
 
-    class BAIDU_CACHELINE_ALIGNMENT LogManager {
+    class MELON_CACHELINE_ALIGNMENT LogManager {
     public:
         typedef int64_t WaitId;
 
@@ -149,8 +147,8 @@ namespace melon::raft {
         //   - Log starts from a positive position and there must be a snapshot
         //     of which the last_included_id is in the range
         //     [first_log_index-1, last_log_index]
-        // Returns butil::Status::OK if valid, a specific error otherwise
-        butil::Status check_consistency();
+        // Returns mutil::Status::OK if valid, a specific error otherwise
+        mutil::Status check_consistency();
 
         void describe(std::ostream &os, bool use_html);
 
@@ -170,7 +168,7 @@ namespace melon::raft {
         void append_to_storage(std::vector<LogEntry *> *to_append, LogId *last_id, IOMetric *metric);
 
         static int disk_thread(void *meta,
-                               bthread::TaskIterator<StableClosure *> &iter);
+                               fiber::TaskIterator<StableClosure *> &iter);
 
         // delete logs from storage's head, [1, first_index_kept) will be discarded
         // Returns:
@@ -217,9 +215,9 @@ namespace melon::raft {
         FSMCaller *_fsm_caller;
 
         raft_mutex_t _mutex;
-        butil::FlatMap<int64_t, WaitMeta *> _wait_map;
+        mutil::FlatMap<int64_t, WaitMeta *> _wait_map;
         bool _stopped;
-        butil::atomic<bool> _has_error;
+        mutil::atomic<bool> _has_error;
         WaitId _next_wait_id;
 
         LogId _disk_id;
@@ -237,7 +235,7 @@ namespace melon::raft {
         // or may cause some unexpect cases
         LogId _virtual_first_log_id;
 
-        bthread::ExecutionQueueId<StableClosure *> _disk_queue;
+        fiber::ExecutionQueueId<StableClosure *> _disk_queue;
     };
 
 }  //  namespace melon::raft

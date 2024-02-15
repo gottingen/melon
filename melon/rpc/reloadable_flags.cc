@@ -18,7 +18,7 @@
 
 #include <unistd.h>                    // write, _exit
 #include <gflags/gflags.h>
-#include "melon/butil/macros.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/reloadable_flags.h"
 
 namespace melon {
@@ -70,7 +70,7 @@ static bool RegisterFlagValidatorOrDieImpl(
     }
     // Error printed by gflags does not have newline. Add one to it.
     char newline = '\n';
-    butil::ignore_result(write(2, &newline, 1));
+    mutil::ignore_result(write(2, &newline, 1));
     _exit(1);
 }
 

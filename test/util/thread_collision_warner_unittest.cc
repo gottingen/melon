@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/memory/scoped_ptr.h"
-#include "melon/butil/synchronization/lock.h"
-#include "melon/butil/threading/platform_thread.h"
-#include "melon/butil/threading/simple_thread.h"
-#include "melon/butil/threading/thread_collision_warner.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/memory/scoped_ptr.h"
+#include "melon/utility/synchronization/lock.h"
+#include "melon/utility/threading/platform_thread.h"
+#include "melon/utility/threading/simple_thread.h"
+#include "melon/utility/threading/thread_collision_warner.h"
 #include <gtest/gtest.h>
 
 // '' : local class member function does not have a body
@@ -18,7 +18,7 @@ MSVC_PUSH_DISABLE_WARNING(4822)
 
 // Would cause a memory leak otherwise.
 #undef DFAKE_MUTEX
-#define DFAKE_MUTEX(obj) scoped_ptr<butil::AsserterBase> obj
+#define DFAKE_MUTEX(obj) scoped_ptr<mutil::AsserterBase> obj
 
 // In Release, we expect the AsserterBase::warn() to not happen.
 #define EXPECT_NDEBUG_FALSE_DEBUG_TRUE EXPECT_FALSE
@@ -36,7 +36,7 @@ namespace {
 // This is the asserter used with ThreadCollisionWarner instead of the default
 // DCheckAsserter. The method fail_state is used to know if a collision took
 // place.
-class AssertReporter : public butil::AsserterBase {
+class AssertReporter : public mutil::AsserterBase {
  public:
   AssertReporter()
       : failed_(false) {}
@@ -59,7 +59,7 @@ class AssertReporter : public butil::AsserterBase {
 TEST(ThreadCollisionTest, BookCriticalSection) {
   AssertReporter* local_reporter = new AssertReporter();
 
-  butil::ThreadCollisionWarner warner(local_reporter);
+  mutil::ThreadCollisionWarner warner(local_reporter);
   EXPECT_FALSE(local_reporter->fail_state());
 
   {  // Pin section.
@@ -75,7 +75,7 @@ TEST(ThreadCollisionTest, BookCriticalSection) {
 TEST(ThreadCollisionTest, ScopedRecursiveBookCriticalSection) {
   AssertReporter* local_reporter = new AssertReporter();
 
-  butil::ThreadCollisionWarner warner(local_reporter);
+  mutil::ThreadCollisionWarner warner(local_reporter);
   EXPECT_FALSE(local_reporter->fail_state());
 
   {  // Pin section.
@@ -97,7 +97,7 @@ TEST(ThreadCollisionTest, ScopedRecursiveBookCriticalSection) {
 TEST(ThreadCollisionTest, ScopedBookCriticalSection) {
   AssertReporter* local_reporter = new AssertReporter();
 
-  butil::ThreadCollisionWarner warner(local_reporter);
+  mutil::ThreadCollisionWarner warner(local_reporter);
   EXPECT_FALSE(local_reporter->fail_state());
 
   {  // Pin section.
@@ -127,7 +127,7 @@ TEST(ThreadCollisionTest, ScopedBookCriticalSection) {
 TEST(ThreadCollisionTest, MTBookCriticalSectionTest) {
   class NonThreadSafeQueue {
    public:
-    explicit NonThreadSafeQueue(butil::AsserterBase* asserter)
+    explicit NonThreadSafeQueue(mutil::AsserterBase* asserter)
         : push_pop_(asserter) {
     }
 
@@ -146,7 +146,7 @@ TEST(ThreadCollisionTest, MTBookCriticalSectionTest) {
     DISALLOW_COPY_AND_ASSIGN(NonThreadSafeQueue);
   };
 
-  class QueueUser : public butil::DelegateSimpleThread::Delegate {
+  class QueueUser : public mutil::DelegateSimpleThread::Delegate {
    public:
     explicit QueueUser(NonThreadSafeQueue& queue)
         : queue_(queue) {}
@@ -167,8 +167,8 @@ TEST(ThreadCollisionTest, MTBookCriticalSectionTest) {
   QueueUser queue_user_a(queue);
   QueueUser queue_user_b(queue);
 
-  butil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
-  butil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
+  mutil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
+  mutil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
 
   thread_a.Start();
   thread_b.Start();
@@ -184,13 +184,13 @@ TEST(ThreadCollisionTest, MTScopedBookCriticalSectionTest) {
   // in the test will enter the push at same time.
   class NonThreadSafeQueue {
    public:
-    explicit NonThreadSafeQueue(butil::AsserterBase* asserter)
+    explicit NonThreadSafeQueue(mutil::AsserterBase* asserter)
         : push_pop_(asserter) {
     }
 
     void push(int value) {
       DFAKE_SCOPED_LOCK(push_pop_);
-      butil::PlatformThread::Sleep(butil::TimeDelta::FromSeconds(5));
+      mutil::PlatformThread::Sleep(mutil::TimeDelta::FromSeconds(5));
     }
 
     int pop() {
@@ -204,7 +204,7 @@ TEST(ThreadCollisionTest, MTScopedBookCriticalSectionTest) {
     DISALLOW_COPY_AND_ASSIGN(NonThreadSafeQueue);
   };
 
-  class QueueUser : public butil::DelegateSimpleThread::Delegate {
+  class QueueUser : public mutil::DelegateSimpleThread::Delegate {
    public:
     explicit QueueUser(NonThreadSafeQueue& queue)
         : queue_(queue) {}
@@ -225,8 +225,8 @@ TEST(ThreadCollisionTest, MTScopedBookCriticalSectionTest) {
   QueueUser queue_user_a(queue);
   QueueUser queue_user_b(queue);
 
-  butil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
-  butil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
+  mutil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
+  mutil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
 
   thread_a.Start();
   thread_b.Start();
@@ -242,13 +242,13 @@ TEST(ThreadCollisionTest, MTSynchedScopedBookCriticalSectionTest) {
   // in the test will enter the push at same time.
   class NonThreadSafeQueue {
    public:
-    explicit NonThreadSafeQueue(butil::AsserterBase* asserter)
+    explicit NonThreadSafeQueue(mutil::AsserterBase* asserter)
         : push_pop_(asserter) {
     }
 
     void push(int value) {
       DFAKE_SCOPED_LOCK(push_pop_);
-      butil::PlatformThread::Sleep(butil::TimeDelta::FromSeconds(2));
+      mutil::PlatformThread::Sleep(mutil::TimeDelta::FromSeconds(2));
     }
 
     int pop() {
@@ -264,38 +264,38 @@ TEST(ThreadCollisionTest, MTSynchedScopedBookCriticalSectionTest) {
 
   // This time the QueueUser class protects the non thread safe queue with
   // a lock.
-  class QueueUser : public butil::DelegateSimpleThread::Delegate {
+  class QueueUser : public mutil::DelegateSimpleThread::Delegate {
    public:
-    QueueUser(NonThreadSafeQueue& queue, butil::Lock& lock)
+    QueueUser(NonThreadSafeQueue& queue, mutil::Lock& lock)
         : queue_(queue),
           lock_(lock) {}
 
     virtual void Run() OVERRIDE {
       {
-        butil::AutoLock auto_lock(lock_);
+        mutil::AutoLock auto_lock(lock_);
         queue_.push(0);
       }
       {
-        butil::AutoLock auto_lock(lock_);
+        mutil::AutoLock auto_lock(lock_);
         queue_.pop();
       }
     }
    private:
     NonThreadSafeQueue& queue_;
-    butil::Lock& lock_;
+    mutil::Lock& lock_;
   };
 
   AssertReporter* local_reporter = new AssertReporter();
 
   NonThreadSafeQueue queue(local_reporter);
 
-  butil::Lock lock;
+  mutil::Lock lock;
 
   QueueUser queue_user_a(queue, lock);
   QueueUser queue_user_b(queue, lock);
 
-  butil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
-  butil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
+  mutil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
+  mutil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
 
   thread_a.Start();
   thread_b.Start();
@@ -311,14 +311,14 @@ TEST(ThreadCollisionTest, MTSynchedScopedRecursiveBookCriticalSectionTest) {
   // in the test will enter the push at same time.
   class NonThreadSafeQueue {
    public:
-    explicit NonThreadSafeQueue(butil::AsserterBase* asserter)
+    explicit NonThreadSafeQueue(mutil::AsserterBase* asserter)
         : push_pop_(asserter) {
     }
 
     void push(int) {
       DFAKE_SCOPED_RECURSIVE_LOCK(push_pop_);
       bar();
-      butil::PlatformThread::Sleep(butil::TimeDelta::FromSeconds(2));
+      mutil::PlatformThread::Sleep(mutil::TimeDelta::FromSeconds(2));
     }
 
     int pop() {
@@ -338,42 +338,42 @@ TEST(ThreadCollisionTest, MTSynchedScopedRecursiveBookCriticalSectionTest) {
 
   // This time the QueueUser class protects the non thread safe queue with
   // a lock.
-  class QueueUser : public butil::DelegateSimpleThread::Delegate {
+  class QueueUser : public mutil::DelegateSimpleThread::Delegate {
    public:
-    QueueUser(NonThreadSafeQueue& queue, butil::Lock& lock)
+    QueueUser(NonThreadSafeQueue& queue, mutil::Lock& lock)
         : queue_(queue),
           lock_(lock) {}
 
     virtual void Run() OVERRIDE {
       {
-        butil::AutoLock auto_lock(lock_);
+        mutil::AutoLock auto_lock(lock_);
         queue_.push(0);
       }
       {
-        butil::AutoLock auto_lock(lock_);
+        mutil::AutoLock auto_lock(lock_);
         queue_.bar();
       }
       {
-        butil::AutoLock auto_lock(lock_);
+        mutil::AutoLock auto_lock(lock_);
         queue_.pop();
       }
     }
    private:
     NonThreadSafeQueue& queue_;
-    butil::Lock& lock_;
+    mutil::Lock& lock_;
   };
 
   AssertReporter* local_reporter = new AssertReporter();
 
   NonThreadSafeQueue queue(local_reporter);
 
-  butil::Lock lock;
+  mutil::Lock lock;
 
   QueueUser queue_user_a(queue, lock);
   QueueUser queue_user_b(queue, lock);
 
-  butil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
-  butil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
+  mutil::DelegateSimpleThread thread_a(&queue_user_a, "queue_user_thread_a");
+  mutil::DelegateSimpleThread thread_b(&queue_user_b, "queue_user_thread_b");
 
   thread_a.Start();
   thread_b.Start();

@@ -20,8 +20,8 @@
 #define MELON_NAMING_NAMING_SERVICE_THREAD_H_
 
 #include <string>
-#include "melon/butil/intrusive_ptr.hpp"               // butil::intrusive_ptr
-#include "melon/bthread/bthread.h"                    // bthread_t
+#include "melon/utility/intrusive_ptr.hpp"               // mutil::intrusive_ptr
+#include "melon/fiber/fiber.h"                    // fiber_t
 #include "melon/rpc/server_id.h"                     // ServerId
 #include "melon/rpc/shared_object.h"                 // SharedObject
 #include "melon/naming/naming_service.h"                // NamingService
@@ -83,8 +83,8 @@ namespace melon {
 
         private:
             NamingServiceThread *_owner;
-            bthread_id_t _wait_id;
-            butil::atomic<bool> _has_wait_error;
+            fiber_session_t _wait_id;
+            mutil::atomic<bool> _has_wait_error;
             int _wait_error;
             std::vector<ServerNode> _last_servers;
             std::vector<ServerNode> _servers;
@@ -126,8 +126,8 @@ namespace melon {
                 const std::vector<ServerNodeWithId> &src,
                 std::vector<ServerId> *dst, const NamingServiceFilter *filter);
 
-        butil::Mutex _mutex;
-        bthread_t _tid;
+        mutil::Mutex _mutex;
+        fiber_t _tid;
         NamingService *_ns;
         std::string _protocol;
         std::string _service_name;
@@ -146,7 +146,7 @@ namespace melon {
 // available, unless `options->succeed_without_server' is on, this function
 // returns -1.
 // Returns 0 on success, -1 otherwise.
-    int GetNamingServiceThread(butil::intrusive_ptr<NamingServiceThread> *ns_thread,
+    int GetNamingServiceThread(mutil::intrusive_ptr<NamingServiceThread> *ns_thread,
                                const char *url,
                                const GetNamingServiceThreadOptions *options);
 

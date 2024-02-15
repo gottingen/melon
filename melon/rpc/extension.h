@@ -20,12 +20,12 @@
 #define MELON_RPC_EXTENSION_H_
 
 #include <string>
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/containers/case_ignored_flat_map.h"
-#include "melon/butil/memory/singleton_on_pthread_once.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/containers/case_ignored_flat_map.h"
+#include "melon/utility/memory/singleton_on_pthread_once.h"
 
-namespace butil {
+namespace mutil {
     template<typename T>
     class GetLeakySingleton;
 }
@@ -52,14 +52,14 @@ namespace melon {
         void List(std::ostream &os, char separator);
 
     private:
-        friend class butil::GetLeakySingleton<Extension<T> >;
+        friend class mutil::GetLeakySingleton<Extension<T> >;
 
         Extension();
 
         ~Extension();
 
-        butil::CaseIgnoredFlatMap<T *> _instance_map;
-        butil::Mutex _map_mutex;
+        mutil::CaseIgnoredFlatMap<T *> _instance_map;
+        mutil::Mutex _map_mutex;
     };
 
 } // namespace melon

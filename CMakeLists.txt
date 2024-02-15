@@ -16,7 +16,7 @@
 # under the License.
 
 cmake_minimum_required(VERSION 3.15)
-project(brpc C CXX)
+project(melon C CXX)
 
 option(WITH_GLOG "With glog" OFF)
 option(WITH_MESALINK "With MesaLink" OFF)
@@ -27,7 +27,7 @@ option(WITH_SNAPPY "With snappy" OFF)
 option(WITH_RDMA "With RDMA" OFF)
 option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
 option(BUILD_FUZZ_TESTS "Whether to build fuzz tests" OFF)
-option(BUILD_MELON_TOOLS "Whether to build brpc tools" ON)
+option(BUILD_MELON_TOOLS "Whether to build melon tools" ON)
 option(DOWNLOAD_GTEST "Download and build a fresh copy of googletest. Requires Internet access." ON)
 
 # Enable MACOSX_RPATH. Run "cmake --help-policy CMP0042" for policy details.
@@ -72,7 +72,7 @@ endif ()
 
 include(GNUInstallDirs)
 
-configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/melon/butil/config.h @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_SOURCE_DIR}/melon/utility/config.h @ONLY)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -113,7 +113,7 @@ set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEFINE_CLOCK_GETTIME} -DBRPC_WITH_GLOG
 if (WITH_MESALINK)
     set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DUSE_MESALINK")
 endif ()
-set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DBTHREAD_USE_FAST_PTHREAD_MUTEX -D__const__=__unused__ -D_GNU_SOURCE -DUSE_SYMBOLIZE -DNO_TCMALLOC -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DBRPC_REVISION=\\\"${BRPC_REVISION}\\\" -D__STRICT_ANSI__")
+set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -DFIBER_USE_FAST_PTHREAD_MUTEX -D__const__=__unused__ -D_GNU_SOURCE -DUSE_SYMBOLIZE -DNO_TCMALLOC -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DBRPC_REVISION=\\\"${BRPC_REVISION}\\\" -D__STRICT_ANSI__")
 set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} ${DEBUG_SYMBOL} ${THRIFT_CPP_FLAG}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-invalid-offsetof -Wno-unused-parameter -fno-omit-frame-pointer")
 set(CMAKE_C_FLAGS "${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-unused-parameter -fno-omit-frame-pointer")
@@ -135,7 +135,6 @@ endmacro(use_cxx11)
 use_cxx11()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    #required by butil/crc32.cc to boost performance for 10x
     if ((CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.4))
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4 -msse4.2")
     elseif ((CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64"))
@@ -281,141 +280,141 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/output/lib)
 
 # the reason why not using file(GLOB_RECURSE...) is that we want to
 # include different files on different platforms.
-set(BUTIL_SOURCES
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dmg_fp/g_fmt.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dmg_fp/dtoa_wrapper.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/dynamic_annotations/dynamic_annotations.c
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/icu/icu_utf.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/superfasthash/superfasthash.c
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/modp_b64/modp_b64.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/symbolize/demangle.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/symbolize/symbolize.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/snappy/snappy-sinksource.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/snappy/snappy-stubs-internal.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/snappy/snappy.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/third_party/murmurhash3/murmurhash3.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/arena.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/at_exit.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/base64.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/base64url.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/big_endian.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/cpu.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/alias.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/asan_invalid_access.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/crash_logging.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/debugger.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/debugger_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/dump_without_crashing.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/proc_maps_linux.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/stack_trace.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/debug/stack_trace_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/environment.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_enumerator.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_enumerator_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_path.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_path_constants.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/memory_mapped_file.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/memory_mapped_file_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/scoped_file.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/scoped_temp_dir.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/file_util.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/file_util_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/guid.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/guid_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/hash.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/lazy_instance.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/location.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/memory/aligned_memory.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/memory/ref_counted.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/memory/ref_counted_memory.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/memory/singleton.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/memory/weak_ptr.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/posix/file_descriptor_shuffle.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/posix/global_descriptors.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/process_util.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/rand_util.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/rand_util_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/fast_rand.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/safe_strerror_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/sha1_portable.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/latin1_string_conversions.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/nullable_string16.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/safe_sprintf.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string16.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_number_conversions.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_split.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_piece.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_util.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/string_util_constants.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/stringprintf.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/utf_offset_string_conversions.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/utf_string_conversion_utils.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/strings/utf_string_conversions.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/synchronization/cancellation_flag.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/synchronization/condition_variable_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/synchronization/waitable_event_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/non_thread_safe_impl.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/platform_thread_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/simple_thread.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_checker_impl.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_collision_warner.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_id_name_manager.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_local_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_local_storage.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_local_storage_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/thread_restrictions.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/threading/watchdog.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/time/clock.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/time/default_clock.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/time/default_tick_clock.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/time/tick_clock.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/time/time.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/time/time_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/version.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/logging.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/class_name.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/errno.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/find_cstr.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/status.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/string_printf.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/thread_local.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/thread_key.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/unix_socket.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/endpoint.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/fd_utility.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/temp_file.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/files/file_watcher.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/time.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/zero_copy_stream_as_streambuf.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/crc32c.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/containers/case_ignored_flat_map.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/iobuf.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/binary_printer.cpp
-        ${PROJECT_SOURCE_DIR}/melon/butil/recordio.cc
-        ${PROJECT_SOURCE_DIR}/melon/butil/popen.cpp
+set(UTILITY_SOURCES
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dmg_fp/g_fmt.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dmg_fp/dtoa_wrapper.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dynamic_annotations/dynamic_annotations.c
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/icu/icu_utf.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/superfasthash/superfasthash.c
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/modp_b64/modp_b64.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/symbolize/demangle.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/symbolize/symbolize.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/snappy/snappy-sinksource.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/snappy/snappy-stubs-internal.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/snappy/snappy.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/murmurhash3/murmurhash3.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/arena.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/base64.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/base64url.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/big_endian.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/cpu.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/asan_invalid_access.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/crash_logging.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/debugger.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/debugger_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/dump_without_crashing.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/proc_maps_linux.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/stack_trace.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/debug/stack_trace_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/environment.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file_enumerator.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file_enumerator_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file_path.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file_path_constants.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/memory_mapped_file.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/memory_mapped_file_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/scoped_file.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/scoped_temp_dir.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/file_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/file_util_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/guid.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/guid_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/hash.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/lazy_instance.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/location.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/memory/aligned_memory.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted_memory.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/memory/singleton.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/memory/weak_ptr.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/posix/file_descriptor_shuffle.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/posix/global_descriptors.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/process_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/rand_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/rand_util_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/fast_rand.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/safe_strerror_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/sha1_portable.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/latin1_string_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/nullable_string16.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/safe_sprintf.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string16.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_number_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_split.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_piece.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_util.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_util_constants.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/stringprintf.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_offset_string_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_string_conversion_utils.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_string_conversions.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/cancellation_flag.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/condition_variable_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/waitable_event_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/non_thread_safe_impl.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/platform_thread_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/simple_thread.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_checker_impl.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_collision_warner.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_id_name_manager.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_restrictions.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/threading/watchdog.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/time/clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/time/default_clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/time/default_tick_clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/time/tick_clock.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/time/time.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/time/time_posix.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/version.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/logging.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/class_name.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/errno.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/status.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/string_printf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/thread_local.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/thread_key.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/unix_socket.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/endpoint.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/fd_utility.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/temp_file.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/files/file_watcher.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/time.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/zero_copy_stream_as_streambuf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/crc32c.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/iobuf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/binary_printer.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/recordio.cc
+        ${PROJECT_SOURCE_DIR}/melon/utility/popen.cpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(BUTIL_SOURCES ${BUTIL_SOURCES}
-            ${PROJECT_SOURCE_DIR}/melon/butil/file_util_linux.cc
-            ${PROJECT_SOURCE_DIR}/melon/butil/threading/platform_thread_linux.cc
-            ${PROJECT_SOURCE_DIR}/melon/butil/strings/sys_string_conversions_posix.cc)
+    set(UTILITY_SOURCES ${UTILITY_SOURCES}
+            ${PROJECT_SOURCE_DIR}/melon/utility/file_util_linux.cc
+            ${PROJECT_SOURCE_DIR}/melon/utility/threading/platform_thread_linux.cc
+            ${PROJECT_SOURCE_DIR}/melon/utility/strings/sys_string_conversions_posix.cc)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(BUTIL_SOURCES ${BUTIL_SOURCES}
-            ${PROJECT_SOURCE_DIR}/melon/butil/mac/bundle_locations.mm
-            ${PROJECT_SOURCE_DIR}/melon/butil/mac/foundation_util.mm
-            ${PROJECT_SOURCE_DIR}/melon/butil/file_util_mac.mm
-            ${PROJECT_SOURCE_DIR}/melon/butil/threading/platform_thread_mac.mm
-            ${PROJECT_SOURCE_DIR}/melon/butil/strings/sys_string_conversions_mac.mm
-            ${PROJECT_SOURCE_DIR}/melon/butil/time/time_mac.cc
-            ${PROJECT_SOURCE_DIR}/melon/butil/mac/scoped_mach_port.cc)
+    set(UTILITY_SOURCES ${UTILITY_SOURCES}
+            ${PROJECT_SOURCE_DIR}/melon/utility/mac/bundle_locations.mm
+            ${PROJECT_SOURCE_DIR}/melon/utility/mac/foundation_util.mm
+            ${PROJECT_SOURCE_DIR}/melon/utility/file_util_mac.mm
+            ${PROJECT_SOURCE_DIR}/melon/utility/threading/platform_thread_mac.mm
+            ${PROJECT_SOURCE_DIR}/melon/utility/strings/sys_string_conversions_mac.mm
+            ${PROJECT_SOURCE_DIR}/melon/utility/time/time_mac.cc
+            ${PROJECT_SOURCE_DIR}/melon/utility/mac/scoped_mach_port.cc)
 endif ()
 
 file(GLOB_RECURSE VAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/var/*.cc")
-file(GLOB_RECURSE BTHREAD_SOURCES "${PROJECT_SOURCE_DIR}/melon/bthread/*.cc")
+file(GLOB_RECURSE FIBER_SOURCES "${PROJECT_SOURCE_DIR}/melon/fiber/*.cc")
 file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cc")
 file(GLOB_RECURSE RPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cc")
 file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cc")
@@ -448,7 +447,7 @@ set(PROTO_FILES melon/idl_options.proto
         melon/proto/rpc/errno.proto
         melon/proto/rpc/nshead_meta.proto
         melon/proto/rpc/options.proto
-        melon/proto/rpc/baidu_rpc_meta.proto
+        melon/proto/rpc/melon_rpc_meta.proto
         melon/proto/rpc/hulu_pbrpc_meta.proto
         melon/proto/rpc/public_pbrpc_meta.proto
         melon/proto/rpc/sofa_pbrpc_meta.proto
@@ -475,7 +474,7 @@ add_library(PROTO_LIB OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
 
 set(SOURCES
         ${VAR_SOURCES}
-        ${BTHREAD_SOURCES}
+        ${FIBER_SOURCES}
         ${JSON2PB_SOURCES}
         ${MCPACK2PB_SOURCES}
         ${RPC_SOURCES}

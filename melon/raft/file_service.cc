@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/file_service.h"
 
 #include <inttypes.h>
 #include <stack>
-#include <melon/butil/file_util.h>
-#include <melon/butil/files/file_path.h>
-#include <melon/butil/files/file_enumerator.h>
+#include <melon/utility/file_util.h>
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/files/file_enumerator.h>
 #include <melon/rpc/closure_guard.h>
 #include <melon/rpc/controller.h>
 #include "melon/raft/util.h"
@@ -56,7 +55,7 @@ namespace melon::raft {
             return;
         }
 
-        butil::IOBuf buf;
+        mutil::IOBuf buf;
         bool is_eof = false;
         size_t read_count = 0;
 
@@ -85,9 +84,9 @@ namespace melon::raft {
         } else {
             off_t buf_off = request->offset();
             while (!buf.empty()) {
-                butil::StringPiece p = buf.backing_block(0);
+                mutil::StringPiece p = buf.backing_block(0);
                 if (!is_zero(p.data(), p.size())) {
-                    butil::IOBuf piece_buf;
+                    mutil::IOBuf piece_buf;
                     buf.cutn(&piece_buf, p.size());
                     seg_data.append(piece_buf, buf_off);
                 } else {
@@ -101,7 +100,7 @@ namespace melon::raft {
     }
 
     FileServiceImpl::FileServiceImpl() {
-        _next_id = ((int64_t) getpid() << 45) | (butil::gettimeofday_us() << 17 >> 17);
+        _next_id = ((int64_t) getpid() << 45) | (mutil::gettimeofday_us() << 17 >> 17);
     }
 
     int FileServiceImpl::add_reader(FileReader *reader, int64_t *reader_id) {

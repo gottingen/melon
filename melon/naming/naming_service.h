@@ -22,8 +22,8 @@
 #include <vector>                                   // std::vector
 #include <string>                                   // std::string
 #include <ostream>                                  // std::ostream
-#include "melon/butil/endpoint.h"                         // butil::EndPoint
-#include "melon/butil/macros.h"                           // BAIDU_CONCAT
+#include "melon/utility/endpoint.h"                         // mutil::EndPoint
+#include "melon/utility/macros.h"                           // MELON_CONCAT
 #include "melon/rpc/describable.h"
 #include "melon/rpc/destroyable.h"
 #include "melon/rpc/extension.h"                         // Extension<T>
@@ -50,15 +50,15 @@ namespace melon {
         // Implement this method to get servers associated with `service_name'
         // in periodic or event-driven manner, call methods of `actions' to
         // tell RPC system about server changes. This method will be run in
-        // a dedicated bthread without access from other threads, thus the
+        // a dedicated fiber without access from other threads, thus the
         // implementation does NOT need to be thread-safe.
         // Return 0 on success, error code otherwise.
         virtual int RunNamingService(const char *service_name,
                                      NamingServiceActions *actions) = 0;
 
         // If this method returns true, RunNamingService will be called without
-        // a dedicated bthread. As the name implies, this is suitable for static
-        // and simple impl, saving the cost of creating a bthread. However most
+        // a dedicated fiber. As the name implies, this is suitable for static
+        // and simple impl, saving the cost of creating a fiber. However most
         // impl of RunNamingService never quit, thread is a must to prevent the
         // method from blocking the caller.
         virtual bool RunNamingServiceReturnsQuickly() { return false; }

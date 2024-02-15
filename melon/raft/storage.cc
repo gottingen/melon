@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
-
 #include <errno.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/string_splitter.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/string_splitter.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/reloadable_flags.h>
 
 #include "melon/raft/storage.h"
@@ -42,9 +39,9 @@ namespace melon::raft {
     BRPC_VALIDATE_GFLAG(raft_sync_meta, ::melon::PassValidate);
 
     LogStorage *LogStorage::create(const std::string &uri) {
-        butil::StringPiece copied_uri(uri);
+        mutil::StringPiece copied_uri(uri);
         std::string parameter;
-        butil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
             return NULL;
@@ -59,11 +56,11 @@ namespace melon::raft {
         return type->new_instance(parameter);
     }
 
-    butil::Status LogStorage::destroy(const std::string &uri) {
-        butil::Status status;
-        butil::StringPiece copied_uri(uri);
+    mutil::Status LogStorage::destroy(const std::string &uri) {
+        mutil::Status status;
+        mutil::StringPiece copied_uri(uri);
         std::string parameter;
-        butil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid log storage uri = %s", uri.c_str());
@@ -82,9 +79,9 @@ namespace melon::raft {
     }
 
     SnapshotStorage *SnapshotStorage::create(const std::string &uri) {
-        butil::StringPiece copied_uri(uri);
+        mutil::StringPiece copied_uri(uri);
         std::string parameter;
-        butil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
             return NULL;
@@ -99,11 +96,11 @@ namespace melon::raft {
         return type->new_instance(parameter);
     }
 
-    butil::Status SnapshotStorage::destroy(const std::string &uri) {
-        butil::Status status;
-        butil::StringPiece copied_uri(uri);
+    mutil::Status SnapshotStorage::destroy(const std::string &uri) {
+        mutil::Status status;
+        mutil::StringPiece copied_uri(uri);
         std::string parameter;
-        butil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid log storage uri = %s", uri.c_str());
@@ -122,9 +119,9 @@ namespace melon::raft {
     }
 
     RaftMetaStorage *RaftMetaStorage::create(const std::string &uri) {
-        butil::StringPiece copied_uri(uri);
+        mutil::StringPiece copied_uri(uri);
         std::string parameter;
-        butil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
             return NULL;
@@ -139,12 +136,12 @@ namespace melon::raft {
         return type->new_instance(parameter);
     }
 
-    butil::Status RaftMetaStorage::destroy(const std::string &uri,
+    mutil::Status RaftMetaStorage::destroy(const std::string &uri,
                                            const VersionedGroupId &vgid) {
-        butil::Status status;
-        butil::StringPiece copied_uri(uri);
+        mutil::Status status;
+        mutil::StringPiece copied_uri(uri);
         std::string parameter;
-        butil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid meta storage uri = %s", uri.c_str());

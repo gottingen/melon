@@ -1,6 +1,6 @@
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include <melon/butil/status.h>
+#include <melon/utility/status.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/raft_meta.h"
 
@@ -22,7 +22,7 @@ TEST_F(TestUsageSuits, single_stable_storage) {
                         new melon::raft::FileBasedSingleMetaStorage("./stable");
     int64_t term;
     melon::raft::PeerId any_peer;
-    butil::Status st;
+    mutil::Status st;
     // not init
     {   
         term = 10;
@@ -78,8 +78,8 @@ TEST_F(TestUsageSuits, single_stable_storage) {
         ASSERT_TRUE(st.ok());
         ASSERT_EQ(term, term_bak);
         
-        butil::ip_t ip;
-        butil::str2ip("2.2.2.2", &ip);
+        mutil::ip_t ip;
+        mutil::str2ip("2.2.2.2", &ip);
         ASSERT_EQ(peer_bak.addr.ip, ip);
         ASSERT_EQ(peer_bak.addr.port, 2000);
         ASSERT_EQ(peer_bak.idx, 0);
@@ -95,7 +95,7 @@ TEST_F(TestUsageSuits, merged_stable_storage) {
     std::string v_group_id = "pool_ssd_0_0";
     int64_t term;
     melon::raft::PeerId any_peer;
-    butil::Status st;
+    mutil::Status st;
     // not init
     {   
         term = 10;
@@ -151,8 +151,8 @@ TEST_F(TestUsageSuits, merged_stable_storage) {
         ASSERT_TRUE(st.ok());
         ASSERT_EQ(term, term_bak);
         
-        butil::ip_t ip;
-        butil::str2ip("2.2.2.2", &ip);
+        mutil::ip_t ip;
+        mutil::str2ip("2.2.2.2", &ip);
         ASSERT_EQ(peer_bak.addr.ip, ip);
         ASSERT_EQ(peer_bak.addr.port, 2000);
         ASSERT_EQ(peer_bak.idx, 0);
@@ -180,7 +180,7 @@ TEST_F(TestUsageSuits, mixed_stable_storage_upgrade) {
     }
     int64_t term;
     melon::raft::PeerId any_peer;
-    butil::Status st;
+    mutil::Status st;
  
     // test default value
     {
@@ -231,8 +231,8 @@ TEST_F(TestUsageSuits, mixed_stable_storage_upgrade) {
         ASSERT_TRUE(st.ok());
         ASSERT_EQ(term, term_bak);
         
-        butil::ip_t ip;
-        butil::str2ip("2.2.2.2", &ip);
+        mutil::ip_t ip;
+        mutil::str2ip("2.2.2.2", &ip);
         ASSERT_EQ(peer_bak.addr.ip, ip);
         ASSERT_EQ(peer_bak.addr.port, 2000);
         ASSERT_EQ(peer_bak.idx, 0);
@@ -365,7 +365,7 @@ TEST_F(TestUsageSuits, mixed_stable_storage_downgrade) {
     }
     int64_t term;
     melon::raft::PeerId any_peer;
-    butil::Status st;
+    mutil::Status st;
 
     // test default value
     {
@@ -416,8 +416,8 @@ TEST_F(TestUsageSuits, mixed_stable_storage_downgrade) {
         ASSERT_TRUE(st.ok());
         ASSERT_EQ(term, term_bak);
         
-        butil::ip_t ip;
-        butil::str2ip("2.2.2.2", &ip);
+        mutil::ip_t ip;
+        mutil::str2ip("2.2.2.2", &ip);
         ASSERT_EQ(peer_bak.addr.ip, ip);
         ASSERT_EQ(peer_bak.addr.port, 2000);
         ASSERT_EQ(peer_bak.idx, 0);

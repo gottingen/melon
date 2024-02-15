@@ -19,8 +19,8 @@
 #ifndef  BRPC_STREAM_H
 #define  BRPC_STREAM_H
 
-#include "melon/butil/iobuf.h"
-#include "melon/butil/scoped_generic.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/scoped_generic.h"
 #include "melon/rpc/socket_id.h"
 
 namespace melon {
@@ -35,13 +35,13 @@ struct StreamIdTraits;
 };
 
 // Auto-closed Stream
-typedef butil::ScopedGeneric<StreamId, detail::StreamIdTraits> ScopedStream;
+typedef mutil::ScopedGeneric<StreamId, detail::StreamIdTraits> ScopedStream;
 
 class StreamInputHandler {
 public:
     virtual ~StreamInputHandler() = default;
     virtual int on_received_messages(StreamId id, 
-                                     butil::IOBuf *const messages[], 
+                                     mutil::IOBuf *const messages[],
                                      size_t size) = 0;
     virtual void on_idle_timeout(StreamId id) = 0;
     virtual void on_closed(StreamId id) = 0; 
@@ -116,7 +116,7 @@ int StreamAccept(StreamId* response_stream, Controller &cntl,
 //  - EAGAIN: |stream_id| is created with positive |max_buf_size| and buf size
 //            which the remote side hasn't consumed yet excceeds the number.
 //  - EINVAL: |stream_id| is invalied or has been closed
-int StreamWrite(StreamId stream_id, const butil::IOBuf &message,
+int StreamWrite(StreamId stream_id, const mutil::IOBuf &message,
                 const StreamWriteOptions* options = NULL);
 
 // Write util the pending buffer size is less than |max_buf_size| or orrur

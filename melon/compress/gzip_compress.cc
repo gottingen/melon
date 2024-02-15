@@ -17,7 +17,7 @@
 
 
 #include <google/protobuf/io/gzip_stream.h>    // GzipXXXStream
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 #include "melon/compress/gzip_compress.h"
 #include "melon/rpc/protocol.h"
 
@@ -40,8 +40,8 @@ namespace melon::compress {
         }
     }
 
-    bool GzipCompress(const google::protobuf::Message &msg, butil::IOBuf *buf) {
-        butil::IOBufAsZeroCopyOutputStream wrapper(buf);
+    bool GzipCompress(const google::protobuf::Message &msg, mutil::IOBuf *buf) {
+        mutil::IOBufAsZeroCopyOutputStream wrapper(buf);
         google::protobuf::io::GzipOutputStream::Options gzip_opt;
         gzip_opt.format = google::protobuf::io::GzipOutputStream::GZIP;
         google::protobuf::io::GzipOutputStream gzip(&wrapper, gzip_opt);
@@ -52,8 +52,8 @@ namespace melon::compress {
         return gzip.Close();
     }
 
-    bool GzipDecompress(const butil::IOBuf &data, google::protobuf::Message *msg) {
-        butil::IOBufAsZeroCopyInputStream wrapper(data);
+    bool GzipDecompress(const mutil::IOBuf &data, google::protobuf::Message *msg) {
+        mutil::IOBufAsZeroCopyInputStream wrapper(data);
         google::protobuf::io::GzipInputStream gzip(
                 &wrapper, google::protobuf::io::GzipInputStream::GZIP);
         if (!ParsePbFromZeroCopyStream(msg, &gzip)) {
@@ -63,15 +63,15 @@ namespace melon::compress {
         return true;
     }
 
-    bool GzipCompress(const butil::IOBuf &msg, butil::IOBuf *buf,
+    bool GzipCompress(const mutil::IOBuf &msg, mutil::IOBuf *buf,
                       const GzipCompressOptions *options_in) {
-        butil::IOBufAsZeroCopyOutputStream wrapper(buf);
+        mutil::IOBufAsZeroCopyOutputStream wrapper(buf);
         google::protobuf::io::GzipOutputStream::Options gzip_opt;
         if (options_in) {
             gzip_opt = *options_in;
         }
         google::protobuf::io::GzipOutputStream out(&wrapper, gzip_opt);
-        butil::IOBufAsZeroCopyInputStream in(msg);
+        mutil::IOBufAsZeroCopyInputStream in(msg);
         const void *data_in = NULL;
         int size_in = 0;
         void *data_out = NULL;
@@ -102,11 +102,11 @@ namespace melon::compress {
     }
 
     inline bool GzipDecompressBase(
-            const butil::IOBuf &data, butil::IOBuf *msg,
+            const mutil::IOBuf &data, mutil::IOBuf *msg,
             google::protobuf::io::GzipInputStream::Format format) {
-        butil::IOBufAsZeroCopyInputStream wrapper(data);
+        mutil::IOBufAsZeroCopyInputStream wrapper(data);
         google::protobuf::io::GzipInputStream in(&wrapper, format);
-        butil::IOBufAsZeroCopyOutputStream out(msg);
+        mutil::IOBufAsZeroCopyOutputStream out(msg);
         const void *data_in = NULL;
         int size_in = 0;
         void *data_out = NULL;
@@ -140,27 +140,27 @@ namespace melon::compress {
         return true;
     }
 
-    bool ZlibCompress(const google::protobuf::Message &res, butil::IOBuf *buf) {
-        butil::IOBufAsZeroCopyOutputStream wrapper(buf);
+    bool ZlibCompress(const google::protobuf::Message &res, mutil::IOBuf *buf) {
+        mutil::IOBufAsZeroCopyOutputStream wrapper(buf);
         google::protobuf::io::GzipOutputStream::Options zlib_opt;
         zlib_opt.format = google::protobuf::io::GzipOutputStream::ZLIB;
         google::protobuf::io::GzipOutputStream zlib(&wrapper, zlib_opt);
         return res.SerializeToZeroCopyStream(&zlib) && zlib.Close();
     }
 
-    bool ZlibDecompress(const butil::IOBuf &data, google::protobuf::Message *req) {
-        butil::IOBufAsZeroCopyInputStream wrapper(data);
+    bool ZlibDecompress(const mutil::IOBuf &data, google::protobuf::Message *req) {
+        mutil::IOBufAsZeroCopyInputStream wrapper(data);
         google::protobuf::io::GzipInputStream zlib(
                 &wrapper, google::protobuf::io::GzipInputStream::ZLIB);
         return ParsePbFromZeroCopyStream(req, &zlib);
     }
 
-    bool GzipDecompress(const butil::IOBuf &data, butil::IOBuf *msg) {
+    bool GzipDecompress(const mutil::IOBuf &data, mutil::IOBuf *msg) {
         return GzipDecompressBase(
                 data, msg, google::protobuf::io::GzipInputStream::GZIP);
     }
 
-    bool ZlibDecompress(const butil::IOBuf &data, butil::IOBuf *msg) {
+    bool ZlibDecompress(const mutil::IOBuf &data, mutil::IOBuf *msg) {
         return GzipDecompressBase(
                 data, msg, google::protobuf::io::GzipInputStream::ZLIB);
     }

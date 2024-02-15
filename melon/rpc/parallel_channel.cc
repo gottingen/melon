@@ -16,11 +16,11 @@
 // under the License.
 
 
-#include "melon/bthread/bthread.h"                  // bthread_id_xx
-#include "melon/bthread/unstable.h"                 // bthread_timer_add
-#include "melon/butil/atomicops.h"
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/fiber/fiber.h"                  // fiber_session_xx
+#include "melon/fiber/unstable.h"                 // fiber_timer_add
+#include "melon/utility/atomicops.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/parallel_channel.h"
 
@@ -55,7 +55,7 @@ private:
         , _current_done(0)
         , _cntl(cntl)
         , _user_done(user_done)
-        , _callmethod_bthread(INVALID_BTHREAD)
+        , _callmethod_fiber(INVALID_FIBER)
         , _callmethod_pthread(0) {
     }
 
@@ -83,7 +83,7 @@ public:
         }
 
         ParallelChannelDone* shared_data;
-        butil::intrusive_ptr<ResponseMerger> merger;
+        mutil::intrusive_ptr<ResponseMerger> merger;
         SubCall ap;
         Controller cntl;
     };
@@ -119,14 +119,14 @@ public:
         } else {
             mem = malloc(req_size);
             memsize = req_size;
-            if (BAIDU_UNLIKELY(NULL == mem)) {
+            if (MELON_UNLIKELY(NULL == mem)) {
                 return NULL;
             }
         }
 #else
         mem = malloc(req_size);
         memsize = req_size;
-        if (BAIDU_UNLIKELY(NULL == mem)) {
+        if (MELON_UNLIKELY(NULL == mem)) {
             return NULL;
         }
 #endif
@@ -203,15 +203,15 @@ public:
 
     // For otherwhere to know if they're in the same thread.
     void SaveThreadInfoOfCallsite() {
-        _callmethod_bthread = bthread_self();
-        if (_callmethod_bthread == INVALID_BTHREAD) {
+        _callmethod_fiber = fiber_self();
+        if (_callmethod_fiber == INVALID_FIBER) {
             _callmethod_pthread = pthread_self();
         }
     }
 
     bool IsSameThreadAsCallMethod() const {
-        if (_callmethod_bthread != INVALID_BTHREAD) {
-            return bthread_self() == _callmethod_bthread;
+        if (_callmethod_fiber != INVALID_FIBER) {
+            return fiber_self() == _callmethod_fiber;
         }
         return pthread_self() == _callmethod_pthread;
     }
@@ -222,12 +222,12 @@ public:
 
             // Count failed sub calls, if fail_limit is reached, cancel others.
             if (fin->cntl.FailedInline() &&
-                _current_fail.fetch_add(1, butil::memory_order_relaxed) + 1
+                _current_fail.fetch_add(1, mutil::memory_order_relaxed) + 1
                 == _fail_limit) {
                 for (int i = 0; i < _ndone; ++i) {
                     SubDone* sd = sub_done(i);
                     if (fin != sd) {
-                        bthread_id_error(sd->cntl.call_id(), ECANCELED);
+                        fiber_session_error(sd->cntl.call_id(), ECANCELED);
                     }
                 }
             }
@@ -239,7 +239,7 @@ public:
             // The release fence is matched with acquire fence below to
             // guarantee visibilities of all other variables.
             const uint32_t val =
-                _current_done.fetch_add(1, butil::memory_order_release);
+                _current_done.fetch_add(1, mutil::memory_order_release);
             // Lower 31 bits are number of finished sub calls. If caller is not
             // the last call that finishes, return.
             if ((val & 0x7fffffff) + 1 != saved_ndone) {
@@ -248,7 +248,7 @@ public:
             // If _cntl->call_id() is still there, stop it by sending a special
             // error(which will be cleared) and return.
             if (!(val & 0x80000000)) {
-                bthread_id_error(saved_cid, EPCHANFINISH);
+                fiber_session_error(saved_cid, EPCHANFINISH);
                 return;
             }
         } else {
@@ -258,12 +258,12 @@ public:
             // of reading the value relaxly (and CPU cache is not sync yet).
             // It's OK and we have to, because sub_done can't be accessed
             // after fetch_or.
-            uint32_t val = _current_done.load(butil::memory_order_relaxed);
+            uint32_t val = _current_done.load(mutil::memory_order_relaxed);
             // Lower 31 bits are number of finished sub calls. Cancel sub calls
             // if not all of them finish.
             if ((val & 0x7fffffff) != (uint32_t)_ndone) {
                 for (int i = 0; i < _ndone; ++i) {
-                    bthread_id_error(sub_done(i)->cntl.call_id(), ECANCELED);
+                    fiber_session_error(sub_done(i)->cntl.call_id(), ECANCELED);
                 }
             }
             // NOTE: Don't access any member after the fetch_or because
@@ -272,24 +272,24 @@ public:
             // Modify MSB to mark that this->Run() run.
             // The release fence is matched with acquire fence below to
             // guarantee visibilities of all other variables.
-            val = _current_done.fetch_or(0x80000000, butil::memory_order_release);
+            val = _current_done.fetch_or(0x80000000, mutil::memory_order_release);
             // If not all sub calls finish, return.
             if ((val & 0x7fffffff) != (uint32_t)saved_ndone) {
                 return;
             }
         }
-        butil::atomic_thread_fence(butil::memory_order_acquire);
+        mutil::atomic_thread_fence(mutil::memory_order_acquire);
 
         if (fin != NULL &&
             !_cntl->is_done_allowed_to_run_in_place() &&
             IsSameThreadAsCallMethod()) {
             // A sub channel's CallMethod calls a subdone directly, create a
             // thread to run OnComplete.
-            bthread_t bh;
-            bthread_attr_t attr = (FLAGS_usercode_in_pthread ?
-                                   BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL);
-            if (bthread_start_background(&bh, &attr, RunOnComplete, this) != 0) {
-                LOG(FATAL) << "Fail to start bthread";
+            fiber_t bh;
+            fiber_attr_t attr = (FLAGS_usercode_in_pthread ?
+                                   FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
+            if (fiber_start_background(&bh, &attr, RunOnComplete, this) != 0) {
+                LOG(FATAL) << "Fail to start fiber";
                 OnComplete();
             }
         } else {
@@ -308,7 +308,7 @@ public:
         // NOTE: Don't forget to set "nfailed = _ndone" when the _cntl is set
         // to be failed since the RPC is still considered to be successful if
         // nfailed is less than fail_limit
-        int nfailed = _current_fail.load(butil::memory_order_relaxed);
+        int nfailed = _current_fail.load(mutil::memory_order_relaxed);
         if (nfailed < _fail_limit) {
             for (int i = 0; i < _ndone; ++i) {
                 SubDone* sd = sub_done(i);
@@ -386,10 +386,10 @@ public:
         // NOTE: we don't destroy self here, controller destroys this done in
         // Reset() so that user can access sub controllers before Reset().
         if (user_done) {
-            _cntl->OnRPCEnd(butil::gettimeofday_us());
+            _cntl->OnRPCEnd(mutil::gettimeofday_us());
             user_done->Run();
         }
-        CHECK_EQ(0, bthread_id_unlock_and_destroy(saved_cid));
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 
     int sub_done_size() const { return _ndone; }
@@ -430,11 +430,11 @@ private:
 #else
     int _memsize;
 #endif
-    butil::atomic<int> _current_fail;
-    butil::atomic<uint32_t> _current_done;
+    mutil::atomic<int> _current_fail;
+    mutil::atomic<uint32_t> _current_done;
     Controller* _cntl;
     google::protobuf::Closure* _user_done;
-    bthread_t _callmethod_bthread;
+    fiber_t _callmethod_fiber;
     pthread_t _callmethod_pthread;
     SubDone _sub_done[0];
 };
@@ -479,8 +479,8 @@ int ParallelChannel::AddChannel(ChannelBase* sub_channel,
 
 int ParallelChannel::AddChannel(ChannelBase* sub_channel,
                                 ChannelOwnership ownership,
-                                const butil::intrusive_ptr<CallMapper>& call_mapper,
-                                const butil::intrusive_ptr<ResponseMerger>& merger) {
+                                const mutil::intrusive_ptr<CallMapper>& call_mapper,
+                                const mutil::intrusive_ptr<ResponseMerger>& merger) {
     if (NULL == sub_channel) {
         LOG(ERROR) << "Param[sub_channel] is NULL";
         return -1;
@@ -552,8 +552,8 @@ ParallelChannel::~ParallelChannel() {
 }
 
 static void HandleTimeout(void* arg) {
-    bthread_id_t correlation_id = { (uint64_t)arg };
-    bthread_id_error(correlation_id, ERPCTIMEDOUT);
+    fiber_session_t correlation_id = { (uint64_t)arg };
+    fiber_session_error(correlation_id, ERPCTIMEDOUT);
 }
 
 void* ParallelChannel::RunDoneAndDestroy(void* arg) {
@@ -562,9 +562,9 @@ void* ParallelChannel::RunDoneAndDestroy(void* arg) {
     google::protobuf::Closure* done = c->_done;
     c->_done = NULL;
     // Save call_id from the controller which may be deleted after Run().
-    const bthread_id_t cid = c->call_id();
+    const fiber_session_t cid = c->call_id();
     done->Run();
-    CHECK_EQ(0, bthread_id_unlock_and_destroy(cid));
+    CHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
     return NULL;
 }
 
@@ -575,13 +575,13 @@ void ParallelChannel::CallMethod(
     google::protobuf::Message* response,
     google::protobuf::Closure* done) {
     Controller* cntl = static_cast<Controller*>(cntl_base);
-    cntl->OnRPCBegin(butil::gettimeofday_us());
+    cntl->OnRPCBegin(mutil::gettimeofday_us());
     // Make sure cntl->sub_count() always equal #sub-channels
     const int nchan = _chans.size();
     cntl->_pchan_sub_count = nchan;
 
     const CallId cid = cntl->call_id();
-    const int rc = bthread_id_lock(cid, NULL);
+    const int rc = fiber_session_lock(cid, NULL);
     if (rc != 0) {
         CHECK_EQ(EINVAL, rc);
         if (!cntl->FailedInline()) {
@@ -682,9 +682,9 @@ void ParallelChannel::CallMethod(
     if (cntl->timeout_ms() >= 0) {
         cntl->_deadline_us = cntl->timeout_ms() * 1000L + cntl->_begin_time_us;
         // Setup timer for RPC timetout
-        const int rc = bthread_timer_add(
+        const int rc = fiber_timer_add(
             &cntl->_timeout_id,
-            butil::microseconds_to_timespec(cntl->_deadline_us),
+            mutil::microseconds_to_timespec(cntl->_deadline_us),
             HandleTimeout, (void*)cid.value);
         if (rc != 0) {
             cntl->SetFailed(rc, "Fail to add timer");
@@ -694,7 +694,7 @@ void ParallelChannel::CallMethod(
         cntl->_deadline_us = -1;
     }
     d->SaveThreadInfoOfCallsite();
-    CHECK_EQ(0, bthread_id_unlock(cid));
+    CHECK_EQ(0, fiber_session_unlock(cid));
     // Don't touch `cntl' and `d' again (for async RPC)
     
     for (int i = 0, j = 0; i < nchan; ++i) {
@@ -712,7 +712,7 @@ void ParallelChannel::CallMethod(
     }
     if (done == NULL) {
         Join(cid);
-        cntl->OnRPCEnd(butil::gettimeofday_us());
+        cntl->OnRPCEnd(mutil::gettimeofday_us());
     }
     return;
 
@@ -725,20 +725,20 @@ FAIL:
     }
     if (done) {
         if (!cntl->is_done_allowed_to_run_in_place()) {
-            bthread_t bh;
-            bthread_attr_t attr = (FLAGS_usercode_in_pthread ?
-                                   BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL);
+            fiber_t bh;
+            fiber_attr_t attr = (FLAGS_usercode_in_pthread ?
+                                   FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
             // Hack: save done in cntl->_done to remove a malloc of args.
             cntl->_done = done;
-            if (bthread_start_background(&bh, &attr, RunDoneAndDestroy, cntl) == 0) {
+            if (fiber_start_background(&bh, &attr, RunDoneAndDestroy, cntl) == 0) {
                 return;
             }
             cntl->_done = NULL;
-            LOG(FATAL) << "Fail to start bthread";
+            LOG(FATAL) << "Fail to start fiber";
         }
         done->Run();
     }
-    CHECK_EQ(0, bthread_id_unlock_and_destroy(cid));
+    CHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
 }
 
 int ParallelChannel::Weight() {

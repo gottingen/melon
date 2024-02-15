@@ -18,7 +18,7 @@
 // Date: 2014/09/22 11:57:43
 
 #include <gflags/gflags.h>
-#include "melon/butil/unique_ptr.h"
+#include "melon/utility/unique_ptr.h"
 #include "melon/var/latency_recorder.h"
 
 namespace melon::var {
@@ -93,7 +93,7 @@ namespace melon::var {
 // Return random int value with expectation = `dval'
         static int64_t double_to_random_int(double dval) {
             int64_t ival = static_cast<int64_t>(dval);
-            if (dval > ival + butil::fast_rand_double()) {
+            if (dval > ival + mutil::fast_rand_double()) {
                 ival += 1;
             }
             return ival;
@@ -184,13 +184,13 @@ namespace melon::var {
         return detail::double_to_random_int(s.data.num * 1000000.0 / s.time_us);
     }
 
-    int LatencyRecorder::expose(const butil::StringPiece &prefix1,
-                                const butil::StringPiece &prefix2) {
+    int LatencyRecorder::expose(const mutil::StringPiece &prefix1,
+                                const mutil::StringPiece &prefix2) {
         if (prefix2.empty()) {
             LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
-        butil::StringPiece prefix = prefix2;
+        mutil::StringPiece prefix = prefix2;
         // User may add "_latency" as the suffix, remove it.
         if (prefix.ends_with("latency") || prefix.ends_with("Latency")) {
             prefix.remove_suffix(7);

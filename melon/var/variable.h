@@ -24,8 +24,8 @@
 #include <string>                      // std::string
 #include <vector>                      // std::vector
 #include <gflags/gflags_declare.h>
-#include "melon/butil/macros.h"               // DISALLOW_COPY_AND_ASSIGN
-#include "melon/butil/strings/string_piece.h" // butil::StringPiece
+#include "melon/utility/macros.h"               // DISALLOW_COPY_AND_ASSIGN
+#include "melon/utility/strings/string_piece.h" // mutil::StringPiece
 
 namespace boost {
     class any;
@@ -49,7 +49,7 @@ namespace melon::var {
         virtual ~Dumper() {}
 
         virtual bool dump(const std::string &name,
-                          const butil::StringPiece &description) = 0;
+                          const mutil::StringPiece &description) = 0;
 
         virtual bool dump_comment(const std::string &, const std::string & /*type*/) {
             return true;
@@ -122,9 +122,9 @@ namespace melon::var {
         //   describe_exposed
         //   find_exposed
         // Return 0 on success, -1 otherwise.
-        int expose(const butil::StringPiece &name,
+        int expose(const mutil::StringPiece &name,
                    DisplayFilter display_filter = DISPLAY_ON_ALL) {
-            return expose_impl(butil::StringPiece(), name, display_filter);
+            return expose_impl(mutil::StringPiece(), name, display_filter);
         }
 
         // Expose this variable with a prefix.
@@ -142,8 +142,8 @@ namespace melon::var {
         //   }  // foo
         //   }  // bar
         // Returns 0 on success, -1 otherwise.
-        int expose_as(const butil::StringPiece &prefix,
-                      const butil::StringPiece &name,
+        int expose_as(const mutil::StringPiece &prefix,
+                      const mutil::StringPiece &name,
                       DisplayFilter display_filter = DISPLAY_ON_ALL) {
             return expose_impl(prefix, name, display_filter);
         }
@@ -200,8 +200,8 @@ namespace melon::var {
         static int dump_exposed(Dumper *dumper, const DumpOptions *options);
 
     protected:
-        virtual int expose_impl(const butil::StringPiece &prefix,
-                                const butil::StringPiece &name,
+        virtual int expose_impl(const mutil::StringPiece &prefix,
+                                const mutil::StringPiece &name,
                                 DisplayFilter display_filter);
 
     private:
@@ -221,7 +221,7 @@ namespace melon::var {
     //   FooBar          -> foo_bar
     //   RPCTest         -> rpctest
     //   HELLO           -> hello
-    void to_underscored_name(std::string *out, const butil::StringPiece &name);
+    void to_underscored_name(std::string *out, const mutil::StringPiece &name);
 
 }  // namespace melon::var
 

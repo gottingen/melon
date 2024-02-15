@@ -114,7 +114,7 @@ friend class StatusService;
 friend class Server;
 
 private:
-    void Expose(const butil::StringPiece& prefix);
+    void Expose(const mutil::StringPiece& prefix);
     
     // Tracking status of non NsheadPbService
     MethodStatus* _status;

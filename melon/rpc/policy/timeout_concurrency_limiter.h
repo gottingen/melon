@@ -64,8 +64,8 @@ class TimeoutConcurrencyLimiter : public ConcurrencyLimiter {
     // modified per sample-window or more
     int64_t _avg_latency_us;
     // modified per sample.
-    BAIDU_CACHELINE_ALIGNMENT butil::atomic<int64_t> _last_sampling_time_us;
-    butil::Mutex _sw_mutex;
+    MELON_CACHELINE_ALIGNMENT mutil::atomic<int64_t> _last_sampling_time_us;
+    mutil::Mutex _sw_mutex;
     SampleWindow _sw;
     int64_t _timeout_ms;
     int _max_concurrency;

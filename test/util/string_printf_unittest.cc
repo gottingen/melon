@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/string_printf.h"
+#include "melon/utility/string_printf.h"
 
 namespace {
 
@@ -34,19 +34,19 @@ protected:
 TEST_F(BaiduStringPrintfTest, sanity) {
 
     {
-        std::string sth = butil::string_printf("hello %d 124 %s", 1, "world");
+        std::string sth = mutil::string_printf("hello %d 124 %s", 1, "world");
         ASSERT_EQ("hello 1 124 world", sth);
 
-        ASSERT_EQ("hello 1 124 world", butil::string_printf(sth.size(), "hello %d 124 %s", 1, "world"));
-        ASSERT_EQ("hello 1 124 world", butil::string_printf(sth.size() - 1, "hello %d 124 %s", 1, "world"));
-        ASSERT_EQ("hello 1 124 world", butil::string_printf(sth.size() + 1, "hello %d 124 %s", 1, "world"));
+        ASSERT_EQ("hello 1 124 world", mutil::string_printf(sth.size(), "hello %d 124 %s", 1, "world"));
+        ASSERT_EQ("hello 1 124 world", mutil::string_printf(sth.size() - 1, "hello %d 124 %s", 1, "world"));
+        ASSERT_EQ("hello 1 124 world", mutil::string_printf(sth.size() + 1, "hello %d 124 %s", 1, "world"));
 
     }
     {
         std::string sth;
-        ASSERT_EQ(0, butil::string_printf(&sth, "boolean %d", 1));
+        ASSERT_EQ(0, mutil::string_printf(&sth, "boolean %d", 1));
         ASSERT_EQ("boolean 1", sth);
-        ASSERT_EQ(0, butil::string_appendf(&sth, "too simple"));
+        ASSERT_EQ(0, mutil::string_appendf(&sth, "too simple"));
         ASSERT_EQ("boolean 1too simple", sth);
     }
 }

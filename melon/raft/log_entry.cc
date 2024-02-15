@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/log_entry.h"
 #include "melon/proto/raft/local_storage.pb.h"
@@ -31,10 +30,10 @@ namespace melon::raft {
         delete old_peers;
     }
 
-    butil::Status parse_configuration_meta(const butil::IOBuf &data, LogEntry *entry) {
-        butil::Status status;
+    mutil::Status parse_configuration_meta(const mutil::IOBuf &data, LogEntry *entry) {
+        mutil::Status status;
         ConfigurationPBMeta meta;
-        butil::IOBufAsZeroCopyInputStream wrapper(data);
+        mutil::IOBufAsZeroCopyInputStream wrapper(data);
         if (!meta.ParseFromZeroCopyStream(&wrapper)) {
             status.set_error(EINVAL, "Fail to parse ConfigurationPBMeta");
             return status;
@@ -52,8 +51,8 @@ namespace melon::raft {
         return status;
     }
 
-    butil::Status serialize_configuration_meta(const LogEntry *entry, butil::IOBuf &data) {
-        butil::Status status;
+    mutil::Status serialize_configuration_meta(const LogEntry *entry, mutil::IOBuf &data) {
+        mutil::Status status;
         ConfigurationPBMeta meta;
         for (size_t i = 0; i < entry->peers->size(); ++i) {
             meta.add_peers((*(entry->peers))[i].to_string());
@@ -63,7 +62,7 @@ namespace melon::raft {
                 meta.add_old_peers((*(entry->old_peers))[i].to_string());
             }
         }
-        butil::IOBufAsZeroCopyOutputStream wrapper(&data);
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&data);
         if (!meta.SerializeToZeroCopyStream(&wrapper)) {
             status.set_error(EINVAL, "Fail to serialize ConfigurationPBMeta");
         }

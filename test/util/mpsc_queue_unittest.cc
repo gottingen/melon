@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include <pthread.h>
-#include "melon/butil/containers/mpsc_queue.h"
+#include "melon/utility/containers/mpsc_queue.h"
 
 namespace {
 
 const uint MAX_COUNT = 10000000;
 
-void Consume(butil::MPSCQueue<uint>& q, bool allow_empty) {
+void Consume(mutil::MPSCQueue<uint>& q, bool allow_empty) {
     uint i = 0;
     uint empty_count = 0;
     while (true) {
@@ -25,7 +25,7 @@ void Consume(butil::MPSCQueue<uint>& q, bool allow_empty) {
 }
 
 void* ProduceThread(void* arg) {
-    auto q = (butil::MPSCQueue<uint>*)arg;
+    auto q = (mutil::MPSCQueue<uint>*)arg;
     for (uint i = 0; i < MAX_COUNT; ++i) {
         q->Enqueue(i);
     }
@@ -33,13 +33,13 @@ void* ProduceThread(void* arg) {
 }
 
 void* ConsumeThread1(void* arg) {
-    auto q = (butil::MPSCQueue<uint>*)arg;
+    auto q = (mutil::MPSCQueue<uint>*)arg;
     Consume(*q, true);
     return NULL;
 }
 
 TEST(MPSCQueueTest, spsc_single_thread) {
-    butil::MPSCQueue<uint> q;
+    mutil::MPSCQueue<uint> q;
     for (uint i = 0; i < MAX_COUNT; ++i) {
         q.Enqueue(i);
     }
@@ -47,7 +47,7 @@ TEST(MPSCQueueTest, spsc_single_thread) {
 }
 
 TEST(MPSCQueueTest, spsc_multi_thread) {
-    butil::MPSCQueue<uint> q;
+    mutil::MPSCQueue<uint> q;
     pthread_t produce_tid;
     ASSERT_EQ(0, pthread_create(&produce_tid, NULL, ProduceThread, &q));
     pthread_t consume_tid;
@@ -58,11 +58,11 @@ TEST(MPSCQueueTest, spsc_multi_thread) {
 
 }
 
-butil::atomic<uint> g_index(0);
+mutil::atomic<uint> g_index(0);
 void* MultiProduceThread(void* arg) {
-    auto q = (butil::MPSCQueue<uint>*)arg;
+    auto q = (mutil::MPSCQueue<uint>*)arg;
     while (true) {
-        uint i = g_index.fetch_add(1, butil::memory_order_relaxed);
+        uint i = g_index.fetch_add(1, mutil::memory_order_relaxed);
         if (i >= MAX_COUNT) {
             break;
         }
@@ -71,9 +71,9 @@ void* MultiProduceThread(void* arg) {
     return NULL;
 }
 
-butil::Mutex g_mutex;
+mutil::Mutex g_mutex;
 bool g_counts[MAX_COUNT];
-void Consume2(butil::MPSCQueue<uint>& q) {
+void Consume2(mutil::MPSCQueue<uint>& q) {
     uint empty_count = 0;
     uint count = 0;
     while (true) {
@@ -96,13 +96,13 @@ void Consume2(butil::MPSCQueue<uint>& q) {
 }
 
 void* ConsumeThread2(void* arg) {
-    auto q = (butil::MPSCQueue<uint>*)arg;
+    auto q = (mutil::MPSCQueue<uint>*)arg;
     Consume2(*q);
     return NULL;
 }
 
 TEST(MPSCQueueTest, mpsc_multi_thread) {
-    butil::MPSCQueue<uint> q;
+    mutil::MPSCQueue<uint> q;
 
     int thread_num = 8;
     pthread_t threads[thread_num];

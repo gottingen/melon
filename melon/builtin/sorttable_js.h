@@ -19,7 +19,7 @@
 #ifndef MELON_BUILTIN_BUILTIN_SORTTABLE_JS_H_
 #define MELON_BUILTIN_BUILTIN_SORTTABLE_JS_H_
 
-#include "melon/butil/iobuf.h"
+#include "melon/utility/iobuf.h"
 
 
 namespace melon {
@@ -29,7 +29,7 @@ namespace melon {
     // accessed without external resources and network connection.
     const char *sorttable_js();
 
-    const butil::IOBuf &sorttable_js_iobuf();
+    const mutil::IOBuf &sorttable_js_iobuf();
 
 } // namespace melon
 

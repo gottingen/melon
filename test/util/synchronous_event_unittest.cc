@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/synchronous_event.h"
+#include "melon/utility/synchronous_event.h"
 
 namespace {
 class SynchronousEventTest : public ::testing::Test{
@@ -33,7 +33,7 @@ protected:
 
 struct Foo {};
 
-typedef butil::SynchronousEvent<int, int*> FooEvent;
+typedef mutil::SynchronousEvent<int, int*> FooEvent;
 
 FooEvent foo_event;
 std::vector<std::pair<int, int> > result;

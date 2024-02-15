@@ -19,8 +19,8 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 
-#include "melon/butil/time.h"
-#include "melon/butil/iobuf.h"                         // butil::IOBuf
+#include "melon/utility/time.h"
+#include "melon/utility/iobuf.h"                         // mutil::IOBuf
 
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
@@ -87,7 +87,7 @@ void SendNsheadPbResponse::Run() {
     // back response.
     if (saved_status) {
         saved_status->OnResponded(
-            !saved_failed, butil::cpuwide_time_us() - received_us);
+            !saved_failed, mutil::cpuwide_time_us() - received_us);
     }
     saved_done->Run();
 }

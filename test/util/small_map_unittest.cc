@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/containers/small_map.h"
+#include "melon/utility/containers/small_map.h"
 
 #include <stddef.h>
 
@@ -10,11 +10,11 @@
 #include <functional>
 #include <map>
 
-#include "melon/butil/containers/hash_tables.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/containers/hash_tables.h"
+#include "melon/utility/logging.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(SmallMap, General) {
   SmallMap<hash_map<int, int> > m;
@@ -480,4 +480,4 @@ TEST(SmallMap, SubclassInitializationWithFunctionObject) {
   EXPECT_EQ(1u, m.count(-1));
 }
 
-}  // namespace butil
+}  // namespace mutil

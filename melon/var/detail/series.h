@@ -22,11 +22,11 @@
 
 #include <math.h>                       // round
 #include <ostream>
-#include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/butil/type_traits.h"
+#include "melon/utility/scoped_lock.h"           // MELON_SCOPED_LOCK
+#include "melon/utility/type_traits.h"
 #include "melon/var/vector.h"
 #include "melon/var/detail/call_op_returning_void.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/string_splitter.h"
 
 namespace melon::var {
     namespace detail {
@@ -53,8 +53,8 @@ namespace melon::var {
         };
 
         template<typename T, typename Op>
-        struct DivideOnAddition<T, Op, typename butil::enable_if<
-                butil::is_integral<T>::value>::type> {
+        struct DivideOnAddition<T, Op, typename mutil::enable_if<
+                mutil::is_integral<T>::value>::type> {
             static void inplace_divide(T &obj, const Op &op, int number) {
                 static ProbablyAddtition<T, Op> probably_add(op);
                 if (probably_add) {
@@ -64,8 +64,8 @@ namespace melon::var {
         };
 
         template<typename T, typename Op>
-        struct DivideOnAddition<T, Op, typename butil::enable_if<
-                butil::is_floating_point<T>::value>::type> {
+        struct DivideOnAddition<T, Op, typename mutil::enable_if<
+                mutil::is_floating_point<T>::value>::type> {
             static void inplace_divide(T &obj, const Op &op, int number) {
                 static ProbablyAddtition<T, Op> probably_add(op);
                 if (probably_add) {
@@ -75,8 +75,8 @@ namespace melon::var {
         };
 
         template<typename T, size_t N, typename Op>
-        struct DivideOnAddition<Vector < T, N>, Op, typename butil::enable_if<
-                butil::is_integral<T>::value>::type> {
+        struct DivideOnAddition<Vector < T, N>, Op, typename mutil::enable_if<
+                mutil::is_integral<T>::value>::type> {
         static void inplace_divide(Vector <T, N> &obj, const Op &op, int number) {
             static ProbablyAddtition<Vector<T, N>, Op> probably_add(op);
             if (probably_add) {
@@ -88,8 +88,8 @@ namespace melon::var {
     };
 
     template<typename T, size_t N, typename Op>
-    struct DivideOnAddition<Vector<T, N>, Op, typename butil::enable_if<
-            butil::is_floating_point<T>::value>::type> {
+    struct DivideOnAddition<Vector<T, N>, Op, typename mutil::enable_if<
+            mutil::is_floating_point<T>::value>::type> {
         static void inplace_divide(Vector<T, N> &obj, const Op &op, int number) {
             static ProbablyAddtition <Vector<T, N>, Op> probably_add(op);
             if (probably_add) {
@@ -128,8 +128,8 @@ namespace melon::var {
         public:
             Data() {
                 // is_pod does not work for gcc 3.4
-                if (butil::is_integral<T>::value ||
-                    butil::is_floating_point<T>::value) {
+                if (mutil::is_integral<T>::value ||
+                    mutil::is_floating_point<T>::value) {
                     memset(static_cast<void *>(_array), 0, sizeof(_array));
                 }
             }
@@ -291,7 +291,7 @@ namespace melon::var {
         // to exactly accurate.
         pthread_mutex_unlock(&this->_mutex);
 
-        butil::StringSplitter sp(vector_names ? vector_names->c_str() : "", ',');
+        mutil::StringSplitter sp(vector_names ? vector_names->c_str() : "", ',');
         os << '[';
         for (size_t j = 0; j < N; ++j) {
             if (j) {
@@ -300,7 +300,7 @@ namespace melon::var {
             int c = 0;
             os << "{\"label\":\"";
             if (sp) {
-                os << butil::StringPiece(sp.field(), sp.length());
+                os << mutil::StringPiece(sp.field(), sp.length());
                 ++sp;
             } else {
                 os << "Vector[" << j << ']';

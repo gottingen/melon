@@ -19,8 +19,8 @@
 #ifndef MELON_RPC_RTMP_RTMP_H_
 #define MELON_RPC_RTMP_RTMP_H_
 
-#include "melon/butil/strings/string_piece.h"   // butil::StringPiece
-#include "melon/butil/endpoint.h"               // butil::EndPoint
+#include "melon/utility/strings/string_piece.h"   // mutil::StringPiece
+#include "melon/utility/endpoint.h"               // mutil::EndPoint
 #include "melon/rpc/shared_object.h"          // SharedObject, intrusive_ptr
 #include "melon/rpc/socket_id.h"              // SocketUniquePtr
 #include "melon/rpc/controller.h"             // Controller, IOBuf
@@ -118,7 +118,7 @@ namespace melon {
         FlvSoundRate rate;
         FlvSoundBits bits;
         FlvSoundType type;
-        butil::IOBuf data;
+        mutil::IOBuf data;
 
         bool IsAACSequenceHeader() const;
 
@@ -142,10 +142,10 @@ namespace melon {
 
         // For sequence header:  AudioSpecificConfig
         // For raw:              Raw AAC frame data
-        butil::IOBuf data;
+        mutil::IOBuf data;
 
         // Create AAC message from audio message.
-        butil::Status Create(const RtmpAudioMessage &msg);
+        mutil::Status Create(const RtmpAudioMessage &msg);
 
         // Size of serialized message.
         size_t size() const { return data.size() + 2; }
@@ -165,9 +165,9 @@ namespace melon {
     struct AudioSpecificConfig {
         AudioSpecificConfig();
 
-        butil::Status Create(const butil::IOBuf &buf);
+        mutil::Status Create(const mutil::IOBuf &buf);
 
-        butil::Status Create(const void *data, size_t len);
+        mutil::Status Create(const void *data, size_t len);
 
         AACObjectType aac_object;
         uint8_t aac_sample_rate;
@@ -223,7 +223,7 @@ namespace melon {
         uint32_t timestamp;
         FlvVideoFrameType frame_type;
         FlvVideoCodec codec;
-        butil::IOBuf data;
+        mutil::IOBuf data;
 
         // True iff this message is a sequence header of AVC codec.
         bool IsAVCSequenceHeader() const;
@@ -254,10 +254,10 @@ namespace melon {
         // For sequence header:  AVCDecoderConfigurationRecord
         // For NALU:             One or more NALUs
         // For end of sequence:  empty
-        butil::IOBuf data;
+        mutil::IOBuf data;
 
         // Create a AVC message from a video message.
-        butil::Status Create(const RtmpVideoMessage &);
+        mutil::Status Create(const RtmpVideoMessage &);
 
         // Size of serialized message.
         size_t size() const { return data.size() + 5; }
@@ -328,9 +328,9 @@ namespace melon {
     struct AVCDecoderConfigurationRecord {
         AVCDecoderConfigurationRecord();
 
-        butil::Status Create(const butil::IOBuf &buf);
+        mutil::Status Create(const mutil::IOBuf &buf);
 
-        butil::Status Create(const void *data, size_t len);
+        mutil::Status Create(const void *data, size_t len);
 
         int width;
         int height;
@@ -341,7 +341,7 @@ namespace melon {
         std::vector<std::string> pps_list;
 
     private:
-        butil::Status ParseSPS(const butil::StringPiece &buf, size_t sps_length);
+        mutil::Status ParseSPS(const mutil::StringPiece &buf, size_t sps_length);
     };
 
     std::ostream &operator<<(std::ostream &, const AVCDecoderConfigurationRecord &);
@@ -355,7 +355,7 @@ namespace melon {
 // Iterate NALUs inside RtmpAVCMessage.data
     class AVCNaluIterator {
     public:
-        AVCNaluIterator(butil::IOBuf *data, uint32_t length_size_minus1,
+        AVCNaluIterator(mutil::IOBuf *data, uint32_t length_size_minus1,
                         AVCNaluFormat *format_inout);
 
         ~AVCNaluIterator();
@@ -364,9 +364,9 @@ namespace melon {
 
         operator void *() const { return _data; }
 
-        butil::IOBuf &operator*() { return _cur_nalu; }
+        mutil::IOBuf &operator*() { return _cur_nalu; }
 
-        butil::IOBuf *operator->() { return &_cur_nalu; }
+        mutil::IOBuf *operator->() { return &_cur_nalu; }
 
         AVCNaluType nalu_type() const { return _nalu_type; }
 
@@ -380,8 +380,8 @@ namespace melon {
 
         void set_end() { _data = NULL; }
 
-        butil::IOBuf *_data;
-        butil::IOBuf _cur_nalu;
+        mutil::IOBuf *_data;
+        mutil::IOBuf _cur_nalu;
         AVCNaluFormat *_format;
         uint32_t _length_size_minus1;
         AVCNaluType _nalu_type;
@@ -430,25 +430,25 @@ namespace melon {
     class FlvWriter {
     public:
         // Start appending FLV tags into the buffer
-        explicit FlvWriter(butil::IOBuf *buf);
+        explicit FlvWriter(mutil::IOBuf *buf);
 
-        explicit FlvWriter(butil::IOBuf *buf, const FlvWriterOptions &options);
+        explicit FlvWriter(mutil::IOBuf *buf, const FlvWriterOptions &options);
 
         // Append a video/audio/metadata/cuepoint message into the output buffer.
-        butil::Status Write(const RtmpVideoMessage &);
+        mutil::Status Write(const RtmpVideoMessage &);
 
-        butil::Status Write(const RtmpAudioMessage &);
+        mutil::Status Write(const RtmpAudioMessage &);
 
-        butil::Status Write(const RtmpMetaData &);
+        mutil::Status Write(const RtmpMetaData &);
 
-        butil::Status Write(const RtmpCuePoint &);
+        mutil::Status Write(const RtmpCuePoint &);
 
     private:
-        butil::Status WriteScriptData(const butil::IOBuf &req_buf, uint32_t timestamp);
+        mutil::Status WriteScriptData(const mutil::IOBuf &req_buf, uint32_t timestamp);
 
     private:
         bool _write_header;
-        butil::IOBuf *_buf;
+        mutil::IOBuf *_buf;
         FlvWriterOptions _options;
     };
 
@@ -456,32 +456,32 @@ namespace melon {
     public:
         // Start reading FLV tags from the buffer. The data read by the following
         // Read functions would be removed from *buf.
-        explicit FlvReader(butil::IOBuf *buf);
+        explicit FlvReader(mutil::IOBuf *buf);
 
         // Get the next message type.
-        // If it is a valid flv tag, butil::Status::OK() is returned and the
+        // If it is a valid flv tag, mutil::Status::OK() is returned and the
         // type is written to *type. Otherwise an error would be returned,
         // leaving *type unchanged.
         // Note: If error_code of the return value is EAGAIN, the caller
         // should wait more data and try call PeekMessageType again.
-        butil::Status PeekMessageType(FlvTagType *type);
+        mutil::Status PeekMessageType(FlvTagType *type);
 
         // Read a video/audio/metadata message from the input buffer.
         // Caller should use the result of function PeekMessageType to select an
         // appropriate function, e.g., if *type is set to FLV_TAG_AUDIO in
         // PeekMessageType, caller should call Read(RtmpAudioMessage*) subsequently.
-        butil::Status Read(RtmpVideoMessage *msg);
+        mutil::Status Read(RtmpVideoMessage *msg);
 
-        butil::Status Read(RtmpAudioMessage *msg);
+        mutil::Status Read(RtmpAudioMessage *msg);
 
-        butil::Status Read(RtmpMetaData *object, std::string *object_name);
+        mutil::Status Read(RtmpMetaData *object, std::string *object_name);
 
     private:
-        butil::Status ReadHeader();
+        mutil::Status ReadHeader();
 
     private:
         bool _read_header;
-        butil::IOBuf *_buf;
+        mutil::IOBuf *_buf;
     };
 
     struct RtmpPlayOptions {
@@ -542,7 +542,7 @@ namespace melon {
 
     const char *RtmpPublishType2Str(RtmpPublishType);
 
-    bool Str2RtmpPublishType(const butil::StringPiece &, RtmpPublishType *);
+    bool Str2RtmpPublishType(const mutil::StringPiece &, RtmpPublishType *);
 
 // For SetPeerBandwidth
     enum RtmpLimitType {
@@ -574,7 +574,7 @@ namespace melon {
 
         virtual void OnCuePoint(RtmpCuePoint *);
 
-        virtual void OnMetaData(RtmpMetaData *, const butil::StringPiece &);
+        virtual void OnMetaData(RtmpMetaData *, const mutil::StringPiece &);
 
         virtual void OnSharedObjectMessage(RtmpSharedObjectMessage *msg);
 
@@ -596,7 +596,7 @@ namespace melon {
         virtual int SendCuePoint(const RtmpCuePoint &);
 
         virtual int SendMetaData(const RtmpMetaData &,
-                                 const butil::StringPiece &name = "onMetaData");
+                                 const mutil::StringPiece &name = "onMetaData");
 
         virtual int SendSharedObjectMessage(const RtmpSharedObjectMessage &msg);
 
@@ -613,14 +613,14 @@ namespace melon {
 
         // Send a message to the peer to make it stop. The concrete message depends
         // on implementation of the stream.
-        virtual int SendStopMessage(const butil::StringPiece &error_description);
+        virtual int SendStopMessage(const mutil::StringPiece &error_description);
 
         // // Call user's procedure at server-side.
         // // request == NULL  : send AMF null as the parameter.
         // // response == NULL : response is not needed.
         // // done == NULL     : synchronous call, asynchronous otherwise.
         // void Call(Controller* cntl,
-        //           const butil::StringPiece& procedure_name,
+        //           const mutil::StringPiece& procedure_name,
         //           const google::protobuf::Message* request,
         //           google::protobuf::Message* response,
         //           google::protobuf::Closure* done);
@@ -632,9 +632,9 @@ namespace melon {
         uint32_t chunk_stream_id() const { return _chunk_stream_id; }
 
         // Get ip/port of peer/self
-        virtual butil::EndPoint remote_side() const;
+        virtual mutil::EndPoint remote_side() const;
 
-        virtual butil::EndPoint local_side() const;
+        virtual mutil::EndPoint local_side() const;
 
         bool is_client_stream() const { return _is_client; }
 
@@ -643,7 +643,7 @@ namespace melon {
         // True iff OnStop() was called.
         bool is_stopped() const { return _stopped; }
 
-        // When this stream is created, got from butil::gettimeofday_us().
+        // When this stream is created, got from mutil::gettimeofday_us().
         int64_t create_realtime_us() const { return _create_realtime_us; }
 
         bool is_paused() const { return _paused; }
@@ -659,7 +659,7 @@ namespace melon {
         // Returns true when the server accepted play or publish command.
         // The acquire fence makes sure the callsite seeing true must be after
         // sending play or publish command (possibly in another thread).
-        bool is_server_accepted() const { return _is_server_accepted.load(butil::memory_order_acquire); }
+        bool is_server_accepted() const { return _is_server_accepted.load(mutil::memory_order_acquire); }
 
         // Explicitly notify error to current stream
         virtual void SignalError();
@@ -674,7 +674,7 @@ namespace melon {
         virtual ~RtmpStreamBase();
 
         int SendMessage(uint32_t timestamp, uint8_t message_type,
-                        const butil::IOBuf &body);
+                        const mutil::IOBuf &body);
 
         int SendControlMessage(uint8_t message_type, const void *body, size_t);
 
@@ -688,7 +688,7 @@ namespace melon {
 
         void CallOnCuePoint(RtmpCuePoint *);
 
-        void CallOnMetaData(RtmpMetaData *, const butil::StringPiece &);
+        void CallOnMetaData(RtmpMetaData *, const mutil::StringPiece &);
 
         void CallOnSharedObjectMessage(RtmpSharedObjectMessage *msg);
 
@@ -707,8 +707,8 @@ namespace melon {
         uint32_t _chunk_stream_id;
         int64_t _create_realtime_us;
         SocketUniquePtr _rtmpsock;
-        butil::Mutex _call_mutex;
-        butil::atomic<bool> _is_server_accepted;
+        mutil::Mutex _call_mutex;
+        mutil::atomic<bool> _is_server_accepted;
     };
 
     struct RtmpClientOptions {
@@ -792,7 +792,7 @@ namespace melon {
         RtmpClient &operator=(const RtmpClient &);
 
         // Specify the servers to connect.
-        int Init(butil::EndPoint server_addr_and_port,
+        int Init(mutil::EndPoint server_addr_and_port,
                  const RtmpClientOptions &options);
 
         int Init(const char *server_addr_and_port,
@@ -815,7 +815,7 @@ namespace melon {
     private:
         friend class RtmpClientStream;
 
-        butil::intrusive_ptr<RtmpClientImpl> _impl;
+        mutil::intrusive_ptr<RtmpClientImpl> _impl;
     };
 
     struct RtmpHashCode {
@@ -907,7 +907,7 @@ namespace melon {
 
         int Play(const RtmpPlayOptions &opt);
 
-        int Publish(const butil::StringPiece &name, RtmpPublishType type);
+        int Publish(const mutil::StringPiece &name, RtmpPublishType type);
 
         // @StreamCreator
         StreamUserData *OnCreatingStream(SocketUniquePtr *inout, Controller *cntl) override;
@@ -922,7 +922,7 @@ namespace melon {
 
         void OnFailedToCreateStream();
 
-        static int RunOnFailed(bthread_id_t id, void *data, int);
+        static int RunOnFailed(fiber_session_t id, void *data, int);
 
         void OnStopInternal();
 
@@ -934,9 +934,9 @@ namespace melon {
         // client stream self.
         void SignalError() override;
 
-        butil::intrusive_ptr<RtmpClientImpl> _client_impl;
-        butil::intrusive_ptr<RtmpClientStream> _self_ref;
-        bthread_id_t _onfail_id;
+        mutil::intrusive_ptr<RtmpClientImpl> _client_impl;
+        mutil::intrusive_ptr<RtmpClientStream> _self_ref;
+        fiber_session_t _onfail_id;
         CallId _create_stream_rpc_id;
         bool _from_socketmap;
         bool _created_stream_with_play_or_publish;
@@ -948,7 +948,7 @@ namespace melon {
             STATE_DESTROYING,
         };
         State _state;
-        butil::Mutex _state_mutex;
+        mutil::Mutex _state_mutex;
         RtmpClientStreamOptions _options;
     };
 
@@ -987,7 +987,7 @@ namespace melon {
 
         virtual void OnCuePoint(melon::RtmpCuePoint *cuepoint) = 0;
 
-        virtual void OnMetaData(melon::RtmpMetaData *metadata, const butil::StringPiece &name) = 0;
+        virtual void OnMetaData(melon::RtmpMetaData *metadata, const mutil::StringPiece &name) = 0;
 
         virtual void OnAudioMessage(melon::RtmpAudioMessage *msg) = 0;
 
@@ -1015,7 +1015,7 @@ namespace melon {
 
         void OnCuePoint(melon::RtmpCuePoint *cuepoint);
 
-        void OnMetaData(melon::RtmpMetaData *metadata, const butil::StringPiece &name);
+        void OnMetaData(melon::RtmpMetaData *metadata, const mutil::StringPiece &name);
 
         void OnAudioMessage(melon::RtmpAudioMessage *msg);
 
@@ -1026,7 +1026,7 @@ namespace melon {
         void OnSubStreamStop(RtmpStreamBase *sub_stream);
 
     private:
-        butil::intrusive_ptr<RtmpRetryingClientStream> _parent;
+        mutil::intrusive_ptr<RtmpRetryingClientStream> _parent;
     };
 
     class SubStreamCreator {
@@ -1035,7 +1035,7 @@ namespace melon {
         // the current SubStream. *sub_stream is set iff the creation is successful.
         // Note: message_handler is OWNED by this creator and deleted by the creator.
         virtual void NewSubStream(RtmpMessageHandler *message_handler,
-                                  butil::intrusive_ptr<RtmpStreamBase> *sub_stream) = 0;
+                                  mutil::intrusive_ptr<RtmpStreamBase> *sub_stream) = 0;
 
         // Do the Initialization of sub_stream. If an error happens, sub_stream->Destroy()
         // would be called.
@@ -1066,7 +1066,7 @@ namespace melon {
         int SendCuePoint(const RtmpCuePoint &);
 
         int SendMetaData(const RtmpMetaData &,
-                         const butil::StringPiece &name = "onMetaData");
+                         const mutil::StringPiece &name = "onMetaData");
 
         int SendSharedObjectMessage(const RtmpSharedObjectMessage &msg);
 
@@ -1078,9 +1078,9 @@ namespace melon {
 
         int SendAVCMessage(const RtmpAVCMessage &msg);
 
-        butil::EndPoint remote_side() const;
+        mutil::EndPoint remote_side() const;
 
-        butil::EndPoint local_side() const;
+        mutil::EndPoint local_side() const;
 
         // Call this function to stop current stream. New sub stream will be
         // tried to be created later.
@@ -1101,7 +1101,7 @@ namespace melon {
 
         void OnSubStreamStop(RtmpStreamBase *sub_stream);
 
-        int AcquireStreamToSend(butil::intrusive_ptr<RtmpStreamBase> *);
+        int AcquireStreamToSend(mutil::intrusive_ptr<RtmpStreamBase> *);
 
         static void OnRecreateTimer(void *arg);
 
@@ -1109,19 +1109,19 @@ namespace melon {
 
         void CallOnStopIfNeeded();
 
-        butil::intrusive_ptr<RtmpStreamBase> _using_sub_stream;
-        butil::intrusive_ptr<RtmpRetryingClientStream> _self_ref;
-        mutable butil::Mutex _stream_mutex;
+        mutil::intrusive_ptr<RtmpStreamBase> _using_sub_stream;
+        mutil::intrusive_ptr<RtmpRetryingClientStream> _self_ref;
+        mutable mutil::Mutex _stream_mutex;
         RtmpRetryingClientStreamOptions _options;
-        butil::atomic<bool> _destroying;
-        butil::atomic<bool> _called_on_stop;
+        mutil::atomic<bool> _destroying;
+        mutil::atomic<bool> _called_on_stop;
         bool _changed_stream;
         bool _has_timer_ever;
         bool _is_server_accepted_ever;
         int _num_fast_retries;
         int64_t _last_creation_time_us;
         int64_t _last_retry_start_time_us;
-        bthread_timer_t _create_timer_id;
+        fiber_timer_t _create_timer_id;
         // Note: RtmpClient can be efficiently copied.
         RtmpClient _client_copy;
         SubStreamCreator *_sub_stream_creator;
@@ -1135,31 +1135,31 @@ namespace melon {
 // "rtmp://" can be ignored.
 // NOTE: query strings after stream_name is not removed and returned as part
 // of stream_name.
-    void ParseRtmpURL(const butil::StringPiece &rtmp_url,
-                      butil::StringPiece *host,
-                      butil::StringPiece *vhost_after_app,
-                      butil::StringPiece *port,
-                      butil::StringPiece *app,
-                      butil::StringPiece *stream_name);
+    void ParseRtmpURL(const mutil::StringPiece &rtmp_url,
+                      mutil::StringPiece *host,
+                      mutil::StringPiece *vhost_after_app,
+                      mutil::StringPiece *port,
+                      mutil::StringPiece *app,
+                      mutil::StringPiece *stream_name);
 
-    void ParseRtmpHostAndPort(const butil::StringPiece &host_and_port,
-                              butil::StringPiece *host,
-                              butil::StringPiece *port);
+    void ParseRtmpHostAndPort(const mutil::StringPiece &host_and_port,
+                              mutil::StringPiece *host,
+                              mutil::StringPiece *port);
 
-    butil::StringPiece RemoveQueryStrings(const butil::StringPiece &stream_name,
-                                          butil::StringPiece *query_strings);
+    mutil::StringPiece RemoveQueryStrings(const mutil::StringPiece &stream_name,
+                                          mutil::StringPiece *query_strings);
 
 // Returns "rtmp://HOST/APP/STREAM_NAME"
-    std::string MakeRtmpURL(const butil::StringPiece &host,
-                            const butil::StringPiece &port,
-                            const butil::StringPiece &app,
-                            const butil::StringPiece &stream_name);
+    std::string MakeRtmpURL(const mutil::StringPiece &host,
+                            const mutil::StringPiece &port,
+                            const mutil::StringPiece &app,
+                            const mutil::StringPiece &stream_name);
 
 // Returns url removed with beginning "rtmp://".
-    butil::StringPiece RemoveRtmpPrefix(const butil::StringPiece &url);
+    mutil::StringPiece RemoveRtmpPrefix(const mutil::StringPiece &url);
 
 // Returns url removed with beginning "xxx://"
-    butil::StringPiece RemoveProtocolPrefix(const butil::StringPiece &url);
+    mutil::StringPiece RemoveProtocolPrefix(const mutil::StringPiece &url);
 
 // Implement this class and assign an instance to ServerOption.rtmp_service
 // to enable RTMP support.
@@ -1168,7 +1168,7 @@ namespace melon {
         virtual ~RtmpService() {}
 
         // Called when receiving a Pong response from `remote_side'.
-        virtual void OnPingResponse(const butil::EndPoint &remote_side,
+        virtual void OnPingResponse(const mutil::EndPoint &remote_side,
                                     uint32_t ping_timestamp);
 
         // Called to create a server-side stream.
@@ -1192,7 +1192,7 @@ namespace melon {
         // Call done->Run() when the play request is processed (either accepted
         // or rejected)
         virtual void OnPlay(const RtmpPlayOptions &,
-                            butil::Status *status,
+                            mutil::Status *status,
                             google::protobuf::Closure *done);
 
         // Called when receiving a publish request.
@@ -1201,7 +1201,7 @@ namespace melon {
         // Returns 0 on success, -1 otherwise.
         virtual void OnPublish(const std::string &stream_name,
                                RtmpPublishType publish_type,
-                               butil::Status *status,
+                               mutil::Status *status,
                                google::protobuf::Closure *done);
 
         // Called when receiving a play2 request.
@@ -1221,7 +1221,7 @@ namespace melon {
         virtual void OnSetBufferLength(uint32_t buffer_length_ms);
 
         // @RtmpStreamBase, sending StreamNotFound
-        int SendStopMessage(const butil::StringPiece &error_description);
+        int SendStopMessage(const mutil::StringPiece &error_description);
 
         void Destroy();
 
@@ -1232,14 +1232,14 @@ namespace melon {
 
         int SendStreamDry();
 
-        static int RunOnFailed(bthread_id_t id, void *data, int);
+        static int RunOnFailed(fiber_session_t id, void *data, int);
 
         void OnStopInternal();
 
         // Indicating the client supports multiple streams over one connection.
         bool _client_supports_stream_multiplexing;
         bool _is_publish;
-        bthread_id_t _onfail_id;
+        fiber_session_t _onfail_id;
     };
 
 } // namespace melon

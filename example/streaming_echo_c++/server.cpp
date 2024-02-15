@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/rpc/stream.h>
@@ -31,7 +31,7 @@ DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
 class StreamReceiver : public melon::StreamInputHandler {
 public:
     virtual int on_received_messages(melon::StreamId id,
-                                     butil::IOBuf *const messages[], 
+                                     mutil::IOBuf *const messages[],
                                      size_t size) {
         std::ostringstream os;
         for (size_t i = 0; i < size; ++i) {

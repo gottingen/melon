@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_CLI_SERVICE_H_
 #define  MELON_RAFT_CLI_SERVICE_H_
 
-#include <melon/butil/status.h>
+#include <melon/utility/status.h>
 #include "melon/proto/raft/cli.pb.h"                // CliService
 #include "melon/raft/node.h"                  // NodeImpl
 
@@ -54,7 +53,7 @@ public:
                          ::melon::raft::TransferLeaderResponse* response,
                          ::google::protobuf::Closure* done);
 private:
-    butil::Status get_node(scoped_refptr<NodeImpl>* node,
+    mutil::Status get_node(scoped_refptr<NodeImpl>* node,
                           const GroupId& group_id,
                           const std::string& peer_id);
 };

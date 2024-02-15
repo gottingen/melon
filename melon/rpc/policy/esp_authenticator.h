@@ -29,7 +29,7 @@ public:
     int GenerateCredential(std::string* auth_str) const;
 
     int VerifyCredential(const std::string& auth_str,
-                         const butil::EndPoint& client_addr,
+                         const mutil::EndPoint& client_addr,
                          AuthContext* out_ctx) const;
 };
 

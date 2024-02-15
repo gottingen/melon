@@ -19,10 +19,10 @@
 #include <stdio.h>
 #include <thread>
 #include <gflags/gflags.h>
-#include "melon/butil/files/file_enumerator.h"
-#include "melon/butil/file_util.h"                     // butil::FilePath
-#include "melon/butil/popen.h"                         // butil::read_command_output
-#include "melon/butil/fd_guard.h"                      // butil::fd_guard
+#include "melon/utility/files/file_enumerator.h"
+#include "melon/utility/file_util.h"                     // mutil::FilePath
+#include "melon/utility/popen.h"                         // mutil::read_command_output
+#include "melon/utility/fd_guard.h"                      // mutil::fd_guard
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"
 #include "melon/rpc/server.h"
@@ -36,7 +36,7 @@ int __attribute__((weak)) ProfilerStart(const char *fname);
 void __attribute__((weak)) ProfilerStop();
 }
 
-namespace bthread {
+namespace fiber {
     bool ContentionProfilerStart(const char *filename);
 
     void ContentionProfilerStop();
@@ -68,10 +68,10 @@ namespace melon {
     }
 
     static DisplayType StringToDisplayType(const std::string &val) {
-        static butil::CaseIgnoredFlatMap<DisplayType> *display_type_map;
+        static mutil::CaseIgnoredFlatMap<DisplayType> *display_type_map;
         static std::once_flag flag;
         std::call_once(flag, []() {
-            display_type_map = new butil::CaseIgnoredFlatMap<DisplayType>;
+            display_type_map = new mutil::CaseIgnoredFlatMap<DisplayType>;
             display_type_map->init(10);
             (*display_type_map)["dot"] = DisplayType::kDot;
 #if defined(OS_LINUX)
@@ -141,7 +141,7 @@ namespace melon {
         int64_t end_us;
         int seconds;
         int64_t id;
-        butil::EndPoint point;
+        mutil::EndPoint point;
     };
 
     struct ProfilingResult {
@@ -149,7 +149,7 @@ namespace melon {
 
         int64_t id;
         int status_code;
-        butil::IOBuf result;
+        mutil::IOBuf result;
     };
 
     static bool g_written_pprof_perl = false;
@@ -173,11 +173,11 @@ namespace melon {
 // The `content' should be small so that it can be written into file in one
 // fwrite (at most time).
     static bool WriteSmallFile(const char *filepath_in,
-                               const butil::StringPiece &content) {
-        butil::File::Error error;
-        butil::FilePath path(filepath_in);
-        butil::FilePath dir = path.DirName();
-        if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+                               const mutil::StringPiece &content) {
+        mutil::File::Error error;
+        mutil::FilePath path(filepath_in);
+        mutil::FilePath dir = path.DirName();
+        if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
             LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return false;
@@ -197,11 +197,11 @@ namespace melon {
     }
 
     static bool WriteSmallFile(const char *filepath_in,
-                               const butil::IOBuf &content) {
-        butil::File::Error error;
-        butil::FilePath path(filepath_in);
-        butil::FilePath dir = path.DirName();
-        if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+                               const mutil::IOBuf &content) {
+        mutil::File::Error error;
+        mutil::FilePath path(filepath_in);
+        mutil::FilePath dir = path.DirName();
+        if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
             LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return false;
@@ -211,7 +211,7 @@ namespace melon {
             LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
-        butil::IOBufAsZeroCopyInputStream iter(content);
+        mutil::IOBufAsZeroCopyInputStream iter(content);
         const void *data = NULL;
         int size = 0;
         while (iter.Next(&data, &size)) {
@@ -256,9 +256,9 @@ namespace melon {
     }
 
     static const char *GetBaseName(const char *full_base_name) {
-        butil::StringPiece s(full_base_name);
+        mutil::StringPiece s(full_base_name);
         size_t offset = s.find_last_of('/');
-        if (offset == butil::StringPiece::npos) {
+        if (offset == mutil::StringPiece::npos) {
             offset = 0;
         } else {
             ++offset;
@@ -270,7 +270,7 @@ namespace melon {
 // NOTE: this function MUST be applied to all parameters finally passed to
 // system related functions (popen/system/exec ...) to avoid potential
 // injections from URL and other user inputs.
-    static bool ValidProfilePath(const butil::StringPiece &path) {
+    static bool ValidProfilePath(const mutil::StringPiece &path) {
         if (!path.starts_with(FLAGS_rpc_profiling_dir)) {
             // Must be under the directory.
             return false;
@@ -391,7 +391,7 @@ namespace melon {
         if (str == NULL) {
             return false;
         }
-        butil::fd_guard fd(open(str, O_RDONLY));
+        mutil::fd_guard fd(open(str, O_RDONLY));
         if (fd < 0) {
             return false;
         }
@@ -408,15 +408,15 @@ namespace melon {
     static void DisplayResult(Controller *cntl,
                               google::protobuf::Closure *done,
                               const char *prof_name,
-                              const butil::IOBuf &result_prefix) {
+                              const mutil::IOBuf &result_prefix) {
         ClosureGuard done_guard(done);
-        butil::IOBuf prof_result;
+        mutil::IOBuf prof_result;
         if (cntl->IsCanceled()) {
             // If the page is refreshed, older connections are likely to be
             // already closed by browser.
             return;
         }
-        butil::IOBuf &resp = cntl->response_attachment();
+        mutil::IOBuf &resp = cntl->response_attachment();
         const bool use_html = UseHTML(cntl->http_request());
         const bool show_ccount = cntl->http_request().uri().GetQuery("ccount");
         const std::string *base_name = cntl->http_request().uri().GetQuery("base");
@@ -442,12 +442,12 @@ namespace melon {
             if (!ValidProfilePath(*base_name)) {
                 return cntl->SetFailed(EINVAL, "Invalid query `base'");
             }
-            if (!butil::PathExists(butil::FilePath(*base_name))) {
+            if (!mutil::PathExists(mutil::FilePath(*base_name))) {
                 return cntl->SetFailed(
                         EINVAL, "The profile denoted by `base' does not exist");
             }
         }
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         os << result_prefix;
         char expected_result_name[256];
         MakeCacheName(expected_result_name, sizeof(expected_result_name),
@@ -536,12 +536,12 @@ namespace melon {
             }
             errno = 0; // read_command_output may not set errno, clear it to make sure if
             // we see non-zero errno, it's real error.
-            butil::IOBufBuilder pprof_output;
+            mutil::IOBufBuilder pprof_output;
             RPC_VLOG << "Running cmd=" << cmd;
-            const int rc = butil::read_command_output(pprof_output, cmd.c_str());
+            const int rc = mutil::read_command_output(pprof_output, cmd.c_str());
             if (rc != 0) {
-                butil::FilePath pprof_path(pprof_tool);
-                if (!butil::PathExists(pprof_path)) {
+                mutil::FilePath pprof_path(pprof_tool);
+                if (!mutil::PathExists(pprof_path)) {
                     // Write the script again.
                     g_written_pprof_perl = false;
                     // tell user.
@@ -566,8 +566,8 @@ namespace melon {
 
             // Append the profile name as the visual reminder for what
             // current profile is.
-            butil::IOBuf before_label;
-            butil::IOBuf tmp;
+            mutil::IOBuf before_label;
+            mutil::IOBuf tmp;
             if (cntl->http_request().uri().GetQuery("view") == NULL) {
                 tmp.append(prof_name);
                 tmp.append("[addToProfEnd]");
@@ -598,7 +598,7 @@ namespace melon {
 
             if (!WriteSmallFile(result_name, prof_result)) {
                 LOG(ERROR) << "Fail to write " << result_name;
-                CHECK(butil::DeleteFile(butil::FilePath(result_name), false));
+                CHECK(mutil::DeleteFile(mutil::FilePath(result_name), false));
             }
             break;
         }
@@ -618,11 +618,11 @@ namespace melon {
                             ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        butil::IOBuf &resp = cntl->response_attachment();
+        mutil::IOBuf &resp = cntl->response_attachment();
         const bool use_html = UseHTML(cntl->http_request());
         cntl->http_response().set_content_type(use_html ? "text/html" : "text/plain");
 
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n"
                   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n"
@@ -642,7 +642,7 @@ namespace melon {
             if (!ValidProfilePath(*view)) {
                 return cntl->SetFailed(EINVAL, "Invalid query `view'");
             }
-            if (!butil::PathExists(butil::FilePath(*view))) {
+            if (!mutil::PathExists(mutil::FilePath(*view))) {
                 return cntl->SetFailed(
                         EINVAL, "The profile denoted by `view' does not exist");
             }
@@ -705,7 +705,7 @@ namespace melon {
             }
             CHECK(NULL == g_env[type].client);
             g_env[type].client = new ProfilingClient;
-            g_env[type].client->end_us = butil::cpuwide_time_us() + seconds * 1000000L;
+            g_env[type].client->end_us = mutil::cpuwide_time_us() + seconds * 1000000L;
             g_env[type].client->seconds = seconds;
             // This id work arounds an issue of chrome (or jquery under chrome) that
             // the ajax call in another tab may be delayed until ajax call in
@@ -750,9 +750,9 @@ namespace melon {
                 cntl->http_response().set_status_code(HTTP_STATUS_FORBIDDEN);
                 return NotifyWaiters(type, cntl, view);
             }
-            butil::File::Error error;
-            const butil::FilePath dir = butil::FilePath(prof_name).DirName();
-            if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+            mutil::File::Error error;
+            const mutil::FilePath dir = mutil::FilePath(prof_name).DirName();
+            if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
                 os << "Fail to create directory=`" << dir.value() << ", "
                    << error << (use_html ? "</body></html>" : "\n");
                 os.move_to(resp);
@@ -767,22 +767,22 @@ namespace melon {
                 cntl->http_response().set_status_code(HTTP_STATUS_SERVICE_UNAVAILABLE);
                 return NotifyWaiters(type, cntl, view);
             }
-            if (bthread_usleep(seconds * 1000000L) != 0) {
+            if (fiber_usleep(seconds * 1000000L) != 0) {
                 PLOG(WARNING) << "Profiling has been interrupted";
             }
             ProfilerStop();
         } else if (type == PROFILING_CONTENTION) {
-            if (!bthread::ContentionProfilerStart(prof_name)) {
+            if (!fiber::ContentionProfilerStart(prof_name)) {
                 os << "Another profiler (not via /hotspots/contention) is running, "
                       "try again later" << (use_html ? "</body></html>" : "\n");
                 os.move_to(resp);
                 cntl->http_response().set_status_code(HTTP_STATUS_SERVICE_UNAVAILABLE);
                 return NotifyWaiters(type, cntl, view);
             }
-            if (bthread_usleep(seconds * 1000000L) != 0) {
+            if (fiber_usleep(seconds * 1000000L) != 0) {
                 PLOG(WARNING) << "Profiling has been interrupted";
             }
-            bthread::ContentionProfilerStop();
+            fiber::ContentionProfilerStop();
         } else if (type == PROFILING_HEAP) {
             MallocExtension *malloc_ext = MallocExtension::instance();
             if (malloc_ext == NULL || !has_TCMALLOC_SAMPLE_PARAMETER()) {
@@ -849,9 +849,9 @@ namespace melon {
                                ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        butil::IOBuf &resp = cntl->response_attachment();
+        mutil::IOBuf &resp = cntl->response_attachment();
         const bool use_html = UseHTML(cntl->http_request());
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         bool enabled = false;
         const char *extra_desc = "";
         if (type == PROFILING_CPU) {
@@ -1036,17 +1036,17 @@ namespace melon {
 
         TRACEPRINTF("Begin to enumerate profiles");
         std::vector<std::string> past_profs;
-        butil::FilePath prof_dir(FLAGS_rpc_profiling_dir);
+        mutil::FilePath prof_dir(FLAGS_rpc_profiling_dir);
         prof_dir = prof_dir.Append(GetProgramChecksum());
         std::string file_pattern;
         file_pattern.reserve(15);
         file_pattern.append("*.");
         file_pattern.append(type_str);
-        butil::FileEnumerator prof_enum(prof_dir, false/*non recursive*/,
-                                        butil::FileEnumerator::FILES,
+        mutil::FileEnumerator prof_enum(prof_dir, false/*non recursive*/,
+                                        mutil::FileEnumerator::FILES,
                                         file_pattern);
         std::string file_path;
-        for (butil::FilePath name = prof_enum.Next(); !name.empty();
+        for (mutil::FilePath name = prof_enum.Next(); !name.empty();
              name = prof_enum.Next()) {
             // NOTE: name already includes dir.
             if (past_profs.empty()) {
@@ -1065,12 +1065,12 @@ namespace melon {
                 TRACEPRINTF("Remove %lu profiles",
                             past_profs.size() - (size_t) max_profiles);
                 for (size_t i = max_profiles; i < past_profs.size(); ++i) {
-                    CHECK(butil::DeleteFile(butil::FilePath(past_profs[i]), false));
+                    CHECK(mutil::DeleteFile(mutil::FilePath(past_profs[i]), false));
                     std::string cache_path;
                     cache_path.reserve(past_profs[i].size() + 7);
                     cache_path += past_profs[i];
                     cache_path += ".cache";
-                    CHECK(butil::DeleteFile(butil::FilePath(cache_path), true));
+                    CHECK(mutil::DeleteFile(mutil::FilePath(cache_path), true));
                 }
                 past_profs.resize(max_profiles);
             }
@@ -1118,7 +1118,7 @@ namespace melon {
         if (!enabled && view == NULL) {
             os << "<p><span style='color:red'>Error:</span> "
                << type_str << " profiler is not enabled." << extra_desc << "</p>"
-                                                                           "<p>To enable all profilers, link tcmalloc and define macros BRPC_ENABLE_CPU_PROFILER"
+                                                                           "<p>To enable all profilers, link tcmalloc and define macros MELON_ENABLE_CPU_PROFILER"
                                                                            "</p><p>Or read docs: <a href='https://github.com/apache/brpc/blob/master/docs/cn/cpu_profiler.md'>cpu_profiler</a>"
                                                                            " and <a href='https://github.com/apache/brpc/blob/master/docs/cn/heap_profiler.md'>heap_profiler</a>"
                                                                            "</p></body></html>";
@@ -1147,7 +1147,7 @@ namespace melon {
         os << "<div id=\"profiling-result\">";
         if (profiling_client.seconds != 0) {
             const int wait_seconds =
-                    (int) ceil((profiling_client.end_us - butil::cpuwide_time_us())
+                    (int) ceil((profiling_client.end_us - mutil::cpuwide_time_us())
                                / 1000000.0);
             os << "Your request is merged with the request from "
                << profiling_client.point;

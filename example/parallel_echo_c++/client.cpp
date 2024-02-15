@@ -18,11 +18,11 @@
 // A client sending requests to server in parallel by multiple threads.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/time.h>
-#include <melon/butil/macros.h>
+#include <melon/fiber/fiber.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
 #include <melon/rpc/parallel_channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
@@ -30,11 +30,11 @@
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
 DEFINE_int32(channel_num, 3, "Number of sub channels");
 DEFINE_bool(same_channel, false, "Add the same sub channel multiple times");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_int32(attachment_size, 0, "Carry so many byte attachment along with requests");
 DEFINE_int32(request_size, 16, "Bytes of each request");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
+DEFINE_string(protocol, "melon_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(server, "0.0.0.0:8002", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
@@ -86,7 +86,7 @@ static void* sender(void* arg) {
             // is a specific sleeping to prevent this thread from spinning too
             // fast. You should continue the business logic in a production 
             // server rather than sleeping.
-            bthread_usleep(50000);
+            fiber_usleep(50000);
         }
     }
     return NULL;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     g_sub_channel_latency = new melon::var::LatencyRecorder[FLAGS_channel_num];
     for (int i = 0; i < FLAGS_channel_num; ++i) {
         std::string name;
-        butil::string_printf(&name, "client_sub_%d", i);
+        mutil::string_printf(&name, "client_sub_%d", i);
         g_sub_channel_latency[i].expose(name);
     }
 
@@ -168,9 +168,9 @@ int main(int argc, char* argv[]) {
         melon::StartDummyServerAt(FLAGS_dummy_port);
     }
 
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
@@ -181,9 +181,9 @@ int main(int argc, char* argv[]) {
     } else {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -203,10 +203,10 @@ int main(int argc, char* argv[]) {
     
     LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(bids[i], NULL);
+            fiber_join(bids[i], NULL);
         }
     }
 

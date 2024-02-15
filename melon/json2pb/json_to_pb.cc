@@ -24,14 +24,14 @@
 #include <typeinfo>
 #include <limits>
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/strings/string_number_conversions.h"
-#include "melon/butil/third_party/rapidjson/error/error.h"
-#include "melon/butil/third_party/rapidjson/rapidjson.h"
+#include "melon/utility/strings/string_number_conversions.h"
+#include "melon/utility/third_party/rapidjson/error/error.h"
+#include "melon/utility/third_party/rapidjson/rapidjson.h"
 #include "json_to_pb.h"
 #include "zero_copy_stream_reader.h"       // ZeroCopyStreamReader
 #include "encode_decode.h"
-#include "melon/butil/base64.h"
-#include "melon/butil/string_printf.h"
+#include "melon/utility/base64.h"
+#include "melon/utility/string_printf.h"
 #include "protobuf_map.h"
 #include "rapidjson.h"
 
@@ -44,9 +44,9 @@
         if (!perr->empty()) {                                           \
             perr->append(", ", 2);                                      \
         }                                                               \
-        butil::string_appendf(perr, fmt, ##__VA_ARGS__);                \
+        mutil::string_appendf(perr, fmt, ##__VA_ARGS__);                \
         if ((pb) != nullptr) {                                            \
-            butil::string_appendf(perr, " [%s]", (pb)->GetDescriptor()->name().c_str());  \
+            mutil::string_appendf(perr, " [%s]", (pb)->GetDescriptor()->name().c_str());  \
         }                                                               \
     } else { }
 
@@ -62,22 +62,22 @@ namespace json2pb {
         OPTIONAL_TYPE_MISMATCH = 0x02
     };
 
-    static void string_append_value(const BUTIL_RAPIDJSON_NAMESPACE::Value &value,
+    static void string_append_value(const MUTIL_RAPIDJSON_NAMESPACE::Value &value,
                                     std::string *output) {
         if (value.IsNull()) {
             output->append("null");
         } else if (value.IsBool()) {
             output->append(value.GetBool() ? "true" : "false");
         } else if (value.IsInt()) {
-            butil::string_appendf(output, "%d", value.GetInt());
+            mutil::string_appendf(output, "%d", value.GetInt());
         } else if (value.IsUint()) {
-            butil::string_appendf(output, "%u", value.GetUint());
+            mutil::string_appendf(output, "%u", value.GetUint());
         } else if (value.IsInt64()) {
-            butil::string_appendf(output, "%" PRId64, value.GetInt64());
+            mutil::string_appendf(output, "%" PRId64, value.GetInt64());
         } else if (value.IsUint64()) {
-            butil::string_appendf(output, "%" PRIu64, value.GetUint64());
+            mutil::string_appendf(output, "%" PRIu64, value.GetUint64());
         } else if (value.IsDouble()) {
-            butil::string_appendf(output, "%f", value.GetDouble());
+            mutil::string_appendf(output, "%f", value.GetDouble());
         } else if (value.IsString()) {
             output->push_back('"');
             output->append(value.GetString(), value.GetStringLength());
@@ -96,7 +96,7 @@ namespace json2pb {
 //and ends with ',' and return true.
 //otherwise will append error into error message and return false.
     inline bool value_invalid(const google::protobuf::FieldDescriptor *field, const char *type,
-                              const BUTIL_RAPIDJSON_NAMESPACE::Value &value, std::string *err) {
+                              const MUTIL_RAPIDJSON_NAMESPACE::Value &value, std::string *err) {
         bool optional = field->is_optional();
         if (err) {
             if (!err->empty()) {
@@ -104,7 +104,7 @@ namespace json2pb {
             }
             err->append("Invalid value `");
             string_append_value(value, err);
-            butil::string_appendf(err, "' for %sfield `%s' which SHOULD be %s",
+            mutil::string_appendf(err, "' for %sfield `%s' which SHOULD be %s",
                                   optional ? "optional " : "",
                                   field->full_name().c_str(), type);
         }
@@ -122,7 +122,7 @@ namespace json2pb {
             google::protobuf::Message *message,
             const google::protobuf::FieldDescriptor *field,
             const google::protobuf::Reflection *reflection,
-            const BUTIL_RAPIDJSON_NAMESPACE::Value &item,
+            const MUTIL_RAPIDJSON_NAMESPACE::Value &item,
             std::string *err) {
         const char *limit_type = item.GetString();  // MUST be string here
         if (std::numeric_limits<T>::has_quiet_NaN &&
@@ -143,7 +143,7 @@ namespace json2pb {
         return value_invalid(field, typeid(T).name(), item, err);
     }
 
-    inline bool convert_float_type(const BUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
+    inline bool convert_float_type(const MUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
                                    google::protobuf::Message *message,
                                    const google::protobuf::FieldDescriptor *field,
                                    const google::protobuf::Reflection *reflection,
@@ -167,7 +167,7 @@ namespace json2pb {
         return true;
     }
 
-    inline bool convert_double_type(const BUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
+    inline bool convert_double_type(const MUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
                                     google::protobuf::Message *message,
                                     const google::protobuf::FieldDescriptor *field,
                                     const google::protobuf::Reflection *reflection,
@@ -191,7 +191,7 @@ namespace json2pb {
         return true;
     }
 
-    inline bool convert_enum_type(const BUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
+    inline bool convert_enum_type(const MUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
                                   google::protobuf::Message *message,
                                   const google::protobuf::FieldDescriptor *field,
                                   const google::protobuf::Reflection *reflection,
@@ -213,7 +213,7 @@ namespace json2pb {
         return true;
     }
 
-    inline bool convert_int64_type(const BUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
+    inline bool convert_int64_type(const MUTIL_RAPIDJSON_NAMESPACE::Value &item, bool repeated,
                                    google::protobuf::Message *message,
                                    const google::protobuf::FieldDescriptor *field,
                                    const google::protobuf::Reflection *reflection,
@@ -227,7 +227,7 @@ namespace json2pb {
                 reflection->SetInt64(message, field, item.GetInt64());
             }
         } else if (item.IsString() &&
-                   butil::StringToInt64({item.GetString(), item.GetStringLength()},
+                   mutil::StringToInt64({item.GetString(), item.GetStringLength()},
                                         &num)) {
             if (repeated) {
                 reflection->AddInt64(message, field, num);
@@ -240,7 +240,7 @@ namespace json2pb {
         return true;
     }
 
-    inline bool convert_uint64_type(const BUTIL_RAPIDJSON_NAMESPACE::Value &item,
+    inline bool convert_uint64_type(const MUTIL_RAPIDJSON_NAMESPACE::Value &item,
                                     bool repeated,
                                     google::protobuf::Message *message,
                                     const google::protobuf::FieldDescriptor *field,
@@ -254,7 +254,7 @@ namespace json2pb {
                 reflection->SetUInt64(message, field, item.GetUint64());
             }
         } else if (item.IsString() &&
-                   butil::StringToUint64({item.GetString(), item.GetStringLength()},
+                   mutil::StringToUint64({item.GetString(), item.GetStringLength()},
                                          &num)) {
             if (repeated) {
                 reflection->AddUInt64(message, field, num);
@@ -267,7 +267,7 @@ namespace json2pb {
         return true;
     }
 
-    bool JsonValueToProtoMessage(const BUTIL_RAPIDJSON_NAMESPACE::Value &json_value,
+    bool JsonValueToProtoMessage(const MUTIL_RAPIDJSON_NAMESPACE::Value &json_value,
                                  google::protobuf::Message *message,
                                  const Json2PbOptions &options,
                                  std::string *err,
@@ -297,7 +297,7 @@ namespace json2pb {
         })
 
 
-    static bool JsonValueToProtoField(const BUTIL_RAPIDJSON_NAMESPACE::Value &value,
+    static bool JsonValueToProtoField(const MUTIL_RAPIDJSON_NAMESPACE::Value &value,
                                       const google::protobuf::FieldDescriptor *field,
                                       google::protobuf::Message *message,
                                       const Json2PbOptions &options,
@@ -323,9 +323,9 @@ namespace json2pb {
 #define CASE_FIELD_TYPE(cpptype, method, jsontype)                      \
         case google::protobuf::FieldDescriptor::CPPTYPE_##cpptype: {                      \
             if (field->is_repeated()) {                                 \
-                const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();          \
-                for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) { \
-                    const BUTIL_RAPIDJSON_NAMESPACE::Value & item = value[index];       \
+                const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();          \
+                for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) { \
+                    const MUTIL_RAPIDJSON_NAMESPACE::Value & item = value[index];       \
                     if (TYPE_MATCH == J2PCHECKTYPE(item, cpptype, jsontype)) { \
                         reflection->Add##method(message, field, item.Get##jsontype()); \
                     }                                                   \
@@ -343,10 +343,10 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size;
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size;
                          ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (!convert_int64_type(item, true, message, field, reflection,
                                                 err)) {
                             return false;
@@ -360,10 +360,10 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size;
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size;
                          ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (!convert_uint64_type(item, true, message, field, reflection,
                                                  err)) {
                             return false;
@@ -377,9 +377,9 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (!convert_float_type(item, true, message, field,
                                                 reflection, err)) {
                             return false;
@@ -393,9 +393,9 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (!convert_double_type(item, true, message, field,
                                                  reflection, err)) {
                             return false;
@@ -409,15 +409,15 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (TYPE_MATCH == J2PCHECKTYPE(item, string, String)) {
                             std::string str(item.GetString(), item.GetStringLength());
                             if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES &&
                                 options.base64_to_bytes) {
                                 std::string str_decoded;
-                                if (!butil::Base64Decode(str, &str_decoded)) {
+                                if (!mutil::Base64Decode(str, &str_decoded)) {
                                     J2PERROR_WITH_PB(message, err, "Fail to decode base64 string=%s", str.c_str());
                                     return false;
                                 }
@@ -431,7 +431,7 @@ namespace json2pb {
                     if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES &&
                         options.base64_to_bytes) {
                         std::string str_decoded;
-                        if (!butil::Base64Decode(str, &str_decoded)) {
+                        if (!mutil::Base64Decode(str, &str_decoded)) {
                             J2PERROR_WITH_PB(message, err, "Fail to decode base64 string=%s", str.c_str());
                             return false;
                         }
@@ -443,9 +443,9 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (!convert_enum_type(item, true, message, field,
                                                reflection, err)) {
                             return false;
@@ -459,9 +459,9 @@ namespace json2pb {
 
             case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
                 if (field->is_repeated()) {
-                    const BUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
-                    for (BUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
+                    const MUTIL_RAPIDJSON_NAMESPACE::SizeType size = value.Size();
+                    for (MUTIL_RAPIDJSON_NAMESPACE::SizeType index = 0; index < size; ++index) {
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &item = value[index];
                         if (TYPE_MATCH == J2PCHECKTYPE(item, message, Object)) {
                             if (!JsonValueToProtoMessage(
                                     item, reflection->AddMessage(message, field), options, err)) {
@@ -478,7 +478,7 @@ namespace json2pb {
         return true;
     }
 
-    bool JsonMapToProtoMap(const BUTIL_RAPIDJSON_NAMESPACE::Value &value,
+    bool JsonMapToProtoMap(const MUTIL_RAPIDJSON_NAMESPACE::Value &value,
                            const google::protobuf::FieldDescriptor *map_desc,
                            google::protobuf::Message *message,
                            const Json2PbOptions &options,
@@ -495,7 +495,7 @@ namespace json2pb {
         const google::protobuf::FieldDescriptor *value_desc =
                 map_desc->message_type()->FindFieldByName(VALUE_NAME);
 
-        for (BUTIL_RAPIDJSON_NAMESPACE::Value::ConstMemberIterator it =
+        for (MUTIL_RAPIDJSON_NAMESPACE::Value::ConstMemberIterator it =
                 value.MemberBegin(); it != value.MemberEnd(); ++it) {
             google::protobuf::Message *entry = reflection->AddMessage(message, map_desc);
             const google::protobuf::Reflection *entry_reflection = entry->GetReflection();
@@ -509,7 +509,7 @@ namespace json2pb {
         return true;
     }
 
-    bool JsonValueToProtoMessage(const BUTIL_RAPIDJSON_NAMESPACE::Value &json_value,
+    bool JsonValueToProtoMessage(const MUTIL_RAPIDJSON_NAMESPACE::Value &json_value,
                                  google::protobuf::Message *message,
                                  const Json2PbOptions &options,
                                  std::string *err,
@@ -551,7 +551,7 @@ namespace json2pb {
         }
 
         std::string field_name_str_temp;
-        const BUTIL_RAPIDJSON_NAMESPACE::Value *value_ptr = NULL;
+        const MUTIL_RAPIDJSON_NAMESPACE::Value *value_ptr = NULL;
         for (size_t i = 0; i < fields.size(); ++i) {
             const google::protobuf::FieldDescriptor *field = fields[i];
 
@@ -560,7 +560,7 @@ namespace json2pb {
             const std::string &field_name_str = (res ? field_name_str_temp : orig_name);
 
 #ifndef RAPIDJSON_VERSION_0_1
-            BUTIL_RAPIDJSON_NAMESPACE::Value::ConstMemberIterator member =
+            MUTIL_RAPIDJSON_NAMESPACE::Value::ConstMemberIterator member =
                     json_value.FindMember(field_name_str.data());
             if (member == json_value.MemberEnd()) {
                 if (field->is_required()) {
@@ -571,7 +571,7 @@ namespace json2pb {
             }
             value_ptr = &(member->value);
 #else
-            const BUTIL_RAPIDJSON_NAMESPACE::Value::Member* member =
+            const MUTIL_RAPIDJSON_NAMESPACE::Value::Member* member =
                     json_value.FindMember(field_name_str.data());
             if (member == NULL) {
                 if (field->is_required()) {
@@ -605,9 +605,9 @@ namespace json2pb {
         if (error) {
             error->clear();
         }
-        BUTIL_RAPIDJSON_NAMESPACE::Document d;
+        MUTIL_RAPIDJSON_NAMESPACE::Document d;
         if (options.allow_remaining_bytes_after_parsing) {
-            d.Parse<BUTIL_RAPIDJSON_NAMESPACE::kParseStopWhenDoneFlag>(json_string.c_str());
+            d.Parse<MUTIL_RAPIDJSON_NAMESPACE::kParseStopWhenDoneFlag>(json_string.c_str());
             if (parsed_offset != nullptr) {
                 *parsed_offset = d.GetErrorOffset();
             }
@@ -616,14 +616,14 @@ namespace json2pb {
         }
         if (d.HasParseError()) {
             if (options.allow_remaining_bytes_after_parsing) {
-                if (d.GetParseError() == BUTIL_RAPIDJSON_NAMESPACE::kParseErrorDocumentEmpty) {
+                if (d.GetParseError() == MUTIL_RAPIDJSON_NAMESPACE::kParseErrorDocumentEmpty) {
                     // This is usual when parsing multiple jsons, don't waste time
                     // on setting the `empty error'
                     return false;
                 }
             }
             J2PERROR_WITH_PB(message, error, "Invalid json: %s",
-                             BUTIL_RAPIDJSON_NAMESPACE::GetParseError_En(d.GetParseError()));
+                             MUTIL_RAPIDJSON_NAMESPACE::GetParseError_En(d.GetParseError()));
             return false;
         }
         return JsonValueToProtoMessage(d, message, options, error, true);
@@ -654,26 +654,26 @@ namespace json2pb {
         if (error) {
             error->clear();
         }
-        BUTIL_RAPIDJSON_NAMESPACE::Document d;
+        MUTIL_RAPIDJSON_NAMESPACE::Document d;
         if (options.allow_remaining_bytes_after_parsing) {
-            d.ParseStream<BUTIL_RAPIDJSON_NAMESPACE::kParseStopWhenDoneFlag, BUTIL_RAPIDJSON_NAMESPACE::UTF8<>>(
+            d.ParseStream<MUTIL_RAPIDJSON_NAMESPACE::kParseStopWhenDoneFlag, MUTIL_RAPIDJSON_NAMESPACE::UTF8<>>(
                     *reader);
             if (parsed_offset != nullptr) {
                 *parsed_offset = d.GetErrorOffset();
             }
         } else {
-            d.ParseStream<0, BUTIL_RAPIDJSON_NAMESPACE::UTF8<>>(*reader);
+            d.ParseStream<0, MUTIL_RAPIDJSON_NAMESPACE::UTF8<>>(*reader);
         }
         if (d.HasParseError()) {
             if (options.allow_remaining_bytes_after_parsing) {
-                if (d.GetParseError() == BUTIL_RAPIDJSON_NAMESPACE::kParseErrorDocumentEmpty) {
+                if (d.GetParseError() == MUTIL_RAPIDJSON_NAMESPACE::kParseErrorDocumentEmpty) {
                     // This is usual when parsing multiple jsons, don't waste time
                     // on setting the `empty error'
                     return false;
                 }
             }
             J2PERROR_WITH_PB(message, error, "Invalid json: %s",
-                             BUTIL_RAPIDJSON_NAMESPACE::GetParseError_En(d.GetParseError()));
+                             MUTIL_RAPIDJSON_NAMESPACE::GetParseError_En(d.GetParseError()));
             return false;
         }
         return JsonValueToProtoMessage(d, message, options, error, true);

@@ -18,7 +18,7 @@
 // Date: Sun Nov  3 19:16:50 PST 2019
 
 #include <iostream>
-#include "melon/butil/containers/bounded_queue.h"
+#include "melon/utility/containers/bounded_queue.h"
 #include <gtest/gtest.h>
 
 namespace {
@@ -26,7 +26,7 @@ namespace {
 TEST(BoundedQueueTest, sanity) {
     const int N = 36;
     char storage[N * sizeof(int)];
-    butil::BoundedQueue<int> q(storage, sizeof(storage), butil::NOT_OWN_STORAGE);
+    mutil::BoundedQueue<int> q(storage, sizeof(storage), mutil::NOT_OWN_STORAGE);
     ASSERT_EQ(0ul, q.size());
     ASSERT_TRUE(q.empty());
     ASSERT_TRUE(NULL == q.top());

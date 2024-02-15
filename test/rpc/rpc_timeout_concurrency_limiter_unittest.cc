@@ -16,8 +16,8 @@
 // under the License.
 
 #include "melon/rpc/policy/timeout_concurrency_limiter.h"
-#include "melon/butil/time.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/time.h"
+#include "melon/fiber/fiber.h"
 #include <gtest/gtest.h>
 
 namespace melon {
@@ -35,56 +35,56 @@ TEST(TimeoutConcurrencyLimiterTest, AddSample) {
         melon::policy::FLAGS_timeout_cl_max_sample_count = 10;
 
         melon::policy::TimeoutConcurrencyLimiter limiter;
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        bthread_usleep(10 * 1000);
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        fiber_usleep(10 * 1000);
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
         ASSERT_EQ(limiter._sw.succ_count, 0);
         ASSERT_EQ(limiter._sw.failed_count, 0);
 
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        bthread_usleep(10 * 1000);
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        ASSERT_EQ(limiter._sw.succ_count, 0);
-        ASSERT_EQ(limiter._sw.failed_count, 0);
-        ASSERT_EQ(limiter._avg_latency_us, 50);
-
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        fiber_usleep(10 * 1000);
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
         ASSERT_EQ(limiter._sw.succ_count, 0);
         ASSERT_EQ(limiter._sw.failed_count, 0);
         ASSERT_EQ(limiter._avg_latency_us, 50);
 
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        ASSERT_EQ(limiter._sw.succ_count, 0);
+        ASSERT_EQ(limiter._sw.failed_count, 0);
+        ASSERT_EQ(limiter._avg_latency_us, 50);
+
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
         ASSERT_EQ(limiter._sw.succ_count, 6);
         ASSERT_EQ(limiter._sw.failed_count, 0);
 
-        limiter.ResetSampleWindow(butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(0, 50, butil::gettimeofday_us());
-        limiter.AddSample(1, 50, butil::gettimeofday_us());
-        limiter.AddSample(1, 50, butil::gettimeofday_us());
-        limiter.AddSample(1, 50, butil::gettimeofday_us());
+        limiter.ResetSampleWindow(mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(0, 50, mutil::gettimeofday_us());
+        limiter.AddSample(1, 50, mutil::gettimeofday_us());
+        limiter.AddSample(1, 50, mutil::gettimeofday_us());
+        limiter.AddSample(1, 50, mutil::gettimeofday_us());
         ASSERT_EQ(limiter._sw.succ_count, 3);
         ASSERT_EQ(limiter._sw.failed_count, 3);
     }
@@ -97,7 +97,7 @@ TEST(TimeoutConcurrencyLimiterTest, OnResponded) {
     melon::policy::TimeoutConcurrencyLimiter limiter;
     limiter.OnResponded(0, 50);
     limiter.OnResponded(0, 50);
-    bthread_usleep(100);
+    fiber_usleep(100);
     limiter.OnResponded(0, 50);
     limiter.OnResponded(1, 50);
     ASSERT_EQ(limiter._sw.succ_count, 2);

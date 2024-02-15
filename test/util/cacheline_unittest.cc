@@ -19,22 +19,22 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <gtest/gtest.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 
 namespace {
 
 class CachelineTest : public testing::Test {
 };
 
-struct BAIDU_CACHELINE_ALIGNMENT Bar {
+struct MELON_CACHELINE_ALIGNMENT Bar {
     int y;
 };
 
 struct Foo {
     char dummy1[0];
     int z;
-    BAIDU_CACHELINE_ALIGNMENT int x[0];
+    MELON_CACHELINE_ALIGNMENT int x[0];
     int y;
     int m;
     Bar bar;

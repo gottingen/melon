@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/bind.h"
-#include "melon/butil/callback.h"
-#include "melon/butil/callback_helpers.h"
-#include "melon/butil/callback_internal.h"
-#include "melon/butil/memory/ref_counted.h"
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/bind.h"
+#include "melon/utility/callback.h"
+#include "melon/utility/callback_helpers.h"
+#include "melon/utility/callback_internal.h"
+#include "melon/utility/memory/ref_counted.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -146,7 +146,7 @@ TEST_F(CallbackTest, ResetAndReturn) {
   ASSERT_TRUE(tfr.cb_already_run);
 }
 
-class CallbackOwner : public butil::RefCounted<CallbackOwner> {
+class CallbackOwner : public mutil::RefCounted<CallbackOwner> {
  public:
   explicit CallbackOwner(bool* deleted) {
     callback_ = Bind(&CallbackOwner::Unused, this);
@@ -158,7 +158,7 @@ class CallbackOwner : public butil::RefCounted<CallbackOwner> {
   }
 
  private:
-  friend class butil::RefCounted<CallbackOwner>;
+  friend class mutil::RefCounted<CallbackOwner>;
   virtual ~CallbackOwner() {
     *deleted_ = true;
   }
@@ -178,4 +178,4 @@ TEST_F(CallbackTest, CallbackHasLastRefOnContainingObject) {
 }
 
 }  // namespace
-}  // namespace butil
+}  // namespace mutil

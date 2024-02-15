@@ -26,7 +26,7 @@ namespace melon {
 namespace policy {
 
 // Parse redis response.
-ParseResult ParseRedisMessage(butil::IOBuf* source, Socket *socket, bool read_eof,
+ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket *socket, bool read_eof,
                               const void *arg);
 
 // Actions to a redis response.
@@ -40,17 +40,17 @@ void ProcessRedisResponse(InputMessageBase* msg);
 void ProcessRedisRequest(InputMessageBase* msg);
 
 // Serialize a redis request.
-void SerializeRedisRequest(butil::IOBuf* buf,
+void SerializeRedisRequest(mutil::IOBuf* buf,
                            Controller* cntl,
                            const google::protobuf::Message* request);
 
 // Pack `request' to `method' into `buf'.
-void PackRedisRequest(butil::IOBuf* buf,
+void PackRedisRequest(mutil::IOBuf* buf,
                       SocketMessage**,
                       uint64_t correlation_id,
                       const google::protobuf::MethodDescriptor* method,
                       Controller* controller,
-                      const butil::IOBuf& request,
+                      const mutil::IOBuf& request,
                       const Authenticator* auth);
 
 const std::string& GetRedisMethodName(

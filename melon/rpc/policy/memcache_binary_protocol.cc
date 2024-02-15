@@ -19,10 +19,10 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"                       // LOG()
-#include "melon/butil/time.h"
-#include "melon/butil/iobuf.h"                         // butil::IOBuf
-#include "melon/butil/sys_byteorder.h"
+#include "melon/utility/logging.h"                       // LOG()
+#include "melon/utility/time.h"
+#include "melon/utility/iobuf.h"                         // mutil::IOBuf
+#include "melon/utility/sys_byteorder.h"
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/socket.h"                   // Socket
@@ -34,7 +34,7 @@
 #include "melon/rpc/policy/memcache_binary_header.h"
 #include "melon/rpc/memcache/memcache.h"
 #include "melon/rpc/policy/most_common_message.h"
-#include "melon/butil/containers/flat_map.h"
+#include "melon/utility/containers/flat_map.h"
 
 
 namespace melon {
@@ -43,37 +43,37 @@ DECLARE_bool(enable_rpcz);
 
 namespace policy {
 
-BAIDU_CASSERT(sizeof(MemcacheRequestHeader) == 24, must_match);
-BAIDU_CASSERT(sizeof(MemcacheResponseHeader) == 24, must_match);
+MELON_CASSERT(sizeof(MemcacheRequestHeader) == 24, must_match);
+MELON_CASSERT(sizeof(MemcacheResponseHeader) == 24, must_match);
 
 static uint64_t supported_cmd_map[8];
 static pthread_once_t supported_cmd_map_once = PTHREAD_ONCE_INIT;
 
 static void InitSupportedCommandMap() {
-    butil::bit_array_clear(supported_cmd_map, 256);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_GET);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_SET);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_ADD);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_REPLACE);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_DELETE);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_INCREMENT);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_DECREMENT);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_FLUSH);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_VERSION);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_NOOP);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_APPEND);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_PREPEND);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_STAT);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_TOUCH);
-    butil::bit_array_set(supported_cmd_map, MC_BINARY_SASL_AUTH);
+    mutil::bit_array_clear(supported_cmd_map, 256);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_GET);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_SET);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_ADD);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_REPLACE);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_DELETE);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_INCREMENT);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_DECREMENT);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_FLUSH);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_VERSION);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_NOOP);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_APPEND);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_PREPEND);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_STAT);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_TOUCH);
+    mutil::bit_array_set(supported_cmd_map, MC_BINARY_SASL_AUTH);
 }
 
 inline bool IsSupportedCommand(uint8_t command) {
     pthread_once(&supported_cmd_map_once, InitSupportedCommandMap);
-    return butil::bit_array_get(supported_cmd_map, command);
+    return mutil::bit_array_get(supported_cmd_map, command);
 }
 
-ParseResult ParseMemcacheMessage(butil::IOBuf* source,
+ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
                                  Socket* socket, bool /*read_eof*/, const void */*arg*/) {
     while (1) {
         const uint8_t* p_mcmagic = (const uint8_t*)source->fetch1();
@@ -89,7 +89,7 @@ ParseResult ParseMemcacheMessage(butil::IOBuf* source,
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
         const MemcacheResponseHeader* header = (const MemcacheResponseHeader*)p;
-        uint32_t total_body_length = butil::NetToHost32(header->total_body_length);
+        uint32_t total_body_length = mutil::NetToHost32(header->total_body_length);
         if (source->size() < sizeof(*header) + total_body_length) {
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
@@ -117,13 +117,13 @@ ParseResult ParseMemcacheMessage(butil::IOBuf* source,
         const MemcacheResponseHeader local_header = {
             header->magic,
             header->command,
-            butil::NetToHost16(header->key_length),
+            mutil::NetToHost16(header->key_length),
             header->extras_length,
             header->data_type,
-            butil::NetToHost16(header->status),
+            mutil::NetToHost16(header->status),
             total_body_length,
-            butil::NetToHost32(header->opaque),
-            butil::NetToHost64(header->cas_value),
+            mutil::NetToHost32(header->opaque),
+            mutil::NetToHost64(header->cas_value),
         };
         msg->meta.append(&local_header, sizeof(local_header));
         source->pop_front(sizeof(*header));
@@ -151,12 +151,12 @@ ParseResult ParseMemcacheMessage(butil::IOBuf* source,
 }
 
 void ProcessMemcacheResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
 
-    const bthread_id_t cid = msg->pi.id_wait;
+    const fiber_session_t cid = msg->pi.id_wait;
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -191,7 +191,7 @@ void ProcessMemcacheResponse(InputMessageBase* msg_base) {
     accessor.OnResponse(cid, saved_error);
 }
 
-void SerializeMemcacheRequest(butil::IOBuf* buf,
+void SerializeMemcacheRequest(mutil::IOBuf* buf,
                               Controller* cntl,
                               const google::protobuf::Message* request) {
     if (request == NULL) {
@@ -206,12 +206,12 @@ void SerializeMemcacheRequest(butil::IOBuf* buf,
     ControllerPrivateAccessor(cntl).set_pipelined_count(mr->pipelined_count());
 }
 
-void PackMemcacheRequest(butil::IOBuf* buf,
+void PackMemcacheRequest(mutil::IOBuf* buf,
                          SocketMessage**,
                          uint64_t /*correlation_id*/,
                          const google::protobuf::MethodDescriptor*,
                          Controller* cntl,
-                         const butil::IOBuf& request,
+                         const mutil::IOBuf& request,
                          const Authenticator* auth) {
     if (auth) {
         std::string auth_str;

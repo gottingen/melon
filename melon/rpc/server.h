@@ -19,18 +19,17 @@
 #ifndef BRPC_SERVER_H
 #define BRPC_SERVER_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
 
-#include "melon/bthread/errno.h"        // Redefine errno
-#include "melon/bthread/bthread.h"      // Server may need some bthread functions,
-                                  // e.g. bthread_usleep
+
+#include "melon/fiber/errno.h"        // Redefine errno
+#include "melon/fiber/fiber.h"      // Server may need some fiber functions,
+                                  // e.g. fiber_usleep
 #include <google/protobuf/service.h>                 // google::protobuf::Service
-#include "melon/butil/macros.h"                            // DISALLOW_COPY_AND_ASSIGN
-#include "melon/butil/containers/doubly_buffered_data.h"   // DoublyBufferedData
+#include "melon/utility/macros.h"                            // DISALLOW_COPY_AND_ASSIGN
+#include "melon/utility/containers/doubly_buffered_data.h"   // DoublyBufferedData
 #include "melon/var/var.h"
-#include "melon/butil/containers/case_ignored_flat_map.h"  // [CaseIgnored]FlatMap
-#include "melon/butil/ptr_container.h"
+#include "melon/utility/containers/case_ignored_flat_map.h"  // [CaseIgnored]FlatMap
+#include "melon/utility/ptr_container.h"
 #include "melon/rpc/controller.h"                   // melon::Controller
 #include "melon/rpc/ssl_options.h"                  // ServerSSLOptions
 #include "melon/rpc/describable.h"                  // User often needs this
@@ -115,9 +114,9 @@ struct ServerOptions {
     // "concurrency" = "number of requests processed in parallel"
     //
     // In a traditional server, number of pthread workers also limits
-    // concurrency. However brpc runs requests in bthreads which are
-    // mapped to pthread workers, when a bthread context switches, it gives
-    // the pthread worker to another bthread, yielding a higher concurrency
+    // concurrency. However brpc runs requests in fibers which are
+    // mapped to pthread workers, when a fiber context switches, it gives
+    // the pthread worker to another fiber, yielding a higher concurrency
     // than number of pthreads. In some situations, higher concurrency may
     // consume more resources, to protect the server from running out of
     // resources, you may set this option.
@@ -182,13 +181,13 @@ struct ServerOptions {
     // Default: 0
     size_t reserved_thread_local_data;
 
-    // Call bthread_init_fn(bthread_init_args) in at least #bthread_init_count
-    // bthreads before server runs, mainly for initializing bthread locals.
-    // You have to set both `bthread_init_fn' and `bthread_init_count' to
+    // Call fiber_init_fn(fiber_init_args) in at least #fiber_init_count
+    // fibers before server runs, mainly for initializing fiber locals.
+    // You have to set both `fiber_init_fn' and `fiber_init_count' to
     // enable the feature.
-    bool (*bthread_init_fn)(void* args); // default: NULL (do nothing)
-    void* bthread_init_args;             // default: NULL
-    size_t bthread_init_count;           // default: 0
+    bool (*fiber_init_fn)(void* args); // default: NULL (do nothing)
+    void* fiber_init_args;             // default: NULL
+    size_t fiber_init_count;           // default: 0
 
     // Provide builtin services at this port rather than the port to Start().
     // When your server needs to be accessed from public (including traffic
@@ -262,14 +261,14 @@ struct ServerOptions {
     // Default: ""
     std::string server_info_name;
 
-    // Server will run in this tagged bthread worker group
-    // Default: BTHREAD_TAG_DEFAULT
-    bthread_tag_t bthread_tag;
+    // Server will run in this tagged fiber worker group
+    // Default: FIBER_TAG_DEFAULT
+    fiber_tag_t fiber_tag;
 
 private:
     // SSLOptions is large and not often used, allocate it on heap to
     // prevent ServerOptions from being bloated in most cases.
-    butil::PtrContainer<ServerSSLOptions> _ssl_options;
+    mutil::PtrContainer<ServerSSLOptions> _ssl_options;
 };
 
 // This struct is originally designed to contain basic statistics of the
@@ -367,7 +366,7 @@ public:
 
         const std::string& service_name() const;
     };
-    typedef butil::FlatMap<std::string, ServiceProperty> ServiceMap;
+    typedef mutil::FlatMap<std::string, ServiceProperty> ServiceMap;
 
     struct MethodProperty {
         bool is_builtin_service;
@@ -394,14 +393,14 @@ public:
 
         MethodProperty();
     };
-    typedef butil::FlatMap<std::string, MethodProperty> MethodMap;
+    typedef mutil::FlatMap<std::string, MethodProperty> MethodMap;
 
     struct ThreadLocalOptions {
-        bthread_key_t tls_key;
+        fiber_key_t tls_key;
         const DataFactory* thread_local_data_factory;
 
         ThreadLocalOptions()
-            : tls_key(INVALID_BTHREAD_KEY)
+            : tls_key(INVALID_FIBER_KEY)
             , thread_local_data_factory(NULL) {}
     };
 
@@ -419,7 +418,7 @@ public:
 
     // Start on an address in form of "0.0.0.0:8000".
     int Start(const char* ip_port_str, const ServerOptions* opt);
-    int Start(const butil::EndPoint& ip_port, const ServerOptions* opt);
+    int Start(const mutil::EndPoint& ip_port, const ServerOptions* opt);
     // Start on IP_ANY:port.
     int Start(int port, const ServerOptions* opt);
     // Start on `ip_str' + any useable port in `range'
@@ -457,7 +456,7 @@ public:
                    ServiceOwnership ownership);
     int AddService(google::protobuf::Service* service,
                    ServiceOwnership ownership,
-                   const butil::StringPiece& restful_mappings,
+                   const mutil::StringPiece& restful_mappings,
                    bool allow_default_url = false);
     int AddService(google::protobuf::Service* service,
                    const ServiceOptions& options);
@@ -491,14 +490,14 @@ public:
     // Notice that for performance concerns, this function does not lock service
     // list internally thus races with AddService()/RemoveService().
     google::protobuf::Service*
-    FindServiceByFullName(const butil::StringPiece& full_name) const;
+    FindServiceByFullName(const mutil::StringPiece& full_name) const;
 
     // Find a service by its ServiceDescriptor::name().
     // Returns the registered service pointer, NULL on not found.
     // Notice that for performance concerns, this function does not lock service
     // list internally thus races with AddService()/RemoveService().
     google::protobuf::Service*
-    FindServiceByName(const butil::StringPiece& name) const;
+    FindServiceByName(const mutil::StringPiece& name) const;
 
     // Put all services registered by user into `services'
     void ListServices(std::vector<google::protobuf::Service*>* services);
@@ -529,7 +528,7 @@ public:
     const std::string& version() const { return _version; }
 
     // Return the address this server is listening
-    butil::EndPoint listen_address() const { return _listen_addr; }
+    mutil::EndPoint listen_address() const { return _listen_addr; }
 
     // Last time that Start() was successfully called. 0 if Start() was
     // never called
@@ -556,21 +555,21 @@ public:
     // an auto concurrency limiter, eg `options.max_concurrency = "auto"`.If you
     // still called non-const version of the interface, your changes to the
     // maximum concurrency will not take effect.
-    AdaptiveMaxConcurrency& MaxConcurrencyOf(const butil::StringPiece& full_method_name);
-    int MaxConcurrencyOf(const butil::StringPiece& full_method_name) const;
+    AdaptiveMaxConcurrency& MaxConcurrencyOf(const mutil::StringPiece& full_method_name);
+    int MaxConcurrencyOf(const mutil::StringPiece& full_method_name) const;
 
-    AdaptiveMaxConcurrency& MaxConcurrencyOf(const butil::StringPiece& full_service_name,
-                          const butil::StringPiece& method_name);
-    int MaxConcurrencyOf(const butil::StringPiece& full_service_name,
-                         const butil::StringPiece& method_name) const;
+    AdaptiveMaxConcurrency& MaxConcurrencyOf(const mutil::StringPiece& full_service_name,
+                          const mutil::StringPiece& method_name);
+    int MaxConcurrencyOf(const mutil::StringPiece& full_service_name,
+                         const mutil::StringPiece& method_name) const;
 
     AdaptiveMaxConcurrency& MaxConcurrencyOf(google::protobuf::Service* service,
-                          const butil::StringPiece& method_name);
+                          const mutil::StringPiece& method_name);
     int MaxConcurrencyOf(google::protobuf::Service* service,
-                         const butil::StringPiece& method_name) const;
+                         const mutil::StringPiece& method_name) const;
 
     int Concurrency() const {
-        return butil::subtle::NoBarrier_Load(&_concurrency);
+        return mutil::subtle::NoBarrier_Load(&_concurrency);
     };
   
     // Returns true if accept request, reject request otherwise.
@@ -609,7 +608,7 @@ friend class Controller;
     // Create acceptor with handlers of protocols.
     Acceptor* BuildAcceptor();
 
-    int StartInternal(const butil::EndPoint& endpoint,
+    int StartInternal(const mutil::EndPoint& endpoint,
                       const PortRange& port_range,
                       const ServerOptions *opt);
 
@@ -629,26 +628,26 @@ friend class Controller;
     void PutPidFileIfNeeded();
 
     const MethodProperty*
-    FindMethodPropertyByFullName(const butil::StringPiece& fullname) const;
+    FindMethodPropertyByFullName(const mutil::StringPiece& fullname) const;
 
     const MethodProperty*
-    FindMethodPropertyByFullName(const butil::StringPiece& full_service_name,
-                                 const butil::StringPiece& method_name) const;
+    FindMethodPropertyByFullName(const mutil::StringPiece& full_service_name,
+                                 const mutil::StringPiece& method_name) const;
 
     const MethodProperty*
-    FindMethodPropertyByNameAndIndex(const butil::StringPiece& service_name,
+    FindMethodPropertyByNameAndIndex(const mutil::StringPiece& service_name,
                                      int method_index) const;
 
     const ServiceProperty*
-    FindServicePropertyByFullName(const butil::StringPiece& fullname) const;
+    FindServicePropertyByFullName(const mutil::StringPiece& fullname) const;
 
     const ServiceProperty*
-    FindServicePropertyByName(const butil::StringPiece& name) const;
+    FindServicePropertyByName(const mutil::StringPiece& name) const;
 
     std::string ServerPrefix() const;
 
     // Mapping from hostname to corresponding SSL_CTX
-    typedef butil::CaseIgnoredFlatMap<std::shared_ptr<SocketSSLContext> > CertMap;
+    typedef mutil::CaseIgnoredFlatMap<std::shared_ptr<SocketSSLContext> > CertMap;
     struct CertMaps {
         CertMap cert_map;
         CertMap wildcard_cert_map;
@@ -659,7 +658,7 @@ friend class Controller;
         std::vector<std::string> filters;
     };
     // Mapping from [certificate + private-key] to SSLContext
-    typedef butil::FlatMap<std::string, SSLContext> SSLContextMap;
+    typedef mutil::FlatMap<std::string, SSLContext> SSLContextMap;
 
     void FreeSSLContexts();
 
@@ -713,13 +712,13 @@ friend class Controller;
     std::shared_ptr<SocketSSLContext> _default_ssl_ctx;
 
     // Reloadable SSL mappings
-    butil::DoublyBufferedData<CertMaps> _reload_cert_maps;
+    mutil::DoublyBufferedData<CertMaps> _reload_cert_maps;
 
     // Holds the memory of all SSL_CTXs
     SSLContextMap _ssl_ctx_map;
 
     ServerOptions _options;
-    butil::EndPoint _listen_addr;
+    mutil::EndPoint _listen_addr;
 
     // ALPN extention protocol-list format. Server initialize this with alpns options.
     // OpenSSL API use this variable to avoid conversion at each handshake.
@@ -727,14 +726,14 @@ friend class Controller;
 
     std::string _version;
     time_t _last_start_time;
-    bthread_t _derivative_thread;
+    fiber_t _derivative_thread;
 
-    bthread_keytable_pool_t* _keytable_pool;
+    fiber_keytable_pool_t* _keytable_pool;
 
     // mutable is required for `ServerPrivateAccessor' to change this var
     mutable melon::var::Adder<int64_t> _nerror_bvar;
     mutable melon::var::PerSecond<melon::var::Adder<int64_t> > _eps_bvar;
-    BAIDU_CACHELINE_ALIGNMENT mutable int32_t _concurrency;
+    MELON_CACHELINE_ALIGNMENT mutable int32_t _concurrency;
     melon::var::PassiveStatus<int32_t> _concurrency_bvar;
 
     bool _has_progressive_read_method;

@@ -19,7 +19,7 @@
 #ifndef MELON_BUILTIN_JQUERY_MIN_JS_H_
 #define MELON_BUILTIN_JQUERY_MIN_JS_H_
 
-#include "melon/butil/iobuf.h"
+#include "melon/utility/iobuf.h"
 
 
 namespace melon {
@@ -29,9 +29,9 @@ namespace melon {
     // accessed without external resources and network connection.
     const char *jquery_min_js();
 
-    const butil::IOBuf &jquery_min_js_iobuf();
+    const mutil::IOBuf &jquery_min_js_iobuf();
 
-    const butil::IOBuf &jquery_min_js_iobuf_gzip();
+    const mutil::IOBuf &jquery_min_js_iobuf_gzip();
 
 } // namespace melon
 

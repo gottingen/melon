@@ -18,7 +18,7 @@
 // A server to receive HttpRequest and send back HttpResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
 #include <melon/json2pb/pb_to_json.h>
@@ -57,7 +57,7 @@ public:
 
         // Fill response.
         cntl->http_response().set_content_type("text/plain");
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         os << "queries:";
         for (melon::URI::QueryIterator it = cntl->http_request().uri().QueryBegin();
                 it != cntl->http_request().uri().QueryEnd(); ++it) {
@@ -88,7 +88,7 @@ public:
     virtual ~FileServiceImpl() {}
 
     struct Args {
-        butil::intrusive_ptr<melon::ProgressiveAttachment> pa;
+        mutil::intrusive_ptr<melon::ProgressiveAttachment> pa;
     };
 
     static void* SendLargeFile(void* raw_args) {
@@ -103,7 +103,7 @@ public:
             args->pa->Write(buf, len);
 
             // sleep a while to send another part.
-            bthread_usleep(10000);
+            fiber_usleep(10000);
         }
         return NULL;
     }
@@ -120,8 +120,8 @@ public:
             // Send the "largefile" with ProgressiveAttachment.
             std::unique_ptr<Args> args(new Args);
             args->pa = cntl->CreateProgressiveAttachment();
-            bthread_t th;
-            bthread_start_background(&th, NULL, SendLargeFile, args.release());
+            fiber_t th;
+            fiber_start_background(&th, NULL, SendLargeFile, args.release());
         } else {
             cntl->response_attachment().append("Getting file: ");
             cntl->response_attachment().append(filename);
@@ -178,7 +178,7 @@ public:
 
     struct PredictJobArgs {
         std::vector<uint32_t> input_ids;
-        butil::intrusive_ptr<melon::ProgressiveAttachment> pa;
+        mutil::intrusive_ptr<melon::ProgressiveAttachment> pa;
     };
 
     static void* Predict(void* raw_args) {
@@ -193,7 +193,7 @@ public:
             args->pa->Write(buf, len);
 
             // sleep a while to send another part.
-            bthread_usleep(10000 * 10);
+            fiber_usleep(10000 * 10);
         }
         return NULL;
     }
@@ -216,8 +216,8 @@ public:
         std::unique_ptr<PredictJobArgs> args(new PredictJobArgs);
         args->pa = cntl->CreateProgressiveAttachment();
         args->input_ids = {101, 102};
-        bthread_t th;
-        bthread_start_background(&th, NULL, Predict, args.release());
+        fiber_t th;
+        fiber_start_background(&th, NULL, Predict, args.release());
     }
 };
 

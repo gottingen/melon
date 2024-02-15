@@ -22,8 +22,8 @@
 #include "melon/builtin/common.h"
 #include "melon/builtin/ids_service.h"
 
-namespace bthread {
-    void id_status(bthread_id_t id, std::ostream &os);
+namespace fiber {
+    void id_status(fiber_session_t id, std::ostream &os);
 
     void id_pool_status(std::ostream &os);
 }
@@ -38,19 +38,19 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         const std::string &constraint = cntl->http_request().unresolved_path();
 
         if (constraint.empty()) {
             os << "# Use /ids/<call_id>\n";
-            bthread::id_pool_status(os);
+            fiber::id_pool_status(os);
         } else {
             char *endptr = NULL;
-            bthread_id_t id = {strtoull(constraint.c_str(), &endptr, 10)};
+            fiber_session_t id = {strtoull(constraint.c_str(), &endptr, 10)};
             if (*endptr == '\0' || *endptr == '/') {
-                bthread::id_status(id, os);
+                fiber::id_status(id, os);
             } else {
-                cntl->SetFailed(ENOMETHOD, "path=%s is not a bthread_id",
+                cntl->SetFailed(ENOMETHOD, "path=%s is not a fiber_session",
                                 constraint.c_str());
                 return;
             }

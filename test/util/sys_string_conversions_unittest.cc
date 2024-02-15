@@ -4,10 +4,10 @@
 
 #include <string>
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/strings/sys_string_conversions.h"
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/strings/sys_string_conversions.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include "scoped_locale.h"
 #include <gtest/gtest.h>
 
@@ -17,7 +17,7 @@ static const std::wstring kSysWideOldItalicLetterA = L"\x10300";
 static const std::wstring kSysWideOldItalicLetterA = L"\xd800\xdf00";
 #endif
 
-namespace butil {
+namespace mutil {
 
 TEST(SysStrings, SysWideToUTF8) {
   EXPECT_EQ("Hello, world", SysWideToUTF8(L"Hello, world"));
@@ -185,4 +185,4 @@ TEST(SysStrings, SysNativeMBAndWide) {
 }
 #endif  // OS_LINUX
 
-}  // namespace butil
+}  // namespace mutil

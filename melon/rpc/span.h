@@ -25,16 +25,16 @@
 #include <string>
 #include <deque>
 #include <ostream>
-#include "melon/butil/macros.h"
-#include "melon/butil/endpoint.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/endpoint.h"
+#include "melon/utility/string_splitter.h"
 #include "melon/var/collector.h"
-#include "melon/bthread/task_meta.h"
+#include "melon/fiber/task_meta.h"
 #include "melon/proto/rpc/options.pb.h"                 // ProtocolType
 #include "melon/proto/rpc/span.pb.h"
 
-namespace bthread {
-extern __thread bthread::LocalStorage tls_bls;
+namespace fiber {
+extern __thread fiber::LocalStorage tls_bls;
 }
 
 
@@ -73,7 +73,7 @@ public:
 
     // Set tls parent.
     void AsParent() {
-        bthread::tls_bls.rpcz_parent_span = this;
+        fiber::tls_bls.rpcz_parent_span = this;
     }
 
     // Add log with time.
@@ -90,9 +90,9 @@ public:
     int64_t GetEndRealTimeUs() const;
 
     void set_log_id(uint64_t cid) { _log_id = cid; }
-    void set_base_cid(bthread_id_t id) { _base_cid = id; }
-    void set_ending_cid(bthread_id_t id) { _ending_cid = id; }
-    void set_remote_side(const butil::EndPoint& pt) { _remote_side = pt; }
+    void set_base_cid(fiber_session_t id) { _base_cid = id; }
+    void set_ending_cid(fiber_session_t id) { _ending_cid = id; }
+    void set_remote_side(const mutil::EndPoint& pt) { _remote_side = pt; }
     void set_protocol(ProtocolType p) { _protocol = p; }
     void set_error_code(int error_code) { _error_code = error_code; }
     void set_request_size(int size) { _request_size = size; }
@@ -113,16 +113,16 @@ public:
 
     Span* local_parent() const { return _local_parent; }
     static Span* tls_parent() {
-        return (Span*)bthread::tls_bls.rpcz_parent_span;
+        return (Span*)fiber::tls_bls.rpcz_parent_span;
     }
 
     uint64_t trace_id() const { return _trace_id; }
     uint64_t parent_span_id() const { return _parent_span_id; }
     uint64_t span_id() const { return _span_id; }
     uint64_t log_id() const { return _log_id; }
-    bthread_id_t base_cid() const { return _base_cid; }
-    bthread_id_t ending_cid() const { return _ending_cid; }
-    const butil::EndPoint& remote_side() const { return _remote_side; }
+    fiber_session_t base_cid() const { return _base_cid; }
+    fiber_session_t ending_cid() const { return _ending_cid; }
+    const mutil::EndPoint& remote_side() const { return _remote_side; }
     SpanType type() const { return _type; }
     ProtocolType protocol() const { return _protocol; }
     int error_code() const { return _error_code; }
@@ -146,8 +146,8 @@ private:
     melon::var::CollectorPreprocessor* preprocessor();
 
     void EndAsParent() {
-        if (this == (Span*)bthread::tls_bls.rpcz_parent_span) {
-            bthread::tls_bls.rpcz_parent_span = NULL;
+        if (this == (Span*)fiber::tls_bls.rpcz_parent_span) {
+            fiber::tls_bls.rpcz_parent_span = NULL;
         }
     }
 
@@ -155,9 +155,9 @@ private:
     uint64_t _span_id;
     uint64_t _parent_span_id;
     uint64_t _log_id;
-    bthread_id_t _base_cid;
-    bthread_id_t _ending_cid;
-    butil::EndPoint _remote_side;
+    fiber_session_t _base_cid;
+    fiber_session_t _ending_cid;
+    mutil::EndPoint _remote_side;
     SpanType _type;
     bool _async;
     ProtocolType _protocol;
@@ -189,7 +189,7 @@ public:
     bool PopAnnotation(int64_t before_this_time,
                        int64_t* time, std::string* annotation);
 private:
-    butil::StringSplitter _sp;
+    mutil::StringSplitter _sp;
 };
 
 // These two functions can be used for composing TRACEPRINT as well as hiding

@@ -18,10 +18,10 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 #include <vector>
-#include "melon/butil/string_printf.h"
-#include "melon/butil/strings/string_split.h"
-#include "melon/butil/files/temp_file.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/strings/string_split.h"
+#include "melon/utility/files/temp_file.h"
+#include "melon/fiber/fiber.h"
 #include "melon/rpc/http/http_status_code.h"
 #include "melon/naming/consul_naming_service.h"
 #include "melon/naming/domain_naming_service.h"
@@ -54,7 +54,7 @@ DECLARE_string(nacos_password);
 
 namespace {
 
-bool IsIPListEqual(const std::set<butil::ip_t>& s1, const std::set<butil::ip_t>& s2) {
+bool IsIPListEqual(const std::set<mutil::ip_t>& s1, const std::set<mutil::ip_t>& s2) {
     if (s1.size() != s2.size()) {
         return false;
     }
@@ -75,25 +75,25 @@ TEST(NamingServiceTest, sanity) {
     ASSERT_EQ(2u, servers.size());
     ASSERT_EQ(1234, servers[0].addr.port);
     ASSERT_EQ(1234, servers[1].addr.port);
-    const std::set<butil::ip_t> expected_ips{servers[0].addr.ip, servers[1].addr.ip};
+    const std::set<mutil::ip_t> expected_ips{servers[0].addr.ip, servers[1].addr.ip};
 
     ASSERT_EQ(0, dns.GetServers("baidu.com", &servers));
     ASSERT_EQ(2u, servers.size());
-    const std::set<butil::ip_t> ip_list1{servers[0].addr.ip, servers[1].addr.ip};
+    const std::set<mutil::ip_t> ip_list1{servers[0].addr.ip, servers[1].addr.ip};
     ASSERT_TRUE(IsIPListEqual(expected_ips, ip_list1));
     ASSERT_EQ(80, servers[0].addr.port);
     ASSERT_EQ(80, servers[1].addr.port);
 
     ASSERT_EQ(0, dns.GetServers("baidu.com:1234/useless1/useless2", &servers));
     ASSERT_EQ(2u, servers.size());
-    const std::set<butil::ip_t> ip_list2{servers[0].addr.ip, servers[1].addr.ip};
+    const std::set<mutil::ip_t> ip_list2{servers[0].addr.ip, servers[1].addr.ip};
     ASSERT_TRUE(IsIPListEqual(expected_ips, ip_list2));
     ASSERT_EQ(1234, servers[0].addr.port);
     ASSERT_EQ(1234, servers[1].addr.port);
 
     ASSERT_EQ(0, dns.GetServers("baidu.com/useless1/useless2", &servers));
     ASSERT_EQ(2u, servers.size());
-    const std::set<butil::ip_t> ip_list3{servers[0].addr.ip, servers[1].addr.ip};
+    const std::set<mutil::ip_t> ip_list3{servers[0].addr.ip, servers[1].addr.ip};
     ASSERT_TRUE(IsIPListEqual(expected_ips, ip_list3));
     ASSERT_EQ(80, servers[0].addr.port);
     ASSERT_EQ(80, servers[1].addr.port);
@@ -105,7 +105,7 @@ TEST(NamingServiceTest, sanity) {
         "localhost:1234",
         "baidu.com:1234"
     };
-    butil::TempFile tmp_file;
+    mutil::TempFile tmp_file;
     {
         FILE* fp = fopen(tmp_file.fname(), "w");
         for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
@@ -124,7 +124,7 @@ TEST(NamingServiceTest, sanity) {
 
     std::string s;
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
-        ASSERT_EQ(0, butil::string_appendf(&s, "%s,", address_list[i]));
+        ASSERT_EQ(0, mutil::string_appendf(&s, "%s,", address_list[i]));
     }
     melon::naming::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
@@ -160,7 +160,7 @@ TEST(NamingServiceTest, wrong_name) {
         "baidu.com:1234",
         "LOCAL:1234"
     };
-    butil::TempFile tmp_file;
+    mutil::TempFile tmp_file;
     {
         FILE *fp = fopen(tmp_file.fname(), "w");
         for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
@@ -174,7 +174,7 @@ TEST(NamingServiceTest, wrong_name) {
 
     std::string s;
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
-        ASSERT_EQ(0, butil::string_appendf(&s, ", %s", address_list[i]));
+        ASSERT_EQ(0, mutil::string_appendf(&s, ", %s", address_list[i]));
     }
     melon::naming::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
@@ -205,8 +205,8 @@ public:
         touch_count.fetch_add(1);
     }
 
-    butil::atomic<int64_t> list_names_count;
-    butil::atomic<int64_t> touch_count;
+    mutil::atomic<int64_t> list_names_count;
+    mutil::atomic<int64_t> touch_count;
 };
 
 TEST(NamingServiceTest, remotefile) {
@@ -219,10 +219,10 @@ TEST(NamingServiceTest, remotefile) {
     ASSERT_EQ(0, server2.AddService(&svc2, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server2.Start("localhost:8636", NULL));
 
-    butil::EndPoint n1;
-    ASSERT_EQ(0, butil::str2endpoint("0.0.0.0:8635", &n1));
-    butil::EndPoint n2;
-    ASSERT_EQ(0, butil::str2endpoint("0.0.0.0:8636", &n2));
+    mutil::EndPoint n1;
+    ASSERT_EQ(0, mutil::str2endpoint("0.0.0.0:8635", &n1));
+    mutil::EndPoint n2;
+    ASSERT_EQ(0, mutil::str2endpoint("0.0.0.0:8636", &n2));
     std::vector<melon::ServerNode> expected_servers;
     expected_servers.push_back(melon::ServerNode(n1, "tag1"));
     expected_servers.push_back(melon::ServerNode(n2, "tag2"));
@@ -382,8 +382,8 @@ public:
         touch_count.fetch_add(1);
     }
 
-    butil::atomic<int64_t> list_names_count;
-    butil::atomic<int64_t> touch_count;
+    mutil::atomic<int64_t> list_names_count;
+    mutil::atomic<int64_t> touch_count;
 };
 
 TEST(NamingServiceTest, consul_with_backup_file) {
@@ -395,7 +395,7 @@ TEST(NamingServiceTest, consul_with_backup_file) {
         "10.128.0.1:1234",
         "10.129.0.1:1234",
     };
-    butil::TempFile tmp_file;
+    mutil::TempFile tmp_file;
     const char * service_name = tmp_file.fname();
     {
         FILE* fp = fopen(tmp_file.fname(), "w");
@@ -427,12 +427,12 @@ TEST(NamingServiceTest, consul_with_backup_file) {
                                    restful_map.c_str()));
     ASSERT_EQ(0, server.Start("localhost:8500", NULL));
 
-    bthread_usleep(5000000);
+    fiber_usleep(5000000);
 
-    butil::EndPoint n1;
-    ASSERT_EQ(0, butil::str2endpoint("10.121.36.189:8003", &n1));
-    butil::EndPoint n2;
-    ASSERT_EQ(0, butil::str2endpoint("10.121.36.190:8003", &n2));
+    mutil::EndPoint n1;
+    ASSERT_EQ(0, mutil::str2endpoint("10.121.36.189:8003", &n1));
+    mutil::EndPoint n2;
+    ASSERT_EQ(0, mutil::str2endpoint("10.121.36.190:8003", &n2));
     std::vector<melon::ServerNode> expected_servers;
     expected_servers.push_back(melon::ServerNode(n1, "1"));
     expected_servers.push_back(melon::ServerNode(n2, "2"));
@@ -666,7 +666,7 @@ TEST(NamingServiceTest, discovery_sanity) {
         // svc.RenewCount() be one.
         ASSERT_EQ(0, dc.Register(dparam));
         ASSERT_EQ(0, dc.Register(dparam));
-        bthread_usleep(100000);
+        fiber_usleep(100000);
         ASSERT_TRUE(svc.HasAddr("grpc://10.0.0.1:8000"));
         ASSERT_FALSE(svc.HasAddr("http://10.0.0.1:8000"));
     }
@@ -696,12 +696,12 @@ public:
         melon::ClosureGuard done_guard(done);
         melon::Controller* cntl = static_cast<melon::Controller*>(cntl_base);
 
-        butil::StringPairs user;
-        butil::SplitStringIntoKeyValuePairs(
+        mutil::StringPairs user;
+        mutil::SplitStringIntoKeyValuePairs(
             cntl->request_attachment().to_string(), '=', '&', &user);
 
         const auto expected_user =
-            butil::StringPairs{{"username", "nacos"}, {"password", "nacos"}};
+            mutil::StringPairs{{"username", "nacos"}, {"password", "nacos"}};
 
         if (user == expected_user) {
             cntl->http_response().set_content_type("application/json");
@@ -796,10 +796,10 @@ TEST(NamingServiceTest, nacos) {
                                    "/nacos/v1/ns/instance/list => List"));
     ASSERT_EQ(0, server.Start("localhost:8848", nullptr));
 
-    bthread_usleep(5000000);
+    fiber_usleep(5000000);
 
-    butil::EndPoint ep;
-    ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:8888", &ep));
+    mutil::EndPoint ep;
+    ASSERT_EQ(0, mutil::str2endpoint("127.0.0.1:8888", &ep));
     const auto expected_node = melon::ServerNode(ep, "10");
 
     const char* service_name =

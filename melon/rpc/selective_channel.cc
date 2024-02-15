@@ -18,7 +18,7 @@
 
 #include <map>
 #include <gflags/gflags.h>
-#include "melon/bthread/bthread.h"                         // bthread_id_xx
+#include "melon/fiber/fiber.h"                         // fiber_session_xx
 #include "melon/rpc/socket.h"                             // SocketUser
 #include "melon/rpc/load_balancer.h"                      // LoadBalancer
 #include "melon/rpc/details/controller_private_accessor.h"        // RPCSender
@@ -91,7 +91,7 @@ public:
     void Describe(std::ostream& os, const DescribeOptions&);
 
 private:
-    butil::Mutex _mutex;
+    mutil::Mutex _mutex;
     // Find out duplicated sub channels.
     ChannelToIdMap _chan_map;
 };
@@ -111,7 +111,7 @@ class SubDone : public google::protobuf::Closure {
 public:
     explicit SubDone(Sender* owner)
         : _owner(owner)
-        , _cid(INVALID_BTHREAD_ID)
+        , _cid(INVALID_FIBER_ID)
         , _peer_id(INVALID_SOCKET_ID) {
     }
     ~SubDone() {}
@@ -341,7 +341,7 @@ int Sender::IssueRPC(int64_t start_realtime_us) {
 
 void SubDone::Run() {
     Controller* main_cntl = NULL;
-    const int rc = bthread_id_lock(_cid, (void**)&main_cntl);
+    const int rc = fiber_session_lock(_cid, (void**)&main_cntl);
     if (rc != 0) {
         // _cid must be valid because schan does not dtor before cancelling
         // all sub calls.
@@ -390,9 +390,9 @@ void Sender::Run() {
             ids[i] = _alloc_resources[i].sub_done->_cntl.call_id();
         }
         CallId cid = _main_cntl->call_id();
-        CHECK_EQ(0, bthread_id_unlock(cid));
+        CHECK_EQ(0, fiber_session_unlock(cid));
         for (int i = 0; i < saved_nalloc; ++i) {
-            bthread_id_error(ids[i], error);
+            fiber_session_error(ids[i], error);
         }
     } else {
         Clear();
@@ -411,7 +411,7 @@ void Sender::Clear() {
     if (_user_done) {
         _user_done->Run();
     }
-    bthread_id_unlock_and_destroy(cid);
+    fiber_session_unlock_and_destroy(cid);
 }
 
 inline Resource Sender::PopFree() {
@@ -480,7 +480,7 @@ const Controller* GetSubControllerOfSelectiveChannel(
     return static_cast<const schan::Sender*>(sender)->SubController(index);
 }
 
-static void PassSerializeRequest(butil::IOBuf*, Controller*,
+static void PassSerializeRequest(mutil::IOBuf*, Controller*,
                                  const google::protobuf::Message*) {
 }
 
@@ -561,7 +561,7 @@ void SelectiveChannel::CallMethod(
     _chan.CallMethod(method, cntl, request, response, sndr);
     if (user_done == NULL) {
         Join(cid);
-        cntl->OnRPCEnd(butil::gettimeofday_us());
+        cntl->OnRPCEnd(mutil::gettimeofday_us());
     }
 }
 

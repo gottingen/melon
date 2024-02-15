@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
 
 #include "melon/raft/util.h"
 #include <gflags/gflags.h>
 #include <stdlib.h>
-#include <melon/butil/macros.h>
-#include <melon/butil/raw_pack.h>                     // butil::RawPacker
-#include <melon/butil/file_util.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/raw_pack.h>                     // mutil::RawPacker
+#include <melon/utility/file_util.h>
 #include "melon/raft/raft.h"
 
 namespace melon::var {
@@ -133,13 +131,13 @@ namespace melon::var {
         return static_cast<int64_t>(round(s.data.num * 1000000.0 / s.time_us));
     }
 
-    int CounterRecorder::expose(const butil::StringPiece &prefix1,
-                                const butil::StringPiece &prefix2) {
+    int CounterRecorder::expose(const mutil::StringPiece &prefix1,
+                                const mutil::StringPiece &prefix2) {
         if (prefix2.empty()) {
             LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
-        butil::StringPiece prefix = prefix2;
+        mutil::StringPiece prefix = prefix2;
         // User may add "_counter" as the suffix, remove it.
         if (prefix.ends_with("counter") || prefix.ends_with("Counter")) {
             prefix.remove_suffix(7);
@@ -252,34 +250,34 @@ namespace melon::raft {
         return NULL;
     }
 
-    void run_closure_in_bthread(google::protobuf::Closure *closure,
+    void run_closure_in_fiber(google::protobuf::Closure *closure,
                                 bool in_pthread) {
         DCHECK(closure);
-        bthread_t tid;
-        bthread_attr_t attr = (in_pthread)
-                              ? BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL;
-        int ret = bthread_start_background(&tid, &attr, run_closure, closure);
+        fiber_t tid;
+        fiber_attr_t attr = (in_pthread)
+                              ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
+        int ret = fiber_start_background(&tid, &attr, run_closure, closure);
         if (0 != ret) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             return closure->Run();
         }
     }
 
-    void run_closure_in_bthread_nosig(google::protobuf::Closure *closure,
+    void run_closure_in_fiber_nosig(google::protobuf::Closure *closure,
                                       bool in_pthread) {
         DCHECK(closure);
-        bthread_t tid;
-        bthread_attr_t attr = (in_pthread)
-                              ? BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL;
-        attr = attr | BTHREAD_NOSIGNAL;
-        int ret = bthread_start_background(&tid, &attr, run_closure, closure);
+        fiber_t tid;
+        fiber_attr_t attr = (in_pthread)
+                              ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
+        attr = attr | FIBER_NOSIGNAL;
+        int ret = fiber_start_background(&tid, &attr, run_closure, closure);
         if (0 != ret) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             return closure->Run();
         }
     }
 
-    ssize_t file_pread(butil::IOPortal *portal, int fd, off_t offset, size_t size) {
+    ssize_t file_pread(mutil::IOPortal *portal, int fd, off_t offset, size_t size) {
         off_t orig_offset = offset;
         ssize_t left = size;
         while (left > 0) {
@@ -302,9 +300,9 @@ namespace melon::raft {
         return size - left;
     }
 
-    ssize_t file_pwrite(const butil::IOBuf &data, int fd, off_t offset) {
+    ssize_t file_pwrite(const mutil::IOBuf &data, int fd, off_t offset) {
         size_t size = data.size();
-        butil::IOBuf piece_data(data);
+        mutil::IOBuf piece_data(data);
         off_t orig_offset = offset;
         ssize_t left = size;
         while (left > 0) {
@@ -324,7 +322,7 @@ namespace melon::raft {
         return size - left;
     }
 
-    void FileSegData::append(const butil::IOBuf &data, uint64_t offset) {
+    void FileSegData::append(const mutil::IOBuf &data, uint64_t offset) {
         uint32_t len = data.size();
         if (0 != _seg_offset && offset == (_seg_offset + _seg_len)) {
             // append to last segment
@@ -334,7 +332,7 @@ namespace melon::raft {
             // close last segment
             char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
             if (_seg_len > 0) {
-                ::butil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
+                ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
                 CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
             }
 
@@ -342,7 +340,7 @@ namespace melon::raft {
             _seg_offset = offset;
             _seg_len = len;
             _seg_header = _data.reserve(sizeof(seg_header));
-            CHECK(_seg_header != butil::IOBuf::INVALID_AREA);
+            CHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
             _data.append(data);
         }
     }
@@ -356,7 +354,7 @@ namespace melon::raft {
             // close last segment
             char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
             if (_seg_len > 0) {
-                ::butil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
+                ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
                 CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
             }
 
@@ -364,7 +362,7 @@ namespace melon::raft {
             _seg_offset = offset;
             _seg_len = len;
             _seg_header = _data.reserve(sizeof(seg_header));
-            CHECK(_seg_header != butil::IOBuf::INVALID_AREA);
+            CHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
             _data.append(data, len);
         }
     }
@@ -372,7 +370,7 @@ namespace melon::raft {
     void FileSegData::close() {
         char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
         if (_seg_len > 0) {
-            ::butil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
+            ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
             CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
         }
 
@@ -380,7 +378,7 @@ namespace melon::raft {
         _seg_len = 0;
     }
 
-    size_t FileSegData::next(uint64_t *offset, butil::IOBuf *data) {
+    size_t FileSegData::next(uint64_t *offset, mutil::IOBuf *data) {
         data->clear();
         if (_data.length() == 0) {
             return 0;
@@ -392,7 +390,7 @@ namespace melon::raft {
 
         uint64_t seg_offset = 0;
         uint32_t seg_len = 0;
-        ::butil::RawUnpacker(header_buf).unpack64(seg_offset).unpack32(seg_len);
+        ::mutil::RawUnpacker(header_buf).unpack64(seg_offset).unpack32(seg_len);
 
         *offset = seg_offset;
         size_t body_len = _data.cutn(data, seg_len);

@@ -47,19 +47,19 @@ namespace melon {
     // calculates quantiles in the server side.
     class PrometheusMetricsDumper : public melon::var::Dumper {
     public:
-        explicit PrometheusMetricsDumper(butil::IOBufBuilder *os,
+        explicit PrometheusMetricsDumper(mutil::IOBufBuilder *os,
                                          const std::string &server_prefix)
                 : _os(os), _server_prefix(server_prefix) {
         }
 
-        bool dump(const std::string &name, const butil::StringPiece &desc) override;
+        bool dump(const std::string &name, const mutil::StringPiece &desc) override;
 
     private:
         DISALLOW_COPY_AND_ASSIGN(PrometheusMetricsDumper);
 
         // Return true iff name ends with suffix output by LatencyRecorder.
-        bool DumpLatencyRecorderSuffix(const butil::StringPiece &name,
-                                       const butil::StringPiece &desc);
+        bool DumpLatencyRecorderSuffix(const mutil::StringPiece &name,
+                                       const mutil::StringPiece &desc);
 
         // 6 is the number of bvars in LatencyRecorder that indicating percentiles
         static const int NPERCENTILES = 6;
@@ -73,23 +73,23 @@ namespace melon {
             bool IsComplete() const { return !metric_name.empty(); }
         };
 
-        const SummaryItems *ProcessLatencyRecorderSuffix(const butil::StringPiece &name,
-                                                         const butil::StringPiece &desc);
+        const SummaryItems *ProcessLatencyRecorderSuffix(const mutil::StringPiece &name,
+                                                         const mutil::StringPiece &desc);
 
     private:
-        butil::IOBufBuilder *_os;
+        mutil::IOBufBuilder *_os;
         const std::string _server_prefix;
         std::map<std::string, SummaryItems> _m;
     };
 
-    butil::StringPiece GetMetricsName(const std::string &name) {
+    mutil::StringPiece GetMetricsName(const std::string &name) {
         auto pos = name.find_first_of('{');
         int size = (pos == std::string::npos) ? name.size() : pos;
-        return butil::StringPiece(name.data(), size);
+        return mutil::StringPiece(name.data(), size);
     }
 
     bool PrometheusMetricsDumper::dump(const std::string &name,
-                                       const butil::StringPiece &desc) {
+                                       const mutil::StringPiece &desc) {
         if (!desc.empty() && desc[0] == '"') {
             // there is no necessary to monitor string in prometheus
             return true;
@@ -109,17 +109,17 @@ namespace melon {
     }
 
     const PrometheusMetricsDumper::SummaryItems *
-    PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const butil::StringPiece &name,
-                                                          const butil::StringPiece &desc) {
+    PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const mutil::StringPiece &name,
+                                                          const mutil::StringPiece &desc) {
         static std::string latency_names[] = {
-                butil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p1),
-                butil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p2),
-                butil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p3),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p1),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p2),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p3),
                 "_latency_999", "_latency_9999", "_max_latency"
         };
         CHECK(NPERCENTILES == arraysize(latency_names));
         const std::string desc_str = desc.as_string();
-        butil::StringPiece metric_name(name);
+        mutil::StringPiece metric_name(name);
         for (int i = 0; i < NPERCENTILES; ++i) {
             if (!metric_name.ends_with(latency_names[i])) {
                 continue;
@@ -152,8 +152,8 @@ namespace melon {
     }
 
     bool PrometheusMetricsDumper::DumpLatencyRecorderSuffix(
-            const butil::StringPiece &name,
-            const butil::StringPiece &desc) {
+            const mutil::StringPiece &name,
+            const mutil::StringPiece &desc) {
         if (!name.starts_with(_server_prefix)) {
             return false;
         }
@@ -204,8 +204,8 @@ namespace melon {
         }
     }
 
-    int DumpPrometheusMetricsToIOBuf(butil::IOBuf *output) {
-        butil::IOBufBuilder os;
+    int DumpPrometheusMetricsToIOBuf(mutil::IOBuf *output) {
+        mutil::IOBufBuilder os;
         PrometheusMetricsDumper dumper(&os, g_server_info_prefix);
         const int ndump = melon::var::Variable::dump_exposed(&dumper, NULL);
         if (ndump < 0) {
@@ -219,7 +219,7 @@ namespace melon {
             if (ndump_md < 0) {
                 return -1;
             }
-            output->append(butil::IOBuf::Movable(os.buf()));
+            output->append(mutil::IOBuf::Movable(os.buf()));
         }
         return 0;
     }

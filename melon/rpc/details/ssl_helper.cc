@@ -25,10 +25,10 @@
 #include <openssl/err.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include "melon/butil/unique_ptr.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/ssl_compat.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/unique_ptr.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/ssl_compat.h"
+#include "melon/utility/string_splitter.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/details/ssl_helper.h"
 
@@ -68,10 +68,10 @@ const char* SSLStateToString(SSLState s) {
 
 static int ParseSSLProtocols(const std::string& str_protocol) {
     int protocol_flag = 0;
-    butil::StringSplitter sp(str_protocol.data(),
+    mutil::StringSplitter sp(str_protocol.data(),
                              str_protocol.data() + str_protocol.size(), ',');
     for (; sp; ++sp) {
-        butil::StringPiece protocol(sp.field(), sp.length());
+        mutil::StringPiece protocol(sp.field(), sp.length());
         protocol.trim_spaces();
         if (strncasecmp(protocol.data(), "SSLv3", protocol.size()) == 0) {
             protocol_flag |= SSLv3;
@@ -673,11 +673,11 @@ static unsigned long SSLGetThreadId() {
 #endif  // CRYPTO_LOCK_ECDH
 
 // Locks for SSL library
-// NOTE: If we replace this with bthread_mutex_t, SSL routines
+// NOTE: If we replace this with fiber_mutex_t, SSL routines
 // may crash probably due to some TLS data used inside OpenSSL
 // Also according to performance test, there is little difference
-// between pthread mutex and bthread mutex
-static butil::Mutex* g_ssl_mutexs = NULL;
+// between pthread mutex and fiber mutex
+static mutil::Mutex* g_ssl_mutexs = NULL;
 
 static void SSLLockCallback(int mode, int n, const char* file, int line) {
     (void)file;
@@ -696,7 +696,7 @@ static void SSLLockCallback(int mode, int n, const char* file, int line) {
 
 int SSLThreadInit() {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-    g_ssl_mutexs = new butil::Mutex[CRYPTO_num_locks()];
+    g_ssl_mutexs = new mutil::Mutex[CRYPTO_num_locks()];
     CRYPTO_set_locking_callback(SSLLockCallback);
 # ifdef CRYPTO_LOCK_ECDH
     CRYPTO_THREADID_set_callback(SSLGetThreadId);
@@ -884,11 +884,11 @@ void Print(std::ostream& os, X509* cert, const char* sep) {
 
     char* bufp = NULL;
     int len = BIO_get_mem_data(buf, &bufp);
-    os << butil::StringPiece(bufp, len);
+    os << mutil::StringPiece(bufp, len);
 }
 
 std::string ALPNProtocolToString(const AdaptiveProtocolType& protocol) {
-    butil::StringPiece name = protocol.name();
+    mutil::StringPiece name = protocol.name();
     // Default use http 1.1 version
     if (name.starts_with("http")) {
         name.set("http/1.1");

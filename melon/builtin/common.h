@@ -21,7 +21,7 @@
 
 #include <vector>                           // std::vector
 #include <gflags/gflags_declare.h>
-#include "melon/butil/endpoint.h"
+#include "melon/utility/endpoint.h"
 #include "melon/rpc/http/http_header.h"
 
 
@@ -74,16 +74,16 @@ namespace melon {
     std::ostream &operator<<(std::ostream &os, const PrintedAsDateTime &);
 
     struct Path {
-        static const butil::EndPoint *LOCAL;
+        static const mutil::EndPoint *LOCAL;
 
-        Path(const char *uri2, const butil::EndPoint *html_addr2)
+        Path(const char *uri2, const mutil::EndPoint *html_addr2)
                 : uri(uri2), html_addr(html_addr2), text(NULL) {}
 
-        Path(const char *uri2, const butil::EndPoint *html_addr2, const char *text2)
+        Path(const char *uri2, const mutil::EndPoint *html_addr2, const char *text2)
                 : uri(uri2), html_addr(html_addr2), text(text2) {}
 
         const char *uri;
-        const butil::EndPoint *html_addr;
+        const mutil::EndPoint *html_addr;
         const char *text;
     };
 

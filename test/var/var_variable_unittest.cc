@@ -23,8 +23,8 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 
 #include "melon/var/var.h"
 
@@ -184,7 +184,7 @@ TEST_F(VariableTest, expose) {
 class MyDumper : public melon::var::Dumper {
 public:
     bool dump(const std::string& name,
-              const butil::StringPiece& description) {
+              const mutil::StringPiece& description) {
         _list.push_back(std::make_pair(name, description.as_string()));
         return true;
     }
@@ -367,7 +367,7 @@ TEST_F(VariableTest, recursive_mutex) {
     pthread_mutex_t mutex;
     pthread_mutex_init(&mutex, &attr);
     pthread_mutexattr_destroy(&attr);
-    butil::Timer timer;
+    mutil::Timer timer;
     const size_t N = 1000000;
     timer.start();
     for (size_t i = 0; i < N; ++i) {

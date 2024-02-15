@@ -23,12 +23,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/fast_rand.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/channel.h"
 #include "melon/proto/rpc/trackme.pb.h"
 #include "melon/rpc/policy/hasher.h"
-#include "melon/butil/files/scoped_file.h"
+#include "melon/utility/files/scoped_file.h"
 
 namespace melon {
 
@@ -86,7 +86,7 @@ int ReadJPaasHostPort(int container_port) {
     char* line = NULL;
     size_t line_len = 0;
     ssize_t nr = 0;
-    butil::ScopedFILE fp(fopen(JPAAS_LOG_PATH, "r"));
+    mutil::ScopedFILE fp(fopen(JPAAS_LOG_PATH, "r"));
     if (!fp) {
         RPC_VLOG << "Fail to open `" << JPAAS_LOG_PATH << '\'';
         return -1;
@@ -110,7 +110,7 @@ int ReadJPaasHostPort(int container_port) {
 }
 
 // Called in server.cpp
-void SetTrackMeAddress(butil::EndPoint pt) {
+void SetTrackMeAddress(mutil::EndPoint pt) {
     MELON_SCOPED_LOCK(s_trackme_mutex);
     if (s_trackme_addr == NULL) {
         // JPAAS has NAT capabilities, read its log to figure out the open port
@@ -121,7 +121,7 @@ void SetTrackMeAddress(butil::EndPoint pt) {
                      << " instead of jpaas_container_port=" << pt.port;
             pt.port = jpaas_port;
         }
-        s_trackme_addr = new std::string(butil::endpoint2str(pt).c_str());
+        s_trackme_addr = new std::string(mutil::endpoint2str(pt).c_str());
     }
 }
 
@@ -220,13 +220,13 @@ void TrackMe() {
     if (FLAGS_trackme_server.empty()) {
         return;
     }
-    int64_t now = butil::gettimeofday_us();
+    int64_t now = mutil::gettimeofday_us();
     std::unique_lock<pthread_mutex_t> mu(s_trackme_mutex);
     if (s_trackme_last_time == 0) {
         // Delay the first ping randomly within s_trackme_interval. This
         // protects trackme_server from ping storms.
         s_trackme_last_time =
-            now + butil::fast_rand_less_than(s_trackme_interval) * 1000000L;
+            now + mutil::fast_rand_less_than(s_trackme_interval) * 1000000L;
     }
     if (now > s_trackme_last_time + 1000000L * s_trackme_interval) {
         s_trackme_last_time = now;

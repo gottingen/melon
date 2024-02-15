@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/errno.h"
+#include "melon/utility/errno.h"
 
 class ErrnoTest : public ::testing::Test{
 protected:
@@ -35,11 +35,11 @@ protected:
 #define EOK -117
 #define EMYERROR -30
 
-BAIDU_REGISTER_ERRNO(ESTOP, "the thread is stopping")
-BAIDU_REGISTER_ERRNO(EBREAK, "the thread is interrupted")
-BAIDU_REGISTER_ERRNO(ESTH, "something happened")
-BAIDU_REGISTER_ERRNO(EOK, "OK!")
-BAIDU_REGISTER_ERRNO(EMYERROR, "my error");
+MELON_REGISTER_ERRNO(ESTOP, "the thread is stopping")
+MELON_REGISTER_ERRNO(EBREAK, "the thread is interrupted")
+MELON_REGISTER_ERRNO(ESTH, "something happened")
+MELON_REGISTER_ERRNO(EOK, "OK!")
+MELON_REGISTER_ERRNO(EMYERROR, "my error");
 
 TEST_F(ErrnoTest, system_errno) {
     errno = EPIPE;

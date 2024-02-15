@@ -20,9 +20,9 @@
 #define  BRPC_URI_H
 
 #include <string>                   // std::string
-#include "melon/butil/containers/flat_map.h"
-#include "melon/butil/status.h"
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/containers/flat_map.h"
+#include "melon/utility/status.h"
+#include "melon/utility/string_splitter.h"
 
 // To brpc developers: This is a class exposed to end-user. DON'T put impl.
 // details in this header, use opaque pointers instead.
@@ -52,7 +52,7 @@ namespace melon {
 class URI {
 public:
     static const size_t QUERY_MAP_INITIAL_BUCKET = 16;
-    typedef butil::FlatMap<std::string, std::string> QueryMap;
+    typedef mutil::FlatMap<std::string, std::string> QueryMap;
     typedef QueryMap::const_iterator QueryIterator;
 
     // You can copy a URI.
@@ -75,11 +75,11 @@ public:
     void operator=(const std::string& url) { SetHttpURL(url); }
 
     // Status of previous SetHttpURL or opreator=.
-    const butil::Status& status() const { return _st; }
+    const mutil::Status& status() const { return _st; }
 
     // Sub fields. Empty string if the field is not set.
 	const std::string& scheme() const { return _scheme; }
-    BAIDU_DEPRECATED const std::string& schema() const { return scheme(); }
+    MELON_DEPRECATED const std::string& schema() const { return scheme(); }
     const std::string& host() const { return _host; }
     int port() const { return _port; } // -1 on unset.
     const std::string& path() const { return _path; }
@@ -94,7 +94,7 @@ public:
     // Overwrite parts of the URL.
     // NOTE: The input MUST be guaranteed to be valid.
     void set_scheme(const std::string& scheme) { _scheme = scheme; }
-    BAIDU_DEPRECATED void set_schema(const std::string& s) { set_scheme(s); }
+    MELON_DEPRECATED void set_schema(const std::string& s) { set_scheme(s); }
     void set_path(const std::string& path) { _path = path; }
     void set_host(const std::string& host) { _host = host; }
     void set_port(int port) { _port = port; }
@@ -145,7 +145,7 @@ friend class HttpMessage;
     // Iterate _query_map and append all queries to `query'
     void AppendQueryString(std::string* query, bool append_question_mark) const;
 
-    butil::Status                            _st;
+    mutil::Status                            _st;
     int                                     _port;
     mutable bool                            _query_was_modified;
     mutable bool                            _initialized_query_map;
@@ -198,7 +198,7 @@ inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
 }
 
 // Split query in the format of "key1=value1&key2&key3=value3"
-class QuerySplitter : public butil::KeyValuePairsSplitter {
+class QuerySplitter : public mutil::KeyValuePairsSplitter {
 public:
     inline QuerySplitter(const char* str_begin, const char* str_end)
         : KeyValuePairsSplitter(str_begin, str_end, '&', '=')
@@ -208,7 +208,7 @@ public:
         : KeyValuePairsSplitter(str_begin, '&', '=')
     {}
 
-    inline QuerySplitter(const butil::StringPiece &sp)
+    inline QuerySplitter(const mutil::StringPiece &sp)
         : KeyValuePairsSplitter(sp, '&', '=')
     {}
 };
@@ -220,9 +220,9 @@ class QueryRemover {
 public:
     QueryRemover(const std::string* str);
 
-    butil::StringPiece key() { return _qs.key();}
-    butil::StringPiece value() { return _qs.value(); }
-    butil::StringPiece key_and_value() { return _qs.key_and_value(); }
+    mutil::StringPiece key() { return _qs.key();}
+    mutil::StringPiece value() { return _qs.value(); }
+    mutil::StringPiece key_and_value() { return _qs.key_and_value(); }
 
     // Move splitter forward.
     QueryRemover& operator++();
@@ -254,8 +254,8 @@ private:
 // "/some/path?" -> "/some/path?key=value"
 // "/some/path?key1=value1" -> "/some/path?key1=value1&key=value"
 void append_query(std::string *query_string,
-                  const butil::StringPiece& key,
-                  const butil::StringPiece& value);
+                  const mutil::StringPiece& key,
+                  const mutil::StringPiece& value);
 
 } // namespace melon
 

@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/butil/macros.h"                           // ARRAY_SIZE
-#include "melon/butil/iobuf.h"                            // butil::IOBuf
+#include "melon/utility/macros.h"                           // ARRAY_SIZE
+#include "melon/utility/iobuf.h"                            // mutil::IOBuf
 #include "melon/rpc/controller.h"                   // Controller
 #include "melon/builtin/get_favicon_service.h"
 
@@ -51,15 +51,15 @@ namespace melon {
     };
 
     static pthread_once_t s_favicon_buf_once = PTHREAD_ONCE_INIT;
-    static butil::IOBuf *s_favicon_buf = NULL;
+    static mutil::IOBuf *s_favicon_buf = NULL;
 
     static void InitFavIcon() {
-        s_favicon_buf = new butil::IOBuf;
+        s_favicon_buf = new mutil::IOBuf;
         s_favicon_buf->append((const void *) s_favicon_array,
                               arraysize(s_favicon_array));
     }
 
-    static const butil::IOBuf &GetFavIcon() {
+    static const mutil::IOBuf &GetFavIcon() {
         pthread_once(&s_favicon_buf_once, InitFavIcon);
         return *s_favicon_buf;
     }

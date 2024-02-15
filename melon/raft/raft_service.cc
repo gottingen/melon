@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/raft_service.h"
 #include "melon/raft/raft.h"
@@ -50,7 +48,7 @@ namespace melon::raft {
             return;
         }
 
-        // TODO: should return butil::Status
+        // TODO: should return mutil::Status
         int rc = node->handle_pre_vote_request(request, response);
         if (rc != 0) {
             cntl->SetFailed(rc, "%s", berror(rc));

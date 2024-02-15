@@ -19,8 +19,8 @@
 #include <ostream>
 #include <dirent.h>                    // opendir
 #include <fcntl.h>                     // O_RDONLY
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/fd_utility.h"
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/fd_utility.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
@@ -49,15 +49,15 @@ namespace melon {
         }
         DIR *dir = opendir(open_path.c_str());
         if (NULL == dir) {
-            butil::fd_guard fd(open(open_path.c_str(), O_RDONLY));
+            mutil::fd_guard fd(open(open_path.c_str(), O_RDONLY));
             if (fd < 0) {
                 cntl->SetFailed(errno, "Cannot open `%s'", open_path.c_str());
                 return;
             }
-            butil::make_non_blocking(fd);
-            butil::make_close_on_exec(fd);
+            mutil::make_non_blocking(fd);
+            mutil::make_close_on_exec(fd);
 
-            butil::IOPortal read_portal;
+            mutil::IOPortal read_portal;
             size_t total_read = 0;
             do {
                 const ssize_t nr = read_portal.append_from_file_descriptor(
@@ -71,7 +71,7 @@ namespace melon {
                 }
                 total_read += nr;
             } while (total_read < MAX_READ);
-            butil::IOBuf &resp = cntl->response_attachment();
+            mutil::IOBuf &resp = cntl->response_attachment();
             resp.swap(read_portal);
             if (total_read >= MAX_READ) {
                 std::ostringstream oss;
@@ -81,7 +81,7 @@ namespace melon {
             cntl->http_response().set_content_type("text/plain");
         } else {
             const bool use_html = UseHTML(cntl->http_request());
-            const butil::EndPoint *const html_addr = (use_html ? Path::LOCAL : NULL);
+            const mutil::EndPoint *const html_addr = (use_html ? Path::LOCAL : NULL);
             cntl->http_response().set_content_type(
                     use_html ? "text/html" : "text/plain");
 
@@ -100,7 +100,7 @@ namespace melon {
             CHECK_EQ(0, closedir(dir));
 
             std::sort(files.begin(), files.end());
-            butil::IOBufBuilder os;
+            mutil::IOBufBuilder os;
             if (use_html) {
                 os << "<!DOCTYPE html><html><body><pre>";
             }

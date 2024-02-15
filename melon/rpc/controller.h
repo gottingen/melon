@@ -19,17 +19,16 @@
 #ifndef BRPC_CONTROLLER_H
 #define BRPC_CONTROLLER_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include <functional>                          // std::function
 #include <gflags/gflags.h>                     // Users often need gflags
 #include <string>
-#include "melon/butil/intrusive_ptr.hpp"             // butil::intrusive_ptr
-#include "melon/bthread/errno.h"                     // Redefine errno
-#include "melon/butil/endpoint.h"                    // butil::EndPoint
-#include "melon/butil/iobuf.h"                       // butil::IOBuf
-#include "melon/bthread/types.h"                     // bthread_id_t
+#include "melon/utility/intrusive_ptr.hpp"             // mutil::intrusive_ptr
+#include "melon/fiber/errno.h"                     // Redefine errno
+#include "melon/utility/endpoint.h"                    // mutil::EndPoint
+#include "melon/utility/iobuf.h"                       // mutil::IOBuf
+#include "melon/fiber/types.h"                     // fiber_session_t
 #include "melon/proto/rpc/options.pb.h"                   // CompressType
 #include "melon/proto/rpc/errno.pb.h"                     // error code
 #include "melon/rpc/http/http_header.h"                  // HttpHeader
@@ -108,7 +107,7 @@ namespace melon {
     extern const IdlNames idl_multi_req_multi_res;
 
 // The identifier to be associated with a RPC call.
-    typedef bthread_id_t CallId;
+    typedef fiber_session_t CallId;
 
 // Styles for stopping progressive attachment.
     enum StopStyle {
@@ -118,7 +117,7 @@ namespace melon {
 
     const int32_t UNSET_MAGIC_NUM = -123456789;
 
-    typedef butil::FlatMap<std::string, std::string> UserFieldsMap;
+    typedef mutil::FlatMap<std::string, std::string> UserFieldsMap;
 
 // A Controller mediates a single method call. The primary purpose of
 // the controller is to provide a way to manipulate settings per RPC-call 
@@ -239,7 +238,7 @@ namespace melon {
         // it gets queue time before server processes the RPC call.
         int64_t latency_us() const {
             if (_end_time_us == UNSET_MAGIC_NUM) {
-                return butil::cpuwide_time_us() - _begin_time_us;
+                return mutil::cpuwide_time_us() - _begin_time_us;
             }
             return _end_time_us - _begin_time_us;
         }
@@ -247,9 +246,6 @@ namespace melon {
         // Response of the RPC call (passed to CallMethod)
         google::protobuf::Message *response() const { return _response; }
 
-        // An identifier to send to server along with request. This is widely used
-        // throughout baidu's servers to tag a searching session (a series of
-        // queries following the topology of servers) with a same log_id.
         void set_log_id(uint64_t log_id);
 
         void set_request_id(std::string request_id) { _inheritable.request_id = request_id; }
@@ -316,7 +312,7 @@ namespace melon {
 
         // User attached data or body of http request, which is wired to network
         // directly instead of being serialized into protobuf messages.
-        butil::IOBuf &request_attachment() { return _request_attachment; }
+        mutil::IOBuf &request_attachment() { return _request_attachment; }
 
         ConnectionType connection_type() const { return _connection_type; }
 
@@ -422,7 +418,7 @@ namespace melon {
         // True iff above method was called.
         bool is_done_allowed_to_run_in_place() const { return has_flag(FLAGS_ALLOW_DONE_TO_RUN_IN_PLACE); }
 
-        // Create a background KEEPWRITE bthread to write to socket when issuing
+        // Create a background KEEPWRITE fiber to write to socket when issuing
         // RPCs, instead of trying to write to socket once in calling thread (see
         // `Socket::StartWrite` in socket.cpp).
         // The socket write could take some time (several microseconds maybe), if
@@ -483,7 +479,7 @@ namespace melon {
 
         // User attached data or body of http response, which is wired to network
         // directly instead of being serialized into protobuf messages.
-        butil::IOBuf &response_attachment() { return _response_attachment; }
+        mutil::IOBuf &response_attachment() { return _response_attachment; }
 
         // Response Body of a failed HTTP call is set to be ErrorText() by default,
         // even if response_attachment() is non-empty.
@@ -497,7 +493,7 @@ namespace melon {
         // If `stop_style' is FORCE_STOP, the underlying socket will be failed
         // immediately when the socket becomes idle or server is stopped.
         // Default value of `stop_style' is WAIT_FOR_STOP.
-        butil::intrusive_ptr<ProgressiveAttachment>
+        mutil::intrusive_ptr<ProgressiveAttachment>
         CreateProgressiveAttachment(StopStyle stop_style = WAIT_FOR_STOP);
 
         bool has_progressive_writer() const { return _wpa != NULL; }
@@ -545,13 +541,13 @@ namespace melon {
         // Client-side: successful or last server called. Accessible from
         // PackXXXRequest() in protocols.
         // Server-side: returns the client sending the request
-        butil::EndPoint remote_side() const { return _remote_side; }
+        mutil::EndPoint remote_side() const { return _remote_side; }
 
         // Client-side: the local address for talking with server, undefined until
         // this RPC succeeds (because the connection may not be established
         // before RPC).
         // Server-side: the address that clients access.
-        butil::EndPoint local_side() const { return _local_side; }
+        mutil::EndPoint local_side() const { return _local_side; }
 
         // Protocol of the request sent by client or received by server.
         ProtocolType request_protocol() const { return _request_protocol; }
@@ -606,9 +602,9 @@ namespace melon {
             return _http_response != NULL ? *_http_response : DefaultHttpHeader();
         }
 
-        const butil::IOBuf &request_attachment() const { return _request_attachment; }
+        const mutil::IOBuf &request_attachment() const { return _request_attachment; }
 
-        const butil::IOBuf &response_attachment() const { return _response_attachment; }
+        const mutil::IOBuf &response_attachment() const { return _response_attachment; }
 
         // Get the object to write key/value which will be flushed into
         // LOG(INFO) when this controller is deleted.
@@ -681,11 +677,11 @@ namespace melon {
         // it will try to retry this RPC. Otherwise, it calls user `done'
         // if it exists and destroys the correlation_id. Note that
         // the correlation_id MUST have been locked before this call.
-        // Parameter `new_bthread':
-        // false - Run this function in the current bthread/pthread. Note that
+        // Parameter `new_fiber':
+        // false - Run this function in the current fiber/pthread. Note that
         //         it could last for a long time or even block the caller (as
         //         it contains user's `done')
-        // true  - Creates a new bthread to run this function and returns to
+        // true  - Creates a new fiber to run this function and returns to
         //         the caller immediately
         // Parameter `id':
         //         It will be used to checked against `_correlation_id' and
@@ -694,18 +690,18 @@ namespace melon {
         // Parameter `saved_error':
         //         If the above check failed, `_error_code' will be reverted to this
         void OnVersionedRPCReturned(const CompletionInfo &,
-                                    bool new_bthread, int saved_error);
+                                    bool new_fiber, int saved_error);
 
         static void *RunEndRPC(void *arg);
 
         void EndRPC(const CompletionInfo &);
 
-        static int HandleSocketFailed(bthread_id_t, void *data, int error_code,
+        static int HandleSocketFailed(fiber_session_t, void *data, int error_code,
                                       const std::string &error_text);
 
         void HandleSendFailed();
 
-        static int RunOnCancel(bthread_id_t, void *data, int error_code);
+        static int RunOnCancel(fiber_session_t, void *data, int error_code);
 
         void set_auth_context(const AuthContext *ctx);
 
@@ -842,14 +838,14 @@ namespace melon {
         uint32_t _flags; // all boolean fields inside Controller
         int32_t _error_code;
         std::string _error_text;
-        butil::EndPoint _remote_side;
-        butil::EndPoint _local_side;
+        mutil::EndPoint _remote_side;
+        mutil::EndPoint _local_side;
 
         void *_session_local_data;
         const Server *_server;
-        bthread_id_t _oncancel_id;
+        fiber_session_t _oncancel_id;
         const AuthContext *_auth_context;        // Authentication result
-        butil::intrusive_ptr<MongoContext> _mongo_session_data;
+        mutil::intrusive_ptr<MongoContext> _mongo_session_data;
         SampledRequest *_sampled_request;
 
         ProtocolType _request_protocol;
@@ -877,7 +873,7 @@ namespace melon {
         // Deadline of this RPC (since the Epoch in microseconds).
         int64_t _deadline_us;
         // Timer registered to trigger RPC timeout event
-        bthread_timer_t _timeout_id;
+        fiber_timer_t _timeout_id;
 
         // Begin/End time of a single RPC call (since Epoch in microseconds)
         int64_t _begin_time_us;
@@ -894,9 +890,9 @@ namespace melon {
         RPCSender *_sender;
         uint64_t _request_code;
         SocketId _single_server_id;
-        butil::intrusive_ptr<SharedLoadBalancer> _lb;
+        mutil::intrusive_ptr<SharedLoadBalancer> _lb;
 
-        // for passing parameters to created bthread, don't modify it otherwhere.
+        // for passing parameters to created fiber, don't modify it otherwhere.
         CompletionInfo _tmp_completion_info;
 
         Call _current_call;
@@ -909,27 +905,27 @@ namespace melon {
         Protocol::PackRequest _pack_request;
         const google::protobuf::MethodDescriptor *_method;
         const Authenticator *_auth;
-        butil::IOBuf _request_buf;
+        mutil::IOBuf _request_buf;
         IdlNames _idl_names;
         int64_t _idl_result;
 
         HttpHeader *_http_request;
         HttpHeader *_http_response;
 
-        // User fields of baidu_std protocol.
+        // User fields of melon_std protocol.
         UserFieldsMap *_request_user_fields;
         UserFieldsMap *_response_user_fields;
 
         std::unique_ptr<KVMap> _session_kv;
 
         // Fields with large size but low access frequency
-        butil::IOBuf _request_attachment;
-        butil::IOBuf _response_attachment;
+        mutil::IOBuf _request_attachment;
+        mutil::IOBuf _response_attachment;
 
         // Writable progressive attachment
-        butil::intrusive_ptr<ProgressiveAttachment> _wpa;
+        mutil::intrusive_ptr<ProgressiveAttachment> _wpa;
         // Readable progressive attachment
-        butil::intrusive_ptr<ReadableProgressiveAttachment> _rpa;
+        mutil::intrusive_ptr<ReadableProgressiveAttachment> _rpa;
 
         // TODO: Replace following fields with StreamCreator
         // Defined at client side

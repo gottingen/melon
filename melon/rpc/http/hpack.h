@@ -19,8 +19,8 @@
 #ifndef  MELON_RPC_HTTP_HPACK_H_
 #define  MELON_RPC_HTTP_HPACK_H_
 
-#include "melon/butil/iobuf.h"                             // butil::IOBuf
-#include "melon/butil/strings/string_piece.h"              // butil::StringPiece
+#include "melon/utility/iobuf.h"                             // mutil::IOBuf
+#include "melon/utility/strings/string_piece.h"              // mutil::StringPiece
 #include "melon/rpc/http/http2.h"
 #include "melon/rpc/describable.h"
 
@@ -103,10 +103,10 @@ namespace melon {
 
         // Encode header and append the encoded buffer to |out|
         // Returns true on success.
-        void Encode(butil::IOBufAppender *out, const Header &header,
+        void Encode(mutil::IOBufAppender *out, const Header &header,
                     const HPackOptions &options);
 
-        void Encode(butil::IOBufAppender *out, const Header &header) { return Encode(out, header, HPackOptions()); }
+        void Encode(mutil::IOBufAppender *out, const Header &header) { return Encode(out, header, HPackOptions()); }
 
         // Try to decode at most one Header from source and erase corresponding
         // buffer.
@@ -114,11 +114,11 @@ namespace melon {
         //  * $size of decoded buffer when a header is succesfully decoded
         //  * 0 when the source is incompleted
         //  * -1 when the source is malformed
-        ssize_t Decode(butil::IOBuf *source, Header *h);
+        ssize_t Decode(mutil::IOBuf *source, Header *h);
 
         // Like the previous function, except that the source is from
         // IOBufBytesIterator.
-        ssize_t Decode(butil::IOBufBytesIterator &source, Header *h);
+        ssize_t Decode(mutil::IOBufBytesIterator &source, Header *h);
 
         void Describe(std::ostream &os, const DescribeOptions &) const;
 
@@ -132,7 +132,7 @@ namespace melon {
         const Header *HeaderAt(int index) const;
 
         ssize_t DecodeWithKnownPrefix(
-                butil::IOBufBytesIterator &iter, Header *h, uint8_t prefix_size) const;
+                mutil::IOBufBytesIterator &iter, Header *h, uint8_t prefix_size) const;
 
         IndexTable *_encode_table;
         IndexTable *_decode_table;
@@ -141,8 +141,8 @@ namespace melon {
 // Lowercase the input string, a fast implementation.
     void tolower(std::string *s);
 
-    inline ssize_t HPacker::Decode(butil::IOBuf *source, Header *h) {
-        butil::IOBufBytesIterator iter(*source);
+    inline ssize_t HPacker::Decode(mutil::IOBuf *source, Header *h) {
+        mutil::IOBufBytesIterator iter(*source);
         const ssize_t nc = Decode(iter, h);
         if (nc > 0) {
             source->pop_front(nc);

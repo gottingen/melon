@@ -19,7 +19,7 @@
 #define BRPC_POLICY_AUTO_CONCURRENCY_LIMITER_H
 
 #include "melon/var/var.h"
-#include "melon/butil/containers/bounded_queue.h"
+#include "melon/utility/containers/bounded_queue.h"
 #include "melon/rpc/concurrency_limiter.h"
 
 namespace melon {
@@ -73,12 +73,12 @@ private:
     double _explore_ratio;
   
     // modified per sample.
-    BAIDU_CACHELINE_ALIGNMENT butil::atomic<int64_t> _last_sampling_time_us;
-    butil::Mutex _sw_mutex;
+    MELON_CACHELINE_ALIGNMENT mutil::atomic<int64_t> _last_sampling_time_us;
+    mutil::Mutex _sw_mutex;
     SampleWindow _sw;
 
     // modified per request.
-    BAIDU_CACHELINE_ALIGNMENT butil::atomic<int32_t> _total_succ_req;
+    MELON_CACHELINE_ALIGNMENT mutil::atomic<int32_t> _total_succ_req;
 };
 
 }  // namespace policy

@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
-
 #include "melon/raft/log.h"
 
 #include <gflags/gflags.h>
-#include <melon/butil/files/dir_reader_posix.h>            // butil::DirReaderPosix
-#include <melon/butil/file_util.h>                         // butil::CreateDirectory
-#include <melon/butil/string_printf.h>                     // butil::string_appendf
-#include <melon/butil/time.h>
-#include <melon/butil/raw_pack.h>                          // butil::RawPacker
-#include <melon/butil/fd_utility.h>                        // butil::make_close_on_exec
+#include <melon/utility/files/dir_reader_posix.h>            // mutil::DirReaderPosix
+#include <melon/utility/file_util.h>                         // mutil::CreateDirectory
+#include <melon/utility/string_printf.h>                     // mutil::string_appendf
+#include <melon/utility/time.h>
+#include <melon/utility/raw_pack.h>                          // mutil::RawPacker
+#include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
 #include <melon/rpc/reloadable_flags.h>             //
 
 #include "melon/proto/raft/local_storage.pb.h"
@@ -41,8 +37,8 @@
 
 namespace melon::raft {
 
-    using ::butil::RawPacker;
-    using ::butil::RawUnpacker;
+    using ::mutil::RawPacker;
+    using ::mutil::RawUnpacker;
 
     DECLARE_bool(raft_trace_append_entry_latency);
     DEFINE_int32(raft_max_segment_size, 8 * 1024 * 1024 /*8M*/,
@@ -106,10 +102,10 @@ namespace melon::raft {
         }
 
         std::string path(_path);
-        butil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
+        mutil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
         _fd = ::open(path.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
         if (_fd >= 0) {
-            butil::make_close_on_exec(_fd);
+            mutil::make_close_on_exec(_fd);
         }
         LOG_IF(INFO, _fd >= 0) << "Created new segment `" << path
                                << "' with fd=" << _fd;
@@ -130,7 +126,7 @@ namespace melon::raft {
     }
 
     inline bool verify_checksum(int checksum_type,
-                                const butil::IOBuf &data, uint32_t value) {
+                                const mutil::IOBuf &data, uint32_t value) {
         switch (checksum_type) {
             case CHECKSUM_MURMURHASH32:
                 return (value == murmurhash32(data));
@@ -155,7 +151,7 @@ namespace melon::raft {
         }
     }
 
-    inline uint32_t get_checksum(int checksum_type, const butil::IOBuf &data) {
+    inline uint32_t get_checksum(int checksum_type, const mutil::IOBuf &data) {
         switch (checksum_type) {
             case CHECKSUM_MURMURHASH32:
                 return murmurhash32(data);
@@ -168,9 +164,9 @@ namespace melon::raft {
         }
     }
 
-    int Segment::_load_entry(off_t offset, EntryHeader *head, butil::IOBuf *data,
+    int Segment::_load_entry(off_t offset, EntryHeader *head, mutil::IOBuf *data,
                              size_t size_hint) const {
-        butil::IOPortal buf;
+        mutil::IOPortal buf;
         size_t to_read = std::max(size_hint, ENTRY_HEADER_SIZE);
         const ssize_t n = file_pread(&buf, _fd, offset, to_read);
         if (n != (ssize_t) to_read) {
@@ -230,21 +226,21 @@ namespace melon::raft {
 
     int Segment::_get_meta(int64_t index, LogMeta *meta) const {
         MELON_SCOPED_LOCK(_mutex);
-        if (index > _last_index.load(butil::memory_order_relaxed)
+        if (index > _last_index.load(mutil::memory_order_relaxed)
             || index < _first_index) {
             // out of range
-            BRAFT_VLOG << "_last_index=" << _last_index.load(butil::memory_order_relaxed)
+            BRAFT_VLOG << "_last_index=" << _last_index.load(mutil::memory_order_relaxed)
                        << " _first_index=" << _first_index;
             return -1;
         } else if (_last_index == _first_index - 1) {
-            BRAFT_VLOG << "_last_index=" << _last_index.load(butil::memory_order_relaxed)
+            BRAFT_VLOG << "_last_index=" << _last_index.load(mutil::memory_order_relaxed)
                        << " _first_index=" << _first_index;
             // empty
             return -1;
         }
         int64_t meta_index = index - _first_index;
         int64_t entry_cursor = _offset_and_term[meta_index].first;
-        int64_t next_cursor = (index < _last_index.load(butil::memory_order_relaxed))
+        int64_t next_cursor = (index < _last_index.load(mutil::memory_order_relaxed))
                               ? _offset_and_term[meta_index + 1].first : _bytes;
         DCHECK_LT(entry_cursor, next_cursor);
         meta->offset = entry_cursor;
@@ -259,9 +255,9 @@ namespace melon::raft {
         std::string path(_path);
         // create fd
         if (_is_open) {
-            butil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
+            mutil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
         } else {
-            butil::string_appendf(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+            mutil::string_appendf(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                                   _first_index, _last_index.load());
         }
         _fd = ::open(path.c_str(), O_RDWR);
@@ -269,7 +265,7 @@ namespace melon::raft {
             LOG(ERROR) << "Fail to open " << path << ", " << berror();
             return -1;
         }
-        butil::make_close_on_exec(_fd);
+        mutil::make_close_on_exec(_fd);
 
         // get file size
         struct stat st_buf;
@@ -303,7 +299,7 @@ namespace melon::raft {
                 break;
             }
             if (header.type == ENTRY_TYPE_CONFIGURATION) {
-                butil::IOBuf data;
+                mutil::IOBuf data;
                 // Header will be parsed again but it's fine as configuration
                 // changing is rare
                 if (_load_entry(entry_off, NULL, &data, skip_len) != 0) {
@@ -312,7 +308,7 @@ namespace melon::raft {
                 scoped_refptr<LogEntry> entry = new LogEntry();
                 entry->id.index = i;
                 entry->id.term = header.term;
-                butil::Status status = parse_configuration_meta(data, entry);
+                mutil::Status status = parse_configuration_meta(data, entry);
                 if (status.ok()) {
                     ConfigurationEntry conf_entry(*entry);
                     configuration_manager->add(conf_entry);
@@ -328,7 +324,7 @@ namespace melon::raft {
             entry_off += skip_len;
         }
 
-        const int64_t last_index = _last_index.load(butil::memory_order_relaxed);
+        const int64_t last_index = _last_index.load(mutil::memory_order_relaxed);
         if (ret == 0 && !_is_open) {
             if (actual_last_index < last_index) {
                 LOG(ERROR) << "data lost in a full segment, path: " << _path
@@ -368,17 +364,17 @@ namespace melon::raft {
 
     int Segment::append(const LogEntry *entry) {
 
-        if (BAIDU_UNLIKELY(!entry || !_is_open)) {
+        if (MELON_UNLIKELY(!entry || !_is_open)) {
             return EINVAL;
         } else if (entry->id.index !=
-                   _last_index.load(butil::memory_order_consume) + 1) {
+                   _last_index.load(mutil::memory_order_consume) + 1) {
             CHECK(false) << "entry->index=" << entry->id.index
                          << " _last_index=" << _last_index
                          << " _first_index=" << _first_index;
             return ERANGE;
         }
 
-        butil::IOBuf data;
+        mutil::IOBuf data;
         switch (entry->type) {
             case ENTRY_TYPE_DATA:
                 data.append(entry->data);
@@ -386,7 +382,7 @@ namespace melon::raft {
             case ENTRY_TYPE_NO_OP:
                 break;
             case ENTRY_TYPE_CONFIGURATION: {
-                butil::Status status = serialize_configuration_meta(entry, data);
+                mutil::Status status = serialize_configuration_meta(entry, data);
                 if (!status.ok()) {
                     LOG(ERROR) << "Fail to serialize ConfigurationPBMeta, path: "
                                << _path;
@@ -409,14 +405,14 @@ namespace melon::raft {
                 .pack32(get_checksum(_checksum_type, data));
         packer.pack32(get_checksum(
                 _checksum_type, header_buf, ENTRY_HEADER_SIZE - 4));
-        butil::IOBuf header;
+        mutil::IOBuf header;
         header.append(header_buf, ENTRY_HEADER_SIZE);
         const size_t to_write = header.length() + data.length();
-        butil::IOBuf *pieces[2] = {&header, &data};
+        mutil::IOBuf *pieces[2] = {&header, &data};
         size_t start = 0;
         ssize_t written = 0;
         while (written < (ssize_t) to_write) {
-            const ssize_t n = butil::IOBuf::cut_multiple_into_file_descriptor(
+            const ssize_t n = mutil::IOBuf::cut_multiple_into_file_descriptor(
                     _fd, pieces + start, ARRAY_SIZE(pieces) - start);
             if (n < 0) {
                 LOG(ERROR) << "Fail to write to fd=" << _fd
@@ -428,7 +424,7 @@ namespace melon::raft {
         }
         MELON_SCOPED_LOCK(_mutex);
         _offset_and_term.push_back(std::make_pair(_bytes, entry->id.term));
-        _last_index.fetch_add(1, butil::memory_order_relaxed);
+        _last_index.fetch_add(1, mutil::memory_order_relaxed);
         _bytes += to_write;
         _unsynced_bytes += to_write;
 
@@ -466,7 +462,7 @@ namespace melon::raft {
         do {
             ConfigurationPBMeta configuration_meta;
             EntryHeader header;
-            butil::IOBuf data;
+            mutil::IOBuf data;
             if (_load_entry(meta.offset, &header, &data,
                             meta.length) != 0) {
                 ok = false;
@@ -483,7 +479,7 @@ namespace melon::raft {
                     CHECK(data.empty()) << "Data of NO_OP must be empty";
                     break;
                 case ENTRY_TYPE_CONFIGURATION: {
-                    butil::Status status = parse_configuration_meta(data, entry);
+                    mutil::Status status = parse_configuration_meta(data, entry);
                     if (!status.ok()) {
                         LOG(WARNING) << "Fail to parse ConfigurationPBMeta, path: "
                                      << _path;
@@ -524,10 +520,10 @@ namespace melon::raft {
         CHECK(_is_open);
 
         std::string old_path(_path);
-        butil::string_appendf(&old_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
+        mutil::string_appendf(&old_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                               _first_index);
         std::string new_path(_path);
-        butil::string_appendf(&new_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+        mutil::string_appendf(&new_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                               _first_index, _last_index.load());
 
         // TODO: optimize index memory usage by reconstruct vector
@@ -557,15 +553,15 @@ namespace melon::raft {
 
     std::string Segment::file_name() {
         if (!_is_open) {
-            return butil::string_printf(BRAFT_SEGMENT_CLOSED_PATTERN, _first_index, _last_index.load());
+            return mutil::string_printf(BRAFT_SEGMENT_CLOSED_PATTERN, _first_index, _last_index.load());
         } else {
-            return butil::string_printf(BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
+            return mutil::string_printf(BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
         }
     }
 
     static void *run_unlink(void *arg) {
         std::string *file_path = (std::string *) arg;
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
         int ret = ::unlink(file_path->c_str());
         timer.stop();
@@ -580,10 +576,10 @@ namespace melon::raft {
         do {
             std::string path(_path);
             if (_is_open) {
-                butil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
+                mutil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                                       _first_index);
             } else {
-                butil::string_appendf(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+                mutil::string_appendf(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                                       _first_index, _last_index.load());
             }
 
@@ -595,11 +591,11 @@ namespace melon::raft {
                 break;
             }
 
-            // start bthread to unlink
+            // start fiber to unlink
             // TODO unlink follow control
             std::string *file_path = new std::string(tmp_path);
-            bthread_t tid;
-            if (bthread_start_background(&tid, &BTHREAD_ATTR_NORMAL, run_unlink, file_path) != 0) {
+            fiber_t tid;
+            if (fiber_start_background(&tid, &FIBER_ATTR_NORMAL, run_unlink, file_path) != 0) {
                 run_unlink(file_path);
             }
 
@@ -627,11 +623,11 @@ namespace melon::raft {
         // because the node may crash before truncate.
         if (!_is_open) {
             std::string old_path(_path);
-            butil::string_appendf(&old_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+            mutil::string_appendf(&old_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                                   _first_index, _last_index.load());
 
             std::string new_path(_path);
-            butil::string_appendf(&new_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
+            mutil::string_appendf(&new_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                                   _first_index);
             int ret = ::rename(old_path.c_str(), new_path.c_str());
             LOG_IF(INFO, ret == 0) << "Renamed `" << old_path << "' to `"
@@ -661,7 +657,7 @@ namespace melon::raft {
         lck.lock();
         // update memory var
         _offset_and_term.resize(first_truncate_in_offset);
-        _last_index.store(last_index_kept, butil::memory_order_relaxed);
+        _last_index.store(last_index_kept, mutil::memory_order_relaxed);
         _bytes = truncate_size;
         return ret;
     }
@@ -672,15 +668,15 @@ namespace melon::raft {
                        << " must be greater than or equal to 0 ";
             return -1;
         }
-        butil::FilePath dir_path(_path);
-        butil::File::Error e;
-        if (!butil::CreateDirectoryAndGetError(
+        mutil::FilePath dir_path(_path);
+        mutil::File::Error e;
+        if (!mutil::CreateDirectoryAndGetError(
                 dir_path, &e, FLAGS_raft_create_parent_directories)) {
             LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             return -1;
         }
 
-        if (butil::crc32c::IsFastCrc32Supported()) {
+        if (mutil::crc32c::IsFastCrc32Supported()) {
             _checksum_type = CHECKSUM_CRC32;
             LOG_ONCE(INFO) << "Use crc32c as the checksum type of appending entries";
         } else {
@@ -719,14 +715,14 @@ namespace melon::raft {
     }
 
     int64_t SegmentLogStorage::last_log_index() {
-        return _last_log_index.load(butil::memory_order_acquire);
+        return _last_log_index.load(mutil::memory_order_acquire);
     }
 
     int SegmentLogStorage::append_entries(const std::vector<LogEntry *> &entries, IOMetric *metric) {
         if (entries.empty()) {
             return 0;
         }
-        if (_last_log_index.load(butil::memory_order_relaxed) + 1
+        if (_last_log_index.load(mutil::memory_order_relaxed) + 1
             != entries.front()->id.index) {
             LOG(FATAL) << "There's gap between appending entries and _last_log_index"
                        << " path: " << _path;
@@ -736,12 +732,12 @@ namespace melon::raft {
         int64_t now = 0;
         int64_t delta_time_us = 0;
         for (size_t i = 0; i < entries.size(); i++) {
-            now = butil::cpuwide_time_us();
+            now = mutil::cpuwide_time_us();
             LogEntry *entry = entries[i];
 
             scoped_refptr<Segment> segment = open_segment();
             if (FLAGS_raft_trace_append_entry_latency && metric) {
-                delta_time_us = butil::cpuwide_time_us() - now;
+                delta_time_us = mutil::cpuwide_time_us() - now;
                 metric->open_segment_time_us += delta_time_us;
                 g_open_segment_latency << delta_time_us;
             }
@@ -753,17 +749,17 @@ namespace melon::raft {
                 return i;
             }
             if (FLAGS_raft_trace_append_entry_latency && metric) {
-                delta_time_us = butil::cpuwide_time_us() - now;
+                delta_time_us = mutil::cpuwide_time_us() - now;
                 metric->append_entry_time_us += delta_time_us;
                 g_segment_append_entry_latency << delta_time_us;
             }
-            _last_log_index.fetch_add(1, butil::memory_order_release);
+            _last_log_index.fetch_add(1, mutil::memory_order_release);
             last_segment = segment;
         }
-        now = butil::cpuwide_time_us();
+        now = mutil::cpuwide_time_us();
         last_segment->sync(_enable_sync);
         if (FLAGS_raft_trace_append_entry_latency && metric) {
-            delta_time_us = butil::cpuwide_time_us() - now;
+            delta_time_us = mutil::cpuwide_time_us() - now;
             metric->sync_segment_time_us += delta_time_us;
             g_sync_segment_latency << delta_time_us;
         }
@@ -782,7 +778,7 @@ namespace melon::raft {
         if (EEXIST == ret && entry->id.term != get_term(entry->id.index)) {
             return EINVAL;
         }
-        _last_log_index.fetch_add(1, butil::memory_order_release);
+        _last_log_index.fetch_add(1, mutil::memory_order_release);
 
         return segment->sync(_enable_sync);
     }
@@ -809,7 +805,7 @@ namespace melon::raft {
         popped->clear();
         popped->reserve(32);
         MELON_SCOPED_LOCK(_mutex);
-        _first_log_index.store(first_index_kept, butil::memory_order_release);
+        _first_log_index.store(first_index_kept, mutil::memory_order_release);
         for (SegmentMap::iterator it = _segments.begin(); it != _segments.end();) {
             scoped_refptr<Segment> &segment = it->second;
             if (segment->last_index() < first_index_kept) {
@@ -836,9 +832,9 @@ namespace melon::raft {
 
     int SegmentLogStorage::truncate_prefix(const int64_t first_index_kept) {
         // segment files
-        if (_first_log_index.load(butil::memory_order_acquire) >= first_index_kept) {
+        if (_first_log_index.load(mutil::memory_order_acquire) >= first_index_kept) {
             BRAFT_VLOG << "Nothing is going to happen since _first_log_index="
-                       << _first_log_index.load(butil::memory_order_relaxed)
+                       << _first_log_index.load(mutil::memory_order_relaxed)
                        << " >= first_index_kept="
                        << first_index_kept;
             return 0;
@@ -868,7 +864,7 @@ namespace melon::raft {
         popped->reserve(32);
         *last_segment = NULL;
         MELON_SCOPED_LOCK(_mutex);
-        _last_log_index.store(last_index_kept, butil::memory_order_release);
+        _last_log_index.store(last_index_kept, mutil::memory_order_release);
         if (_open_segment) {
             if (_open_segment->first_index() <= last_index_kept) {
                 *last_segment = _open_segment;
@@ -895,7 +891,7 @@ namespace melon::raft {
         } else {
             // all the logs have been cleared, the we move _first_log_index to the
             // next index
-            _first_log_index.store(last_index_kept + 1, butil::memory_order_release);
+            _first_log_index.store(last_index_kept + 1, mutil::memory_order_release);
         }
     }
 
@@ -908,8 +904,8 @@ namespace melon::raft {
         int ret = -1;
 
         if (last_segment) {
-            if (_first_log_index.load(butil::memory_order_relaxed) <=
-                _last_log_index.load(butil::memory_order_relaxed)) {
+            if (_first_log_index.load(mutil::memory_order_relaxed) <=
+                _last_log_index.load(mutil::memory_order_relaxed)) {
                 truncate_last_segment = true;
             } else {
                 // trucate_prefix() and truncate_suffix() to discard entire logs
@@ -964,8 +960,8 @@ namespace melon::raft {
             popped.push_back(_open_segment);
             _open_segment = NULL;
         }
-        _first_log_index.store(next_log_index, butil::memory_order_relaxed);
-        _last_log_index.store(next_log_index - 1, butil::memory_order_relaxed);
+        _first_log_index.store(next_log_index, mutil::memory_order_relaxed);
+        _last_log_index.store(next_log_index - 1, mutil::memory_order_relaxed);
         lck.unlock();
         // NOTE: see the comments in truncate_prefix
         if (save_meta(next_log_index) != 0) {
@@ -980,7 +976,7 @@ namespace melon::raft {
     }
 
     int SegmentLogStorage::list_segments(bool is_empty) {
-        butil::DirReaderPosix dir_reader(_path.c_str());
+        mutil::DirReaderPosix dir_reader(_path.c_str());
         if (!dir_reader.IsValid()) {
             LOG(WARNING) << "directory reader failed, maybe NOEXIST or PERMISSION."
                          << " path: " << _path;
@@ -1050,17 +1046,17 @@ namespace melon::raft {
                              << " last_log_index: " << last_log_index;
                 return -1;
             } else if (last_log_index == -1 &&
-                       _first_log_index.load(butil::memory_order_acquire)
+                       _first_log_index.load(mutil::memory_order_acquire)
                        < segment->first_index()) {
                 LOG(WARNING) << "closed segment has hole, path: " << _path
-                             << " first_log_index: " << _first_log_index.load(butil::memory_order_relaxed)
+                             << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << segment->first_index()
                              << " last_index: " << segment->last_index();
                 return -1;
             } else if (last_log_index == -1 &&
                        _first_log_index > segment->last_index()) {
                 LOG(WARNING) << "closed segment need discard, path: " << _path
-                             << " first_log_index: " << _first_log_index.load(butil::memory_order_relaxed)
+                             << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << segment->first_index()
                              << " last_index: " << segment->last_index();
                 segment->unlink();
@@ -1073,13 +1069,13 @@ namespace melon::raft {
         }
         if (_open_segment) {
             if (last_log_index == -1 &&
-                _first_log_index.load(butil::memory_order_relaxed) < _open_segment->first_index()) {
+                _first_log_index.load(mutil::memory_order_relaxed) < _open_segment->first_index()) {
                 LOG(WARNING) << "open segment has hole, path: " << _path
-                             << " first_log_index: " << _first_log_index.load(butil::memory_order_relaxed)
+                             << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << _open_segment->first_index();
             } else if (last_log_index != -1 && _open_segment->first_index() != last_log_index + 1) {
                 LOG(WARNING) << "open segment has hole, path: " << _path
-                             << " first_log_index: " << _first_log_index.load(butil::memory_order_relaxed)
+                             << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << _open_segment->first_index();
             }
             CHECK_LE(last_log_index, _open_segment->last_index());
@@ -1102,7 +1098,7 @@ namespace melon::raft {
             if (ret != 0) {
                 return ret;
             }
-            _last_log_index.store(segment->last_index(), butil::memory_order_release);
+            _last_log_index.store(segment->last_index(), mutil::memory_order_release);
         }
 
         // open segment
@@ -1122,7 +1118,7 @@ namespace melon::raft {
                 _open_segment = NULL;
             } else {
                 _last_log_index.store(_open_segment->last_index(),
-                                      butil::memory_order_release);
+                                      mutil::memory_order_release);
             }
         }
         if (_last_log_index == 0) {
@@ -1132,7 +1128,7 @@ namespace melon::raft {
     }
 
     int SegmentLogStorage::save_meta(const int64_t log_index) {
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
 
         std::string meta_path(_path);
@@ -1151,7 +1147,7 @@ namespace melon::raft {
     }
 
     int SegmentLogStorage::load_meta() {
-        butil::Timer timer;
+        mutil::Timer timer;
         timer.start();
 
         std::string meta_path(_path);
@@ -1270,8 +1266,8 @@ namespace melon::raft {
         return new SegmentLogStorage(uri);
     }
 
-    butil::Status SegmentLogStorage::gc_instance(const std::string &uri) const {
-        butil::Status status;
+    mutil::Status SegmentLogStorage::gc_instance(const std::string &uri) const {
+        mutil::Status status;
         if (gc_dir(uri) != 0) {
             LOG(WARNING) << "Failed to gc log storage from path " << _path;
             status.set_error(EINVAL, "Failed to gc log storage from path %s",

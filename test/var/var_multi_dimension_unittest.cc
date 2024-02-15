@@ -25,12 +25,12 @@
 #include <string>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/var/var.h"
 #include "melon/var/multi_dimension.h"
-#include "melon/butil/third_party/rapidjson/rapidjson.h"
-#include "melon/butil/third_party/rapidjson/document.h"
+#include "melon/utility/third_party/rapidjson/rapidjson.h"
+#include "melon/utility/third_party/rapidjson/document.h"
 
 const size_t OPS_PER_THREAD = 200000;
 
@@ -46,7 +46,7 @@ static const std::list<std::string> labels = {"idc", "method", "status"};
 
 static void *thread_adder(void *arg) {
     melon::var::Adder<uint64_t> *reducer = (melon::var::Adder<uint64_t> *)arg;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
         (*reducer) << 2;
@@ -74,7 +74,7 @@ static long start_perf_test_with_madder(size_t num_thread, melon::var::Adder<uin
 
 static void *thread_maxer(void *arg) {
     melon::var::Maxer<uint64_t> *reducer = (melon::var::Maxer<uint64_t> *)arg;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 1; i <= OPS_PER_THREAD; ++i) {
         (*reducer) << 2 * i * OPS_PER_THREAD;
@@ -102,7 +102,7 @@ static long start_perf_test_with_mmaxer(size_t num_thread, melon::var::Maxer<uin
 
 static void *thread_miner(void *arg) {
     melon::var::Miner<uint64_t> *reducer = (melon::var::Miner<uint64_t> *)arg;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 1; i <= OPS_PER_THREAD; ++i) {
         (*reducer) << -2 * i * OPS_PER_THREAD;
@@ -130,7 +130,7 @@ static long start_perf_test_with_mminer(size_t num_thread, melon::var::Miner<uin
 
 static void *thread_intrecorder(void *arg) {
     melon::var::IntRecorder *reducer = (melon::var::IntRecorder *)arg;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 1; i <= OPS_PER_THREAD_INTRECORDER; ++i) {
         (*reducer) << 2 * i * OPS_PER_THREAD_INTRECORDER;
@@ -372,7 +372,7 @@ TEST_F(MultiDimensionTest, get_description) {
 
     const std::string description = my_madder.get_description();
     LOG(INFO) << "description=" << description;
-    BUTIL_RAPIDJSON_NAMESPACE::Document doc;
+    MUTIL_RAPIDJSON_NAMESPACE::Document doc;
     doc.Parse(description.c_str());
     ASSERT_FALSE(doc.HasParseError());
     ASSERT_TRUE(doc.IsObject());
@@ -387,7 +387,7 @@ TEST_F(MultiDimensionTest, get_description) {
     ASSERT_TRUE(doc.HasMember("labels"));
     ASSERT_TRUE(doc["labels"].IsArray());
 
-    BUTIL_RAPIDJSON_NAMESPACE::Value& labels = doc["labels"];
+    MUTIL_RAPIDJSON_NAMESPACE::Value& labels = doc["labels"];
     ASSERT_EQ(3, labels.Size());
     ASSERT_STREQ(labels[0].GetString(), "idc");
     ASSERT_STREQ(labels[1].GetString(), "method");
@@ -454,7 +454,7 @@ static uint64_t perf_hash(hash_fun fn) {
                 std::ostringstream oss_status;
                 oss_status << "status" << k;
                 std::list<std::string> labels_value {oss_idc.str(), oss_method.str(), oss_status.str()};
-                butil::Timer timer(butil::Timer::STARTED);
+                mutil::Timer timer(mutil::Timer::STARTED);
                 size_t hash_code = fn(labels_value);
                 EXPECT_NE(0, hash_code);
                 timer.stop();

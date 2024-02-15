@@ -2,26 +2,26 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/containers/stack_container.h"
+#include "melon/utility/containers/stack_container.h"
 
 #include <algorithm>
 
-#include "melon/butil/memory/aligned_memory.h"
-#include "melon/butil/memory/ref_counted.h"
+#include "melon/utility/memory/aligned_memory.h"
+#include "melon/utility/memory/ref_counted.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
-class Dummy : public butil::RefCounted<Dummy> {
+class Dummy : public mutil::RefCounted<Dummy> {
  public:
   explicit Dummy(int* alive) : alive_(alive) {
     ++*alive_;
   }
 
  private:
-  friend class butil::RefCounted<Dummy>;
+  friend class mutil::RefCounted<Dummy>;
 
   ~Dummy() {
     --*alive_;
@@ -106,7 +106,7 @@ class AlignedData {
  public:
   AlignedData() { memset(data_.void_data(), 0, alignment); }
   ~AlignedData() {}
-  butil::AlignedMemory<alignment, alignment> data_;
+  mutil::AlignedMemory<alignment, alignment> data_;
 };
 
 }  // anonymous namespace
@@ -148,4 +148,4 @@ TEST(StackContainer, BufferAlignment) {
 template class StackVector<int, 2>;
 template class StackVector<scoped_refptr<Dummy>, 2>;
 
-}  // namespace butil
+}  // namespace mutil

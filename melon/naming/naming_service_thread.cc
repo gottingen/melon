@@ -19,9 +19,9 @@
 #include <set>
 #include <pthread.h>
 #include <gflags/gflags.h>
-#include "melon/bthread/butex.h"
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/fiber/butex.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/socket_map.h"
 #include "melon/naming/naming_service_thread.h"
@@ -43,8 +43,8 @@ namespace melon {
 
     struct NSKeyHasher {
         size_t operator()(const NSKey &nskey) const {
-            size_t h = butil::DefaultHasher<std::string>()(nskey.protocol);
-            h = h * 101 + butil::DefaultHasher<std::string>()(nskey.service_name);
+            size_t h = mutil::DefaultHasher<std::string>()(nskey.protocol);
+            h = h * 101 + mutil::DefaultHasher<std::string>()(nskey.service_name);
             h = h * 101 + nskey.channel_signature.data[1];
             return h;
         }
@@ -56,14 +56,14 @@ namespace melon {
                k1.channel_signature == k2.channel_signature;
     }
 
-    typedef butil::FlatMap<NSKey, NamingServiceThread *, NSKeyHasher> NamingServiceMap;
+    typedef mutil::FlatMap<NSKey, NamingServiceThread *, NSKeyHasher> NamingServiceMap;
 // Construct on demand to make the code work before main()
     static NamingServiceMap *g_nsthread_map = NULL;
     static pthread_mutex_t g_nsthread_map_mutex = PTHREAD_MUTEX_INITIALIZER;
 
     NamingServiceThread::Actions::Actions(NamingServiceThread *owner)
-            : _owner(owner), _wait_id(INVALID_BTHREAD_ID), _has_wait_error(false), _wait_error(0) {
-        CHECK_EQ(0, bthread_id_create(&_wait_id, NULL, NULL));
+            : _owner(owner), _wait_id(INVALID_FIBER_ID), _has_wait_error(false), _wait_error(0) {
+        CHECK_EQ(0, fiber_session_create(&_wait_id, NULL, NULL));
     }
 
     NamingServiceThread::Actions::~Actions() {
@@ -191,7 +191,7 @@ namespace melon {
 
         if (!_removed.empty() || !_added.empty()) {
             std::ostringstream info;
-            info << butil::class_name_str(*_owner->_ns) << "(\""
+            info << mutil::class_name_str(*_owner->_ns) << "(\""
                  << _owner->_service_name << "\"):";
             if (!_added.empty()) {
                 info << " added " << _added.size();
@@ -206,18 +206,18 @@ namespace melon {
     }
 
     void NamingServiceThread::Actions::EndWait(int error_code) {
-        if (bthread_id_trylock(_wait_id, NULL) == 0) {
+        if (fiber_session_trylock(_wait_id, NULL) == 0) {
             _wait_error = error_code;
-            _has_wait_error.store(true, butil::memory_order_release);
-            bthread_id_unlock_and_destroy(_wait_id);
+            _has_wait_error.store(true, mutil::memory_order_release);
+            fiber_session_unlock_and_destroy(_wait_id);
         }
     }
 
     int NamingServiceThread::Actions::WaitForFirstBatchOfServers() {
         // Wait can happen before signal in which case it returns non-zero,
         // so we ignore return value here and use `_wait_error' instead
-        if (!_has_wait_error.load(butil::memory_order_acquire)) {
-            bthread_id_join(_wait_id);
+        if (!_has_wait_error.load(mutil::memory_order_acquire)) {
+            fiber_session_join(_wait_id);
         }
         return _wait_error;
     }
@@ -240,8 +240,8 @@ namespace melon {
             }
         }
         if (_tid) {
-            bthread_stop(_tid);
-            bthread_join(_tid, NULL);
+            fiber_stop(_tid);
+            fiber_join(_tid, NULL);
             _tid = 0;
         }
         {
@@ -287,9 +287,9 @@ namespace melon {
         if (_ns->RunNamingServiceReturnsQuickly()) {
             RunThis(this);
         } else {
-            int rc = bthread_start_urgent(&_tid, NULL, RunThis, this);
+            int rc = fiber_start_urgent(&_tid, NULL, RunThis, this);
             if (rc) {
-                LOG(ERROR) << "Fail to create bthread: " << berror(rc);
+                LOG(ERROR) << "Fail to create fiber: " << berror(rc);
                 return rc;
             }
         }
@@ -410,7 +410,7 @@ namespace melon {
     }
 
     int GetNamingServiceThread(
-            butil::intrusive_ptr<NamingServiceThread> *nsthread_out,
+            mutil::intrusive_ptr<NamingServiceThread> *nsthread_out,
             const char *url,
             const GetNamingServiceThreadOptions *options) {
         char protocol[MAX_PROTOCOL_LEN + 1];
@@ -427,7 +427,7 @@ namespace melon {
         const NSKey key(protocol, service_name,
                         (options ? options->channel_signature : ChannelSignature()));
         bool new_thread = false;
-        butil::intrusive_ptr<NamingServiceThread> nsthread;
+        mutil::intrusive_ptr<NamingServiceThread> nsthread;
         {
             std::unique_lock<pthread_mutex_t> mu(g_nsthread_map_mutex);
             if (g_nsthread_map == NULL) {

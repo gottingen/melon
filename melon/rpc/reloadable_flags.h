@@ -19,8 +19,7 @@
 #ifndef BRPC_RELOADABLE_FLAGS_H
 #define BRPC_RELOADABLE_FLAGS_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include <stdint.h>
 

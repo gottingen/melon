@@ -23,8 +23,8 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/var/var.h"
 #include <gtest/gtest.h>
 

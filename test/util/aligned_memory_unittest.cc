@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/memory/aligned_memory.h"
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/memory/aligned_memory.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 
 #define EXPECT_ALIGNED(ptr, align) \
@@ -11,7 +11,7 @@
 
 namespace {
 
-using butil::AlignedMemory;
+using mutil::AlignedMemory;
 
 TEST(AlignedMemoryTest, StaticAlignment) {
   static AlignedMemory<8, 8> raw8;
@@ -79,30 +79,30 @@ TEST(AlignedMemoryTest, StackAlignment) {
 }
 
 TEST(AlignedMemoryTest, DynamicAllocation) {
-  void* p = butil::AlignedAlloc(8, 8);
+  void* p = mutil::AlignedAlloc(8, 8);
   EXPECT_TRUE(p);
   EXPECT_ALIGNED(p, 8);
-  butil::AlignedFree(p);
+  mutil::AlignedFree(p);
 
-  p = butil::AlignedAlloc(8, 16);
+  p = mutil::AlignedAlloc(8, 16);
   EXPECT_TRUE(p);
   EXPECT_ALIGNED(p, 16);
-  butil::AlignedFree(p);
+  mutil::AlignedFree(p);
 
-  p = butil::AlignedAlloc(8, 256);
+  p = mutil::AlignedAlloc(8, 256);
   EXPECT_TRUE(p);
   EXPECT_ALIGNED(p, 256);
-  butil::AlignedFree(p);
+  mutil::AlignedFree(p);
 
-  p = butil::AlignedAlloc(8, 4096);
+  p = mutil::AlignedAlloc(8, 4096);
   EXPECT_TRUE(p);
   EXPECT_ALIGNED(p, 4096);
-  butil::AlignedFree(p);
+  mutil::AlignedFree(p);
 }
 
 TEST(AlignedMemoryTest, ScopedDynamicAllocation) {
-  scoped_ptr<float, butil::AlignedFreeDeleter> p(
-      static_cast<float*>(butil::AlignedAlloc(8, 8)));
+  scoped_ptr<float, mutil::AlignedFreeDeleter> p(
+      static_cast<float*>(mutil::AlignedAlloc(8, 8)));
   EXPECT_TRUE(p.get());
   EXPECT_ALIGNED(p.get(), 8);
 }

@@ -19,16 +19,16 @@
 #include "melon/rpc/stream.h"
 
 #include <gflags/gflags.h>
-#include "melon/butil/time.h"
-#include "melon/butil/object_pool.h"
-#include "melon/butil/unique_ptr.h"
-#include "melon/bthread/unstable.h"
+#include "melon/utility/time.h"
+#include "melon/utility/object_pool.h"
+#include "melon/utility/unique_ptr.h"
+#include "melon/fiber/unstable.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/controller.h"
 #include "melon/rpc/input_messenger.h"
 #include "melon/rpc/policy/streaming_rpc_protocol.h"
-#include "melon/rpc/policy/baidu_rpc_protocol.h"
+#include "melon/rpc/policy/melon_rpc_protocol.h"
 #include "melon/rpc/stream_impl.h"
 
 
@@ -37,7 +37,7 @@ namespace melon {
 DECLARE_bool(usercode_in_pthread);
 DECLARE_int64(socket_max_streams_unconsumed_bytes);
 
-const static butil::IOBuf *TIMEOUT_TASK = (butil::IOBuf*)-1L;
+const static mutil::IOBuf *TIMEOUT_TASK = (mutil::IOBuf*)-1L;
 
 Stream::Stream() 
     : _host_socket(NULL)
@@ -54,15 +54,15 @@ Stream::Stream()
     , _idle_timer(0)
 {
     _connect_meta.on_connect = NULL;
-    CHECK_EQ(0, bthread_mutex_init(&_connect_mutex, NULL));
-    CHECK_EQ(0, bthread_mutex_init(&_congestion_control_mutex, NULL));
+    CHECK_EQ(0, fiber_mutex_init(&_connect_mutex, NULL));
+    CHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, NULL));
 }
 
 Stream::~Stream() {
     CHECK(_host_socket == NULL);
-    bthread_mutex_destroy(&_connect_mutex);
-    bthread_mutex_destroy(&_congestion_control_mutex);
-    bthread_id_list_destroy(&_writable_wait_list);
+    fiber_mutex_destroy(&_connect_mutex);
+    fiber_mutex_destroy(&_congestion_control_mutex);
+    fiber_session_list_destroy(&_writable_wait_list);
 }
 
 int Stream::Create(const StreamOptions &options, 
@@ -90,14 +90,14 @@ int Stream::Create(const StreamOptions &options,
     } else {
         s->_parse_rpc_response = true;
     }
-    if (bthread_id_list_init(&s->_writable_wait_list, 8, 8/*FIXME*/)) {
+    if (fiber_session_list_init(&s->_writable_wait_list, 8, 8/*FIXME*/)) {
         delete s;
         return -1;
     }
-    bthread::ExecutionQueueOptions q_opt;
-    q_opt.bthread_attr 
-        = FLAGS_usercode_in_pthread ? BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL;
-    if (bthread::execution_queue_start(&s->_consumer_queue, &q_opt, Consume, s) != 0) {
+    fiber::ExecutionQueueOptions q_opt;
+    q_opt.fiber_attr
+        = FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
+    if (fiber::execution_queue_start(&s->_consumer_queue, &q_opt, Consume, s) != 0) {
         LOG(FATAL) << "Fail to create ExecutionQueue";
         delete s;
         return -1;
@@ -119,7 +119,7 @@ int Stream::Create(const StreamOptions &options,
 
 void Stream::BeforeRecycle(Socket *) {
     // No one holds reference now, so we don't need lock here
-    bthread_id_list_reset(&_writable_wait_list, ECONNRESET);
+    fiber_session_list_reset(&_writable_wait_list, ECONNRESET);
     if (_connected) {
         // Send CLOSE frame
         RPC_VLOG << "Send close frame";
@@ -133,11 +133,11 @@ void Stream::BeforeRecycle(Socket *) {
     }
     
     // The instance is to be deleted in the consumer thread
-    bthread::execution_queue_stop(_consumer_queue);
+    fiber::execution_queue_stop(_consumer_queue);
 }
 
 ssize_t Stream::CutMessageIntoFileDescriptor(int /*fd*/, 
-                                             butil::IOBuf **data_list, 
+                                             mutil::IOBuf **data_list,
                                              size_t size) {
     if (_host_socket == NULL) {
         CHECK(false) << "Not connected";
@@ -152,7 +152,7 @@ ssize_t Stream::CutMessageIntoFileDescriptor(int /*fd*/,
         errno = EBADF;
         return -1;
     }
-    butil::IOBuf out;
+    mutil::IOBuf out;
     ssize_t len = 0;
     for (size_t i = 0; i < size; ++i) {
         StreamFrameMeta fm;
@@ -169,11 +169,11 @@ ssize_t Stream::CutMessageIntoFileDescriptor(int /*fd*/,
     return len;
 }
 
-void Stream::WriteToHostSocket(butil::IOBuf* b) {
+void Stream::WriteToHostSocket(mutil::IOBuf* b) {
     BRPC_HANDLE_EOVERCROWDED(_host_socket->Write(b));
 }
 
-ssize_t Stream::CutMessageIntoSSLChannel(SSL*, butil::IOBuf**, size_t) {
+ssize_t Stream::CutMessageIntoSSLChannel(SSL*, mutil::IOBuf**, size_t) {
     CHECK(false) << "Stream does support SSL";
     errno = EINVAL;
     return -1;
@@ -193,10 +193,10 @@ void* Stream::RunOnConnect(void *arg) {
 int Stream::Connect(Socket* ptr, const timespec*,
                     int (*on_connect)(int, int, void *), void *data) {
     CHECK_EQ(ptr->id(), _id);
-    bthread_mutex_lock(&_connect_mutex);
+    fiber_mutex_lock(&_connect_mutex);
     if (_connect_meta.on_connect != NULL) {
         CHECK(false) << "Connect is supposed to be called once";
-        bthread_mutex_unlock(&_connect_mutex);
+        fiber_mutex_unlock(&_connect_mutex);
         return -1;
     }
     _connect_meta.on_connect = on_connect;
@@ -206,15 +206,15 @@ int Stream::Connect(Socket* ptr, const timespec*,
         meta->on_connect = _connect_meta.on_connect;
         meta->arg = _connect_meta.arg;
         meta->ec = _connect_meta.ec;
-        bthread_mutex_unlock(&_connect_mutex);
-        bthread_t tid;
-        if (bthread_start_urgent(&tid, &BTHREAD_ATTR_NORMAL, RunOnConnect, meta) != 0) {
-            LOG(FATAL) << "Fail to start bthread, " << berror();
+        fiber_mutex_unlock(&_connect_mutex);
+        fiber_t tid;
+        if (fiber_start_urgent(&tid, &FIBER_ATTR_NORMAL, RunOnConnect, meta) != 0) {
+            LOG(FATAL) << "Fail to start fiber, " << berror();
             RunOnConnect(meta);
         }
         return 0;
     }
-    bthread_mutex_unlock(&_connect_mutex);
+    fiber_mutex_unlock(&_connect_mutex);
     return 0;
 }
 
@@ -223,14 +223,14 @@ void Stream::SetConnected() {
 }
 
 void Stream::SetConnected(const StreamSettings* remote_settings) {
-    bthread_mutex_lock(&_connect_mutex);
+    fiber_mutex_lock(&_connect_mutex);
     if (_closed) {
-        bthread_mutex_unlock(&_connect_mutex);
+        fiber_mutex_unlock(&_connect_mutex);
         return;
     }
     if (_connected) {
         CHECK(false);
-        bthread_mutex_unlock(&_connect_mutex);
+        fiber_mutex_unlock(&_connect_mutex);
         return;
     }
     CHECK(_host_socket != NULL);
@@ -260,21 +260,21 @@ void Stream::TriggerOnConnectIfNeed() {
         meta->on_connect = _connect_meta.on_connect;
         meta->arg = _connect_meta.arg;
         meta->ec = _connect_meta.ec;
-        bthread_mutex_unlock(&_connect_mutex);
-        bthread_t tid;
-        if (bthread_start_urgent(&tid, &BTHREAD_ATTR_NORMAL, RunOnConnect, meta) != 0) {
-            LOG(FATAL) << "Fail to start bthread, " << berror();
+        fiber_mutex_unlock(&_connect_mutex);
+        fiber_t tid;
+        if (fiber_start_urgent(&tid, &FIBER_ATTR_NORMAL, RunOnConnect, meta) != 0) {
+            LOG(FATAL) << "Fail to start fiber, " << berror();
             RunOnConnect(meta);
         }
         return;
     }
-    bthread_mutex_unlock(&_connect_mutex);
+    fiber_mutex_unlock(&_connect_mutex);
 }
 
-int Stream::AppendIfNotFull(const butil::IOBuf &data,
+int Stream::AppendIfNotFull(const mutil::IOBuf &data,
                             const StreamWriteOptions* options) {
     if (_cur_buf_size > 0) {
-        std::unique_lock<bthread_mutex_t> lck(_congestion_control_mutex);
+        std::unique_lock<fiber_mutex_t> lck(_congestion_control_mutex);
         if (_produced >= _remote_consumed + _cur_buf_size) {
             const size_t saved_produced = _produced;
             const size_t saved_remote_consumed = _remote_consumed;
@@ -290,7 +290,7 @@ int Stream::AppendIfNotFull(const butil::IOBuf &data,
     }
 
     size_t data_length = data.length();
-    butil::IOBuf copied_data(data);
+    mutil::IOBuf copied_data(data);
     Socket::WriteOptions wopt;
     wopt.write_in_background = options != NULL && options->write_in_background;
     const int rc = _fake_socket_weak_ref->Write(&copied_data, &wopt);
@@ -309,11 +309,11 @@ int Stream::AppendIfNotFull(const butil::IOBuf &data,
 
 void Stream::SetRemoteConsumed(size_t new_remote_consumed) {
     CHECK(_cur_buf_size > 0);
-    bthread_id_list_t tmplist;
-    bthread_id_list_init(&tmplist, 0, 0);
-    bthread_mutex_lock(&_congestion_control_mutex);
+    fiber_session_list_t tmplist;
+    fiber_session_list_init(&tmplist, 0, 0);
+    fiber_mutex_lock(&_congestion_control_mutex);
     if (_remote_consumed >= new_remote_consumed) {
-        bthread_mutex_unlock(&_congestion_control_mutex);
+        fiber_mutex_unlock(&_congestion_control_mutex);
         return;
     }
     const bool was_full = _produced >= _remote_consumed + _cur_buf_size;
@@ -339,13 +339,13 @@ void Stream::SetRemoteConsumed(size_t new_remote_consumed) {
     _remote_consumed = new_remote_consumed;
     const bool is_full = _produced >= _remote_consumed + _cur_buf_size;
     if (was_full && !is_full) {
-        bthread_id_list_swap(&tmplist, &_writable_wait_list);
+        fiber_session_list_swap(&tmplist, &_writable_wait_list);
     }
-    bthread_mutex_unlock(&_congestion_control_mutex);
+    fiber_mutex_unlock(&_congestion_control_mutex);
 
     // broadcast
-    bthread_id_list_reset(&tmplist, 0);
-    bthread_id_list_destroy(&tmplist);
+    fiber_session_list_reset(&tmplist, 0);
+    fiber_session_list_destroy(&tmplist);
 }
 
 void* Stream::RunOnWritable(void* arg) {
@@ -355,45 +355,45 @@ void* Stream::RunOnWritable(void* arg) {
     return NULL;
 }
 
-int Stream::TriggerOnWritable(bthread_id_t id, void *data, int error_code) {
+int Stream::TriggerOnWritable(fiber_session_t id, void *data, int error_code) {
     WritableMeta *wm = (WritableMeta*)data;
     
     if (wm->has_timer) {
-        bthread_timer_del(wm->timer);
+        fiber_timer_del(wm->timer);
     }
     wm->error_code = error_code;
     if (wm->new_thread) {
-        const bthread_attr_t* attr = 
-            FLAGS_usercode_in_pthread ? &BTHREAD_ATTR_PTHREAD
-            : &BTHREAD_ATTR_NORMAL;
-        bthread_t tid;
-        if (bthread_start_background(&tid, attr, RunOnWritable, wm) != 0) {
-            LOG(FATAL) << "Fail to start bthread" << berror();
+        const fiber_attr_t* attr =
+            FLAGS_usercode_in_pthread ? &FIBER_ATTR_PTHREAD
+            : &FIBER_ATTR_NORMAL;
+        fiber_t tid;
+        if (fiber_start_background(&tid, attr, RunOnWritable, wm) != 0) {
+            LOG(FATAL) << "Fail to start fiber" << berror();
             RunOnWritable(wm);
         }
     } else {
         RunOnWritable(wm);
     }
-    return bthread_id_unlock_and_destroy(id);
+    return fiber_session_unlock_and_destroy(id);
 }
 
 void OnTimedOut(void *arg) {
-    bthread_id_t id = { reinterpret_cast<uint64_t>(arg) };
-    bthread_id_error(id, ETIMEDOUT);
+    fiber_session_t id = { reinterpret_cast<uint64_t>(arg) };
+    fiber_session_error(id, ETIMEDOUT);
 }
 
 void Stream::Wait(void (*on_writable)(StreamId, void*, int), void* arg, 
-                  const timespec* due_time, bool new_thread, bthread_id_t *join_id) {
+                  const timespec* due_time, bool new_thread, fiber_session_t *join_id) {
     WritableMeta *wm = new WritableMeta;
     wm->on_writable = on_writable;
     wm->id = id();
     wm->arg = arg;
     wm->new_thread = new_thread;
     wm->has_timer = false;
-    bthread_id_t wait_id;
-    const int rc = bthread_id_create(&wait_id, wm, TriggerOnWritable);
+    fiber_session_t wait_id;
+    const int rc = fiber_session_create(&wait_id, wm, TriggerOnWritable);
     if (rc != 0) {
-        CHECK(false) << "Fail to create bthread_id, " << berror(rc);
+        CHECK(false) << "Fail to create fiber_session, " << berror(rc);
         wm->error_code = rc;
         RunOnWritable(wm);
         return;
@@ -401,10 +401,10 @@ void Stream::Wait(void (*on_writable)(StreamId, void*, int), void* arg,
     if (join_id) {
         *join_id = wait_id;
     }
-    CHECK_EQ(0, bthread_id_lock(wait_id, NULL));
+    CHECK_EQ(0, fiber_session_lock(wait_id, NULL));
     if (due_time != NULL) {
         wm->has_timer = true;
-        const int rc = bthread_timer_add(&wm->timer, *due_time,
+        const int rc = fiber_timer_add(&wm->timer, *due_time,
                                          OnTimedOut, 
                                          reinterpret_cast<void*>(wait_id.value));
         if (rc != 0) {
@@ -412,17 +412,17 @@ void Stream::Wait(void (*on_writable)(StreamId, void*, int), void* arg,
             CHECK_EQ(0, TriggerOnWritable(wait_id, wm, rc));
         }
     }
-    bthread_mutex_lock(&_congestion_control_mutex);
+    fiber_mutex_lock(&_congestion_control_mutex);
     if (_cur_buf_size <= 0 
             || _produced < _remote_consumed + _cur_buf_size) {
-        bthread_mutex_unlock(&_congestion_control_mutex);
+        fiber_mutex_unlock(&_congestion_control_mutex);
         CHECK_EQ(0, TriggerOnWritable(wait_id, wm, 0));
         return;
     } else {
-        bthread_id_list_add(&_writable_wait_list, wait_id);
-        bthread_mutex_unlock(&_congestion_control_mutex);
+        fiber_session_list_add(&_writable_wait_list, wait_id);
+        fiber_mutex_unlock(&_congestion_control_mutex);
     }
-    CHECK_EQ(0, bthread_id_unlock(wait_id));
+    CHECK_EQ(0, fiber_session_unlock(wait_id));
 }
 
 void Stream::Wait(void (*on_writable)(StreamId, void *, int), void *arg,
@@ -436,15 +436,15 @@ void OnWritable(StreamId, void *arg, int error_code) {
 
 int Stream::Wait(const timespec* due_time) {
     int rc;
-    bthread_id_t join_id = INVALID_BTHREAD_ID;
+    fiber_session_t join_id = INVALID_FIBER_ID;
     Wait(OnWritable, &rc, due_time, false, &join_id);
-    if (join_id != INVALID_BTHREAD_ID) {
-        bthread_id_join(join_id);
+    if (join_id != INVALID_FIBER_ID) {
+        fiber_session_join(join_id);
     }
     return rc;
 }
 
-int Stream::OnReceived(const StreamFrameMeta& fm, butil::IOBuf *buf, Socket* sock) {
+int Stream::OnReceived(const StreamFrameMeta& fm, mutil::IOBuf *buf, Socket* sock) {
     if (_host_socket == NULL) {
         if (SetHostSocket(sock) != 0) {
             return -1;
@@ -460,13 +460,13 @@ int Stream::OnReceived(const StreamFrameMeta& fm, butil::IOBuf *buf, Socket* soc
             _pending_buf->append(*buf);
             buf->clear();
         } else {
-            _pending_buf = new butil::IOBuf;
+            _pending_buf = new mutil::IOBuf;
             _pending_buf->swap(*buf);
         }
         if (!fm.has_continuation()) {
-            butil::IOBuf *tmp = _pending_buf;
+            mutil::IOBuf *tmp = _pending_buf;
             _pending_buf = NULL;
-            if (bthread::execution_queue_execute(_consumer_queue, tmp) != 0) {
+            if (fiber::execution_queue_execute(_consumer_queue, tmp) != 0) {
                 CHECK(false) << "Fail to push into channel";
                 delete tmp;
                 Close();
@@ -491,7 +491,7 @@ int Stream::OnReceived(const StreamFrameMeta& fm, butil::IOBuf *buf, Socket* soc
 
 class MessageBatcher {
 public:
-    MessageBatcher(butil::IOBuf* storage[], size_t cap, Stream* s) 
+    MessageBatcher(mutil::IOBuf* storage[], size_t cap, Stream* s)
         : _storage(storage)
         , _cap(cap)
         , _size(0)
@@ -509,7 +509,7 @@ public:
         }
         _size = 0;
     }
-    void push(butil::IOBuf* buf) {
+    void push(mutil::IOBuf* buf) {
         if (_size == _cap) {
             flush();
         }
@@ -519,14 +519,14 @@ public:
     }
     size_t total_length() { return _total_length; }
 private:
-    butil::IOBuf** _storage;
+    mutil::IOBuf** _storage;
     size_t _cap;
     size_t _size;
     size_t _total_length;
     Stream* _s;
 };
 
-int Stream::Consume(void *meta, bthread::TaskIterator<butil::IOBuf*>& iter) {
+int Stream::Consume(void *meta, fiber::TaskIterator<mutil::IOBuf*>& iter) {
     Stream* s = (Stream*)meta;
     s->StopIdleTimer();
     if (iter.is_queue_stopped()) {
@@ -541,11 +541,11 @@ int Stream::Consume(void *meta, bthread::TaskIterator<butil::IOBuf*>& iter) {
         delete s;
         return 0;
     }
-    DEFINE_SMALL_ARRAY(butil::IOBuf*, buf_list, s->_options.messages_in_batch, 256);
+    DEFINE_SMALL_ARRAY(mutil::IOBuf*, buf_list, s->_options.messages_in_batch, 256);
     MessageBatcher mb(buf_list, s->_options.messages_in_batch, s);
     bool has_timeout_task = false;
     for (; iter; ++iter) {
-        butil::IOBuf* t= *iter;
+        mutil::IOBuf* t= *iter;
         if (t == TIMEOUT_TASK) {
             has_timeout_task = true;
         } else {
@@ -578,7 +578,7 @@ void Stream::SendFeedback() {
     fm.set_stream_id(_remote_settings.stream_id());
     fm.set_source_stream_id(id());
     fm.mutable_feedback()->set_consumed_size(_local_consumed);
-    butil::IOBuf out;
+    mutil::IOBuf out;
     policy::PackStreamMessage(&out, fm, NULL);
     WriteToHostSocket(&out);
 }
@@ -605,18 +605,18 @@ void Stream::FillSettings(StreamSettings *settings) {
 }
 
 void OnIdleTimeout(void *arg) {
-    bthread::ExecutionQueueId<butil::IOBuf*> q = { (uint64_t)arg };
-    bthread::execution_queue_execute(q, (butil::IOBuf*)TIMEOUT_TASK);
+    fiber::ExecutionQueueId<mutil::IOBuf*> q = { (uint64_t)arg };
+    fiber::execution_queue_execute(q, (mutil::IOBuf*)TIMEOUT_TASK);
 }
 
 void Stream::StartIdleTimer() {
     if (_options.idle_timeout_ms < 0) {
         return;
     }
-    _start_idle_timer_us = butil::gettimeofday_us();
-    timespec due_time = butil::microseconds_to_timespec(
+    _start_idle_timer_us = mutil::gettimeofday_us();
+    timespec due_time = mutil::microseconds_to_timespec(
             _start_idle_timer_us + _options.idle_timeout_ms * 1000);
-    const int rc = bthread_timer_add(&_idle_timer, due_time, OnIdleTimeout,
+    const int rc = fiber_timer_add(&_idle_timer, due_time, OnIdleTimeout,
                                      (void*)(_consumer_queue.value));
     LOG_IF(WARNING, rc != 0) << "Fail to add timer";
 }
@@ -626,20 +626,20 @@ void Stream::StopIdleTimer() {
         return;
     }
     if (_idle_timer != 0) {
-        bthread_timer_del(_idle_timer);
+        fiber_timer_del(_idle_timer);
     }
 }
 
 void Stream::Close() {
     _fake_socket_weak_ref->SetFailed();
-    bthread_mutex_lock(&_connect_mutex);
+    fiber_mutex_lock(&_connect_mutex);
     if (_closed) {
-        bthread_mutex_unlock(&_connect_mutex);
+        fiber_mutex_unlock(&_connect_mutex);
         return;
     }
     _closed = true;
     if (_connected) {
-        bthread_mutex_unlock(&_connect_mutex);
+        fiber_mutex_unlock(&_connect_mutex);
         return;
     }
     _connect_meta.ec = ECONNRESET;
@@ -658,10 +658,10 @@ int Stream::SetFailed(StreamId id) {
     return 0;
 }
 
-void Stream::HandleRpcResponse(butil::IOBuf* response_buffer) {
+void Stream::HandleRpcResponse(mutil::IOBuf* response_buffer) {
     CHECK(!_remote_settings.IsInitialized());
     CHECK(_host_socket != NULL);
-    std::unique_ptr<butil::IOBuf> buf_guard(response_buffer);
+    std::unique_ptr<mutil::IOBuf> buf_guard(response_buffer);
     ParseResult pr = policy::ParseRpcMessage(response_buffer, NULL, true, NULL);
     if (!pr.is_ok()) {
         CHECK(false);
@@ -676,13 +676,13 @@ void Stream::HandleRpcResponse(butil::IOBuf* response_buffer) {
     }
     _host_socket->PostponeEOF();
     _host_socket->ReAddress(&msg->_socket);
-    msg->_received_us = butil::gettimeofday_us(); 
-    msg->_base_real_us = butil::gettimeofday_us();
+    msg->_received_us = mutil::gettimeofday_us();
+    msg->_base_real_us = mutil::gettimeofday_us();
     msg->_arg = NULL; // ProcessRpcResponse() don't need arg
     policy::ProcessRpcResponse(msg);
 }
 
-int StreamWrite(StreamId stream_id, const butil::IOBuf &message,
+int StreamWrite(StreamId stream_id, const mutil::IOBuf &message,
                 const StreamWriteOptions* options) {
     SocketUniquePtr ptr;
     if (Socket::Address(stream_id, &ptr) != 0) {
@@ -706,12 +706,12 @@ void StreamWait(StreamId stream_id, const timespec *due_time,
         wm->has_timer = false;
         wm->on_writable = on_writable;
         wm->error_code = EINVAL;
-        const bthread_attr_t* attr = 
-            FLAGS_usercode_in_pthread ? &BTHREAD_ATTR_PTHREAD
-            : &BTHREAD_ATTR_NORMAL;
-        bthread_t tid;
-        if (bthread_start_background(&tid, attr, Stream::RunOnWritable, wm) != 0) {
-            PLOG(FATAL) << "Fail to start bthread";
+        const fiber_attr_t* attr =
+            FLAGS_usercode_in_pthread ? &FIBER_ATTR_PTHREAD
+            : &FIBER_ATTR_NORMAL;
+        fiber_t tid;
+        if (fiber_start_background(&tid, attr, Stream::RunOnWritable, wm) != 0) {
+            PLOG(FATAL) << "Fail to start fiber";
             Stream::RunOnWritable(wm);
         }
         return;

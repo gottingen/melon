@@ -22,7 +22,7 @@ include $(BRPC_PATH)/config.mk
 # 1. Added -fno-omit-frame-pointer: perf/tcmalloc-profiler use frame pointers by default
 CXXFLAGS+=$(CPPFLAGS) -std=c++0x -DNDEBUG -O2 -pipe -W -Wall -Wno-unused-parameter -fPIC -fno-omit-frame-pointer
 ifeq ($(NEED_GPERFTOOLS), 1)
-	CXXFLAGS+=-DBRPC_ENABLE_CPU_PROFILER
+	CXXFLAGS+=-DMELON_ENABLE_CPU_PROFILER
 endif
 HDRS+=$(BRPC_PATH)/output/include
 LIBS+=$(BRPC_PATH)/output/lib

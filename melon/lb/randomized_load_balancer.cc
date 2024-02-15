@@ -16,20 +16,20 @@
 // under the License.
 
 
-#include "melon/butil/macros.h"
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/lb/randomized_load_balancer.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/strings/string_number_conversions.h"
 
 namespace melon::lb {
 
     const uint32_t prime_offset[] = {
-#include "melon/bthread/offset_inl.list"
+#include "melon/fiber/offset_inl.list"
     };
 
     inline uint32_t GenRandomStride() {
-        return prime_offset[butil::fast_rand_less_than(ARRAY_SIZE(prime_offset))];
+        return prime_offset[mutil::fast_rand_less_than(ARRAY_SIZE(prime_offset))];
     }
 
     bool RandomizedLoadBalancer::Add(Servers &bg, const ServerId &id) {
@@ -103,7 +103,7 @@ namespace melon::lb {
     }
 
     int RandomizedLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-        butil::DoublyBufferedData<Servers>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             return ENOMEM;
         }
@@ -117,7 +117,7 @@ namespace melon::lb {
             }
         }
         uint32_t stride = 0;
-        size_t offset = butil::fast_rand_less_than(n);
+        size_t offset = mutil::fast_rand_less_than(n);
         for (size_t i = 0; i < n; ++i) {
             const SocketId id = s->server_list[offset].id;
             if (((i + 1) == n  // always take last chance
@@ -143,7 +143,7 @@ namespace melon::lb {
     }
 
     RandomizedLoadBalancer *RandomizedLoadBalancer::New(
-            const butil::StringPiece &params) const {
+            const mutil::StringPiece &params) const {
         RandomizedLoadBalancer *lb = new(std::nothrow) RandomizedLoadBalancer;
         if (lb && !lb->SetParameters(params)) {
             delete lb;
@@ -163,7 +163,7 @@ namespace melon::lb {
             return;
         }
         os << "Randomized{";
-        butil::DoublyBufferedData<Servers>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             os << "fail to read _db_servers";
         } else {
@@ -175,7 +175,7 @@ namespace melon::lb {
         os << '}';
     }
 
-    bool RandomizedLoadBalancer::SetParameters(const butil::StringPiece &params) {
+    bool RandomizedLoadBalancer::SetParameters(const mutil::StringPiece &params) {
         return GetRecoverPolicyByParams(params, &_cluster_recover_policy);
     }
 

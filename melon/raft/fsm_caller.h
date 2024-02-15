@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #ifndef  MELON_RAFT_FSM_CALLER_H_
 #define  MELON_RAFT_FSM_CALLER_H_
 
-#include <melon/butil/macros.h>                        // BAIDU_CACHELINE_ALIGNMENT
-#include <melon/bthread/bthread.h>
-#include <melon/bthread/execution_queue.h>
+#include <melon/utility/macros.h>                        // MELON_CACHELINE_ALIGNMENT
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/execution_queue.h>
 #include "melon/raft/ballot_box.h"
 #include "melon/raft/closure_queue.h"
 #include "melon/raft/macros.h"
@@ -58,7 +55,7 @@ namespace melon::raft {
 
         Closure *done() const;
 
-        void set_error_and_rollback(size_t ntail, const butil::Status *st);
+        void set_error_and_rollback(size_t ntail, const mutil::Status *st);
 
         bool has_error() const { return _error.type() != ERROR_TYPE_NONE; }
 
@@ -74,7 +71,7 @@ namespace melon::raft {
                      int64_t first_closure_index,
                      int64_t last_applied_index,
                      int64_t committed_index,
-                     butil::atomic<int64_t> *applying_index);
+                     mutil::atomic<int64_t> *applying_index);
 
         ~IteratorImpl() {}
 
@@ -87,7 +84,7 @@ namespace melon::raft {
         int64_t _cur_index;
         int64_t _committed_index;
         LogEntry *_cur_entry;
-        butil::atomic<int64_t> *_applying_index;
+        mutil::atomic<int64_t> *_applying_index;
         Error _error;
     };
 
@@ -117,7 +114,7 @@ namespace melon::raft {
         virtual SnapshotReader *start() = 0;
     };
 
-    class BAIDU_CACHELINE_ALIGNMENT FSMCaller {
+    class MELON_CACHELINE_ALIGNMENT FSMCaller {
     public:
         FSMCaller();
 
@@ -133,7 +130,7 @@ namespace melon::raft {
 
         BRAFT_MOCK int on_snapshot_save(SaveSnapshotClosure *done);
 
-        int on_leader_stop(const butil::Status &status);
+        int on_leader_stop(const mutil::Status &status);
 
         int on_leader_start(int64_t term, int64_t lease_epoch);
 
@@ -144,7 +141,7 @@ namespace melon::raft {
         BRAFT_MOCK int on_error(const Error &e);
 
         int64_t last_applied_index() const {
-            return _last_applied_index.load(butil::memory_order_relaxed);
+            return _last_applied_index.load(mutil::memory_order_relaxed);
         }
 
         int64_t applying_index() const;
@@ -187,7 +184,7 @@ namespace melon::raft {
                 LeaderStartContext *leader_start_context;
 
                 // For on_leader_stop
-                butil::Status *status;
+                mutil::Status *status;
 
                 // For on_start_following and on_stop_following
                 LeaderChangeContext *leader_change_context;
@@ -199,7 +196,7 @@ namespace melon::raft {
 
         static double get_cumulated_cpu_time(void *arg);
 
-        static int run(void *meta, bthread::TaskIterator<ApplyTask> &iter);
+        static int run(void *meta, fiber::TaskIterator<ApplyTask> &iter);
 
         void do_shutdown(); //Closure* done);
         void do_committed(int64_t committed_index);
@@ -212,7 +209,7 @@ namespace melon::raft {
 
         void do_on_error(OnErrorClousre *done);
 
-        void do_leader_stop(const butil::Status &status);
+        void do_leader_stop(const mutil::Status &status);
 
         void do_leader_start(const LeaderStartContext &leader_start_context);
 
@@ -224,16 +221,16 @@ namespace melon::raft {
 
         bool pass_by_status(Closure *done);
 
-        bthread::ExecutionQueueId<ApplyTask> _queue_id;
+        fiber::ExecutionQueueId<ApplyTask> _queue_id;
         LogManager *_log_manager;
         StateMachine *_fsm;
         ClosureQueue *_closure_queue;
-        butil::atomic<int64_t> _last_applied_index;
+        mutil::atomic<int64_t> _last_applied_index;
         int64_t _last_applied_term;
         google::protobuf::Closure *_after_shutdown;
         NodeImpl *_node;
         TaskType _cur_task;
-        butil::atomic<int64_t> _applying_index;
+        mutil::atomic<int64_t> _applying_index;
         Error _error;
         bool _queue_started;
     };

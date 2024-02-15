@@ -12,17 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Zheng,Pengfei(zhengpengfei@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
-//          Yang,Guodong(yangguodong01@baidu.com)
 
 #ifndef  MELON_RAFT_FILE_READER_H_
 #define  MELON_RAFT_FILE_READER_H_
 
 #include <set>                              // std::set
-#include <melon/butil/memory/ref_counted.h>        // butil::RefCountedThreadsafe
-#include <melon/butil/iobuf.h>                     // butil::IOBuf
+#include <melon/utility/memory/ref_counted.h>        // mutil::RefCountedThreadsafe
+#include <melon/utility/iobuf.h>                     // mutil::IOBuf
 #include "melon/raft/macros.h"
 #include "melon/raft/file_system_adaptor.h"
 
@@ -30,8 +26,8 @@ namespace melon::raft {
 
     // Abstract class to read data from a file
     // All the const method should be thread safe
-    class FileReader : public butil::RefCountedThreadSafe<FileReader> {
-        friend class butil::RefCountedThreadSafe<FileReader>;
+    class FileReader : public mutil::RefCountedThreadSafe<FileReader> {
+        friend class mutil::RefCountedThreadSafe<FileReader>;
 
     public:
         // Read data from filename at |offset| (from the start of the file) for at
@@ -41,7 +37,7 @@ namespace melon::raft {
         // request is throttled or reach the end of the file. In the case of
         // reaching the end of the file, |is_eof| is also set to true.
         // Returns 0 on success, the error otherwise
-        virtual int read_file(butil::IOBuf *out,
+        virtual int read_file(mutil::IOBuf *out,
                               const std::string &filename,
                               off_t offset,
                               size_t max_count,
@@ -76,7 +72,7 @@ namespace melon::raft {
         // request is throttled or reach the end of the file. In the case of
         // reaching the end of the file, |is_eof| is also set to true.
         // Returns 0 on success, the error otherwise
-        virtual int read_file(butil::IOBuf *out,
+        virtual int read_file(mutil::IOBuf *out,
                               const std::string &filename,
                               off_t offset,
                               size_t max_count,
@@ -87,7 +83,7 @@ namespace melon::raft {
         virtual const std::string &path() const { return _path; }
 
     protected:
-        int read_file_with_meta(butil::IOBuf *out,
+        int read_file_with_meta(mutil::IOBuf *out,
                                 const std::string &filename,
                                 google::protobuf::Message *file_meta,
                                 off_t offset,

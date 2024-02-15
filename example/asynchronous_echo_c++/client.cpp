@@ -18,13 +18,13 @@
 // A client sending requests to server asynchronously every 1 second.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/time.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/time.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
 
 DEFINE_bool(send_attachment, true, "Carry attachment along with requests");
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
+DEFINE_string(protocol, "melon_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:8003", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");

@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Ge,Jun(gejun@baidu.com)
 
 #ifndef MELON_RAFT_RAFT_CONFIGURATION_H_
 #define MELON_RAFT_RAFT_CONFIGURATION_H_
@@ -24,9 +21,9 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <melon/butil/strings/string_piece.h>
-#include <melon/butil/endpoint.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/strings/string_piece.h>
+#include <melon/utility/endpoint.h>
+#include <melon/utility/logging.h>
 
 namespace melon::raft {
 
@@ -41,17 +38,17 @@ namespace melon::raft {
 
 // Represent a participant in a replicating group.
     struct PeerId {
-        butil::EndPoint addr; // ip+port.
+        mutil::EndPoint addr; // ip+port.
         int idx; // idx in same addr, default 0
         Role role = REPLICA;
 
         PeerId() : idx(0), role(REPLICA) {}
 
-        explicit PeerId(butil::EndPoint addr_) : addr(addr_), idx(0), role(REPLICA) {}
+        explicit PeerId(mutil::EndPoint addr_) : addr(addr_), idx(0), role(REPLICA) {}
 
-        PeerId(butil::EndPoint addr_, int idx_) : addr(addr_), idx(idx_), role(REPLICA) {}
+        PeerId(mutil::EndPoint addr_, int idx_) : addr(addr_), idx(idx_), role(REPLICA) {}
 
-        PeerId(butil::EndPoint addr_, int idx_, bool witness) : addr(addr_), idx(idx_) {
+        PeerId(mutil::EndPoint addr_, int idx_, bool witness) : addr(addr_), idx(idx_) {
             if (witness) {
                 this->role = WITNESS;
             }
@@ -62,14 +59,14 @@ namespace melon::raft {
         PeerId(const PeerId &id) : addr(id.addr), idx(id.idx), role(id.role) {}
 
         void reset() {
-            addr.ip = butil::IP_ANY;
+            addr.ip = mutil::IP_ANY;
             addr.port = 0;
             idx = 0;
             role = REPLICA;
         }
 
         bool is_empty() const {
-            return (addr.ip == butil::IP_ANY && addr.port == 0 && idx == 0);
+            return (addr.ip == mutil::IP_ANY && addr.port == 0 && idx == 0);
         }
 
         bool is_witness() const {
@@ -89,7 +86,7 @@ namespace melon::raft {
                 reset();
                 return -1;
             }
-            if (0 != butil::str2ip(ip_str, &addr.ip)) {
+            if (0 != mutil::str2ip(ip_str, &addr.ip)) {
                 reset();
                 return -1;
             }
@@ -98,7 +95,7 @@ namespace melon::raft {
 
         std::string to_string() const {
             char str[128];
-            snprintf(str, sizeof(str), "%s:%d:%d", butil::endpoint2str(addr).c_str(), idx, int(role));
+            snprintf(str, sizeof(str), "%s:%d:%d", mutil::endpoint2str(addr).c_str(), idx, int(role));
             return std::string(str);
         }
 
@@ -297,7 +294,7 @@ namespace melon::raft {
 
         // Parse Configuration from a string into |this|
         // Returns 0 on success, -1 otherwise
-        int parse_from(butil::StringPiece conf);
+        int parse_from(mutil::StringPiece conf);
 
     private:
         std::set<PeerId> _peers;

@@ -17,9 +17,9 @@
 
 #include <cstring>
 #include <strings.h>
-#include "melon/butil/string_printf.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/strings/string_number_conversions.h"
 #include "melon/rpc/adaptive_max_concurrency.h"
 
 namespace melon {
@@ -35,7 +35,7 @@ AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(int max_concurrency)
         _value = UNLIMITED();
         _max_concurrency = 0;
     } else {
-        _value = butil::string_printf("%d", max_concurrency);
+        _value = mutil::string_printf("%d", max_concurrency);
         _max_concurrency = max_concurrency;
     }
 }
@@ -45,7 +45,7 @@ AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(
     : _value("timeout"), _max_concurrency(-1), _timeout_conf(value) {}
 
 inline bool CompareStringPieceWithoutCase(
-    const butil::StringPiece& s1, const char* s2) {
+    const mutil::StringPiece& s1, const char* s2) {
     DCHECK(s2 != NULL);
     if (std::strlen(s2) != s1.size()) {
         return false;
@@ -53,10 +53,10 @@ inline bool CompareStringPieceWithoutCase(
     return ::strncasecmp(s1.data(), s2, s1.size()) == 0;
 }
 
-AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const butil::StringPiece& value)
+AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const mutil::StringPiece& value)
     : _max_concurrency(0) {
     int max_concurrency = 0;
-    if (butil::StringToInt(value, &max_concurrency)) {
+    if (mutil::StringToInt(value, &max_concurrency)) {
         operator=(max_concurrency);
     } else {
         value.CopyToString(&_value);
@@ -64,9 +64,9 @@ AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const butil::StringPiece& value)
     }
 }
 
-void AdaptiveMaxConcurrency::operator=(const butil::StringPiece& value) {
+void AdaptiveMaxConcurrency::operator=(const mutil::StringPiece& value) {
     int max_concurrency = 0;
-    if (butil::StringToInt(value, &max_concurrency)) {
+    if (mutil::StringToInt(value, &max_concurrency)) {
         return operator=(max_concurrency);
     } else {
         value.CopyToString(&_value);
@@ -79,7 +79,7 @@ void AdaptiveMaxConcurrency::operator=(int max_concurrency) {
         _value = UNLIMITED();
         _max_concurrency = 0;
     } else {
-        _value = butil::string_printf("%d", max_concurrency);
+        _value = mutil::string_printf("%d", max_concurrency);
         _max_concurrency = max_concurrency;
     }
 }
@@ -111,7 +111,7 @@ const std::string& AdaptiveMaxConcurrency::CONSTANT() {
 }
 
 bool operator==(const AdaptiveMaxConcurrency& adaptive_concurrency,
-                const butil::StringPiece& concurrency) {
+                const mutil::StringPiece& concurrency) {
     return CompareStringPieceWithoutCase(concurrency, 
                                          adaptive_concurrency.value().c_str());
 }

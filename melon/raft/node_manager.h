@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_NODE_MANAGER_H_
 #define  MELON_RAFT_NODE_MANAGER_H_
 
-#include <melon/butil/memory/singleton.h>
-#include <melon/butil/containers/doubly_buffered_data.h>
+#include <melon/utility/memory/singleton.h>
+#include <melon/utility/containers/doubly_buffered_data.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/util.h"
 
@@ -49,13 +48,13 @@ namespace melon::raft {
 
         // Add service to |server| at |listen_addr|
         int add_service(melon::Server *server,
-                        const butil::EndPoint &listen_addr);
+                        const mutil::EndPoint &listen_addr);
 
         // Return true if |addr| is reachable by a RPC Server
-        bool server_exists(butil::EndPoint addr);
+        bool server_exists(mutil::EndPoint addr);
 
         // Remove the addr from _addr_set when the backing service is destroyed
-        void remove_address(butil::EndPoint addr);
+        void remove_address(mutil::EndPoint addr);
 
     private:
         NodeManager();
@@ -80,10 +79,10 @@ namespace melon::raft {
 
         static size_t _remove_node(Maps &, const NodeImpl *node);
 
-        butil::DoublyBufferedData<Maps> _nodes;
+        mutil::DoublyBufferedData<Maps> _nodes;
 
         raft_mutex_t _mutex;
-        std::set<butil::EndPoint> _addr_set;
+        std::set<mutil::EndPoint> _addr_set;
     };
 
 #define global_node_manager NodeManager::GetInstance()

@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
-
 #ifndef MELON_RAFT_RAFT_META_H_
 #define MELON_RAFT_RAFT_META_H_
 
-#include <melon/butil/memory/ref_counted.h>
+#include <melon/utility/memory/ref_counted.h>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
-#include <melon/bthread/execution_queue.h>
+#include <melon/fiber/execution_queue.h>
 #include "melon/raft/storage.h"
 
 namespace melon::raft {
@@ -39,19 +36,19 @@ namespace melon::raft {
         virtual ~MixedMetaStorage();
 
         // init meta storage
-        virtual butil::Status init();
+        virtual mutil::Status init();
 
         // set term and votedfor information
-        virtual butil::Status set_term_and_votedfor(const int64_t term,
+        virtual mutil::Status set_term_and_votedfor(const int64_t term,
                                                     const PeerId &peer_id, const VersionedGroupId &group);
 
         // get term and votedfor information
-        virtual butil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
+        virtual mutil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
                                                     const VersionedGroupId &group);
 
         RaftMetaStorage *new_instance(const std::string &uri) const;
 
-        butil::Status gc_instance(const std::string &uri,
+        mutil::Status gc_instance(const std::string &uri,
                                   const VersionedGroupId &vgid) const;
 
         bool is_bad() { return _is_bad; }
@@ -81,19 +78,19 @@ namespace melon::raft {
         virtual ~FileBasedSingleMetaStorage() {}
 
         // init stable storage
-        virtual butil::Status init();
+        virtual mutil::Status init();
 
         // set term and votedfor information
-        virtual butil::Status set_term_and_votedfor(const int64_t term, const PeerId &peer_id,
+        virtual mutil::Status set_term_and_votedfor(const int64_t term, const PeerId &peer_id,
                                                     const VersionedGroupId &group);
 
         // get term and votedfor information
-        virtual butil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
+        virtual mutil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
                                                     const VersionedGroupId &group);
 
         RaftMetaStorage *new_instance(const std::string &uri) const;
 
-        butil::Status gc_instance(const std::string &uri,
+        mutil::Status gc_instance(const std::string &uri,
                                   const VersionedGroupId &vgid) const;
 
     private:
@@ -120,24 +117,24 @@ namespace melon::raft {
         virtual ~KVBasedMergedMetaStorage();
 
         // init stable storage
-        virtual butil::Status init();
+        virtual mutil::Status init();
 
         // set term and votedfor information
-        virtual butil::Status set_term_and_votedfor(const int64_t term,
+        virtual mutil::Status set_term_and_votedfor(const int64_t term,
                                                     const PeerId &peer_id,
                                                     const VersionedGroupId &group);
 
         // get term and votedfor information
-        virtual butil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
+        virtual mutil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
                                                     const VersionedGroupId &group);
 
         RaftMetaStorage *new_instance(const std::string &uri) const;
 
-        butil::Status gc_instance(const std::string &uri,
+        mutil::Status gc_instance(const std::string &uri,
                                   const VersionedGroupId &vgid) const;
 
         // GC meta info of a raft instance indicated by |group|
-        virtual butil::Status delete_meta(const VersionedGroupId &group);
+        virtual mutil::Status delete_meta(const VersionedGroupId &group);
 
     private:
 
@@ -146,7 +143,7 @@ namespace melon::raft {
 
 // Inner class of KVBasedMergedMetaStorage
     class KVBasedMergedMetaStorageImpl :
-            public butil::RefCountedThreadSafe<KVBasedMergedMetaStorageImpl> {
+            public mutil::RefCountedThreadSafe<KVBasedMergedMetaStorageImpl> {
         friend class scoped_refptr<KVBasedMergedMetaStorageImpl>;
 
     public:
@@ -171,7 +168,7 @@ namespace melon::raft {
         };
 
         // init stable storage
-        virtual butil::Status init();
+        virtual mutil::Status init();
 
         // set term and votedfor information
         virtual void set_term_and_votedfor(const int64_t term, const PeerId &peer_id,
@@ -182,20 +179,20 @@ namespace melon::raft {
         // no record would be found from db, in which case initial term and votedfor
         // will be set.
         // Initial term: 1   Initial votedfor: ANY_PEER
-        virtual butil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
+        virtual mutil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
                                                     const VersionedGroupId &group);
 
         // GC meta info of a raft instance indicated by |group|
-        virtual butil::Status delete_meta(const VersionedGroupId &group);
+        virtual mutil::Status delete_meta(const VersionedGroupId &group);
 
     private:
-        friend class butil::RefCountedThreadSafe<KVBasedMergedMetaStorageImpl>;
+        friend class mutil::RefCountedThreadSafe<KVBasedMergedMetaStorageImpl>;
 
-        static int run(void *meta, bthread::TaskIterator<WriteTask> &iter);
+        static int run(void *meta, fiber::TaskIterator<WriteTask> &iter);
 
         void run_tasks(leveldb::WriteBatch &updates, Closure *dones[], size_t size);
 
-        bthread::ExecutionQueueId<WriteTask> _queue_id;
+        fiber::ExecutionQueueId<WriteTask> _queue_id;
 
         raft_mutex_t _mutex;
         bool _is_inited;

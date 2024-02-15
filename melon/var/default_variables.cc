@@ -29,14 +29,14 @@
 #else
 #endif
 
-#include "melon/butil/time.h"
-#include "melon/butil/memory/singleton_on_pthread_once.h"
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/files/scoped_file.h"
-#include "melon/butil/files/dir_reader_posix.h"
-#include "melon/butil/file_util.h"
-#include "melon/butil/process_util.h"            // ReadCommandLine
-#include "melon/butil/popen.h"                   // read_command_output
+#include "melon/utility/time.h"
+#include "melon/utility/memory/singleton_on_pthread_once.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/files/scoped_file.h"
+#include "melon/utility/files/dir_reader_posix.h"
+#include "melon/utility/file_util.h"
+#include "melon/utility/process_util.h"            // ReadCommandLine
+#include "melon/utility/popen.h"                   // read_command_output
 #include "melon/var/passive_status.h"
 
 namespace melon::var {
@@ -44,7 +44,7 @@ namespace melon::var {
     template<class T, class M>
     M get_member_type(M T::*);
 
-#define BVAR_MEMBER_TYPE(member) BAIDU_TYPEOF(melon::var::get_member_type(member))
+#define BVAR_MEMBER_TYPE(member) MELON_TYPEOF(melon::var::get_member_type(member))
 
     int do_link_default_variables = 0;
     const int64_t CACHED_INTERVAL_US = 100000L; // 100ms
@@ -79,7 +79,7 @@ namespace melon::var {
 #if defined(OS_LINUX)
         // Read status from /proc/self/stat. Information from `man proc' is out of date,
         // see http://man7.org/linux/man-pages/man5/proc.5.html
-        butil::ScopedFILE fp("/proc/self/stat", "r");
+        mutil::ScopedFILE fp("/proc/self/stat", "r");
         if (NULL == fp) {
             PLOG_ONCE(WARNING) << "Fail to open /proc/self/stat";
             return false;
@@ -107,7 +107,7 @@ namespace melon::var {
         snprintf(cmdbuf, sizeof(cmdbuf),
                 "ps -p %ld -o pid,ppid,pgid,sess"
                 ",tpgid,flags,pri,nice | tail -n1", (long)pid);
-        if (butil::read_command_output(oss, cmdbuf) != 0) {
+        if (mutil::read_command_output(oss, cmdbuf) != 0) {
             LOG(ERROR) << "Fail to read stat";
             return -1;
         }
@@ -144,8 +144,8 @@ namespace melon::var {
         // and 64-bit numbers.
         template<typename ReadFn>
         static const T &get_value(const ReadFn &fn) {
-            CachedReader *p = butil::get_leaky_singleton<CachedReader>();
-            const int64_t now = butil::gettimeofday_us();
+            CachedReader *p = mutil::get_leaky_singleton<CachedReader>();
+            const int64_t now = mutil::gettimeofday_us();
             if (now > p->_mtime_us + CACHED_INTERVAL_US) {
                 pthread_mutex_lock(&p->_mutex);
                 if (now > p->_mtime_us + CACHED_INTERVAL_US) {
@@ -212,7 +212,7 @@ namespace melon::var {
         m = ProcMemory();
         errno = 0;
 #if defined(OS_LINUX)
-        butil::ScopedFILE fp("/proc/self/statm", "r");
+        mutil::ScopedFILE fp("/proc/self/statm", "r");
         if (NULL == fp) {
             PLOG_ONCE(WARNING) << "Fail to open /proc/self/statm";
             return false;
@@ -232,7 +232,7 @@ namespace melon::var {
         std::ostringstream oss;
         char cmdbuf[128];
         snprintf(cmdbuf, sizeof(cmdbuf), "ps -p %ld -o rss=,vsz=", (long)pid);
-        if (butil::read_command_output(oss, cmdbuf) != 0) {
+        if (mutil::read_command_output(oss, cmdbuf) != 0) {
             LOG(ERROR) << "Fail to read memory state";
             return -1;
         }
@@ -280,7 +280,7 @@ namespace melon::var {
 
     static bool read_load_average(LoadAverage &m) {
 #if defined(OS_LINUX)
-        butil::ScopedFILE fp("/proc/loadavg", "r");
+        mutil::ScopedFILE fp("/proc/loadavg", "r");
         if (NULL == fp) {
             PLOG_ONCE(WARNING) << "Fail to open /proc/loadavg";
             return false;
@@ -295,7 +295,7 @@ namespace melon::var {
         return true;
 #elif defined(OS_MACOSX)
         std::ostringstream oss;
-        if (butil::read_command_output(oss, "sysctl -n vm.loadavg") != 0) {
+        if (mutil::read_command_output(oss, "sysctl -n vm.loadavg") != 0) {
             LOG(ERROR) << "Fail to read loadavg";
             return -1;
         }
@@ -335,7 +335,7 @@ namespace melon::var {
 
     static int get_fd_count(int limit) {
 #if defined(OS_LINUX)
-        butil::DirReaderPosix dr("/proc/self/fd");
+        mutil::DirReaderPosix dr("/proc/self/fd");
         int count = 0;
         if (!dr.IsValid()) {
             PLOG(WARNING) << "Fail to open /proc/self/fd";
@@ -354,7 +354,7 @@ namespace melon::var {
         char cmdbuf[128];
         snprintf(cmdbuf, sizeof(cmdbuf),
                 "lsof -p %ld | grep -v \"txt\" | wc -l", (long)pid);
-        if (butil::read_command_output(oss, cmdbuf) != 0) {
+        if (mutil::read_command_output(oss, cmdbuf) != 0) {
             LOG(ERROR) << "Fail to read open files";
             return -1;
         }
@@ -377,12 +377,12 @@ namespace melon::var {
     extern PassiveStatus<int> g_fd_num;
 
     const int MAX_FD_SCAN_COUNT = 10003;
-    static butil::static_atomic<bool> s_ever_reached_fd_scan_limit = BUTIL_STATIC_ATOMIC_INIT(false);
+    static mutil::static_atomic<bool> s_ever_reached_fd_scan_limit = MUTIL_STATIC_ATOMIC_INIT(false);
 
     class FdReader {
     public:
         bool operator()(int *stat) const {
-            if (s_ever_reached_fd_scan_limit.load(butil::memory_order_relaxed)) {
+            if (s_ever_reached_fd_scan_limit.load(mutil::memory_order_relaxed)) {
                 // Never update the count again.
                 return false;
             }
@@ -392,7 +392,7 @@ namespace melon::var {
             }
             if (count == MAX_FD_SCAN_COUNT - 2
                 && s_ever_reached_fd_scan_limit.exchange(
-                    true, butil::memory_order_relaxed) == false) {
+                    true, mutil::memory_order_relaxed) == false) {
                 // Rename the bvar to notify user.
                 g_fd_num.hide();
                 g_fd_num.expose("process_fd_num_too_many");
@@ -435,7 +435,7 @@ namespace melon::var {
 
     static bool read_proc_io(ProcIO *s) {
 #if defined(OS_LINUX)
-        butil::ScopedFILE fp("/proc/self/io", "r");
+        mutil::ScopedFILE fp("/proc/self/io", "r");
         if (NULL == fp) {
             PLOG_ONCE(WARNING) << "Fail to open /proc/self/io";
             return false;
@@ -544,7 +544,7 @@ namespace melon::var {
 
     static bool read_disk_stat(DiskStat *s) {
 #if defined(OS_LINUX)
-        butil::ScopedFILE fp("/proc/diskstats", "r");
+        mutil::ScopedFILE fp("/proc/diskstats", "r");
         if (NULL == fp) {
             PLOG_ONCE(WARNING) << "Fail to open /proc/diskstats";
             return false;
@@ -603,13 +603,13 @@ namespace melon::var {
 
         ReadSelfCmdline() {
             char buf[1024];
-            const ssize_t nr = butil::ReadCommandLine(buf, sizeof(buf), true);
+            const ssize_t nr = mutil::ReadCommandLine(buf, sizeof(buf), true);
             content.append(buf, nr);
         }
     };
 
     static void get_cmdline(std::ostream &os, void *) {
-        os << butil::get_leaky_singleton<ReadSelfCmdline>()->content;
+        os << mutil::get_leaky_singleton<ReadSelfCmdline>()->content;
     }
 
     struct ReadVersion {
@@ -617,7 +617,7 @@ namespace melon::var {
 
         ReadVersion() {
             std::ostringstream oss;
-            if (butil::read_command_output(oss, "uname -ap") != 0) {
+            if (mutil::read_command_output(oss, "uname -ap") != 0) {
                 LOG(ERROR) << "Fail to read kernel version";
                 return;
             }
@@ -626,15 +626,15 @@ namespace melon::var {
     };
 
     static void get_kernel_version(std::ostream &os, void *) {
-        os << butil::get_leaky_singleton<ReadVersion>()->content;
+        os << mutil::get_leaky_singleton<ReadVersion>()->content;
     }
 
 // ======================================
 
-    static int64_t g_starting_time = butil::gettimeofday_us();
+    static int64_t g_starting_time = mutil::gettimeofday_us();
 
     static timeval get_uptime(void *) {
-        int64_t uptime_us = butil::gettimeofday_us() - g_starting_time;
+        int64_t uptime_us = mutil::gettimeofday_us() - g_starting_time;
         timeval tm;
         tm.tv_sec = uptime_us / 1000000L;
         tm.tv_usec = uptime_us - tm.tv_sec * 1000000L;
@@ -768,9 +768,9 @@ namespace melon::var {
     }
 
     static TimePercent get_cputime_percent(void *) {
-        TimePercent tp = {butil::timeval_to_microseconds(g_ru_stime.get_value()) +
-                          butil::timeval_to_microseconds(g_ru_utime.get_value()),
-                          butil::timeval_to_microseconds(g_uptime.get_value())};
+        TimePercent tp = {mutil::timeval_to_microseconds(g_ru_stime.get_value()) +
+                          mutil::timeval_to_microseconds(g_ru_utime.get_value()),
+                          mutil::timeval_to_microseconds(g_uptime.get_value())};
         return tp;
     }
 
@@ -779,8 +779,8 @@ namespace melon::var {
             "process_cpu_usage", &g_cputime_percent, FLAGS_bvar_dump_interval);
 
     static TimePercent get_stime_percent(void *) {
-        TimePercent tp = {butil::timeval_to_microseconds(g_ru_stime.get_value()),
-                          butil::timeval_to_microseconds(g_uptime.get_value())};
+        TimePercent tp = {mutil::timeval_to_microseconds(g_ru_stime.get_value()),
+                          mutil::timeval_to_microseconds(g_uptime.get_value())};
         return tp;
     }
 
@@ -789,8 +789,8 @@ namespace melon::var {
             "process_cpu_usage_system", &g_stime_percent, FLAGS_bvar_dump_interval);
 
     static TimePercent get_utime_percent(void *) {
-        TimePercent tp = {butil::timeval_to_microseconds(g_ru_utime.get_value()),
-                          butil::timeval_to_microseconds(g_uptime.get_value())};
+        TimePercent tp = {mutil::timeval_to_microseconds(g_ru_utime.get_value()),
+                          mutil::timeval_to_microseconds(g_uptime.get_value())};
         return tp;
     }
 
@@ -876,8 +876,8 @@ namespace melon::var {
     PassiveStatus<std::string> g_gcc_version("gcc_version", get_gcc_version, NULL);
 
     void get_work_dir(std::ostream &os, void *) {
-        butil::FilePath path;
-        const bool rc = butil::GetCurrentDirectory(&path);
+        mutil::FilePath path;
+        const bool rc = mutil::GetCurrentDirectory(&path);
         LOG_IF(WARNING, !rc) << "Fail to GetCurrentDirectory";
         os << path.value();
     }

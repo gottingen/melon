@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/butil/macros.h"                           // ARRAY_SIZE
-#include "melon/butil/iobuf.h"                            // butil::IOBuf
+#include "melon/utility/macros.h"                           // ARRAY_SIZE
+#include "melon/utility/iobuf.h"                            // mutil::IOBuf
 #include "melon/rpc/controller.h"                  // Controller
 #include "melon/builtin/sorttable_js.h"
 #include "melon/builtin/jquery_min_js.h"

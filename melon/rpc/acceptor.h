@@ -15,12 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef BRPC_ACCEPTOR_H
-#define BRPC_ACCEPTOR_H
+#ifndef MELON_RPC_ACCEPTOR_H_
+#define MELON_RPC_ACCEPTOR_H_
 
-#include "melon/bthread/bthread.h"                       // bthread_t
-#include "melon/butil/synchronization/condition_variable.h"
-#include "melon/butil/containers/flat_map.h"
+#include "melon/fiber/fiber.h"                       // fiber_t
+#include "melon/utility/synchronization/condition_variable.h"
+#include "melon/utility/containers/flat_map.h"
 #include "melon/rpc/input_messenger.h"
 
 
@@ -34,7 +34,7 @@ struct ConnectStatistics {
 class Acceptor : public InputMessenger {
 friend class Server;
 public:
-    typedef butil::FlatMap<SocketId, ConnectStatistics> SocketMap;
+    typedef mutil::FlatMap<SocketId, ConnectStatistics> SocketMap;
 
     enum Status {
         UNINITIALIZED = 0,
@@ -44,7 +44,7 @@ public:
     };
 
 public:
-    explicit Acceptor(bthread_keytable_pool_t* pool = NULL);
+    explicit Acceptor(fiber_keytable_pool_t* pool = NULL);
     ~Acceptor();
 
     // [thread-safe] Accept connections from `listened_fd'. Ownership of
@@ -92,17 +92,17 @@ private:
     // Remove the accepted socket `sock' from inside
     void BeforeRecycle(Socket* sock) override;
 
-    bthread_keytable_pool_t* _keytable_pool; // owned by Server
+    fiber_keytable_pool_t* _keytable_pool; // owned by Server
     Status _status;
     int _idle_timeout_sec;
-    bthread_t _close_idle_tid;
+    fiber_t _close_idle_tid;
 
     int _listened_fd;
     // The Socket tso accept connections.
     SocketId _acception_id;
 
-    butil::Mutex _map_mutex;
-    butil::ConditionVariable _empty_cond;
+    mutil::Mutex _map_mutex;
+    mutil::ConditionVariable _empty_cond;
     
     // The map containing all the accepted sockets
     SocketMap _socket_map;
@@ -114,10 +114,10 @@ private:
     bool _use_rdma;
 
     // Acceptor belongs to this tag
-    bthread_tag_t _bthread_tag;
+    fiber_tag_t _fiber_tag;
 };
 
 } // namespace melon
 
 
-#endif // BRPC_ACCEPTOR_H
+#endif // MELON_RPC_ACCEPTOR_H_

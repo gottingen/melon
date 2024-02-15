@@ -21,7 +21,7 @@
 
 #include <map>
 #include <vector>
-#include "melon/butil/containers/doubly_buffered_data.h"
+#include "melon/utility/containers/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 
 namespace melon::lb {
@@ -40,7 +40,7 @@ namespace melon::lb {
 
         int SelectServer(const SelectIn &in, SelectOut *out);
 
-        LoadBalancer *New(const butil::StringPiece &) const;
+        LoadBalancer *New(const mutil::StringPiece &) const;
 
         void Destroy();
 
@@ -74,7 +74,7 @@ namespace melon::lb {
 
         static size_t BatchRemove(Servers &bg, const std::vector<ServerId> &servers);
 
-        butil::DoublyBufferedData<Servers> _db_servers;
+        mutil::DoublyBufferedData<Servers> _db_servers;
     };
 
 } // namespace melon::lb

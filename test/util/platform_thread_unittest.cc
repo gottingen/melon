@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/threading/platform_thread.h"
 
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 // Trivial tests that thread runs and doesn't crash on create and join ---------
 
@@ -118,4 +118,4 @@ TEST(PlatformThreadTest, FunctionTimesTen) {
   EXPECT_EQ(main_thread_id, PlatformThread::CurrentId());
 }
 
-}  // namespace butil
+}  // namespace mutil

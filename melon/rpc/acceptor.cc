@@ -18,9 +18,9 @@
 
 #include <inttypes.h>
 #include <gflags/gflags.h>
-#include "melon/butil/fd_guard.h"                 // fd_guard
-#include "melon/butil/fd_utility.h"               // make_close_on_exec
-#include "melon/butil/time.h"                     // gettimeofday_us
+#include "melon/utility/fd_guard.h"                 // fd_guard
+#include "melon/utility/fd_utility.h"               // make_close_on_exec
+#include "melon/utility/time.h"                     // gettimeofday_us
 #include "melon/rpc/rdma/rdma_endpoint.h"
 #include "melon/rpc/acceptor.h"
 
@@ -29,19 +29,19 @@ namespace melon {
 
 static const int INITIAL_CONNECTION_CAP = 65536;
 
-Acceptor::Acceptor(bthread_keytable_pool_t* pool)
+Acceptor::Acceptor(fiber_keytable_pool_t* pool)
     : InputMessenger()
     , _keytable_pool(pool)
     , _status(UNINITIALIZED)
     , _idle_timeout_sec(-1)
-    , _close_idle_tid(INVALID_BTHREAD)
+    , _close_idle_tid(INVALID_FIBER)
     , _listened_fd(-1)
     , _acception_id(0)
     , _empty_cond(&_map_mutex)
     , _force_ssl(false)
     , _ssl_ctx(NULL) 
     , _use_rdma(false)
-    , _bthread_tag(BTHREAD_TAG_DEFAULT) {
+    , _fiber_tag(FIBER_TAG_DEFAULT) {
 }
 
 Acceptor::~Acceptor() {
@@ -76,10 +76,10 @@ int Acceptor::StartAccept(int listened_fd, int idle_timeout_sec,
         return -1;
     }
     if (idle_timeout_sec > 0) {
-        bthread_attr_t tmp = BTHREAD_ATTR_NORMAL;
-        tmp.tag = _bthread_tag;
-        if (bthread_start_background(&_close_idle_tid, &tmp, CloseIdleConnections, this) != 0) {
-            LOG(FATAL) << "Fail to start bthread";
+        fiber_attr_t tmp = FIBER_ATTR_NORMAL;
+        tmp.tag = _fiber_tag;
+        if (fiber_start_background(&_close_idle_tid, &tmp, CloseIdleConnections, this) != 0) {
+            LOG(FATAL) << "Fail to start fiber";
             return -1;
         }
     }
@@ -92,7 +92,7 @@ int Acceptor::StartAccept(int listened_fd, int idle_timeout_sec,
     SocketOptions options;
     options.fd = listened_fd;
     options.user = this;
-    options.bthread_tag = _bthread_tag;
+    options.fiber_tag = _fiber_tag;
     options.on_edge_triggered_events = OnNewConnections;
     if (Socket::Create(options, &_acception_id) != 0) {
         // Close-idle-socket thread will be stopped inside destructor
@@ -109,7 +109,7 @@ void* Acceptor::CloseIdleConnections(void* arg) {
     Acceptor* am = static_cast<Acceptor*>(arg);
     std::vector<SocketId> checking_fds;
     const uint64_t CHECK_INTERVAL_US = 1000000UL;
-    while (bthread_usleep(CHECK_INTERVAL_US) == 0) {
+    while (fiber_usleep(CHECK_INTERVAL_US) == 0) {
         // TODO: this is not efficient for a lot of connections(>100K)
         am->ListConnections(&checking_fds);
         for (size_t i = 0; i < checking_fds.size(); ++i) {
@@ -174,7 +174,7 @@ int Acceptor::Initialize() {
 
 // NOTE: Join() can happen before StopAccept()
 void Acceptor::Join() {
-    std::unique_lock<butil::Mutex> mu(_map_mutex);
+    std::unique_lock<mutil::Mutex> mu(_map_mutex);
     if (_status != STOPPING && _status != RUNNING) {  // no need to join.
         return;
     }
@@ -184,13 +184,13 @@ void Acceptor::Join() {
     }
     const int saved_idle_timeout_sec = _idle_timeout_sec;
     _idle_timeout_sec = 0;
-    const bthread_t saved_close_idle_tid = _close_idle_tid;
+    const fiber_t saved_close_idle_tid = _close_idle_tid;
     mu.unlock();
 
-    // Join the bthread outside lock.
+    // Join the fiber outside lock.
     if (saved_idle_timeout_sec > 0) {
-        bthread_stop(saved_close_idle_tid);
-        bthread_join(saved_close_idle_tid, NULL);
+        fiber_stop(saved_close_idle_tid);
+        fiber_join(saved_close_idle_tid, NULL);
     }
     
     {
@@ -216,7 +216,7 @@ void Acceptor::ListConnections(std::vector<SocketId>* conn_list,
     // ConnectionCount is inaccurate, enough space is reserved
     conn_list->reserve(ConnectionCount() + 10);
 
-    std::unique_lock<butil::Mutex> mu(_map_mutex);
+    std::unique_lock<mutil::Mutex> mu(_map_mutex);
     if (!_socket_map.initialized()) {
         // Optional. Uninitialized FlatMap should be iteratable.
         return;
@@ -257,7 +257,7 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
         struct sockaddr_storage in_addr;
         bzero(&in_addr, sizeof(in_addr));
         socklen_t in_len = sizeof(in_addr);
-        butil::fd_guard in_fd(accept(acception->fd(), (sockaddr*)&in_addr, &in_len));
+        mutil::fd_guard in_fd(accept(acception->fd(), (sockaddr*)&in_addr, &in_len));
         if (in_fd < 0) {
             // no EINTR because listened fd is non-blocking.
             if (errno == EAGAIN) {
@@ -284,7 +284,7 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
         SocketOptions options;
         options.keytable_pool = am->_keytable_pool;
         options.fd = in_fd;
-        butil::sockaddr2endpoint(&in_addr, in_len, &options.remote_side);
+        mutil::sockaddr2endpoint(&in_addr, in_len, &options.remote_side);
         options.user = acception->user();
         options.force_ssl = am->_force_ssl;
         options.initial_ssl_ctx = am->_ssl_ctx;
@@ -298,7 +298,7 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
             options.on_edge_triggered_events = InputMessenger::OnNewMessages;
         }
         options.use_rdma = am->_use_rdma;
-        options.bthread_tag = am->_bthread_tag;
+        options.fiber_tag = am->_fiber_tag;
         if (Socket::Create(options, &socket_id) != 0) {
             LOG(ERROR) << "Fail to create Socket";
             continue;

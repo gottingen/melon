@@ -8,9 +8,9 @@
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
 #include <gtest/gtest.h>
-#include "melon/butil/crc32c.h"
+#include "melon/utility/crc32c.h"
 
-namespace butil {
+namespace mutil {
 namespace crc32c {
 
 class CRC : public testing::Test { };
@@ -74,4 +74,4 @@ TEST_F(CRC, fast_is_on) {
 }
 
 }  // namespace crc32c
-}  // namespace butil
+}  // namespace mutil

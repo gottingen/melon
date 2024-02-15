@@ -28,10 +28,10 @@ namespace melon::var {
 // Expose important gflags as bvar so that they're monitored.
     class GFlag : public Variable {
     public:
-        GFlag(const butil::StringPiece &gflag_name);
+        GFlag(const mutil::StringPiece &gflag_name);
 
-        GFlag(const butil::StringPiece &prefix,
-              const butil::StringPiece &gflag_name);
+        GFlag(const mutil::StringPiece &prefix,
+              const mutil::StringPiece &gflag_name);
 
         // Calling hide() in dtor manually is a MUST required by Variable.
         ~GFlag() { hide(); }

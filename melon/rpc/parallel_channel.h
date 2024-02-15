@@ -19,8 +19,7 @@
 #ifndef BRPC_PARALLEL_CHANNEL_H
 #define BRPC_PARALLEL_CHANNEL_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include <vector>
 #include "melon/rpc/shared_object.h"
@@ -111,7 +110,7 @@ protected:
         return SubCall::Bad();
     }
     
-    // Only callable by subclasses and butil::intrusive_ptr
+    // Only callable by subclasses and mutil::intrusive_ptr
     virtual ~CallMapper() {}
 };
 
@@ -144,7 +143,7 @@ public:
     virtual Result Merge(google::protobuf::Message* response,
                          const google::protobuf::Message* sub_response) = 0;
 protected:
-    // Only callable by subclasses and butil::intrusive_ptr
+    // Only callable by subclasses and mutil::intrusive_ptr
     virtual ~ResponseMerger() { }
 };
 
@@ -222,8 +221,8 @@ public:
     // use intrusive_ptr to avoid potential memory leak 
     int AddChannel(ChannelBase* sub_channel,
                    ChannelOwnership ownership,
-                   const butil::intrusive_ptr<CallMapper>& call_mapper,
-                   const butil::intrusive_ptr<ResponseMerger>& response_merger);
+                   const mutil::intrusive_ptr<CallMapper>& call_mapper,
+                   const mutil::intrusive_ptr<ResponseMerger>& response_merger);
 
     // Call `method' of the remote service with `request' as input, and 
     // `response' as output. `controller' contains options and extra data.
@@ -254,10 +253,10 @@ public:
     struct SubChan {
         ChannelBase* chan;
         ChannelOwnership ownership;
-        butil::intrusive_ptr<CallMapper> call_mapper;
+        mutil::intrusive_ptr<CallMapper> call_mapper;
         // ParallelChannel may be dtor before async RPC call finishes and
         // merger is shared with SubDone.
-        butil::intrusive_ptr<ResponseMerger> merger;
+        mutil::intrusive_ptr<ResponseMerger> merger;
     };
     typedef std::vector<SubChan> ChannelList;
 

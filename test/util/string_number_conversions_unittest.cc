@@ -9,13 +9,13 @@
 #include <cmath>
 #include <limits>
 
-#include "melon/butil/format_macros.h"
-#include "melon/butil/strings/string_number_conversions.h"
-#include "melon/butil/strings/stringprintf.h"
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/format_macros.h"
+#include "melon/utility/strings/string_number_conversions.h"
+#include "melon/utility/strings/stringprintf.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -793,4 +793,4 @@ TEST(StringNumberConversionsTest, HexEncode) {
   EXPECT_EQ(hex.compare("01FF02FE038081"), 0);
 }
 
-}  // namespace butil
+}  // namespace mutil

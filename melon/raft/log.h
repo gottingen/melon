@@ -12,27 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
+
 
 #ifndef MELON_RAFT_LOG_H_
 #define MELON_RAFT_LOG_H_
 
 #include <vector>
 #include <map>
-#include <melon/butil/memory/ref_counted.h>
-#include <melon/butil/atomicops.h>
-#include <melon/butil/iobuf.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/memory/ref_counted.h>
+#include <melon/utility/atomicops.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/logging.h>
 #include "melon/raft/log_entry.h"
 #include "melon/raft/storage.h"
 #include "melon/raft/util.h"
 
 namespace melon::raft {
 
-    class BAIDU_CACHELINE_ALIGNMENT Segment
-            : public butil::RefCountedThreadSafe<Segment> {
+    class MELON_CACHELINE_ALIGNMENT Segment
+            : public mutil::RefCountedThreadSafe<Segment> {
     public:
         Segment(const std::string &path, const int64_t first_index, int checksum_type)
                 : _path(path), _bytes(0), _unsynced_bytes(0),
@@ -90,13 +88,13 @@ namespace melon::raft {
         }
 
         int64_t last_index() const {
-            return _last_index.load(butil::memory_order_consume);
+            return _last_index.load(mutil::memory_order_consume);
         }
 
         std::string file_name();
 
     private:
-        friend class butil::RefCountedThreadSafe<Segment>;
+        friend class mutil::RefCountedThreadSafe<Segment>;
 
         ~Segment() {
             if (_fd >= 0) {
@@ -111,7 +109,7 @@ namespace melon::raft {
             int64_t term;
         };
 
-        int _load_entry(off_t offset, EntryHeader *head, butil::IOBuf *body,
+        int _load_entry(off_t offset, EntryHeader *head, mutil::IOBuf *body,
                         size_t size_hint) const;
 
         int _get_meta(int64_t index, LogMeta *meta) const;
@@ -125,7 +123,7 @@ namespace melon::raft {
         int _fd;
         bool _is_open;
         const int64_t _first_index;
-        butil::atomic<int64_t> _last_index;
+        mutil::atomic<int64_t> _last_index;
         int _checksum_type;
         std::vector<std::pair<int64_t/*offset*/, int64_t/*term*/> > _offset_and_term;
     };
@@ -154,7 +152,7 @@ namespace melon::raft {
 
         // first log index in log
         virtual int64_t first_log_index() {
-            return _first_log_index.load(butil::memory_order_acquire);
+            return _first_log_index.load(mutil::memory_order_acquire);
         }
 
         // last log index in log
@@ -182,7 +180,7 @@ namespace melon::raft {
 
         LogStorage *new_instance(const std::string &uri) const;
 
-        butil::Status gc_instance(const std::string &uri) const;
+        mutil::Status gc_instance(const std::string &uri) const;
 
         SegmentMap segments() {
             MELON_SCOPED_LOCK(_mutex);
@@ -217,8 +215,8 @@ namespace melon::raft {
 
 
         std::string _path;
-        butil::atomic<int64_t> _first_log_index;
-        butil::atomic<int64_t> _last_log_index;
+        mutil::atomic<int64_t> _first_log_index;
+        mutil::atomic<int64_t> _last_log_index;
         raft_mutex_t _mutex;
         SegmentMap _segments;
         scoped_refptr<Segment> _open_segment;

@@ -18,8 +18,8 @@
 
 #include <iostream>
 #include <unordered_map>
-#include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/time.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/redis/redis.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/policy/redis_authenticator.h>
@@ -314,10 +314,10 @@ TEST_F(RedisTest, by_components) {
     melon::RedisResponse response;
     melon::Controller cntl;
 
-    butil::StringPiece comp1[] = { "incr", "counter2" };
-    butil::StringPiece comp2[] = { "decr", "counter2" };
-    butil::StringPiece comp3[] = { "incrby", "counter2", "10" };
-    butil::StringPiece comp4[] = { "decrby", "counter2", "20" };
+    mutil::StringPiece comp1[] = { "incr", "counter2" };
+    mutil::StringPiece comp2[] = { "decr", "counter2" };
+    mutil::StringPiece comp3[] = { "incrby", "counter2", "10" };
+    mutil::StringPiece comp4[] = { "decrby", "counter2", "20" };
 
     request.AddCommandByComponents(comp1, arraysize(comp1));
     request.AddCommandByComponents(comp2, arraysize(comp2));
@@ -346,7 +346,7 @@ static std::string GeneratePassword() {
     std::string result;
     result.reserve(12);
     for (size_t i = 0; i < result.capacity(); ++i) {
-        result.push_back(butil::fast_rand_in('a', 'z'));
+        result.push_back(mutil::fast_rand_in('a', 'z'));
     }
     return result;
 }
@@ -540,7 +540,7 @@ TEST_F(RedisTest, quote_and_escape) {
     request.Clear();
 }
 
-std::string GetCompleteCommand(const std::vector<butil::StringPiece>& commands) {
+std::string GetCompleteCommand(const std::vector<mutil::StringPiece>& commands) {
 	std::string res;
     for (int i = 0; i < (int)commands.size(); ++i) {
         if (i != 0) {
@@ -554,9 +554,9 @@ std::string GetCompleteCommand(const std::vector<butil::StringPiece>& commands) 
 
 TEST_F(RedisTest, command_parser) {
     melon::RedisCommandParser parser;
-    butil::IOBuf buf;
-    std::vector<butil::StringPiece> command_out;
-    butil::Arena arena;
+    mutil::IOBuf buf;
+    std::vector<mutil::StringPiece> command_out;
+    mutil::Arena arena;
     {
         // parse from whole command
         std::string command = "set abc edc";
@@ -576,7 +576,7 @@ TEST_F(RedisTest, command_parser) {
                 if (i == size - 1) {
                     ASSERT_EQ(melon::PARSE_OK, parser.Consume(buf, &command_out, &arena));
                 } else {
-                    if (butil::fast_rand_less_than(2) == 0) {
+                    if (mutil::fast_rand_less_than(2) == 0) {
                         ASSERT_EQ(melon::PARSE_ERROR_NOT_ENOUGH_DATA,
                                 parser.Consume(buf, &command_out, &arena));
                     }
@@ -622,12 +622,12 @@ TEST_F(RedisTest, command_parser) {
 }
 
 TEST_F(RedisTest, redis_reply_codec) {
-    butil::Arena arena;
+    mutil::Arena arena;
     // status
     {
         melon::RedisReply r(&arena);
-        butil::IOBuf buf;
-        butil::IOBufAppender appender;
+        mutil::IOBuf buf;
+        mutil::IOBufAppender appender;
         r.SetStatus("OK");
         ASSERT_TRUE(r.SerializeTo(&appender));
         appender.move_to(buf);
@@ -643,8 +643,8 @@ TEST_F(RedisTest, redis_reply_codec) {
     // error
     {
         melon::RedisReply r(&arena);
-        butil::IOBuf buf;
-        butil::IOBufAppender appender;
+        mutil::IOBuf buf;
+        mutil::IOBufAppender appender;
         r.SetError("not exist \'key\'");
         ASSERT_TRUE(r.SerializeTo(&appender));
         appender.move_to(buf);
@@ -659,8 +659,8 @@ TEST_F(RedisTest, redis_reply_codec) {
     // string
     {
         melon::RedisReply r(&arena);
-        butil::IOBuf buf;
-        butil::IOBufAppender appender;
+        mutil::IOBuf buf;
+        mutil::IOBufAppender appender;
         r.SetNullString();
         ASSERT_TRUE(r.SerializeTo(&appender));
         appender.move_to(buf);
@@ -698,8 +698,8 @@ TEST_F(RedisTest, redis_reply_codec) {
     // integer
     {
         melon::RedisReply r(&arena);
-        butil::IOBuf buf;
-        butil::IOBufAppender appender;
+        mutil::IOBuf buf;
+        mutil::IOBufAppender appender;
         int t = 2;
         int input[] = { -1, 1234567 };
         const char* output[] = { ":-1\r\n", ":1234567\r\n" };
@@ -719,8 +719,8 @@ TEST_F(RedisTest, redis_reply_codec) {
     // array
     {
         melon::RedisReply r(&arena);
-        butil::IOBuf buf;
-        butil::IOBufAppender appender;
+        mutil::IOBuf buf;
+        mutil::IOBufAppender appender;
         r.SetArray(3);
         melon::RedisReply& sub_reply = r[0];
         sub_reply.SetArray(2);
@@ -793,7 +793,7 @@ TEST_F(RedisTest, redis_reply_codec) {
     }
 }
 
-butil::Mutex s_mutex;
+mutil::Mutex s_mutex;
 std::unordered_map<std::string, std::string> m;
 std::unordered_map<std::string, int64_t> int_map;
 
@@ -802,7 +802,7 @@ public:
     RedisServiceImpl()
         : _batch_count(0) {}
 
-    melon::RedisCommandHandlerResult OnBatched(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult OnBatched(const std::vector<mutil::StringPiece>& args,
                    melon::RedisReply* output, bool flush_batched) {
         if (_batched_command.empty() && flush_batched) {
             if (args[0] == "set") {
@@ -859,7 +859,7 @@ public:
         : _rs(rs)
         , _batch_process(batch_process) {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                         melon::RedisReply* output,
                                         bool flush_batched) {
         if (args.size() < 3) {
@@ -890,7 +890,7 @@ public:
         : _rs(rs)
         , _batch_process(batch_process) {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                         melon::RedisReply* output,
                                         bool flush_batched) {
         if (args.size() < 2) {
@@ -923,7 +923,7 @@ class IncrCommandHandler : public melon::RedisCommandHandler {
 public:
     IncrCommandHandler() {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                         melon::RedisReply* output,
                                         bool flush_batched) {
         if (args.size() < 2) {
@@ -982,7 +982,7 @@ TEST_F(RedisTest, server_sanity) {
     ASSERT_EQ(melon::REDIS_REPLY_STRING, response.reply(5).type());
     ASSERT_STREQ("value2", response.reply(5).c_str());
     ASSERT_EQ(melon::REDIS_REPLY_ERROR, response.reply(6).type());
-    ASSERT_TRUE(butil::StringPiece(response.reply(6).error_message()).starts_with("ERR unknown command"));
+    ASSERT_TRUE(mutil::StringPiece(response.reply(6).error_message()).starts_with("ERR unknown command"));
 
     cntl.Reset(); 
     request.Clear();
@@ -990,7 +990,7 @@ TEST_F(RedisTest, server_sanity) {
     std::string value3("value3");
     value3.append(1, '\0');
     value3.append(1, 'a');
-    std::vector<butil::StringPiece> pieces;
+    std::vector<mutil::StringPiece> pieces;
     pieces.push_back("set");
     pieces.push_back("key3");
     pieces.push_back(value3);
@@ -1043,18 +1043,18 @@ TEST_F(RedisTest, server_concurrency) {
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_REDIS;
     options.connection_type = "pooled";
-    std::vector<bthread_t> bths;
+    std::vector<fiber_t> bths;
     std::vector<melon::Channel*> channels;
     for (int i = 0; i < N; ++i) {
         channels.push_back(new melon::Channel);
         ASSERT_EQ(0, channels.back()->Init("127.0.0.1", server.listen_address().port, &options));
-        bthread_t bth;
-        ASSERT_EQ(bthread_start_background(&bth, NULL, incr_thread, channels.back()), 0);
+        fiber_t bth;
+        ASSERT_EQ(fiber_start_background(&bth, NULL, incr_thread, channels.back()), 0);
         bths.push_back(bth);
     }
 
     for (int i = 0; i < N; ++i) {
-        bthread_join(bths[i], NULL);
+        fiber_join(bths[i], NULL);
         delete channels[i];
     }
     ASSERT_EQ(int_map["count"], 10 * 5000LL);
@@ -1064,7 +1064,7 @@ class MultiCommandHandler : public melon::RedisCommandHandler {
 public:
     MultiCommandHandler() {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                         melon::RedisReply* output,
                                         bool flush_batched) {
         output->SetStatus("OK");
@@ -1077,7 +1077,7 @@ public:
 
     class MultiTransactionHandler : public melon::RedisCommandHandler {
     public:
-        melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+        melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                             melon::RedisReply* output,
                                             bool flush_batched) {
             if (args[0] == "multi") {

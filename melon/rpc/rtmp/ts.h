@@ -41,7 +41,7 @@
 #include <map>
 #include <vector>
 #include <stdint.h>
-#include "melon/butil/iobuf.h"
+#include "melon/utility/iobuf.h"
 #include "melon/rpc/rtmp/rtmp.h"
 
 
@@ -1269,14 +1269,14 @@ namespace melon {
 // Convert Rtmp audio/video messages into ts packets.
     class TsWriter {
     public:
-        explicit TsWriter(butil::IOBuf *outbuf);
+        explicit TsWriter(mutil::IOBuf *outbuf);
 
         ~TsWriter();
 
         // Append a video/audio message into the output buffer.
-        butil::Status Write(const RtmpVideoMessage &);
+        mutil::Status Write(const RtmpVideoMessage &);
 
-        butil::Status Write(const RtmpAudioMessage &);
+        mutil::Status Write(const RtmpAudioMessage &);
 
         int64_t discontinuity_counter() const { return _discontinuity_counter; }
 
@@ -1285,13 +1285,13 @@ namespace melon {
     private:
         struct TsMessage;
 
-        butil::Status Encode(TsMessage *msg, TsStream stream, TsPid pid);
+        mutil::Status Encode(TsMessage *msg, TsStream stream, TsPid pid);
 
-        butil::Status EncodePATPMT(TsStream vs, TsPid vpid, TsStream as, TsPid apid);
+        mutil::Status EncodePATPMT(TsStream vs, TsPid vpid, TsStream as, TsPid apid);
 
-        butil::Status EncodePES(TsMessage *msg, TsStream sid, TsPid pid, bool pure_audio);
+        mutil::Status EncodePES(TsMessage *msg, TsStream sid, TsPid pid, bool pure_audio);
 
-        butil::IOBuf *_outbuf;
+        mutil::IOBuf *_outbuf;
         AVCNaluFormat _nalu_format;
         bool _has_avc_seq_header;
         bool _has_aac_seq_header;

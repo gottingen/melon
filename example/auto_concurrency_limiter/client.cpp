@@ -18,17 +18,17 @@
 // A client sending requests to server asynchronously every 1 second.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/time.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/time.h>
 #include <melon/rpc/channel.h>
 #include <melon/var/var.h>
-#include <melon/bthread/timer_thread.h>
+#include <melon/fiber/timer_thread.h>
 #include <melon/json2pb/json_to_pb.h>
 
 #include <fstream>
 #include "cl_test.pb.h"
 
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
+DEFINE_string(protocol, "melon_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(cntl_server, "0.0.0.0:9000", "IP Address of server");
 DEFINE_string(echo_server, "0.0.0.0:9001", "IP Address of server");
@@ -63,9 +63,9 @@ uint32_t cast_func(void* arg) {
     return *(uint32_t*)arg;
 }
 
-butil::atomic<uint32_t> g_timeout(0);
-butil::atomic<uint32_t> g_error(0);
-butil::atomic<uint32_t> g_succ(0);
+mutil::atomic<uint32_t> g_timeout(0);
+mutil::atomic<uint32_t> g_error(0);
+mutil::atomic<uint32_t> g_succ(0);
 melon::var::PassiveStatus<uint32_t> g_timeout_bvar(cast_func, &g_timeout);
 melon::var::PassiveStatus<uint32_t> g_error_bvar(cast_func, &g_error);
 melon::var::PassiveStatus<uint32_t> g_succ_bvar(cast_func, &g_succ);
@@ -94,13 +94,13 @@ void HandleEchoResponse(
     std::unique_ptr<test::NotifyResponse> response_guard(response);
 
     if (cntl->Failed() && cntl->ErrorCode() == melon::ERPCTIMEDOUT) {
-        g_timeout.fetch_add(1, butil::memory_order_relaxed);
+        g_timeout.fetch_add(1, mutil::memory_order_relaxed);
         LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else if (cntl->Failed()) {
-        g_error.fetch_add(1, butil::memory_order_relaxed);
+        g_error.fetch_add(1, mutil::memory_order_relaxed);
         LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else {
-        g_succ.fetch_add(1, butil::memory_order_relaxed);
+        g_succ.fetch_add(1, mutil::memory_order_relaxed);
         g_latency_rec << cntl->latency_us();
     }
 
@@ -119,13 +119,13 @@ struct TestCaseContext {
         , stage_index(0)
         , test_case(tc)
         , next_stage_sec(test_case.qps_stage_list(0).duration_sec() + 
-                         butil::gettimeofday_s()) {
+                         mutil::gettimeofday_s()) {
         DisplayStage(test_case.qps_stage_list(stage_index));
         Update();
     }
 
     bool Update() {
-        if (butil::gettimeofday_s() >= next_stage_sec) {
+        if (mutil::gettimeofday_s() >= next_stage_sec) {
             ++stage_index;
             if (stage_index < test_case.qps_stage_list_size()) {
                 next_stage_sec += test_case.qps_stage_list(stage_index).duration_sec(); 
@@ -140,18 +140,18 @@ struct TestCaseContext {
         const int lower_bound = qps_stage.lower_bound();
         const int upper_bound = qps_stage.upper_bound();
         if (qps_stage.type() == test::FLUCTUATE) {
-            qps = butil::fast_rand_less_than(upper_bound - lower_bound) + lower_bound;
+            qps = mutil::fast_rand_less_than(upper_bound - lower_bound) + lower_bound;
         } else if (qps_stage.type() == test::SMOOTH) {
             qps = lower_bound + (upper_bound - lower_bound) / 
                 double(qps_stage.duration_sec()) * (qps_stage.duration_sec() - next_stage_sec
-                + butil::gettimeofday_s());
+                + mutil::gettimeofday_s());
         }
-        interval_us.store(1.0 / qps * 1000000, butil::memory_order_relaxed);
+        interval_us.store(1.0 / qps * 1000000, mutil::memory_order_relaxed);
         return true;
     }
 
-    butil::atomic<bool> running;
-    butil::atomic<int64_t> interval_us;
+    mutil::atomic<bool> running;
+    mutil::atomic<int64_t> interval_us;
     int stage_index;
     const test::TestCase test_case;
     int next_stage_sec;
@@ -161,10 +161,10 @@ void RunUpdateTask(void* data) {
     TestCaseContext* context = (TestCaseContext*)data;
     bool should_continue = context->Update();
     if (should_continue) {
-        bthread::get_global_timer_thread()->schedule(RunUpdateTask, data, 
-            butil::microseconds_from_now(FLAGS_client_qps_change_interval_us));
+        fiber::get_global_timer_thread()->schedule(RunUpdateTask, data,
+            mutil::microseconds_from_now(FLAGS_client_qps_change_interval_us));
     } else {
-        context->running.store(false, butil::memory_order_release);
+        context->running.store(false, mutil::memory_order_release);
     }
 }
 
@@ -190,10 +190,10 @@ void RunCase(test::ControlService_Stub &cntl_stub,
     CHECK(!cntl.Failed()) << "control failed";
 
     TestCaseContext context(test_case);
-    bthread::get_global_timer_thread()->schedule(RunUpdateTask, &context, 
-        butil::microseconds_from_now(FLAGS_client_qps_change_interval_us));
+    fiber::get_global_timer_thread()->schedule(RunUpdateTask, &context,
+        mutil::microseconds_from_now(FLAGS_client_qps_change_interval_us));
 
-    while (context.running.load(butil::memory_order_acquire)) {
+    while (context.running.load(mutil::memory_order_acquire)) {
         test::NotifyRequest echo_req;
         echo_req.set_message("hello");
         melon::Controller* echo_cntl = new melon::Controller;
@@ -201,7 +201,7 @@ void RunCase(test::ControlService_Stub &cntl_stub,
         google::protobuf::Closure* done = melon::NewCallback(
             &HandleEchoResponse, echo_cntl, echo_rsp);
         echo_stub.Echo(echo_cntl, &echo_req, echo_rsp, done);
-        ::usleep(context.interval_us.load(butil::memory_order_relaxed));
+        ::usleep(context.interval_us.load(mutil::memory_order_relaxed));
     }
 
     LOG(INFO) << "Waiting to stop case: `" << test_case.case_name() << '\'';

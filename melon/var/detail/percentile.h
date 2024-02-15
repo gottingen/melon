@@ -26,22 +26,22 @@
 #include <ostream>                      // std::ostream
 #include <algorithm>                    // std::sort
 #include <math.h>                       // ceil
-#include "melon/butil/macros.h"                // ARRAY_SIZE
+#include "melon/utility/macros.h"                // ARRAY_SIZE
 #include "melon/var/reducer.h"               // Reducer
 #include "melon/var/window.h"                // Window
 #include "melon/var/detail/combiner.h"       // AgentCombiner
 #include "melon/var/detail/sampler.h"        // ReducerSampler
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/fast_rand.h"
 
 namespace melon::var {
 namespace detail {
 
 // Round of expectation of a rational number |a/b| to a natural number.
 inline unsigned long round_of_expectation(unsigned long a, unsigned long b) {
-    if (BAIDU_UNLIKELY(b == 0)) {
+    if (MELON_UNLIKELY(b == 0)) {
         return 0;
     }
-    return a / b + (butil::fast_rand_less_than(b) < a % b);
+    return a / b + (mutil::fast_rand_less_than(b) < a % b);
 }
 
 // Storing latencies inside a interval.
@@ -82,7 +82,7 @@ public:
         if (rhs._num_added == 0) {
             return;
         }
-        BAIDU_CASSERT(SAMPLE_SIZE >= size2,
+        MELON_CASSERT(SAMPLE_SIZE >= size2,
                       must_merge_small_interval_into_larger_one_currently);
         CHECK_EQ(rhs._num_samples, rhs._num_added);
         // Assume that the probability of each sample in |this| is a0/b0 and
@@ -121,7 +121,7 @@ public:
             CHECK_LE(num_remain, _num_samples);
             // Randomly drop samples of this
             for (size_t i = _num_samples; i > num_remain; --i) {
-                _samples[butil::fast_rand_less_than(i)] = _samples[i - 1];
+                _samples[mutil::fast_rand_less_than(i)] = _samples[i - 1];
             }
             const size_t num_remain_from_rhs = SAMPLE_SIZE - num_remain;
             CHECK_LE(num_remain_from_rhs, rhs._num_samples);
@@ -129,7 +129,7 @@ public:
             DEFINE_SMALL_ARRAY(uint32_t, tmp, rhs._num_samples, 64);
             memcpy(tmp, rhs._samples, sizeof(uint32_t) * rhs._num_samples);
             for (size_t i = 0; i < num_remain_from_rhs; ++i) {
-                const int index = butil::fast_rand_less_than(rhs._num_samples - i);
+                const int index = mutil::fast_rand_less_than(rhs._num_samples - i);
                 _samples[num_remain++] = tmp[index];
                 tmp[index] = tmp[rhs._num_samples - i - 1];
             }
@@ -150,11 +150,11 @@ public:
             return;
         }
         for (size_t i = 0; i < n; ++i) {
-            size_t index = butil::fast_rand_less_than(mutable_rhs._num_samples - i);
+            size_t index = mutil::fast_rand_less_than(mutable_rhs._num_samples - i);
             if (_num_samples < SAMPLE_SIZE) {
                 _samples[_num_samples++] = mutable_rhs._samples[index];
             } else {
-                _samples[butil::fast_rand_less_than(_num_samples)]
+                _samples[mutil::fast_rand_less_than(_num_samples)]
                         = mutable_rhs._samples[index];
             }
             std::swap(mutable_rhs._samples[index],
@@ -167,7 +167,7 @@ public:
     // sample into the ThreadLocalPercentileSamples.
     // Returns true if the input was stored.
     bool add32(uint32_t x) {
-        if (BAIDU_UNLIKELY(_num_samples >= SAMPLE_SIZE)) {
+        if (MELON_UNLIKELY(_num_samples >= SAMPLE_SIZE)) {
             LOG(ERROR) << "This interval was full";
             return false;
         }
@@ -222,7 +222,7 @@ public:
 
 private:
 template <size_t size2> friend class PercentileInterval;
-    BAIDU_CASSERT(SAMPLE_SIZE <= 65536, SAMPLE_SIZE_must_be_16bit);
+    MELON_CASSERT(SAMPLE_SIZE <= 65536, SAMPLE_SIZE_must_be_16bit);
 
     uint32_t _num_added;
     bool _sorted;
@@ -369,7 +369,7 @@ friend class AddLatency;
                 if (!iter->_intervals[i] || iter->_intervals[i]->empty()) {
                     continue;
                 }
-                typename butil::add_reference<BAIDU_TYPEOF(*(iter->_intervals[i]))>::type
+                typename mutil::add_reference<MELON_TYPEOF(*(iter->_intervals[i]))>::type
                         invl = *(iter->_intervals[i]);
                 if (total <= SAMPLE_SIZE) {
                     get_interval_at(i).merge_with_expectation(
@@ -487,7 +487,7 @@ public:
     bool valid() const { return _combiner != NULL && _combiner->valid(); }
     
     // This name is useful for warning negative latencies in operator<<
-    void set_debug_name(const butil::StringPiece& name) {
+    void set_debug_name(const mutil::StringPiece& name) {
         _debug_name.assign(name.data(), name.size());
     }
 

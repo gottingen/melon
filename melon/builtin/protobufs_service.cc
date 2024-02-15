@@ -74,7 +74,7 @@ namespace melon {
                                           ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         const std::string &filter = cntl->http_request().unresolved_path();
         if (filter.empty()) {
             const bool use_html = UseHTML(cntl->http_request());

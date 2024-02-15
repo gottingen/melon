@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #ifndef MELON_RAFT_RAFT_NODE_H_
 #define MELON_RAFT_RAFT_NODE_H_
 
 #include <set>
-#include <melon/butil/atomic_ref_count.h>
-#include <melon/butil/memory/ref_counted.h>
-#include <melon/butil/iobuf.h>
-#include <melon/bthread/execution_queue.h>
+#include <melon/utility/atomic_ref_count.h>
+#include <melon/utility/memory/ref_counted.h>
+#include <melon/utility/iobuf.h>
+#include <melon/fiber/execution_queue.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/log_manager.h"
@@ -99,8 +96,8 @@ namespace melon::raft {
         bool _first_schedule;
     };
 
-    class BAIDU_CACHELINE_ALIGNMENT NodeImpl
-            : public butil::RefCountedThreadSafe<NodeImpl> {
+    class MELON_CACHELINE_ALIGNMENT NodeImpl
+            : public mutil::RefCountedThreadSafe<NodeImpl> {
         friend class RaftServiceImpl;
 
         friend class RaftStatImpl;
@@ -154,7 +151,7 @@ namespace melon::raft {
         //
         void apply(const Task &task);
 
-        butil::Status list_peers(std::vector<PeerId> *peers);
+        mutil::Status list_peers(std::vector<PeerId> *peers);
 
         // @Node configuration change
         void add_peer(const PeerId &peer, Closure *done);
@@ -163,16 +160,16 @@ namespace melon::raft {
 
         void change_peers(const Configuration &new_peers, Closure *done);
 
-        butil::Status reset_peers(const Configuration &new_peers);
+        mutil::Status reset_peers(const Configuration &new_peers);
 
         // trigger snapshot
         void snapshot(Closure *done);
 
         // trigger vote
-        butil::Status vote(int election_timeout);
+        mutil::Status vote(int election_timeout);
 
         // reset the election_timeout for the very node
-        butil::Status reset_election_timeout_ms(int election_timeout_ms);
+        mutil::Status reset_election_timeout_ms(int election_timeout_ms);
 
         void reset_election_timeout_ms(int election_timeout_ms, int max_clock_drift_ms);
 
@@ -226,7 +223,7 @@ namespace melon::raft {
                                           const RequestVoteResponse &response);
 
         void on_caughtup(const PeerId &peer, int64_t term,
-                         int64_t version, const butil::Status &st);
+                         int64_t version, const mutil::Status &st);
 
         // other func
         //
@@ -237,7 +234,7 @@ namespace melon::raft {
         void leader_lease_start(int64_t lease_epoch);
 
         // called when leader recv greater term in AppendEntriesResponse, ref with Replicator
-        int increase_term_to(int64_t new_term, const butil::Status &status);
+        int increase_term_to(int64_t new_term, const mutil::Status &status);
 
         // Temporary solution
         void update_configuration_after_installing_snapshot();
@@ -275,7 +272,7 @@ namespace melon::raft {
 
         int transfer_leadership_to(const PeerId &peer);
 
-        butil::Status read_committed_user_log(const int64_t index, UserLog *user_log);
+        mutil::Status read_committed_user_log(const int64_t index, UserLog *user_log);
 
         int bootstrap(const BootstrapOptions &options);
 
@@ -284,7 +281,7 @@ namespace melon::raft {
         bool is_witness() const { return _options.witness; }
 
     private:
-        friend class butil::RefCountedThreadSafe<NodeImpl>;
+        friend class mutil::RefCountedThreadSafe<NodeImpl>;
 
         virtual ~NodeImpl();
 
@@ -309,13 +306,13 @@ namespace melon::raft {
 
         // step down to follower, status give the reason
         void step_down(const int64_t term, bool wakeup_a_candidate,
-                       const butil::Status &status);
+                       const mutil::Status &status);
 
         // reset leader_id.
         // When new_leader_id is NULL, it means this node just stop following a leader;
         // otherwise, it means setting this node's leader_id to new_leader_id.
         // status gives the situation under which this method is called.
-        void reset_leader_id(const PeerId &new_leader_id, const butil::Status &status);
+        void reset_leader_id(const PeerId &new_leader_id, const mutil::Status &status);
 
         // check weather to step_down when receiving append_entries/install_snapshot
         // requests.
@@ -350,12 +347,12 @@ namespace melon::raft {
 
         static void after_shutdown(NodeImpl *node);
 
-        void do_apply(butil::IOBuf &data, Closure *done);
+        void do_apply(mutil::IOBuf &data, Closure *done);
 
         struct LogEntryAndClosure;
 
         static int execute_applying_tasks(
-                void *meta, bthread::TaskIterator<LogEntryAndClosure> &iter);
+                void *meta, fiber::TaskIterator<LogEntryAndClosure> &iter);
 
         void apply(LogEntryAndClosure tasks[], size_t size);
 
@@ -438,7 +435,7 @@ namespace melon::raft {
 
             int32_t stage() const { return _stage; }
 
-            void reset(butil::Status *st = NULL);
+            void reset(mutil::Status *st = NULL);
 
             bool is_busy() const { return _stage != STAGE_NONE; }
 
@@ -473,7 +470,7 @@ namespace melon::raft {
             int64_t expected_term;
         };
 
-        struct AppendEntriesRpc : public butil::LinkNode<AppendEntriesRpc> {
+        struct AppendEntriesRpc : public mutil::LinkNode<AppendEntriesRpc> {
             melon::Controller *cntl;
             const AppendEntriesRequest *request;
             AppendEntriesResponse *response;
@@ -483,14 +480,14 @@ namespace melon::raft {
 
         struct HandleAppendEntriesFromCacheArg {
             NodeImpl *node;
-            butil::LinkedList<AppendEntriesRpc> rpcs;
+            mutil::LinkedList<AppendEntriesRpc> rpcs;
         };
 
         // A simple cache to temporaryly store out-of-order AppendEntries requests.
         class AppendEntriesCache {
         public:
             AppendEntriesCache(NodeImpl *node, int64_t version)
-                    : _node(node), _timer(bthread_timer_t()), _cache_version(0), _timer_version(0) {}
+                    : _node(node), _timer(fiber_timer_t()), _cache_version(0), _timer_version(0) {}
 
             int64_t first_index() const;
 
@@ -517,9 +514,9 @@ namespace melon::raft {
             void stop_timer();
 
             NodeImpl *_node;
-            butil::LinkedList<AppendEntriesRpc> _rpc_queue;
+            mutil::LinkedList<AppendEntriesRpc> _rpc_queue;
             std::map<int64_t, AppendEntriesRpc *> _rpc_map;
-            bthread_timer_t _timer;
+            fiber_timer_t _timer;
             int64_t _cache_version;
             int64_t _timer_version;
         };
@@ -538,7 +535,7 @@ namespace melon::raft {
 
         class VoteBallotCtx {
         public:
-            VoteBallotCtx() : _timer(bthread_timer_t()), _version(0), _grant_self_arg(NULL), _triggered(false) {
+            VoteBallotCtx() : _timer(fiber_timer_t()), _version(0), _grant_self_arg(NULL), _triggered(false) {
             }
 
             void init(NodeImpl *node, bool triggered);
@@ -576,7 +573,7 @@ namespace melon::raft {
             const LogId &last_log_id() const;
 
         private:
-            bthread_timer_t _timer;
+            fiber_timer_t _timer;
             Ballot _ballot;
             // Each time the vote ctx restarted, increase the version to avoid
             // ABA problem.
@@ -623,12 +620,12 @@ namespace melon::raft {
         VoteTimer _vote_timer;
         StepdownTimer _stepdown_timer;
         SnapshotTimer _snapshot_timer;
-        bthread_timer_t _transfer_timer;
+        fiber_timer_t _transfer_timer;
         StopTransferArg *_stop_transfer_arg;
         bool _vote_triggered;
         ReplicatorId _waking_candidate;
-        bthread::ExecutionQueueId<LogEntryAndClosure> _apply_queue_id;
-        bthread::ExecutionQueue<LogEntryAndClosure>::scoped_ptr_t _apply_queue;
+        fiber::ExecutionQueueId<LogEntryAndClosure> _apply_queue_id;
+        fiber::ExecutionQueue<LogEntryAndClosure>::scoped_ptr_t _apply_queue;
         AppendEntriesCache *_append_entries_cache;
         int64_t _append_entries_cache_version;
 

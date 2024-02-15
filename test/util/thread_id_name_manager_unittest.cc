@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/threading/thread_id_name_manager.h"
+#include "melon/utility/threading/thread_id_name_manager.h"
 
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/threading/platform_thread.h"
 #include <gtest/gtest.h>
 
 typedef testing::Test ThreadIdNameManagerTest;
@@ -12,31 +12,31 @@ typedef testing::Test ThreadIdNameManagerTest;
 namespace {
 
 TEST_F(ThreadIdNameManagerTest, ThreadNameInterning) {
-  butil::ThreadIdNameManager* manager = butil::ThreadIdNameManager::GetInstance();
+  mutil::ThreadIdNameManager* manager = mutil::ThreadIdNameManager::GetInstance();
 
-  butil::PlatformThreadId a_id = butil::PlatformThread::CurrentId();
-  butil::PlatformThread::SetName("First Name");
+  mutil::PlatformThreadId a_id = mutil::PlatformThread::CurrentId();
+  mutil::PlatformThread::SetName("First Name");
   std::string version = manager->GetName(a_id);
 
-  butil::PlatformThread::SetName("New name");
+  mutil::PlatformThread::SetName("New name");
   EXPECT_NE(version, manager->GetName(a_id));
-  butil::PlatformThread::SetName("");
+  mutil::PlatformThread::SetName("");
 }
 
 TEST_F(ThreadIdNameManagerTest, ResettingNameKeepsCorrectInternedValue) {
-  butil::ThreadIdNameManager* manager = butil::ThreadIdNameManager::GetInstance();
+  mutil::ThreadIdNameManager* manager = mutil::ThreadIdNameManager::GetInstance();
 
-  butil::PlatformThreadId a_id = butil::PlatformThread::CurrentId();
-  butil::PlatformThread::SetName("Test Name");
+  mutil::PlatformThreadId a_id = mutil::PlatformThread::CurrentId();
+  mutil::PlatformThread::SetName("Test Name");
   std::string version = manager->GetName(a_id);
 
-  butil::PlatformThread::SetName("New name");
+  mutil::PlatformThread::SetName("New name");
   EXPECT_NE(version, manager->GetName(a_id));
 
-  butil::PlatformThread::SetName("Test Name");
+  mutil::PlatformThread::SetName("Test Name");
   EXPECT_EQ(version, manager->GetName(a_id));
 
-  butil::PlatformThread::SetName("");
+  mutil::PlatformThread::SetName("");
 }
 
 }  // namespace

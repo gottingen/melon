@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  BRAFT_MACROS_H
 #define  BRAFT_MACROS_H
 
-#include <melon/butil/macros.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/logging.h>
 #include <melon/var/utils/lock_timer.h>
 
 #define BRAFT_VLOG_IS_ON     VLOG_IS_ON(89)
@@ -27,24 +26,24 @@
 #define BRAFT_VLOG_IF(cond)  VLOG_IF(89, (cond))
 #define BRAFT_VPLOG_IF(cond) VPLOG_IF(89, (cond))
 
-//#define USE_BTHREAD_MUTEX
+//#define USE_FIBER_MUTEX
 
-#ifdef USE_BTHREAD_MUTEX
+#ifdef USE_FIBER_MUTEX
 
-#include <melon/bthread/mutex.h>
+#include <melon/fiber/mutex.h>
 
 namespace melon::raft {
-typedef ::bthread::Mutex raft_mutex_t;
+typedef ::fiber::Mutex raft_mutex_t;
 }  // namespace melon::raft
 
-#else   // USE_BTHREAD_MUTEX
+#else   // USE_FIBER_MUTEX
 
-#include <melon/butil/synchronization/lock.h>
+#include <melon/utility/synchronization/lock.h>
 namespace melon::raft {
-typedef ::butil::Mutex raft_mutex_t;
+typedef ::mutil::Mutex raft_mutex_t;
 }  // namespace melon::raft
 
-#endif  // USE_BTHREAD_MUTEX
+#endif  // USE_FIBER_MUTEX
 
 #ifdef UNIT_TEST
 #define BRAFT_MOCK virtual

@@ -46,49 +46,49 @@ public:
             return true;
         }
         c->add_flag(Controller::FLAGS_ADDED_CONCURRENCY);
-        return (butil::subtle::NoBarrier_AtomicIncrement(&_server->_concurrency, 1)
+        return (mutil::subtle::NoBarrier_AtomicIncrement(&_server->_concurrency, 1)
                 <= _server->options().max_concurrency);
     }
 
     void RemoveConcurrency(const Controller* c) {
         if (c->has_flag(Controller::FLAGS_ADDED_CONCURRENCY)) {
-            butil::subtle::NoBarrier_AtomicIncrement(&_server->_concurrency, -1);
+            mutil::subtle::NoBarrier_AtomicIncrement(&_server->_concurrency, -1);
         }
     }
 
     // Find by MethodDescriptor::full_name
     const Server::MethodProperty*
-    FindMethodPropertyByFullName(const butil::StringPiece &fullname) {
+    FindMethodPropertyByFullName(const mutil::StringPiece &fullname) {
         return _server->FindMethodPropertyByFullName(fullname);
     }
     const Server::MethodProperty*
-    FindMethodPropertyByFullName(const butil::StringPiece& fullname) const {
+    FindMethodPropertyByFullName(const mutil::StringPiece& fullname) const {
         return _server->FindMethodPropertyByFullName(fullname);
     }
     const Server::MethodProperty*
-    FindMethodPropertyByFullName(const butil::StringPiece& full_service_name,
-                                 const butil::StringPiece& method_name) const {
+    FindMethodPropertyByFullName(const mutil::StringPiece& full_service_name,
+                                 const mutil::StringPiece& method_name) const {
         return _server->FindMethodPropertyByFullName(
             full_service_name, method_name);
     }
     const Server::MethodProperty* FindMethodPropertyByNameAndIndex(
-        const butil::StringPiece& service_name, int method_index) const {
+        const mutil::StringPiece& service_name, int method_index) const {
         return _server->FindMethodPropertyByNameAndIndex(service_name, method_index);
     }
 
     const Server::ServiceProperty*
-    FindServicePropertyByFullName(const butil::StringPiece& fullname) const {
+    FindServicePropertyByFullName(const mutil::StringPiece& fullname) const {
         return _server->FindServicePropertyByFullName(fullname);
     }
 
     const Server::ServiceProperty*
-    FindServicePropertyByName(const butil::StringPiece& name) const {
+    FindServicePropertyByName(const mutil::StringPiece& name) const {
         return _server->FindServicePropertyByName(name);
     }
 
     const Server::ServiceProperty*
-    FindServicePropertyAdaptively(const butil::StringPiece& service_name) const {
-        if (service_name.find('.') == butil::StringPiece::npos) {
+    FindServicePropertyAdaptively(const mutil::StringPiece& service_name) const {
+        if (service_name.find('.') == mutil::StringPiece::npos) {
             return _server->FindServicePropertyByName(service_name);
         } else {
             return _server->FindServicePropertyByFullName(service_name);

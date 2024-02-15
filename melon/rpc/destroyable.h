@@ -19,7 +19,7 @@
 #ifndef MELON_RPC_DESTROYABLE_H_
 #define MELON_RPC_DESTROYABLE_H_
 
-#include "melon/butil/unique_ptr.h"           // std::unique_ptr
+#include "melon/utility/unique_ptr.h"           // std::unique_ptr
 
 
 namespace melon {

@@ -19,8 +19,7 @@
 #ifndef BRPC_SELECTIVE_CHANNEL_H
 #define BRPC_SELECTIVE_CHANNEL_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include "melon/rpc/socket_id.h"
 #include "melon/rpc/channel.h"

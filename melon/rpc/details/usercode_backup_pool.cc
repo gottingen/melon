@@ -19,12 +19,12 @@
 #include <deque>
 #include <vector>
 #include <gflags/gflags.h>
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/threading/platform_thread.h"
 #include "melon/rpc/details/usercode_backup_pool.h"
 
-namespace bthread {
-// Defined in bthread/task_control.cpp
+namespace fiber {
+// Defined in fiber/task_control.cpp
 void run_worker_startfn();
 }
 
@@ -32,7 +32,7 @@ void run_worker_startfn();
 namespace melon {
 
 DEFINE_int32(usercode_backup_threads, 5, "# of backup threads to run user code"
-             " when too many pthread worker of bthreads are used");
+             " when too many pthread worker of fibers are used");
 DEFINE_int32(max_pending_in_each_backup_thread, 10,
              "Max number of un-run user code in each backup thread, requests"
              " still coming in will be failed");
@@ -62,12 +62,12 @@ struct UserCodeBackupPool {
 static pthread_mutex_t s_usercode_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t s_usercode_cond = PTHREAD_COND_INITIALIZER;
 static pthread_once_t s_usercode_init = PTHREAD_ONCE_INIT;
-butil::static_atomic<int> g_usercode_inplace = BUTIL_STATIC_ATOMIC_INIT(0);
+mutil::static_atomic<int> g_usercode_inplace = MUTIL_STATIC_ATOMIC_INIT(0);
 bool g_too_many_usercode = false;
 static UserCodeBackupPool* s_usercode_pool = NULL;
 
 static int GetUserCodeInPlace(void*) {
-    return g_usercode_inplace.load(butil::memory_order_relaxed);
+    return g_usercode_inplace.load(mutil::memory_order_relaxed);
 }
 
 static size_t GetUserCodeQueueSize(void*) {
@@ -89,13 +89,13 @@ UserCodeBackupPool::UserCodeBackupPool()
 }
 
 static void* UserCodeRunner(void* args) {
-    butil::PlatformThread::SetName("brpc_user_code_runner");
+    mutil::PlatformThread::SetName("brpc_user_code_runner");
     static_cast<UserCodeBackupPool*>(args)->UserCodeRunningLoop();
     return NULL;
 }
 
 int UserCodeBackupPool::Init() {
-    // Like bthread workers, these threads never quit (to avoid potential hang
+    // Like fiber workers, these threads never quit (to avoid potential hang
     // during termination of program).
     for (int i = 0; i < FLAGS_usercode_backup_threads; ++i) {
         pthread_t th;
@@ -109,9 +109,9 @@ int UserCodeBackupPool::Init() {
 
 // Entry of backup thread for running user code.
 void UserCodeBackupPool::UserCodeRunningLoop() {
-    bthread::run_worker_startfn();
+    fiber::run_worker_startfn();
     
-    int64_t last_time = butil::cpuwide_time_us();
+    int64_t last_time = mutil::cpuwide_time_us();
     while (true) {
         bool blocked = false;
         UserCode usercode = { NULL, NULL };
@@ -128,9 +128,9 @@ void UserCodeBackupPool::UserCodeRunningLoop() {
                 g_too_many_usercode = false;
             }
         }
-        const int64_t begin_time = (blocked ? butil::cpuwide_time_us() : last_time);
+        const int64_t begin_time = (blocked ? mutil::cpuwide_time_us() : last_time);
         usercode.fn(usercode.arg);
-        const int64_t end_time = butil::cpuwide_time_us();
+        const int64_t end_time = mutil::cpuwide_time_us();
         inpool_count << 1;
         inpool_elapse_us << (end_time - begin_time);
         last_time = end_time;
@@ -155,7 +155,7 @@ void InitUserCodeBackupPoolOnceOrDie() {
 void EndRunningUserCodeInPool(void (*fn)(void*), void* arg) {
     InitUserCodeBackupPoolOnceOrDie();
     
-    g_usercode_inplace.fetch_sub(1, butil::memory_order_relaxed);
+    g_usercode_inplace.fetch_sub(1, mutil::memory_order_relaxed);
 
     // Not enough idle workers, run the code in backup threads to prevent
     // all workers from being blocked and no responses will be processed

@@ -16,8 +16,8 @@
 // under the License.
 
 
-#ifndef BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
-#define BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
+#ifndef MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
+#define MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
 
 #include "melon/rpc/policy/http_rpc_protocol.h"   // HttpContext
 #include "melon/rpc/input_message_base.h"
@@ -126,30 +126,30 @@ struct H2Bvars {
     }
 };
 inline H2Bvars* get_h2_bvars() {
-    return butil::get_leaky_singleton<H2Bvars>();
+    return mutil::get_leaky_singleton<H2Bvars>();
 }
 #endif
 
 class H2UnsentRequest : public SocketMessage, public StreamUserData {
-friend void PackH2Request(butil::IOBuf*, SocketMessage**,
+friend void PackH2Request(mutil::IOBuf*, SocketMessage**,
                           uint64_t, const google::protobuf::MethodDescriptor*,
-                          Controller*, const butil::IOBuf&, const Authenticator*);
+                          Controller*, const mutil::IOBuf&, const Authenticator*);
 public:
     static H2UnsentRequest* New(Controller* c);
     void Print(std::ostream& os) const;
 
     int AddRefManually()
-    { return _nref.fetch_add(1, butil::memory_order_relaxed); }
+    { return _nref.fetch_add(1, mutil::memory_order_relaxed); }
 
     void RemoveRefManually() {
-        if (_nref.fetch_sub(1, butil::memory_order_release) == 1) {
-            butil::atomic_thread_fence(butil::memory_order_acquire);
+        if (_nref.fetch_sub(1, mutil::memory_order_release) == 1) {
+            mutil::atomic_thread_fence(mutil::memory_order_acquire);
             Destroy();
         }
     }
 
     // @SocketMessage
-    butil::Status AppendAndDestroySelf(butil::IOBuf* out, Socket*) override;
+    mutil::Status AppendAndDestroySelf(mutil::IOBuf* out, Socket*) override;
     size_t EstimatedByteSize() override;
 
     // @StreamUserData
@@ -184,10 +184,10 @@ private:
     void Destroy();
 
 private:
-    butil::atomic<int> _nref;
+    mutil::atomic<int> _nref;
     uint32_t _size;
     int _stream_id;
-    mutable butil::Mutex _mutex;
+    mutable mutil::Mutex _mutex;
     Controller* _cntl;
     std::unique_ptr<H2StreamContext> _sctx;
     HPacker::Header _list[0];
@@ -199,7 +199,7 @@ public:
     void Destroy();
     void Print(std::ostream& os) const;
     // @SocketMessage
-    butil::Status AppendAndDestroySelf(butil::IOBuf* out, Socket*) override;
+    mutil::Status AppendAndDestroySelf(mutil::IOBuf* out, Socket*) override;
     size_t EstimatedByteSize() override;
     
 private:
@@ -218,7 +218,7 @@ private:
     uint32_t _size;
     uint32_t _stream_id;
     std::unique_ptr<HttpHeader> _http_response;
-    butil::IOBuf _data;
+    mutil::IOBuf _data;
     bool _is_grpc;
     GrpcStatus _grpc_status;
     std::string _grpc_message;
@@ -235,14 +235,14 @@ public:
     // Decode headers in HPACK from *it and set into this->header(). The input
     // does not need to complete.
     // Returns 0 on success, -1 otherwise.
-    int ConsumeHeaders(butil::IOBufBytesIterator& it);
+    int ConsumeHeaders(mutil::IOBufBytesIterator& it);
     H2ParseResult OnEndStream();
 
-    H2ParseResult OnData(butil::IOBufBytesIterator&, const H2FrameHead&,
+    H2ParseResult OnData(mutil::IOBufBytesIterator&, const H2FrameHead&,
                        uint32_t frag_size, uint8_t pad_length);
-    H2ParseResult OnHeaders(butil::IOBufBytesIterator&, const H2FrameHead&,
+    H2ParseResult OnHeaders(mutil::IOBufBytesIterator&, const H2FrameHead&,
                           uint32_t frag_size, uint8_t pad_length);
-    H2ParseResult OnContinuation(butil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnContinuation(mutil::IOBufBytesIterator&, const H2FrameHead&);
     H2ParseResult OnResetStream(H2Error h2_error, const H2FrameHead&);
     
     uint64_t correlation_id() const { return _correlation_id; }
@@ -252,10 +252,10 @@ public:
     int stream_id() const { return _stream_id; }
 
     int64_t ReleaseDeferredWindowUpdate() {
-        if (_deferred_window_update.load(butil::memory_order_relaxed) == 0) {
+        if (_deferred_window_update.load(mutil::memory_order_relaxed) == 0) {
             return 0;
         }
-        return _deferred_window_update.exchange(0, butil::memory_order_relaxed);
+        return _deferred_window_update.exchange(0, mutil::memory_order_relaxed);
     }
 
     bool ConsumeWindowSize(int64_t size);
@@ -272,22 +272,22 @@ friend class H2Context;
 #endif
     int _stream_id;
     bool _stream_ended;
-    butil::atomic<int64_t> _remote_window_left;
-    butil::atomic<int64_t> _deferred_window_update;
+    mutil::atomic<int64_t> _remote_window_left;
+    mutil::atomic<int64_t> _deferred_window_update;
     uint64_t _correlation_id;
-    butil::IOBuf _remaining_header_fragment;
+    mutil::IOBuf _remaining_header_fragment;
 };
 
 StreamCreator* get_h2_global_stream_creator();
 
-ParseResult ParseH2Message(butil::IOBuf *source, Socket *socket,
+ParseResult ParseH2Message(mutil::IOBuf *source, Socket *socket,
                              bool read_eof, const void *arg);
-void PackH2Request(butil::IOBuf* buf,
+void PackH2Request(mutil::IOBuf* buf,
                    SocketMessage** user_message_out,
                    uint64_t correlation_id,
                    const google::protobuf::MethodDescriptor* method,
                    Controller* controller,
-                   const butil::IOBuf& request,
+                   const mutil::IOBuf& request,
                    const Authenticator* auth);
 
 class H2GlobalStreamCreator : public StreamCreator {
@@ -314,7 +314,7 @@ const size_t FRAME_HEAD_SIZE = 9;
 class H2Context : public Destroyable, public Describable {
 public:
     typedef H2ParseResult (H2Context::*FrameHandler)(
-        butil::IOBufBytesIterator&, const H2FrameHead&);
+        mutil::IOBufBytesIterator&, const H2FrameHead&);
 
     // main_socket: the socket owns this object as parsing_context
     // server: NULL means client-side
@@ -324,7 +324,7 @@ public:
     int Init();
 
     H2ConnectionState state() const { return _conn_state; }
-    ParseResult Consume(butil::IOBufBytesIterator& it, Socket*);
+    ParseResult Consume(mutil::IOBufBytesIterator& it, Socket*);
 
     void ClearAbandonedStreams();
     void AddAbandonedStream(uint32_t stream_id);
@@ -357,18 +357,18 @@ friend class H2UnsentRequest;
 friend class H2UnsentResponse;
 friend void InitFrameHandlers();
 
-    ParseResult ConsumeFrameHead(butil::IOBufBytesIterator&, H2FrameHead*);
+    ParseResult ConsumeFrameHead(mutil::IOBufBytesIterator&, H2FrameHead*);
 
-    H2ParseResult OnData(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnHeaders(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnPriority(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnResetStream(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnSettings(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnPushPromise(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnPing(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnGoAway(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnWindowUpdate(butil::IOBufBytesIterator&, const H2FrameHead&);
-    H2ParseResult OnContinuation(butil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnData(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnHeaders(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnPriority(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnResetStream(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnSettings(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnPushPromise(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnPing(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnGoAway(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnWindowUpdate(mutil::IOBufBytesIterator&, const H2FrameHead&);
+    H2ParseResult OnContinuation(mutil::IOBufBytesIterator&, const H2FrameHead&);
 
     H2StreamContext* RemoveStreamAndDeferWU(int stream_id);
     void RemoveGoAwayStreams(int goaway_stream_id, std::vector<H2StreamContext*>* out_streams);
@@ -378,7 +378,7 @@ friend void InitFrameHandlers();
     // True if the connection is established by client, otherwise it's
     // accepted by server.
     Socket* _socket;
-    butil::atomic<int64_t> _remote_window_left;
+    mutil::atomic<int64_t> _remote_window_left;
     H2ConnectionState _conn_state;
     int _last_received_stream_id;
     uint32_t _last_sent_stream_id;
@@ -388,12 +388,12 @@ friend void InitFrameHandlers();
     H2Settings _local_settings;
     H2Settings _unack_local_settings;
     HPacker _hpacker;
-    mutable butil::Mutex _abandoned_streams_mutex;
+    mutable mutil::Mutex _abandoned_streams_mutex;
     std::vector<uint32_t> _abandoned_streams;
-    typedef butil::FlatMap<int, H2StreamContext*> StreamMap;
-    mutable butil::Mutex _stream_mutex;
+    typedef mutil::FlatMap<int, H2StreamContext*> StreamMap;
+    mutable mutil::Mutex _stream_mutex;
     StreamMap _pending_streams;
-    butil::atomic<int64_t> _deferred_window_update;
+    mutil::atomic<int64_t> _deferred_window_update;
 };
 
 inline int H2Context::AllocateClientStreamId() {
@@ -423,4 +423,4 @@ inline std::ostream& operator<<(std::ostream& os, const H2UnsentResponse& res) {
 } // namespace policy
 } // namespace melon
 
-#endif // BAIDU_RPC_POLICY_HTTP2_RPC_PROTOCOL_H
+#endif // MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_

@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/strings/safe_sprintf.h"
+#include "melon/utility/strings/safe_sprintf.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include <limits>
 
-#include "melon/butil/logging.h"
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 
 // Death tests on Android are currently very flaky. No need to add more flaky
@@ -20,7 +20,7 @@
 #define ALLOW_DEATH_TEST
 #endif
 
-namespace butil {
+namespace mutil {
 namespace strings {
 
 TEST(SafeSPrintfTest, Empty) {
@@ -754,4 +754,4 @@ TEST(SafeSPrintfTest, PointerSize) {
 }
 
 }  // namespace strings
-}  // namespace butil
+}  // namespace mutil

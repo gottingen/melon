@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
 
 #include "melon/raft/log_manager.h"
 
-#include <melon/butil/logging.h>                       // LOG
-#include <melon/butil/object_pool.h>                   // butil::get_object
-#include <melon/bthread/unstable.h>                   // bthread_flush
-#include <melon/bthread/countdown_event.h>            // bthread::CountdownEvent
+#include <melon/utility/logging.h>                       // LOG
+#include <melon/utility/object_pool.h>                   // mutil::get_object
+#include <melon/fiber/unstable.h>                   // fiber_flush
+#include <melon/fiber/countdown_event.h>            // fiber::CountdownEvent
 #include <melon/rpc/reloadable_flags.h>         // BRPC_VALIDATE_GFLAG
 #include "melon/raft/storage.h"                       // LogStorage
 #include "melon/raft/fsm_caller.h"                    // FSMCaller
@@ -100,17 +98,17 @@ namespace melon::raft {
     }
 
     int LogManager::start_disk_thread() {
-        bthread::ExecutionQueueOptions queue_options;
-        queue_options.bthread_attr = BTHREAD_ATTR_NORMAL;
-        return bthread::execution_queue_start(&_disk_queue,
+        fiber::ExecutionQueueOptions queue_options;
+        queue_options.fiber_attr = FIBER_ATTR_NORMAL;
+        return fiber::execution_queue_start(&_disk_queue,
                                               &queue_options,
                                               disk_thread,
                                               this);
     }
 
     int LogManager::stop_disk_thread() {
-        bthread::execution_queue_stop(_disk_queue);
-        return bthread::execution_queue_join(_disk_queue);
+        fiber::execution_queue_stop(_disk_queue);
+        return fiber::execution_queue_join(_disk_queue);
     }
 
     void LogManager::clear_memory_logs(const LogId &id) {
@@ -162,7 +160,7 @@ namespace melon::raft {
         }
 
     private:
-        bthread::CountdownEvent _event;
+        fiber::CountdownEvent _event;
         LogId _last_log_id;
     };
 
@@ -175,7 +173,7 @@ namespace melon::raft {
                 return _last_log_index;
             }
             LastLogIdClosure c;
-            CHECK_EQ(0, bthread::execution_queue_execute(_disk_queue, &c));
+            CHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, &c));
             lck.unlock();
             c.wait();
             return c.last_log_id().index;
@@ -194,7 +192,7 @@ namespace melon::raft {
                 return _last_snapshot_id;
             }
             LastLogIdClosure c;
-            CHECK_EQ(0, bthread::execution_queue_execute(_disk_queue, &c));
+            CHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, &c));
             lck.unlock();
             c.wait();
             return c.last_log_id();
@@ -278,7 +276,7 @@ namespace melon::raft {
         }
         _config_manager->truncate_prefix(first_index_kept);
         TruncatePrefixClosure *c = new TruncatePrefixClosure(first_index_kept);
-        const int rc = bthread::execution_queue_execute(_disk_queue, c);
+        const int rc = fiber::execution_queue_execute(_disk_queue, c);
         lck.unlock();
         for (size_t i = 0; i < saved_logs_in_memory.size(); ++i) {
             saved_logs_in_memory[i]->Release();
@@ -296,7 +294,7 @@ namespace melon::raft {
         _config_manager->truncate_prefix(_first_log_index);
         _config_manager->truncate_suffix(_last_log_index);
         ResetClosure *c = new ResetClosure(next_log_index);
-        const int ret = bthread::execution_queue_execute(_disk_queue, c);
+        const int ret = fiber::execution_queue_execute(_disk_queue, c);
         lck.unlock();
         CHECK_EQ(0, ret) << "execq execute failed, ret: " << ret << " err: " << berror();
         for (size_t i = 0; i < saved_logs_in_memory.size(); ++i) {
@@ -329,7 +327,7 @@ namespace melon::raft {
         _config_manager->truncate_suffix(last_index_kept);
         TruncateSuffixClosure *tsc = new
                 TruncateSuffixClosure(last_index_kept, last_term_kept);
-        CHECK_EQ(0, bthread::execution_queue_execute(_disk_queue, tsc));
+        CHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, tsc));
     }
 
     int LogManager::check_and_resolve_conflict(
@@ -408,13 +406,13 @@ namespace melon::raft {
     void LogManager::append_entries(
             std::vector<LogEntry *> *entries, StableClosure *done) {
         CHECK(done);
-        if (_has_error.load(butil::memory_order_relaxed)) {
+        if (_has_error.load(mutil::memory_order_relaxed)) {
             for (size_t i = 0; i < entries->size(); ++i) {
                 (*entries)[i]->Release();
             }
             entries->clear();
             done->status().set_error(EIO, "Corrupted LogStorage");
-            return run_closure_in_bthread(done);
+            return run_closure_in_fiber(done);
         }
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (!entries->empty() && check_and_resolve_conflict(entries, done) != 0) {
@@ -442,19 +440,19 @@ namespace melon::raft {
         }
 
         done->_entries.swap(*entries);
-        int ret = bthread::execution_queue_execute(_disk_queue, done);
+        int ret = fiber::execution_queue_execute(_disk_queue, done);
         CHECK_EQ(0, ret) << "execq execute failed, ret: " << ret << " err: " << berror();
         wakeup_all_waiter(lck);
     }
 
     void LogManager::append_to_storage(std::vector<LogEntry *> *to_append,
                                        LogId *last_id, IOMetric *metric) {
-        if (!_has_error.load(butil::memory_order_relaxed)) {
+        if (!_has_error.load(mutil::memory_order_relaxed)) {
             size_t written_size = 0;
             for (size_t i = 0; i < to_append->size(); ++i) {
                 written_size += (*to_append)[i]->data.size();
             }
-            butil::Timer timer;
+            mutil::Timer timer;
             timer.start();
             g_storage_append_entries_concurrency << 1;
             int nappent = _log_storage->append_entries(*to_append, metric);
@@ -501,7 +499,7 @@ namespace melon::raft {
                 g_storage_flush_batch_counter << _size;
                 for (size_t i = 0; i < _size; ++i) {
                     _storage[i]->_entries.clear();
-                    if (_lm->_has_error.load(butil::memory_order_relaxed)) {
+                    if (_lm->_has_error.load(mutil::memory_order_relaxed)) {
                         _storage[i]->status().set_error(
                                 EIO, "Corrupted LogStorage");
                     }
@@ -538,7 +536,7 @@ namespace melon::raft {
     };
 
     int LogManager::disk_thread(void *meta,
-                                bthread::TaskIterator<StableClosure *> &iter) {
+                                fiber::TaskIterator<StableClosure *> &iter) {
         if (iter.is_queue_stopped()) {
             return 0;
         }
@@ -553,7 +551,7 @@ namespace melon::raft {
             // ^^^ Must iterate to the end to release to corresponding
             //     even if some error has occurred
             StableClosure *done = *iter;
-            done->metric.bthread_queue_time_us = butil::cpuwide_time_us() -
+            done->metric.fiber_queue_time_us = mutil::cpuwide_time_us() -
                                                  done->metric.start_time_us;
             if (!done->_entries.empty()) {
                 ab.append(done);
@@ -826,15 +824,15 @@ namespace melon::raft {
     void *LogManager::run_on_new_log(void *arg) {
         WaitMeta *wm = (WaitMeta *) arg;
         wm->on_new_log(wm->arg, wm->error_code);
-        butil::return_object(wm);
+        mutil::return_object(wm);
         return NULL;
     }
 
     LogManager::WaitId LogManager::wait(
             int64_t expected_last_log_index,
             int (*on_new_log)(void *arg, int error_code), void *arg) {
-        WaitMeta *wm = butil::get_object<WaitMeta>();
-        if (BAIDU_UNLIKELY(wm == NULL)) {
+        WaitMeta *wm = mutil::get_object<WaitMeta>();
+        if (MELON_UNLIKELY(wm == NULL)) {
             PLOG(FATAL) << "Fail to new WaitMeta";
             abort();
             return -1;
@@ -851,9 +849,9 @@ namespace melon::raft {
         if (expected_last_log_index != _last_log_index || _stopped) {
             wm->error_code = _stopped ? ESTOP : 0;
             lck.unlock();
-            bthread_t tid;
-            if (bthread_start_urgent(&tid, NULL, run_on_new_log, wm) != 0) {
-                PLOG(ERROR) << "Fail to start bthread";
+            fiber_t tid;
+            if (fiber_start_urgent(&tid, NULL, run_on_new_log, wm) != 0) {
+                PLOG(ERROR) << "Fail to start fiber";
                 run_on_new_log(wm);
             }
             return 0;  // Not pushed into _wait_map
@@ -877,7 +875,7 @@ namespace melon::raft {
             }
         }
         if (wm) {
-            butil::return_object(wm);
+            mutil::return_object(wm);
         }
         return wm ? 0 : -1;
     }
@@ -888,7 +886,7 @@ namespace melon::raft {
         }
         WaitMeta *wm[_wait_map.size()];
         size_t nwm = 0;
-        for (butil::FlatMap<int64_t, WaitMeta *>::const_iterator
+        for (mutil::FlatMap<int64_t, WaitMeta *>::const_iterator
                      iter = _wait_map.begin(); iter != _wait_map.end(); ++iter) {
             wm[nwm++] = iter->second;
         }
@@ -897,16 +895,16 @@ namespace melon::raft {
         lck.unlock();
         for (size_t i = 0; i < nwm; ++i) {
             wm[i]->error_code = error_code;
-            bthread_t tid;
-            bthread_attr_t attr = BTHREAD_ATTR_NORMAL | BTHREAD_NOSIGNAL;
-            if (bthread_start_background(
+            fiber_t tid;
+            fiber_attr_t attr = FIBER_ATTR_NORMAL | FIBER_NOSIGNAL;
+            if (fiber_start_background(
                     &tid, &attr,
                     run_on_new_log, wm[i]) != 0) {
-                PLOG(ERROR) << "Fail to start bthread";
+                PLOG(ERROR) << "Fail to start fiber";
                 run_on_new_log(wm[i]);
             }
         }
-        bthread_flush();
+        fiber_flush();
     }
 
     void LogManager::describe(std::ostream &os, bool use_html) {
@@ -931,7 +929,7 @@ namespace melon::raft {
     }
 
     void LogManager::report_error(int error_code, const char *fmt, ...) {
-        _has_error.store(true, butil::memory_order_relaxed);
+        _has_error.store(true, mutil::memory_order_relaxed);
         va_list ap;
         va_start(ap, fmt);
         Error e;
@@ -941,27 +939,27 @@ namespace melon::raft {
         _fsm_caller->on_error(e);
     }
 
-    butil::Status LogManager::check_consistency() {
+    mutil::Status LogManager::check_consistency() {
         MELON_SCOPED_LOCK(_mutex);
         CHECK_GT(_first_log_index, 0);
         CHECK_GE(_last_log_index, 0);
         if (_last_snapshot_id == LogId(0, 0)) {
             if (_first_log_index == 1) {
-                return butil::Status::OK();
+                return mutil::Status::OK();
             }
-            return butil::Status(EIO, "Missing logs in (0, %" PRId64 ")", _first_log_index);
+            return mutil::Status(EIO, "Missing logs in (0, %" PRId64 ")", _first_log_index);
         } else {
             if (_last_snapshot_id.index >= _first_log_index - 1
                 && _last_snapshot_id.index <= _last_log_index) {
-                return butil::Status::OK();
+                return mutil::Status::OK();
             }
-            return butil::Status(EIO, "There's a gap between snapshot={%" PRId64 ", %" PRId64 "}"
+            return mutil::Status(EIO, "There's a gap between snapshot={%" PRId64 ", %" PRId64 "}"
                                       " and log=[%" PRId64 ", %" PRId64 "] ",
                                  _last_snapshot_id.index, _last_snapshot_id.term,
                                  _first_log_index, _last_log_index);
         }
         CHECK(false) << "Can't reach here";
-        return butil::Status(-1, "Impossible condition");
+        return mutil::Status(-1, "Impossible condition");
     }
 
 }  //  namespace melon::raft

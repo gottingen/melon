@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/strings/stringize_macros.h"
+#include "melon/utility/strings/stringize_macros.h"
 
 #include <gtest/gtest.h>
 

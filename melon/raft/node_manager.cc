@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/node.h"
 #include "melon/raft/node_manager.h"
@@ -26,10 +25,10 @@ namespace melon::raft {
 
     NodeManager::~NodeManager() {}
 
-    bool NodeManager::server_exists(butil::EndPoint addr) {
+    bool NodeManager::server_exists(mutil::EndPoint addr) {
         MELON_SCOPED_LOCK(_mutex);
-        if (addr.ip != butil::IP_ANY) {
-            butil::EndPoint any_addr(butil::IP_ANY, addr.port);
+        if (addr.ip != mutil::IP_ANY) {
+            mutil::EndPoint any_addr(mutil::IP_ANY, addr.port);
             if (_addr_set.find(any_addr) != _addr_set.end()) {
                 return true;
             }
@@ -37,13 +36,13 @@ namespace melon::raft {
         return _addr_set.find(addr) != _addr_set.end();
     }
 
-    void NodeManager::remove_address(butil::EndPoint addr) {
+    void NodeManager::remove_address(mutil::EndPoint addr) {
         MELON_SCOPED_LOCK(_mutex);
         _addr_set.erase(addr);
     }
 
     int NodeManager::add_service(melon::Server *server,
-                                 const butil::EndPoint &listen_address) {
+                                 const mutil::EndPoint &listen_address) {
         if (server == NULL) {
             LOG(ERROR) << "server is NULL";
             return -1;
@@ -126,7 +125,7 @@ namespace melon::raft {
     }
 
     scoped_refptr<NodeImpl> NodeManager::get(const GroupId &group_id, const PeerId &peer_id) {
-        butil::DoublyBufferedData<Maps>::ScopedPtr ptr;
+        mutil::DoublyBufferedData<Maps>::ScopedPtr ptr;
         if (_nodes.Read(&ptr) != 0) {
             return NULL;
         }
@@ -141,7 +140,7 @@ namespace melon::raft {
             const GroupId &group_id, std::vector<scoped_refptr<NodeImpl> > *nodes) {
 
         nodes->clear();
-        butil::DoublyBufferedData<Maps>::ScopedPtr ptr;
+        mutil::DoublyBufferedData<Maps>::ScopedPtr ptr;
         if (_nodes.Read(&ptr) != 0) {
             return;
         }
@@ -154,7 +153,7 @@ namespace melon::raft {
 
     void NodeManager::get_all_nodes(std::vector<scoped_refptr<NodeImpl> > *nodes) {
         nodes->clear();
-        butil::DoublyBufferedData<Maps>::ScopedPtr ptr;
+        mutil::DoublyBufferedData<Maps>::ScopedPtr ptr;
         if (_nodes.Read(&ptr) != 0) {
             return;
         }

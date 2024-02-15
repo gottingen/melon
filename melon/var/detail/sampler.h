@@ -21,13 +21,13 @@
 #define  MELON_VAR_DETAIL_SAMPLER_H_
 
 #include <vector>
-#include "melon/butil/containers/linked_list.h"// LinkNode
-#include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/butil/logging.h"               // LOG()
-#include "melon/butil/containers/bounded_queue.h"// BoundedQueue
-#include "melon/butil/type_traits.h"           // is_same
-#include "melon/butil/time.h"                  // gettimeofday_us
-#include "melon/butil/class_name.h"
+#include "melon/utility/containers/linked_list.h"// LinkNode
+#include "melon/utility/scoped_lock.h"           // MELON_SCOPED_LOCK
+#include "melon/utility/logging.h"               // LOG()
+#include "melon/utility/containers/bounded_queue.h"// BoundedQueue
+#include "melon/utility/type_traits.h"           // is_same
+#include "melon/utility/time.h"                  // gettimeofday_us
+#include "melon/utility/class_name.h"
 
 namespace melon::var {
     namespace detail {
@@ -43,7 +43,7 @@ namespace melon::var {
         };
 
 // The base class for all samplers whose take_sample() are called periodically.
-        class Sampler : public butil::LinkNode<Sampler> {
+        class Sampler : public mutil::LinkNode<Sampler> {
         public:
             Sampler();
 
@@ -66,7 +66,7 @@ namespace melon::var {
 
             bool _used;
             // Sync destroy() and take_sample().
-            butil::Mutex _mutex;
+            mutil::Mutex _mutex;
         };
 
 // Representing a non-existing operator so that we can test
@@ -113,8 +113,8 @@ namespace melon::var {
                     if (NULL == mem) {
                         return;
                     }
-                    butil::BoundedQueue<Sample<T> > new_q(
-                            mem, memsize, butil::OWNS_STORAGE);
+                    mutil::BoundedQueue<Sample<T> > new_q(
+                            mem, memsize, mutil::OWNS_STORAGE);
                     Sample<T> tmp;
                     while (_q.pop(&tmp)) {
                         new_q.push(tmp);
@@ -123,7 +123,7 @@ namespace melon::var {
                 }
 
                 Sample<T> latest;
-                if (butil::is_same<InvOp, VoidOp>::value) {
+                if (mutil::is_same<InvOp, VoidOp>::value) {
                     // The operator can't be inversed.
                     // We reset the reducer and save the result as a sample.
                     // Suming up samples gives the result within a window.
@@ -138,7 +138,7 @@ namespace melon::var {
                     // get_value() of _reducer can still be called.
                     latest.data = _reducer->get_value();
                 }
-                latest.time_us = butil::gettimeofday_us();
+                latest.time_us = mutil::gettimeofday_us();
                 _q.elim_push(latest);
             }
 
@@ -158,7 +158,7 @@ namespace melon::var {
                 }
                 Sample<T> *latest = _q.bottom();
                 DCHECK(latest != oldest);
-                if (butil::is_same<InvOp, VoidOp>::value) {
+                if (mutil::is_same<InvOp, VoidOp>::value) {
                     // No inverse op. Sum up all samples within the window.
                     result->data = latest->data;
                     for (int i = 1; true; ++i) {
@@ -216,7 +216,7 @@ namespace melon::var {
         private:
             R *_reducer;
             time_t _window_size;
-            butil::BoundedQueue<Sample<T> > _q;
+            mutil::BoundedQueue<Sample<T> > _q;
         };
 
     }  // namespace detail

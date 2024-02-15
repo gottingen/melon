@@ -21,20 +21,20 @@
 
 #include <melon/rpc/server.h>
 #include <melon/rpc/redis/redis.h>
-#include <melon/butil/crc32c.h>
-#include <melon/butil/strings/string_split.h>
+#include <melon/utility/crc32c.h>
+#include <melon/utility/strings/string_split.h>
 #include <gflags/gflags.h>
 #include <memory>
 #include <unordered_map>
 
-#include <melon/butil/time.h>
+#include <melon/utility/time.h>
 
 DEFINE_int32(port, 6379, "TCP Port of this server");
 
 class RedisServiceImpl : public melon::RedisService {
 public:
     bool Set(const std::string& key, const std::string& value) {
-        int slot = butil::crc32c::Value(key.c_str(), key.size()) % kHashSlotNum;
+        int slot = mutil::crc32c::Value(key.c_str(), key.size()) % kHashSlotNum;
         _mutex[slot].lock();
         _map[slot][key] = value;
         _mutex[slot].unlock();
@@ -42,7 +42,7 @@ public:
     }
 
     bool Get(const std::string& key, std::string* value) {
-        int slot = butil::crc32c::Value(key.c_str(), key.size()) % kHashSlotNum;
+        int slot = mutil::crc32c::Value(key.c_str(), key.size()) % kHashSlotNum;
         _mutex[slot].lock();
         auto it = _map[slot].find(key);
         if (it == _map[slot].end()) {
@@ -57,7 +57,7 @@ public:
 private:
     const static int kHashSlotNum = 32;
     std::unordered_map<std::string, std::string> _map[kHashSlotNum];
-    butil::Mutex _mutex[kHashSlotNum];
+    mutil::Mutex _mutex[kHashSlotNum];
 };
 
 class GetCommandHandler : public melon::RedisCommandHandler {
@@ -65,7 +65,7 @@ public:
     explicit GetCommandHandler(RedisServiceImpl* rsimpl)
         : _rsimpl(rsimpl) {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                         melon::RedisReply* output,
                                         bool /*flush_batched*/) override {
         if (args.size() != 2ul) {
@@ -91,7 +91,7 @@ public:
     explicit SetCommandHandler(RedisServiceImpl* rsimpl)
         : _rsimpl(rsimpl) {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<butil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
                                         melon::RedisReply* output,
                                         bool /*flush_batched*/) override {
         if (args.size() != 3ul) {

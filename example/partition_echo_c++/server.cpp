@@ -19,11 +19,11 @@
 
 #include <vector>
 #include <gflags/gflags.h>
-#include <melon/butil/time.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/string_splitter.h>
-#include <melon/butil/rand_util.h>
+#include <melon/utility/time.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/string_splitter.h>
+#include <melon/utility/rand_util.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -59,7 +59,7 @@ public:
             double delay = _sleep_us;
             const double a = FLAGS_exception_ratio * 0.5;
             if (a >= 0.0001) {
-                double x = butil::RandDouble();
+                double x = mutil::RandDouble();
                 if (x < a) {
                     const double min_sleep_us = FLAGS_min_ratio * _sleep_us;
                     delay = min_sleep_us + (_sleep_us - min_sleep_us) * x / a;
@@ -69,10 +69,10 @@ public:
                 }
             }
             if (FLAGS_spin) {
-                int64_t end_time = butil::gettimeofday_us() + (int64_t)delay;
-                while (butil::gettimeofday_us() < end_time) {}
+                int64_t end_time = mutil::gettimeofday_us() + (int64_t)delay;
+                while (mutil::gettimeofday_us() < end_time) {}
             } else {
-                bthread_usleep((int64_t)delay);
+                fiber_usleep((int64_t)delay);
             }
         }
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     options.max_concurrency = FLAGS_max_concurrency;
 
-    butil::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
+    mutil::StringSplitter sp(FLAGS_sleep_us.c_str(), ',');
     std::vector<int64_t> sleep_list;
     for (; sp; ++sp) {
         sleep_list.push_back(strtoll(sp.field(), NULL, 10));
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         int64_t sleep_us = sleep_list[(size_t)i < sleep_list.size() ? i : (sleep_list.size() - 1)];
         echo_service_impls[i].set_index(i, sleep_us);
         // will be shown on /version page
-        servers[i].set_version(butil::string_printf(
+        servers[i].set_version(mutil::string_printf(
                     "example/dynamic_partition_echo_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::SERVER_DOESNT_OWN_SERVICE) != 0) {

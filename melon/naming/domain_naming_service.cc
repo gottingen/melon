@@ -16,11 +16,11 @@
 // under the License.
 
 #include <gflags/gflags.h>
-#include "melon/butil/build_config.h"                       // OS_MACOSX
+#include "melon/utility/build_config.h"                       // OS_MACOSX
 #include <netdb.h>                                    // gethostbyname_r
 #include <stdlib.h>                                   // strtol
 #include <string>                                     // std::string
-#include "melon/bthread/bthread.h"
+#include "melon/fiber/fiber.h"
 #include "melon/rpc/log.h"
 #include "melon/naming/domain_naming_service.h"
 
@@ -88,8 +88,8 @@ namespace melon::naming {
             auto ret = getaddrinfo(buf, portBuf, &hints, &addrResult);
             if (!ret) {
                 for (auto rp = addrResult; rp != NULL; rp = rp->ai_next) {
-                    butil::EndPoint point;
-                    auto ret = butil::sockaddr2endpoint((struct sockaddr_storage *) rp->ai_addr, rp->ai_addrlen,
+                    mutil::EndPoint point;
+                    auto ret = mutil::sockaddr2endpoint((struct sockaddr_storage *) rp->ai_addr, rp->ai_addrlen,
                                                         &point);
                     if (!ret) {
                         servers->push_back(ServerNode(point, std::string()));
@@ -150,7 +150,7 @@ namespace melon::naming {
 #endif
 
         //TODO add protocols other than IPv4 supports
-        butil::EndPoint point;
+        mutil::EndPoint point;
         point.port = port;
         for (int i = 0; result->h_addr_list[i] != NULL; ++i) {
             if (result->h_addrtype == AF_INET) {

@@ -2,21 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/logging.h"
-#include "melon/butil/threading/simple_thread.h"
-#include "melon/butil/threading/thread_local.h"
-#include "melon/butil/synchronization/waitable_event.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/threading/simple_thread.h"
+#include "melon/utility/threading/thread_local.h"
+#include "melon/utility/synchronization/waitable_event.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
-class ThreadLocalTesterBase : public butil::DelegateSimpleThreadPool::Delegate {
+class ThreadLocalTesterBase : public mutil::DelegateSimpleThreadPool::Delegate {
  public:
-  typedef butil::ThreadLocalPointer<ThreadLocalTesterBase> TLPType;
+  typedef mutil::ThreadLocalPointer<ThreadLocalTesterBase> TLPType;
 
-  ThreadLocalTesterBase(TLPType* tlp, butil::WaitableEvent* done)
+  ThreadLocalTesterBase(TLPType* tlp, mutil::WaitableEvent* done)
       : tlp_(tlp),
         done_(done) {
   }
@@ -24,12 +24,12 @@ class ThreadLocalTesterBase : public butil::DelegateSimpleThreadPool::Delegate {
 
  protected:
   TLPType* tlp_;
-  butil::WaitableEvent* done_;
+  mutil::WaitableEvent* done_;
 };
 
 class SetThreadLocal : public ThreadLocalTesterBase {
  public:
-  SetThreadLocal(TLPType* tlp, butil::WaitableEvent* done)
+  SetThreadLocal(TLPType* tlp, mutil::WaitableEvent* done)
       : ThreadLocalTesterBase(tlp, done),
         val_(NULL) {
   }
@@ -49,7 +49,7 @@ class SetThreadLocal : public ThreadLocalTesterBase {
 
 class GetThreadLocal : public ThreadLocalTesterBase {
  public:
-  GetThreadLocal(TLPType* tlp, butil::WaitableEvent* done)
+  GetThreadLocal(TLPType* tlp, mutil::WaitableEvent* done)
       : ThreadLocalTesterBase(tlp, done),
         ptr_(NULL) {
   }
@@ -72,18 +72,18 @@ class GetThreadLocal : public ThreadLocalTesterBase {
 // In this test, we start 2 threads which will access a ThreadLocalPointer.  We
 // make sure the default is NULL, and the pointers are unique to the threads.
 TEST(ThreadLocalTest, Pointer) {
-  butil::DelegateSimpleThreadPool tp1("ThreadLocalTest tp1", 1);
-  butil::DelegateSimpleThreadPool tp2("ThreadLocalTest tp1", 1);
+  mutil::DelegateSimpleThreadPool tp1("ThreadLocalTest tp1", 1);
+  mutil::DelegateSimpleThreadPool tp2("ThreadLocalTest tp1", 1);
   tp1.Start();
   tp2.Start();
 
-  butil::ThreadLocalPointer<ThreadLocalTesterBase> tlp;
+  mutil::ThreadLocalPointer<ThreadLocalTesterBase> tlp;
 
   static ThreadLocalTesterBase* const kBogusPointer =
       reinterpret_cast<ThreadLocalTesterBase*>(0x1234);
 
   ThreadLocalTesterBase* tls_val;
-  butil::WaitableEvent done(true, false);
+  mutil::WaitableEvent done(true, false);
 
   GetThreadLocal getter(&tlp, &done);
   getter.set_ptr(&tls_val);
@@ -149,7 +149,7 @@ TEST(ThreadLocalTest, Pointer) {
 
 TEST(ThreadLocalTest, Boolean) {
   {
-    butil::ThreadLocalBoolean tlb;
+    mutil::ThreadLocalBoolean tlb;
     EXPECT_FALSE(tlb.Get());
 
     tlb.Set(false);
@@ -161,9 +161,9 @@ TEST(ThreadLocalTest, Boolean) {
 
   // Our slot should have been freed, we're all reset.
   {
-    butil::ThreadLocalBoolean tlb;
+    mutil::ThreadLocalBoolean tlb;
     EXPECT_FALSE(tlb.Get());
   }
 }
 
-}  // namespace butil
+}  // namespace mutil

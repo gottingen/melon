@@ -31,7 +31,7 @@ namespace json2pb {
 
         // Decode string in json using base64 decoding if the type of
         // corresponding field is bytes when this option is turned on.
-        // Default: false for baidu-interal, true otherwise.
+        // Default: false for melon-interal, true otherwise.
         bool base64_to_bytes;
 
         // Allow decoding json array iff there is only one repeated field.

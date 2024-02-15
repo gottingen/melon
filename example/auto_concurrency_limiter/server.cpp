@@ -18,21 +18,21 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
-#include <melon/butil/atomicops.h>
-#include <melon/butil/time.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/atomicops.h>
+#include <melon/utility/time.h>
+#include <melon/utility/logging.h>
 #include <melon/json2pb/json_to_pb.h>
-#include <melon/bthread/timer_thread.h>
-#include <melon/bthread/bthread.h>
+#include <melon/fiber/timer_thread.h>
+#include <melon/fiber/fiber.h>
 
 #include <cstdlib>
 #include <fstream>
 #include "cl_test.pb.h"
 
-DEFINE_int32(server_bthread_concurrency, 4, 
-             "Configuring the value of bthread_concurrency, For compute max qps, ");
+DEFINE_int32(server_fiber_concurrency, 4,
+             "Configuring the value of fiber_concurrency, For compute max qps, ");
 DEFINE_int32(server_sync_sleep_us, 2500, 
              "Usleep time, each request will be executed once, For compute max qps");
 // max qps = 1000 / 2.5 * 4 
@@ -44,11 +44,11 @@ DEFINE_string(case_file, "", "File path for test_cases");
 DEFINE_int32(latency_change_interval_us, 50000, "Intervalt for server side changes the latency");
 DEFINE_int32(server_max_concurrency, 0, "Echo Server's max_concurrency");
 DEFINE_bool(use_usleep, false, 
-            "EchoServer uses ::usleep or bthread_usleep to simulate latency "
+            "EchoServer uses ::usleep or fiber_usleep to simulate latency "
             "when processing requests");
 
 
-bthread::TimerThread g_timer_thread;
+fiber::TimerThread g_timer_thread;
 
 int cast_func(void* arg) {
     return *(int*)arg;
@@ -74,12 +74,12 @@ void DisplayStage(const test::Stage& stage) {
     LOG(INFO) << ss.str();
 }
 
-butil::atomic<int> cnt(0);
-butil::atomic<int> atomic_sleep_time(0);
+mutil::atomic<int> cnt(0);
+mutil::atomic<int> atomic_sleep_time(0);
 melon::var::PassiveStatus<int> atomic_sleep_time_var(cast_func, &atomic_sleep_time);
 
-namespace bthread {
-DECLARE_int32(bthread_concurrency);
+namespace fiber {
+DECLARE_int32(fiber_concurrency);
 }
 
 void TimerTask(void* data);
@@ -96,7 +96,7 @@ public:
     void SetTestCase(const test::TestCase& test_case) {
         _test_case = test_case;
         _next_stage_start = _test_case.latency_stage_list(0).duration_sec() + 
-            butil::gettimeofday_s();
+            mutil::gettimeofday_s();
         _stage_index = 0;
         _running_case = false;
         DisplayStage(_test_case.latency_stage_list(_stage_index));
@@ -118,7 +118,7 @@ public:
         }
         ComputeLatency();
         g_timer_thread.schedule(TimerTask, (void*)this, 
-            butil::microseconds_from_now(FLAGS_latency_change_interval_us));
+            mutil::microseconds_from_now(FLAGS_latency_change_interval_us));
     }
 
     virtual void Echo(google::protobuf::RpcController* cntl_base,
@@ -129,15 +129,15 @@ public:
         response->set_message("hello");
         ::usleep(FLAGS_server_sync_sleep_us);
         if (FLAGS_use_usleep) {
-            ::usleep(_latency.load(butil::memory_order_relaxed));
+            ::usleep(_latency.load(mutil::memory_order_relaxed));
         } else {
-            bthread_usleep(_latency.load(butil::memory_order_relaxed));
+            fiber_usleep(_latency.load(mutil::memory_order_relaxed));
         }
     }
 
     void ComputeLatency() {
         if (_stage_index < _test_case.latency_stage_list_size() &&
-            butil::gettimeofday_s() > _next_stage_start) {
+            mutil::gettimeofday_s() > _next_stage_start) {
             ++_stage_index;
             if (_stage_index < _test_case.latency_stage_list_size()) {
                 _next_stage_start += _test_case.latency_stage_list(_stage_index).duration_sec();
@@ -150,9 +150,9 @@ public:
                 _test_case.latency_stage_list(_stage_index - 1);
             if (latency_stage.type() == test::ChangeType::FLUCTUATE) {
                 _latency.store((latency_stage.lower_bound() + latency_stage.upper_bound()) / 2,
-                               butil::memory_order_relaxed);
+                               mutil::memory_order_relaxed);
             } else if (latency_stage.type() == test::ChangeType::SMOOTH) {
-                _latency.store(latency_stage.upper_bound(), butil::memory_order_relaxed);
+                _latency.store(latency_stage.upper_bound(), mutil::memory_order_relaxed);
             }
             return;
         }
@@ -161,14 +161,14 @@ public:
         const int lower_bound = latency_stage.lower_bound();
         const int upper_bound = latency_stage.upper_bound();
         if (latency_stage.type() == test::FLUCTUATE) {
-            _latency.store(butil::fast_rand_less_than(upper_bound - lower_bound) + lower_bound,
-                           butil::memory_order_relaxed); 
+            _latency.store(mutil::fast_rand_less_than(upper_bound - lower_bound) + lower_bound,
+                           mutil::memory_order_relaxed);
         } else if (latency_stage.type() == test::SMOOTH) {
             int latency = lower_bound + (upper_bound - lower_bound) / 
                 double(latency_stage.duration_sec()) * 
                 (latency_stage.duration_sec() - _next_stage_start + 
-                butil::gettimeofday_s());
-            _latency.store(latency, butil::memory_order_relaxed);
+                mutil::gettimeofday_s());
+            _latency.store(latency, mutil::memory_order_relaxed);
         } else {
             LOG(FATAL) << "Wrong Type:" << latency_stage.type();
         }
@@ -177,7 +177,7 @@ public:
 private:
     int _stage_index;
     int _next_stage_start;
-    butil::atomic<int> _latency;
+    mutil::atomic<int> _latency;
     test::TestCase _test_case;
     bool _running_case;
 };
@@ -272,7 +272,7 @@ private:
 int main(int argc, char* argv[]) {
     // Parse gflags. We recommend you to use gflags as well.
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
-    bthread::FLAGS_bthread_concurrency= FLAGS_server_bthread_concurrency;
+    fiber::FLAGS_fiber_concurrency= FLAGS_server_fiber_concurrency;
 
     melon::Server server;
 

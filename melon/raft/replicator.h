@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #ifndef  MELON_RAFT_REPLICATOR_H_
 #define  MELON_RAFT_REPLICATOR_H_
 
-#include <melon/bthread/bthread.h>                            // bthread_id
+#include <melon/fiber/fiber.h>                            // fiber_session
 #include <melon/rpc/channel.h>                  // melon::Channel
 
 #include "melon/raft/storage.h"                       // SnapshotStorage
@@ -40,8 +37,8 @@ namespace melon::raft {
 
 // A shared structure to store some high-frequency replicator statuses, for reducing
 // the lock contention between Replicator and NodeImpl.
-    struct ReplicatorStatus : public butil::RefCountedThreadSafe<ReplicatorStatus> {
-        butil::atomic<int64_t> last_rpc_send_timestamp;
+    struct ReplicatorStatus : public mutil::RefCountedThreadSafe<ReplicatorStatus> {
+        mutil::atomic<int64_t> last_rpc_send_timestamp;
 
         ReplicatorStatus() : last_rpc_send_timestamp(0) {}
     };
@@ -77,14 +74,14 @@ namespace melon::raft {
         friend class Replicator;
 
         int64_t _max_margin;
-        bthread_timer_t _timer;
+        fiber_timer_t _timer;
         bool _has_timer;
         bool _error_was_set;
 
         void _run();
     };
 
-    class BAIDU_CACHELINE_ALIGNMENT Replicator {
+    class MELON_CACHELINE_ALIGNMENT Replicator {
     public:
         // Called by the leader, otherwise the behavior is undefined
         // Start to replicate the log to the given follower
@@ -157,7 +154,7 @@ namespace melon::raft {
 
         ~Replicator();
 
-        int _prepare_entry(int offset, EntryMeta *em, butil::IOBuf *data);
+        int _prepare_entry(int offset, EntryMeta *em, mutil::IOBuf *data);
 
         void _wait_more_entries();
 
@@ -213,7 +210,7 @@ namespace melon::raft {
 
         static void *_send_heartbeat(void *arg);
 
-        static int _on_error(bthread_id_t id, void *arg, int error_code);
+        static int _on_error(fiber_session_t id, void *arg, int error_code);
 
         static int _continue_sending(void *arg, int error_code);
 
@@ -256,13 +253,13 @@ namespace melon::raft {
         void _close_reader();
 
         int64_t _last_rpc_send_timestamp() {
-            return _options.replicator_status->last_rpc_send_timestamp.load(butil::memory_order_relaxed);
+            return _options.replicator_status->last_rpc_send_timestamp.load(mutil::memory_order_relaxed);
         }
 
         void _update_last_rpc_send_timestamp(int64_t new_timestamp) {
             if (new_timestamp > _last_rpc_send_timestamp()) {
                 _options.replicator_status->last_rpc_send_timestamp
-                        .store(new_timestamp, butil::memory_order_relaxed);
+                        .store(new_timestamp, mutil::memory_order_relaxed);
             }
         }
 
@@ -293,9 +290,9 @@ namespace melon::raft {
         melon::CallId _timeout_now_in_fly;
         LogManager::WaitId _wait_id;
         bool _is_waiter_canceled;
-        bthread_id_t _id;
+        fiber_session_t _id;
         ReplicatorOptions _options;
-        bthread_timer_t _heartbeat_timer;
+        fiber_timer_t _heartbeat_timer;
         SnapshotReader *_reader;
         CatchupClosure *_catchup_closure;
     };

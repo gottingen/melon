@@ -24,10 +24,10 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/files/scoped_file.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/files/scoped_file.h"
 #include "melon/rpc/socket.h"
 #include "melon/builtin/version_service.h"
 #include "melon/builtin/health_service.h"
@@ -42,7 +42,7 @@
 #include "melon/builtin/rpcz_service.h"         // RpczService
 #include "melon/builtin/dir_service.h"          // DirService
 #include "melon/builtin/pprof_service.h"        // PProfService
-#include "melon/builtin/bthreads_service.h"     // BthreadsService
+#include "melon/builtin/fibers_service.h"     // FibersService
 #include "melon/builtin/ids_service.h"          // IdsService
 #include "melon/builtin/sockets_service.h"      // SocketsService
 #include "melon/builtin/bad_method_service.h"
@@ -87,7 +87,7 @@ public:
     }
 
     int VerifyCredential(const std::string&,
-                         const butil::EndPoint&,
+                         const mutil::EndPoint&,
                          melon::AuthContext*) const {
         return 0;
     }
@@ -110,13 +110,13 @@ public:
                       google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         melon::Controller* cntl = (melon::Controller*)cntl_base;
-        count.fetch_add(1, butil::memory_order_relaxed);
+        count.fetch_add(1, mutil::memory_order_relaxed);
         EXPECT_EQ(EXP_REQUEST, request->message());
         response->set_message(EXP_RESPONSE);
         if (request->sleep_us() > 0) {
             LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
                       << cntl->request_protocol(); 
-            bthread_usleep(request->sleep_us());
+            fiber_usleep(request->sleep_us());
         } else {
             LOG(INFO) << "No sleep, protocol=" << cntl->request_protocol();
         }
@@ -157,7 +157,7 @@ public:
         response->set_databytes(request->databytes());
     }
 
-    butil::atomic<int64_t> count;
+    mutil::atomic<int64_t> count;
 };
 
 // An evil service that fakes its `ServiceDescriptor'
@@ -235,7 +235,7 @@ TEST_F(ServerTest, sanity) {
         ASSERT_EQ(0, server.Join());
     }
 
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     MyAuthenticator auth;
     melon::Server server;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
@@ -262,11 +262,11 @@ TEST_F(ServerTest, sanity) {
 }
 
 TEST_F(ServerTest, invalid_protocol_in_enabled_protocols) {
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::Server server;
     melon::ServerOptions opt;
-    opt.enabled_protocols = "hehe baidu_std";
+    opt.enabled_protocols = "hehe melon_std";
     ASSERT_EQ(-1, server.Start(ep, &opt));
 }
 
@@ -326,11 +326,11 @@ public:
         ncalled_echo5.fetch_add(1);
     }
     
-    butil::atomic<int> ncalled;
-    butil::atomic<int> ncalled_echo2;
-    butil::atomic<int> ncalled_echo3;
-    butil::atomic<int> ncalled_echo4;
-    butil::atomic<int> ncalled_echo5;
+    mutil::atomic<int> ncalled;
+    mutil::atomic<int> ncalled_echo2;
+    mutil::atomic<int> ncalled_echo3;
+    mutil::atomic<int> ncalled_echo4;
+    mutil::atomic<int> ncalled_echo5;
 };
 
 class EchoServiceV2 : public v2::EchoService {
@@ -345,11 +345,11 @@ public:
         response->set_value(request->value() + 1);
         ncalled.fetch_add(1);
     }
-    butil::atomic<int> ncalled;
+    mutil::atomic<int> ncalled;
 };
 
 TEST_F(ServerTest, empty_enabled_protocols) {
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::Server server;
     EchoServiceImpl echo_svc;
@@ -361,7 +361,7 @@ TEST_F(ServerTest, empty_enabled_protocols) {
 
     melon::Channel chan;
     melon::ChannelOptions copt;
-    copt.protocol = "baidu_std";
+    copt.protocol = "melon_std";
     ASSERT_EQ(0, chan.Init(ep, &copt));
     melon::Controller cntl;
     test::EchoRequest req;
@@ -376,7 +376,7 @@ TEST_F(ServerTest, empty_enabled_protocols) {
 }
 
 TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     melon::Server server;
     EchoServiceImpl echo_svc;
@@ -399,7 +399,7 @@ TEST_F(ServerTest, only_allow_protocols_in_enabled_protocols) {
 
     // Unmatched protocols are not allowed.
     melon::Channel chan;
-    copt.protocol = "baidu_std";
+    copt.protocol = "melon_std";
     ASSERT_EQ(0, chan.Init(ep, &copt));
     test::EchoRequest req;
     test::EchoResponse res;
@@ -1074,7 +1074,7 @@ TEST_F(ServerTest, http_error_code) {
         req.set_sleep_us(100000);
         stub.Echo(&cntl2, &req, &res, melon::DoNothing());
 
-        bthread_usleep(20000);
+        fiber_usleep(20000);
         LOG(INFO) << "Send other requests";
 
         melon::Controller cntl3;
@@ -1187,7 +1187,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_TRUE(NULL == server.FindServiceByFullName(
         test::EchoService::descriptor()->name()));
 
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, NULL));
 
@@ -1215,7 +1215,7 @@ TEST_F(ServerTest, add_remove_service) {
     ASSERT_EQ(0ul, server.service_count());
 }
 
-void SendSleepRPC(butil::EndPoint ep, int sleep_ms, bool succ) {
+void SendSleepRPC(mutil::EndPoint ep, int sleep_ms, bool succ) {
     melon::Channel channel;
     ASSERT_EQ(0, channel.Init(ep, NULL));
 
@@ -1237,7 +1237,7 @@ void SendSleepRPC(butil::EndPoint ep, int sleep_ms, bool succ) {
 }
 
 TEST_F(ServerTest, close_idle_connections) {
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     melon::Server server;
     melon::ServerOptions opt;
     opt.idle_timeout_sec = 1;
@@ -1257,8 +1257,8 @@ TEST_F(ServerTest, close_idle_connections) {
 }
 
 TEST_F(ServerTest, logoff_and_multiple_start) {
-    butil::Timer timer;
-    butil::EndPoint ep;
+    mutil::Timer timer;
+    mutil::EndPoint ep;
     EchoServiceImpl echo_svc;
     melon::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
@@ -1268,33 +1268,33 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
     // Server::Stop(-1)
     {
         ASSERT_EQ(0, server.Start(ep, NULL));
-        bthread_t tid;
-        const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
+        fiber_t tid;
+        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
-            bthread_usleep(1000);
+        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+            fiber_usleep(1000);
         }
         timer.start();
         ASSERT_EQ(0, server.Stop(-1));
         ASSERT_EQ(0, server.Join());
         timer.stop();
         EXPECT_TRUE(labs(timer.m_elapsed() - 100) < 15) << timer.m_elapsed();
-        bthread_join(tid, NULL);
+        fiber_join(tid, NULL);
     }
 
     // Server::Stop(0)
     {
         ++ep.port;
         ASSERT_EQ(0, server.Start(ep, NULL));
-        bthread_t tid;
-        const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
+        fiber_t tid;
+        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
-            bthread_usleep(1000);
+        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+            fiber_usleep(1000);
         }
         
         timer.start();
@@ -1304,20 +1304,20 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         // Assertion will fail since EchoServiceImpl::Echo is holding
         // additional reference to the `Socket'
         // EXPECT_TRUE(timer.m_elapsed() < 15) << timer.m_elapsed();
-        bthread_join(tid, NULL);
+        fiber_join(tid, NULL);
     }
 
     // Server::Stop(timeout) where timeout < g_sleep_ms
     {
         ++ep.port;
         ASSERT_EQ(0, server.Start(ep, NULL));
-        bthread_t tid;
-        const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
+        fiber_t tid;
+        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
-            bthread_usleep(1000);
+        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+            fiber_usleep(1000);
         }
 
         timer.start();
@@ -1327,31 +1327,31 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         // Assertion will fail since EchoServiceImpl::Echo is holding
         // additional reference to the `Socket'
         // EXPECT_TRUE(labs(timer.m_elapsed() - 50) < 15) << timer.m_elapsed();
-        bthread_join(tid, NULL);
+        fiber_join(tid, NULL);
     }
     
     // Server::Stop(timeout) where timeout > g_sleep_ms
     {
         ++ep.port;
         ASSERT_EQ(0, server.Start(ep, NULL));
-        bthread_t tid;
-        const int64_t old_count = echo_svc.count.load(butil::memory_order_relaxed);
+        fiber_t tid;
+        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
-        EXPECT_EQ(0, bthread_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(butil::memory_order_relaxed) == old_count) {
-            bthread_usleep(1000);
+        EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
+        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+            fiber_usleep(1000);
         }
         timer.start();
         ASSERT_EQ(0, server.Stop(1000));
         ASSERT_EQ(0, server.Join());
         timer.stop();
         EXPECT_TRUE(labs(timer.m_elapsed() - 100) < 15) << timer.m_elapsed();
-        bthread_join(tid, NULL);
+        fiber_join(tid, NULL);
     }
 }
 
-void SendMultipleRPC(butil::EndPoint ep, int count) {
+void SendMultipleRPC(mutil::EndPoint ep, int count) {
     melon::Channel channel;
     EXPECT_EQ(0, channel.Init(ep, NULL));
 
@@ -1372,7 +1372,7 @@ TEST_F(ServerTest, serving_requests) {
     melon::Server server;
     ASSERT_EQ(0, server.AddService(&echo_svc,
                                    melon::SERVER_DOESNT_OWN_SERVICE));
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
     ASSERT_EQ(0, server.Start(ep, NULL));
 
@@ -1411,11 +1411,11 @@ TEST_F(ServerTest, create_pid_file) {
 TEST_F(ServerTest, range_start) {
     const int START_PORT = 8713;
     const int END_PORT = 8719;
-    butil::fd_guard listen_fds[END_PORT - START_PORT];
-    butil::EndPoint point;
+    mutil::fd_guard listen_fds[END_PORT - START_PORT];
+    mutil::EndPoint point;
     for (int i = START_PORT; i < END_PORT; ++i) {
         point.port = i;
-        listen_fds[i - START_PORT].reset(butil::tcp_listen(point));
+        listen_fds[i - START_PORT].reset(mutil::tcp_listen(point));
     }
 
     melon::Server server;
@@ -1470,7 +1470,7 @@ TEST_F(ServerTest, base64_to_string) {
         ASSERT_EQ(0, chan.Init("localhost:8613", &opt));
         melon::Controller cntl;
         cntl.http_request().uri() = "/EchoService/BytesEcho" +
-                butil::string_printf("%d", i + 1);
+                mutil::string_printf("%d", i + 1);
         cntl.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl.http_request().set_content_type("application/json");
         cntl.set_pb_bytes_to_base64(true);
@@ -1595,7 +1595,7 @@ TEST_F(ServerTest, max_concurrency) {
     req.set_sleep_us(100000);
     stub.Echo(&cntl2, &req, &res, melon::DoNothing());
 
-    bthread_usleep(20000);
+    fiber_usleep(20000);
     LOG(INFO) << "Send other requests";
     
     melon::Controller cntl3;

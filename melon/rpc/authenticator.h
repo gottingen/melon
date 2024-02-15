@@ -16,12 +16,12 @@
 // under the License.
 
 
-#ifndef BRPC_AUTHENTICATOR_H
-#define BRPC_AUTHENTICATOR_H
+#ifndef MELON_RPC_AUTHENTICATOR_H_
+#define MELON_RPC_AUTHENTICATOR_H_
 
 #include <ostream>
-#include "melon/butil/endpoint.h"                    // butil::EndPoint
-#include "melon/butil/macros.h"                      // BAIDU_CONCAT
+#include "melon/utility/endpoint.h"                    // mutil::EndPoint
+#include "melon/utility/macros.h"                      // MELON_CONCAT
 #include "melon/rpc/extension.h"              // Extension<T>
 
 
@@ -71,7 +71,7 @@ public:
     // pointer from `Controller'.
     // Returns 0 on success, error code otherwise
     virtual int VerifyCredential(const std::string& auth_str,
-                                 const butil::EndPoint& client_addr,
+                                 const mutil::EndPoint& client_addr,
                                  AuthContext* out_ctx) const = 0;
 
 };
@@ -88,4 +88,4 @@ inline std::ostream& operator<<(std::ostream& os, const AuthContext& ctx) {
 
 
 
-#endif // BRPC_AUTHENTICATOR_H
+#endif // MELON_RPC_AUTHENTICATOR_H_

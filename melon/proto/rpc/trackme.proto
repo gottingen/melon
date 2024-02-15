@@ -22,8 +22,6 @@ package melon;
 
 // The request sent to -trackme_server
 message TrackMeRequest {
-  // the svn revision when baidu-rp being compiled, which will be checked
-  // by server to tell if the version contains bugs
   optional int64 rpc_version = 1;
   optional string server_addr = 2;    
 };

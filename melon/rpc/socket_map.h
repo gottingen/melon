@@ -21,7 +21,7 @@
 
 #include <vector>                             // std::vector
 #include "melon/var/var.h"                        // melon::var::PassiveStatus
-#include "melon/butil/containers/flat_map.h"        // FlatMap
+#include "melon/utility/containers/flat_map.h"        // FlatMap
 #include "melon/rpc/socket_id.h"                   // SockdetId
 #include "melon/proto/rpc/options.pb.h"                  // ProtocolType
 #include "melon/rpc/input_messenger.h"             // InputMessageHandler
@@ -47,10 +47,10 @@ inline bool operator!=(const ChannelSignature& s1, const ChannelSignature& s2) {
 // The following fields uniquely define a Socket. In other word,
 // Socket can't be shared between 2 different SocketMapKeys
 struct SocketMapKey {
-    explicit SocketMapKey(const butil::EndPoint& pt)
+    explicit SocketMapKey(const mutil::EndPoint& pt)
         : peer(pt)
     {}
-    SocketMapKey(const butil::EndPoint& pt, const ChannelSignature& cs)
+    SocketMapKey(const mutil::EndPoint& pt, const ChannelSignature& cs)
         : peer(pt), channel_signature(cs)
     {}
     SocketMapKey(const ServerNode& sn, const ChannelSignature& cs)
@@ -67,8 +67,8 @@ inline bool operator==(const SocketMapKey& k1, const SocketMapKey& k2) {
 
 struct SocketMapKeyHasher {
     size_t operator()(const SocketMapKey& key) const {
-        size_t h = butil::DefaultHasher<butil::EndPoint>()(key.peer.addr);
-        h = h * 101 + butil::DefaultHasher<std::string>()(key.peer.tag);
+        size_t h = mutil::DefaultHasher<mutil::EndPoint>()(key.peer.addr);
+        h = h * 101 + mutil::DefaultHasher<std::string>()(key.peer.tag);
         h = h * 101 + key.channel_signature.data[1];
         return h;
     }
@@ -164,7 +164,7 @@ public:
     void Remove(const SocketMapKey& key, SocketId expected_id);
     int Find(const SocketMapKey& key, SocketId* id);
     void List(std::vector<SocketId>* ids);
-    void List(std::vector<butil::EndPoint>* pts);
+    void List(std::vector<mutil::EndPoint>* pts);
     const SocketMapOptions& options() const { return _options; }
 
 private:
@@ -186,15 +186,15 @@ private:
 
     // TODO: When RpcChannels connecting to one EndPoint are frequently created
     //       and destroyed, a single map+mutex may become hot-spots.
-    typedef butil::FlatMap<SocketMapKey, SingleConnection,
+    typedef mutil::FlatMap<SocketMapKey, SingleConnection,
                            SocketMapKeyHasher> Map;
     SocketMapOptions _options;
-    butil::Mutex _mutex;
+    mutil::Mutex _mutex;
     Map _map;
-    butil::atomic<bool> _exposed_in_bvar;
+    mutil::atomic<bool> _exposed_in_bvar;
     melon::var::PassiveStatus<std::string>* _this_map_bvar;
     bool _has_close_idle_thread;
-    bthread_t _close_idle_thread;
+    fiber_t _close_idle_thread;
 };
 
 } // namespace melon

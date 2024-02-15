@@ -18,10 +18,10 @@
 
 #include <algorithm>
 
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/lb/weighted_randomized_load_balancer.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/strings/string_number_conversions.h"
 
 namespace melon::lb {
 
@@ -35,7 +35,7 @@ namespace melon::lb {
             bg.server_list.reserve(128);
         }
         uint32_t weight = 0;
-        if (!butil::StringToUint(id.tag, &weight) || weight <= 0) {
+        if (!mutil::StringToUint(id.tag, &weight) || weight <= 0) {
             if (FLAGS_default_weight_of_wlb > 0) {
                 LOG(WARNING) << "Invalid weight is set: " << id.tag
                              << ". Now, 'weight' has been set to 'FLAGS_default_weight_of_wlb' by default.";
@@ -115,7 +115,7 @@ namespace melon::lb {
     }
 
     int WeightedRandomizedLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-        butil::DoublyBufferedData<Servers>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             return ENOMEM;
         }
@@ -125,7 +125,7 @@ namespace melon::lb {
         }
         uint64_t weight_sum = s->weight_sum;
         for (size_t i = 0; i < n; ++i) {
-            uint64_t random_weight = butil::fast_rand_less_than(weight_sum);
+            uint64_t random_weight = mutil::fast_rand_less_than(weight_sum);
             const Server random_server(0, 0, random_weight);
             const auto &server = std::lower_bound(s->server_list.begin(), s->server_list.end(), random_server,
                                                   server_compare);
@@ -144,7 +144,7 @@ namespace melon::lb {
     }
 
     LoadBalancer *WeightedRandomizedLoadBalancer::New(
-            const butil::StringPiece &) const {
+            const mutil::StringPiece &) const {
         return new(std::nothrow) WeightedRandomizedLoadBalancer;
     }
 
@@ -159,7 +159,7 @@ namespace melon::lb {
             return;
         }
         os << "WeightedRandomized{";
-        butil::DoublyBufferedData<Servers>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             os << "fail to read _db_servers";
         } else {

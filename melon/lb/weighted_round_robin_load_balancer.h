@@ -22,7 +22,7 @@
 #include <map>
 #include <vector>
 #include <unordered_set>
-#include "melon/butil/containers/doubly_buffered_data.h"
+#include "melon/utility/containers/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 
 namespace melon::lb {
@@ -41,7 +41,7 @@ namespace melon::lb {
 
         int SelectServer(const SelectIn &in, SelectOut *out);
 
-        LoadBalancer *New(const butil::StringPiece &) const;
+        LoadBalancer *New(const mutil::StringPiece &) const;
 
         void Destroy();
 
@@ -97,7 +97,7 @@ namespace melon::lb {
                                               const std::unordered_set<SocketId> &filter,
                                               TLS &tls);
 
-        butil::DoublyBufferedData<Servers, TLS> _db_servers;
+        mutil::DoublyBufferedData<Servers, TLS> _db_servers;
     };
 
 } // namespace melon::lb

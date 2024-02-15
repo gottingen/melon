@@ -20,7 +20,7 @@
 #define  MELON_NAMING_DOMAIN_NAMING_SERVICE_H_
 
 #include "melon/naming/periodic_naming_service.h"
-#include "melon/butil/unique_ptr.h"
+#include "melon/utility/unique_ptr.h"
 
 
 namespace melon::naming {

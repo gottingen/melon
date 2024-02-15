@@ -23,10 +23,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <gtest/gtest.h>
-#include "melon/butil/gperftools_profiler.h"
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/fd_utility.h"
+#include "melon/utility/gperftools_profiler.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fd_utility.h"
 #include "melon/rpc/event_dispatcher.h"
 #include "melon/rpc/details/has_epollrdhup.h"
 
@@ -46,9 +46,9 @@ TEST_F(EventDispatcherTest, has_epollrdhup) {
 }
 
 TEST_F(EventDispatcherTest, versioned_ref) {
-    butil::atomic<uint64_t> versioned_ref(2);
+    mutil::atomic<uint64_t> versioned_ref(2);
     versioned_ref.fetch_add(melon::MakeVRef(0, -1),
-                            butil::memory_order_release);
+                            mutil::memory_order_release);
     ASSERT_EQ(melon::MakeVRef(1, 1), versioned_ref);
 }
 
@@ -60,13 +60,13 @@ pthread_mutex_t rel_fd_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 volatile bool client_stop = false;
 
-struct BAIDU_CACHELINE_ALIGNMENT ClientMeta {
+struct MELON_CACHELINE_ALIGNMENT ClientMeta {
     int fd;
     size_t times;
     size_t bytes;
 };
 
-struct BAIDU_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
+struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
     char* buf;
     size_t buf_cap;
     size_t bytes;
@@ -184,9 +184,9 @@ inline uint32_t fmix32 ( uint32_t h ) {
 }
 
 TEST_F(EventDispatcherTest, dispatch_tasks) {
-#ifdef BUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
-    const butil::ResourcePoolInfo old_info =
-        butil::describe_resources<melon::Socket>();
+#ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
+    const mutil::ResourcePoolInfo old_info =
+        mutil::describe_resources<melon::Socket>();
 #endif
 
     client_stop = false;
@@ -203,7 +203,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         sm[i] = new SocketExtra;
 
         const int fd = fds[i * 2];
-        butil::make_non_blocking(fd);
+        mutil::make_non_blocking(fd);
         melon::SocketId socket_id;
         melon::SocketOptions options;
         options.fd = fd;
@@ -220,7 +220,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
     
     LOG(INFO) << "Begin to profile... (5 seconds)";
     ProfilerStart("event_dispatcher.prof");
-    butil::Timer tm;
+    mutil::Timer tm;
     tm.start();
     
     sleep(5);
@@ -260,10 +260,10 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         ASSERT_EQ(copy1[i], copy2[i]) << i;
     }
     ASSERT_EQ(NCLIENT, copy1.size());
-    const butil::ResourcePoolInfo info
-        = butil::describe_resources<melon::Socket>();
+    const mutil::ResourcePoolInfo info
+        = mutil::describe_resources<melon::Socket>();
     LOG(INFO) << info;
-#ifdef BUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
+#ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
     ASSERT_EQ(NCLIENT, info.free_item_num - old_info.free_item_num);
 #endif
 }

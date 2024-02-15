@@ -9,22 +9,22 @@
 
 #include <limits>
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/numerics/safe_conversions.h"
-#include "melon/butil/numerics/safe_math.h"
-#include "melon/butil/type_traits.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/numerics/safe_conversions.h"
+#include "melon/utility/numerics/safe_math.h"
+#include "melon/utility/type_traits.h"
 #include <gtest/gtest.h>
 
 using std::numeric_limits;
-using butil::CheckedNumeric;
-using butil::checked_cast;
-using butil::saturated_cast;
-using butil::internal::MaxExponent;
-using butil::internal::RANGE_VALID;
-using butil::internal::RANGE_INVALID;
-using butil::internal::RANGE_OVERFLOW;
-using butil::internal::RANGE_UNDERFLOW;
-using butil::enable_if;
+using mutil::CheckedNumeric;
+using mutil::checked_cast;
+using mutil::saturated_cast;
+using mutil::internal::MaxExponent;
+using mutil::internal::RANGE_VALID;
+using mutil::internal::RANGE_INVALID;
+using mutil::internal::RANGE_OVERFLOW;
+using mutil::internal::RANGE_UNDERFLOW;
+using mutil::enable_if;
 
 // MSVS 2013 ia32 may not reset the FPU between calculations, and the test
 // framework masks the exceptions. So we just force a manual reset after NaN.
@@ -291,7 +291,7 @@ struct TestNumericConversion {};
 
 // EXPECT_EQ wrappers providing specific detail on test failures.
 #define TEST_EXPECTED_RANGE(expected, actual)                                  \
-  EXPECT_EQ(expected, butil::internal::DstRangeRelationToSrcRange<Dst>(actual)) \
+  EXPECT_EQ(expected, mutil::internal::DstRangeRelationToSrcRange<Dst>(actual)) \
       << "Conversion test: " << src << " value " << actual << " to " << dst    \
       << " on line " << line;
 

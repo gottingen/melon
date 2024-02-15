@@ -25,9 +25,9 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/gperftools_profiler.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/gperftools_profiler.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -61,7 +61,7 @@ public:
     }
 
     int VerifyCredential(const std::string& auth_str,
-                         const butil::EndPoint&,
+                         const mutil::EndPoint&,
                          melon::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);
@@ -141,12 +141,12 @@ protected:
         const melon::policy::HuluRpcRequestMeta& meta) {
         melon::policy::MostCommonMessage* msg =
                 melon::policy::MostCommonMessage::Get();
-        butil::IOBufAsZeroCopyOutputStream meta_stream(&msg->meta);
+        mutil::IOBufAsZeroCopyOutputStream meta_stream(&msg->meta);
         EXPECT_TRUE(meta.SerializeToZeroCopyStream(&meta_stream));
 
         test::EchoRequest req;
         req.set_message(EXP_REQUEST);
-        butil::IOBufAsZeroCopyOutputStream req_stream(&msg->payload);
+        mutil::IOBufAsZeroCopyOutputStream req_stream(&msg->payload);
         EXPECT_TRUE(req.SerializeToZeroCopyStream(&req_stream));
         return msg;
     }
@@ -155,12 +155,12 @@ protected:
         const melon::policy::HuluRpcResponseMeta& meta) {
         melon::policy::MostCommonMessage* msg =
                 melon::policy::MostCommonMessage::Get();
-        butil::IOBufAsZeroCopyOutputStream meta_stream(&msg->meta);
+        mutil::IOBufAsZeroCopyOutputStream meta_stream(&msg->meta);
         EXPECT_TRUE(meta.SerializeToZeroCopyStream(&meta_stream));
 
         test::EchoResponse res;
         res.set_message(EXP_RESPONSE);
-        butil::IOBufAsZeroCopyOutputStream res_stream(&msg->payload);
+        mutil::IOBufAsZeroCopyOutputStream res_stream(&msg->payload);
         EXPECT_TRUE(res.SerializeToZeroCopyStream(&res_stream));
         return msg;
     }
@@ -174,7 +174,7 @@ protected:
         }
 
         EXPECT_GT(bytes_in_pipe, 0);
-        butil::IOPortal buf;
+        mutil::IOPortal buf;
         EXPECT_EQ((ssize_t)bytes_in_pipe,
                   buf.append_from_file_descriptor(_pipe_fds[0], 1024));
         melon::ParseResult pr = melon::policy::ParseHuluMessage(&buf, NULL, false, NULL);
@@ -183,14 +183,14 @@ protected:
             static_cast<melon::policy::MostCommonMessage*>(pr.message());
 
         melon::policy::HuluRpcResponseMeta meta;
-        butil::IOBufAsZeroCopyInputStream meta_stream(msg->meta);
+        mutil::IOBufAsZeroCopyInputStream meta_stream(msg->meta);
         EXPECT_TRUE(meta.ParseFromZeroCopyStream(&meta_stream));
         EXPECT_EQ(expect_code, meta.error_code());
     }
 
     void TestHuluCompress(melon::CompressType type) {
-        butil::IOBuf request_buf;
-        butil::IOBuf total_buf;
+        mutil::IOBuf request_buf;
+        mutil::IOBuf total_buf;
         melon::Controller cntl;
         test::EchoRequest req;
         test::EchoResponse res;
@@ -278,8 +278,8 @@ TEST_F(HuluTest, process_response_error_code) {
 }
 
 TEST_F(HuluTest, complete_flow) {
-    butil::IOBuf request_buf;
-    butil::IOBuf total_buf;
+    mutil::IOBuf request_buf;
+    mutil::IOBuf total_buf;
     melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
@@ -304,7 +304,7 @@ TEST_F(HuluTest, complete_flow) {
     ProcessMessage(melon::policy::ProcessHuluRequest, req_msg, false);
 
     // Read response from pipe
-    butil::IOPortal response_buf;
+    mutil::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::ParseResult res_pr =
             melon::policy::ParseHuluMessage(&response_buf, NULL, false, NULL);
@@ -317,8 +317,8 @@ TEST_F(HuluTest, complete_flow) {
 }
 
 TEST_F(HuluTest, close_in_callback) {
-    butil::IOBuf request_buf;
-    butil::IOBuf total_buf;
+    mutil::IOBuf request_buf;
+    mutil::IOBuf total_buf;
     melon::Controller cntl;
     test::EchoRequest req;
 

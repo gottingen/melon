@@ -20,7 +20,7 @@
 #define BRPC_SERIALIZED_REQUEST_H
 
 #include <google/protobuf/message.h>
-#include "melon/butil/iobuf.h"
+#include "melon/utility/iobuf.h"
 #include "melon/proto/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
@@ -54,8 +54,8 @@ public:
     bool IsInitialized() const override;
     int ByteSize() const;
     int GetCachedSize() const override { return (int)_serialized.size(); }
-    butil::IOBuf& serialized_data() { return _serialized; }
-    const butil::IOBuf& serialized_data() const { return _serialized; }
+    mutil::IOBuf& serialized_data() { return _serialized; }
+    const mutil::IOBuf& serialized_data() const { return _serialized; }
 
 protected:
     ::google::protobuf::Metadata GetMetadata() const override;
@@ -74,7 +74,7 @@ private:
     void SetCachedSize(int size) const override;
   
 private:
-    butil::IOBuf _serialized;
+    mutil::IOBuf _serialized;
 };
 
 } // namespace melon

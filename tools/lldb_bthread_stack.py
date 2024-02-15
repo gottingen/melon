@@ -19,34 +19,34 @@
 # under the License.
 
 """
-Bthread Stack Print Tool
+Fiber Stack Print Tool
 
 this only for running process, core dump is not supported.
 
 Get Started:
     1. lldb attach -p <pid>
-    2. command script import lldb_bthread_stack.py
-    3. bthread_begin
-    4. bthread_list
-    5. bthread_frame 0
+    2. command script import lldb_fiber_stack.py
+    3. fiber_begin
+    4. fiber_list
+    5. fiber_frame 0
     6. bt / up / down
-    7. bthread_end
+    7. fiber_end
 
 Commands:
-    1. bthread_num: print all bthread nums
-    2. bthread_begin <num>: enter bthread debug mode, `num` is max scanned bthreads, default will scan all
-    3. bthread_list: list all bthreads
-    4. bthread_frame <id>: switch stack to bthread, id will displayed in bthread_list
-    5. bthread_meta <id>: print bthread meta
-    6. bthread_reg_restore: bthread_frame will modify registers, reg_restore will restore them
-    7. bthread_end: exit bthread debug mode
-    8. bthread_regs <id>: print bthread registers
-    9. bthread_all: print all bthread frames
+    1. fiber_num: print all fiber nums
+    2. fiber_begin <num>: enter fiber debug mode, `num` is max scanned fibers, default will scan all
+    3. fiber_list: list all fibers
+    4. fiber_frame <id>: switch stack to fiber, id will displayed in fiber_list
+    5. fiber_meta <id>: print fiber meta
+    6. fiber_reg_restore: fiber_frame will modify registers, reg_restore will restore them
+    7. fiber_end: exit fiber debug mode
+    8. fiber_regs <id>: print fiber registers
+    9. fiber_all: print all fiber frames
 
-when call bthread_frame, registers will be modified,
-remember to call bthread_end after debug, or process will be corrupted
+when call fiber_frame, registers will be modified,
+remember to call fiber_end after debug, or process will be corrupted
 
-after call bthread_frame, you can call `bt`/`up`/`down`, or other gdb command
+after call fiber_frame, you can call `bt`/`up`/`down`, or other gdb command
 """
 
 import lldb
@@ -55,30 +55,30 @@ import lldb
 class GlobalState():
     def __init__(self):
         self.started: bool = False
-        self.bthreads: list = []
+        self.fibers: list = []
         self.saved_regs: dict = {}
 
     def reset(self) -> None:
         self.started = False
-        self.bthreads.clear()
+        self.fibers.clear()
 
-    def get_bthread(self, idx_str: str) -> lldb.SBValue:
+    def get_fiber(self, idx_str: str) -> lldb.SBValue:
         if not self.started:
-            print("Not in bthread debug mode")
+            print("Not in fiber debug mode")
             return None
         if len(idx_str) == 0:
-            print("bthread_frame <id>, see 'bthread_list'")
+            print("fiber_frame <id>, see 'fiber_list'")
         try:
-            bthread_idx = int(idx_str)
+            fiber_sessionx = int(idx_str)
         except ValueError:
             print("please input a valid interger.")
             return None
 
-        if bthread_idx >= len(self.bthreads):
-            print("id {} exceeds max bthread nums {}".format(
-                bthread_idx, len(self.bthreads)))
+        if fiber_sessionx >= len(self.fibers):
+            print("id {} exceeds max fiber nums {}".format(
+                fiber_sessionx, len(self.fibers)))
             return None
-        return self.bthreads[bthread_idx]
+        return self.fibers[fiber_sessionx]
 
 
 global_state = GlobalState()
@@ -104,11 +104,11 @@ def find_global_value(target: lldb.SBTarget, value_name: str) -> lldb.SBValue:
     return get_child(root_value, '.'.join(name_list[1:]))
 
 
-def get_bthreads_num(target: lldb.SBTarget):
+def get_fibers_num(target: lldb.SBTarget):
     root_agent = find_global_value(
-        target, "bthread::g_task_control._nbthreads._combiner._agents.root_")
+        target, "fiber::g_task_control._nfibers._combiner._agents.root_")
     global_res = find_global_value(
-        target, "bthread::g_task_control._nbthreads._combiner._global_result").GetValueAsSigned()
+        target, "fiber::g_task_control._nfibers._combiner._global_result").GetValueAsSigned()
     long_type = target.GetBasicType(lldb.eBasicTypeLong)
 
     last_node = root_agent
@@ -125,14 +125,14 @@ def get_bthreads_num(target: lldb.SBTarget):
         last_node = get_child(agent, "next_").Dereference()
 
 
-def get_all_bthreads(target: lldb.SBTarget, total: int):
-    bthreads = []
+def get_all_fibers(target: lldb.SBTarget, total: int):
+    fibers = []
     groups = find_global_value(
-        target, "butil::ResourcePool<bthread::TaskMeta>::_ngroup.val").GetValueAsUnsigned()
+        target, "mutil::ResourcePool<fiber::TaskMeta>::_ngroup.val").GetValueAsUnsigned()
     long_type = target.GetBasicType(lldb.eBasicTypeLong)
     uint32_t_type = target.FindFirstType("uint32_t")
     block_groups = find_global_value(
-        target, "butil::ResourcePool<bthread::TaskMeta>::_block_groups")
+        target, "mutil::ResourcePool<fiber::TaskMeta>::_block_groups")
     for group in range(groups):
         block_group = get_child(
             block_groups.GetChildAtIndex(group), "val").Dereference()
@@ -140,14 +140,14 @@ def get_all_bthreads(target: lldb.SBTarget, total: int):
             long_type).GetValueAsUnsigned()
         blocks = get_child(block_group, "blocks")
         for block in range(nblock):
-            # block_type: butil::ResourcePool<bthread::TaskMeta>::Block
+            # block_type: mutil::ResourcePool<fiber::TaskMeta>::Block
             block_type = blocks.GetChildAtIndex(
                 block).GetType().GetTemplateArgumentType(0)
             block = blocks.GetChildAtIndex(
                 block).Cast(block_type).Dereference()
             nitem = get_child(block, "nitem").GetValueAsUnsigned()
             task_meta_array_type = target.FindFirstType(
-                "bthread::TaskMeta").GetArrayType(nitem)
+                "fiber::TaskMeta").GetArrayType(nitem)
             tasks = get_child(block, "items").Cast(task_meta_array_type)
             for i in range(nitem):
                 task_meta = tasks.GetChildAtIndex(i)
@@ -155,25 +155,25 @@ def get_all_bthreads(target: lldb.SBTarget, total: int):
                     task_meta, "tid").GetValueAsUnsigned() >> 32
                 version_butex = get_child(task_meta, "version_butex").Cast(
                     uint32_t_type.GetPointerType()).Dereference().GetValueAsUnsigned()
-                # stack_type: bthread::ContextualStack
+                # stack_type: fiber::ContextualStack
                 stack_type = get_child(
                     task_meta, "attr.stack_type").GetValueAsUnsigned()
                 if version_tid == version_butex and stack_type != 0:
-                    if len(bthreads) >= total:
-                        return bthreads
-                    bthreads.append(task_meta)
-    return bthreads
+                    if len(fibers) >= total:
+                        return fibers
+                    fibers.append(task_meta)
+    return fibers
 
-# lldb bthread commands
-def bthread_begin(debugger, command, result, internal_dict):
+# lldb fiber commands
+def fiber_begin(debugger, command, result, internal_dict):
     if global_state.started:
-        print("Already in bthread debug mode, do not switch thread before exec 'bthread_end' !!!")
+        print("Already in fiber debug mode, do not switch thread before exec 'fiber_end' !!!")
         return
     target = debugger.GetSelectedTarget()
-    active_bthreads = get_bthreads_num(target)
+    active_fibers = get_fibers_num(target)
 
     if len(command) == 0:
-        request_bthreds = active_bthreads
+        request_bthreds = active_fibers
     else:
         try:
             request_bthreds = int(command)
@@ -181,15 +181,15 @@ def bthread_begin(debugger, command, result, internal_dict):
             print("please input a valid interger.")
             return
 
-    scanned_bthreds = active_bthreads
-    if request_bthreds > active_bthreads:
-        print("requested bthreads {} more than actived, will display {} bthreads".format(
-            request_bthreds, active_bthreads))
+    scanned_bthreds = active_fibers
+    if request_bthreds > active_fibers:
+        print("requested fibers {} more than actived, will display {} fibers".format(
+            request_bthreds, active_fibers))
     else:
         scanned_bthreds = request_bthreds
-    print("Active bthreads: {}, will display {} bthreads".format(
-        active_bthreads, scanned_bthreds))
-    global_state.bthreads = get_all_bthreads(target, scanned_bthreds)
+    print("Active fibers: {}, will display {} fibers".format(
+        active_fibers, scanned_bthreds))
+    global_state.fibers = get_all_fibers(target, scanned_bthreds)
 
     # backup registers
     current_frame = target.GetProcess().GetSelectedThread().GetSelectedFrame()
@@ -200,18 +200,18 @@ def bthread_begin(debugger, command, result, internal_dict):
     global_state.saved_regs = saved_regs
 
     global_state.started = True
-    print("Enter bthread debug mode, do not switch thread before exec 'bthread_end' !!!")
+    print("Enter fiber debug mode, do not switch thread before exec 'fiber_end' !!!")
 
 
-def bthread_list(debugger, command, result, internal_dict):
-    r"""list all bthreads, print format is 'id\ttid\tfunction\thas stack'"""
+def fiber_list(debugger, command, result, internal_dict):
+    r"""list all fibers, print format is 'id\ttid\tfunction\thas stack'"""
     if not global_state.started:
-        print("Not in bthread debug mode")
+        print("Not in fiber debug mode")
         return
 
     print("id\t\ttid\t\tfunction\t\t\t\thas stack\t\t\ttotal:{}".format(
-        len(global_state.bthreads)))
-    for i, t in enumerate(global_state.bthreads):
+        len(global_state.fibers)))
+    for i, t in enumerate(global_state.fibers):
         tid = get_child(t, "tid").GetValueAsUnsigned()
         fn = get_child(t, "fn")
         has_stack = get_child(t, "stack").GetLocation() == "0x0"
@@ -219,24 +219,24 @@ def bthread_list(debugger, command, result, internal_dict):
             i, tid, fn, "no" if has_stack else "yes"))
 
 
-def bthread_num(debugger, command, result, internal_dict):
-    r"""list active bthreads num"""
+def fiber_num(debugger, command, result, internal_dict):
+    r"""list active fibers num"""
     if not global_state.started:
-        print("Not in bthread debug mode")
+        print("Not in fiber debug mode")
         return
 
     target = debugger.GetSelectedTarget()
-    active_bthreads = get_bthreads_num(target)
-    print(active_bthreads)
+    active_fibers = get_fibers_num(target)
+    print(active_fibers)
 
 
-def bthread_frame(debugger, command, result, internal_dict):
-    r"""bthread_frame <id>, select bthread frame by id"""
-    bthread = global_state.get_bthread(command)
-    if bthread is None:
+def fiber_frame(debugger, command, result, internal_dict):
+    r"""fiber_frame <id>, select fiber frame by id"""
+    fiber = global_state.get_fiber(command)
+    if fiber is None:
         return
 
-    stack = bthread.GetChildMemberWithName("stack")
+    stack = fiber.GetChildMemberWithName("stack")
     context = stack.Dereference().GetChildMemberWithName("context")
 
     target = debugger.GetSelectedTarget()
@@ -254,34 +254,34 @@ def bthread_frame(debugger, command, result, internal_dict):
     debugger.HandleCommand(f"register write rsp {rsp}")
 
 
-def bthread_all(debugger, command, result, internal_dict):
-    r"""print all bthread frames"""
+def fiber_all(debugger, command, result, internal_dict):
+    r"""print all fiber frames"""
     if not global_state.started:
-        print("Not in bthread debug mode")
+        print("Not in fiber debug mode")
         return
 
-    bthreads = global_state.bthreads
-    bthread_num = len(bthreads)
-    for i in range(bthread_num):
-        bthread_frame(debugger, str(i), result, internal_dict)
+    fibers = global_state.fibers
+    fiber_num = len(fibers)
+    for i in range(fiber_num):
+        fiber_frame(debugger, str(i), result, internal_dict)
         debugger.HandleCommand("bt")
 
 
-def bthread_meta(debugger, command, result, internal_dict):
-    r"""bthread_meta <id>, print task meta by id"""
-    bthread = global_state.get_bthread(command)
-    if bthread is None:
+def fiber_meta(debugger, command, result, internal_dict):
+    r"""fiber_meta <id>, print task meta by id"""
+    fiber = global_state.get_fiber(command)
+    if fiber is None:
         return
-    print(bthread)
+    print(fiber)
 
 
-def bthread_regs(debugger, command, result, internal_dict):
-    r"""bthread_regs <id>, print bthread registers"""
-    bthread = global_state.get_bthread(command)
-    if bthread is None:
+def fiber_regs(debugger, command, result, internal_dict):
+    r"""fiber_regs <id>, print fiber registers"""
+    fiber = global_state.get_fiber(command)
+    if fiber is None:
         return
     target = debugger.GetSelectedTarget()
-    stack = get_child(bthread, "stack").Dereference()
+    stack = get_child(fiber, "stack").Dereference()
     context = get_child(stack, "context")
     ctx_addr = context.GetValueAsUnsigned()
     uint64_t_type = target.FindFirstType("uint64_t")
@@ -306,42 +306,42 @@ def bthread_regs(debugger, command, result, internal_dict):
         rip, rsp, rbp, rbx, r15, r14, r13, r12))
 
 
-def bthread_reg_restore(debugger, command, result, internal_dict):
+def fiber_reg_restore(debugger, command, result, internal_dict):
     r"""restore registers"""
     if not global_state.started:
-        print("Not in bthread debug mode")
+        print("Not in fiber debug mode")
         return
     for reg_name, reg_value in global_state.saved_regs.items():
         debugger.HandleCommand(f"register write {reg_name} {reg_value}")
 
 
-def bthread_end(debugger, command, result, internal_dict):
-    r"""exit bthread debug mode"""
+def fiber_end(debugger, command, result, internal_dict):
+    r"""exit fiber debug mode"""
     if not global_state.started:
-        print("Not in bthread debug mode")
+        print("Not in fiber debug mode")
         return
-    bthread_reg_restore(debugger, command, result, internal_dict)
+    fiber_reg_restore(debugger, command, result, internal_dict)
     global_state.reset()
-    print("Exit bthread debug mode")
+    print("Exit fiber debug mode")
 
 
 # And the initialization code to add commands.
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_begin bthread_begin')
+        'command script add -f lldb_fiber_stack.fiber_begin fiber_begin')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_list bthread_list')
+        'command script add -f lldb_fiber_stack.fiber_list fiber_list')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_frame bthread_frame')
+        'command script add -f lldb_fiber_stack.fiber_frame fiber_frame')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_num bthread_num')
+        'command script add -f lldb_fiber_stack.fiber_num fiber_num')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_all bthread_all')
+        'command script add -f lldb_fiber_stack.fiber_all fiber_all')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_meta bthread_meta')
+        'command script add -f lldb_fiber_stack.fiber_meta fiber_meta')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_regs bthread_regs')
+        'command script add -f lldb_fiber_stack.fiber_regs fiber_regs')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_reg_restore bthread_reg_restore')
+        'command script add -f lldb_fiber_stack.fiber_reg_restore fiber_reg_restore')
     debugger.HandleCommand(
-        'command script add -f lldb_bthread_stack.bthread_end bthread_end')
+        'command script add -f lldb_fiber_stack.fiber_end fiber_end')

@@ -23,8 +23,8 @@
 #include <deque>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/message.h>
-#include "melon/butil/sys_byteorder.h"
-#include "melon/butil/strings/string_piece.h"
+#include "melon/utility/sys_byteorder.h"
+#include "melon/utility/strings/string_piece.h"
 
 
 namespace melon {
@@ -171,7 +171,7 @@ namespace melon {
 
         bool IsArray() const { return _type == AMF_MARKER_STRICT_ARRAY; }
 
-        butil::StringPiece AsString() const { return butil::StringPiece((_is_shortstr ? _shortstr : _str), _strsize); }
+        mutil::StringPiece AsString() const { return mutil::StringPiece((_is_shortstr ? _shortstr : _str), _strsize); }
 
         bool AsBool() const { return _b; }
 
@@ -181,7 +181,7 @@ namespace melon {
 
         const AMFArray &AsArray() const { return *_arr; }
 
-        void SetString(const butil::StringPiece &str);
+        void SetString(const mutil::StringPiece &str);
 
         void SetBool(bool val);
 
@@ -227,7 +227,7 @@ namespace melon {
 
         void Clear() { _fields.clear(); }
 
-        void SetString(const std::string &name, const butil::StringPiece &val);
+        void SetString(const std::string &name, const mutil::StringPiece &val);
 
         void SetBool(const std::string &name, bool val);
 
@@ -276,7 +276,7 @@ namespace melon {
 
         size_t size() const { return _size; }
 
-        void AddString(const butil::StringPiece &val) { AddField()->SetString(val); }
+        void AddString(const mutil::StringPiece &val) { AddField()->SetString(val); }
 
         void AddBool(bool val) { AddField()->SetBool(val); }
 
@@ -338,7 +338,7 @@ namespace melon {
 
     // Serialize types into the stream.
     // Check stream->good() for successfulness after one or multiple WriteAMFxxx.
-    void WriteAMFString(const butil::StringPiece &val, AMFOutputStream *stream);
+    void WriteAMFString(const mutil::StringPiece &val, AMFOutputStream *stream);
 
     void WriteAMFBool(bool val, AMFOutputStream *stream);
 

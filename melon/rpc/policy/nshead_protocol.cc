@@ -19,8 +19,8 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/butil/time.h"
-#include "melon/butil/iobuf.h"                         // butil::IOBuf
+#include "melon/utility/time.h"
+#include "melon/utility/iobuf.h"                         // mutil::IOBuf
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
@@ -35,7 +35,7 @@
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 extern "C" {
-void bthread_assign_data(void* data);
+void fiber_assign_data(void* data);
 }
 
 
@@ -71,7 +71,7 @@ void NsheadClosure::Run() {
     ControllerPrivateAccessor accessor(&_controller);
     Span* span = accessor.span();
     if (span) {
-        span->set_start_send_us(butil::cpuwide_time_us());
+        span->set_start_send_us(mutil::cpuwide_time_us());
     }
     Socket* sock = accessor.get_sending_socket();
     MethodStatus* method_status = _server->options().nshead_service->_status;
@@ -107,7 +107,7 @@ void NsheadClosure::Run() {
             int response_size = sizeof(nshead_t) + _response.head.body_len;
             span->set_response_size(response_size);
         }
-        butil::IOBuf write_buf;
+        mutil::IOBuf write_buf;
         write_buf.append(&_response.head, sizeof(nshead_t));
         write_buf.append(_response.body.movable());
         // Have the risk of unlimited pending responses, in which case, tell
@@ -124,7 +124,7 @@ void NsheadClosure::Run() {
     }
     if (span) {
         // TODO: this is not sent
-        span->set_sent_us(butil::cpuwide_time_us());
+        span->set_sent_us(mutil::cpuwide_time_us());
     }
 }
 
@@ -138,7 +138,7 @@ void NsheadClosure::SetMethodName(const std::string& full_method_name) {
 
 namespace policy {
 
-ParseResult ParseNsheadMessage(butil::IOBuf* source,
+ParseResult ParseNsheadMessage(mutil::IOBuf* source,
                                Socket*, bool /*read_eof*/, const void* /*arg*/) {
     char header_buf[sizeof(nshead_t)];
     const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -205,7 +205,7 @@ static void EndRunningCallMethodInPool(NsheadService* service,
 };
 
 void ProcessNsheadRequest(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();   
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
 
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     SocketUniquePtr socket_guard(msg->ReleaseSocket());
@@ -279,9 +279,9 @@ void ProcessNsheadRequest(InputMessageBase* msg_base) {
         .set_begin_time_us(msg->received_us())
         .move_in_server_receiving_sock(socket_guard);
 
-    // Tag the bthread with this server's key for thread_local_data().
+    // Tag the fiber with this server's key for thread_local_data().
     if (server->thread_local_options().thread_local_data_factory) {
-        bthread_assign_data((void*)&server->thread_local_options());
+        fiber_assign_data((void*)&server->thread_local_options());
     }
 
     Span* span = NULL;
@@ -303,7 +303,7 @@ void ProcessNsheadRequest(InputMessageBase* msg_base) {
         }
         if (socket->is_overcrowded()) {
             cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                            butil::endpoint2str(socket->remote_side()).c_str());
+                            mutil::endpoint2str(socket->remote_side()).c_str());
             break;
         }
         if (!server_accessor.AddConcurrency(cntl)) {
@@ -325,7 +325,7 @@ void ProcessNsheadRequest(InputMessageBase* msg_base) {
     msg.reset();  // optional, just release resource ASAP
     if (span) {
         span->ResetServerSpanName(service->_cached_name);
-        span->set_start_callback_us(butil::cpuwide_time_us());
+        span->set_start_callback_us(mutil::cpuwide_time_us());
         span->AsParent();
     }
     if (!FLAGS_usercode_in_pthread) {
@@ -341,13 +341,13 @@ void ProcessNsheadRequest(InputMessageBase* msg_base) {
 }
 
 void ProcessNsheadResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     
     // Fetch correlation id that we saved before in `PackNsheadRequest'
     const CallId cid = { static_cast<uint64_t>(msg->socket()->correlation_id()) };
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -385,7 +385,7 @@ bool VerifyNsheadRequest(const InputMessageBase* msg_base) {
     return true;
 }
 
-void SerializeNsheadRequest(butil::IOBuf* request_buf, Controller* cntl,
+void SerializeNsheadRequest(mutil::IOBuf* request_buf, Controller* cntl,
                             const google::protobuf::Message* req_base) {
     if (req_base == NULL) {
         return cntl->SetFailed(EREQUEST, "request is NULL");
@@ -409,12 +409,12 @@ void SerializeNsheadRequest(butil::IOBuf* request_buf, Controller* cntl,
 }
 
 void PackNsheadRequest(
-    butil::IOBuf* packet_buf,
+    mutil::IOBuf* packet_buf,
     SocketMessage**,
     uint64_t correlation_id,
     const google::protobuf::MethodDescriptor*,
     Controller* cntl,
-    const butil::IOBuf& request,
+    const mutil::IOBuf& request,
     const Authenticator*) {
     ControllerPrivateAccessor accessor(cntl);
     if (cntl->connection_type() == CONNECTION_TYPE_SINGLE) {

@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zheng,PengFei(zhengpengfei@baidu.com)
 
-#include <melon/butil/fd_utility.h>                        // butil::make_close_on_exec
-#include <melon/butil/memory/singleton_on_pthread_once.h>  // butil::get_leaky_singleton
+#include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
+#include <melon/utility/memory/singleton_on_pthread_once.h>  // mutil::get_leaky_singleton
 #include "melon/raft/file_system_adaptor.h"
 
 namespace melon::raft {
@@ -39,11 +38,11 @@ namespace melon::raft {
     PosixFileAdaptor::~PosixFileAdaptor() {
     }
 
-    ssize_t PosixFileAdaptor::write(const butil::IOBuf &data, off_t offset) {
+    ssize_t PosixFileAdaptor::write(const mutil::IOBuf &data, off_t offset) {
         return melon::raft::file_pwrite(data, _fd, offset);
     }
 
-    ssize_t PosixFileAdaptor::read(butil::IOPortal *portal, off_t offset, size_t size) {
+    ssize_t PosixFileAdaptor::read(mutil::IOPortal *portal, off_t offset, size_t size) {
         return melon::raft::file_pread(portal, _fd, offset, size);
     }
 
@@ -65,7 +64,7 @@ namespace melon::raft {
         return true;
     }
 
-    ssize_t BufferedSequentialReadFileAdaptor::read(butil::IOPortal *portal, off_t offset, size_t size) {
+    ssize_t BufferedSequentialReadFileAdaptor::read(mutil::IOPortal *portal, off_t offset, size_t size) {
         if (_error) {
             errno = _error;
             return -1;
@@ -90,7 +89,7 @@ namespace melon::raft {
         }
         off_t end_offset = offset + size;
         if (!_reach_file_eof && end_offset > off_t(_buffer_offset + _buffer_size)) {
-            butil::IOPortal tmp_portal;
+            mutil::IOPortal tmp_portal;
             size_t need_count = end_offset - _buffer_offset - _buffer_size;
             size_t read_count = 0;
             int rc = do_read(&tmp_portal, need_count, &read_count);
@@ -113,7 +112,7 @@ namespace melon::raft {
         return nread;
     }
 
-    ssize_t BufferedSequentialWriteFileAdaptor::write(const butil::IOBuf &data, off_t offset) {
+    ssize_t BufferedSequentialWriteFileAdaptor::write(const mutil::IOBuf &data, off_t offset) {
         if (_error) {
             errno = _error;
             return -1;
@@ -168,7 +167,7 @@ namespace melon::raft {
 
     FileAdaptor *PosixFileSystemAdaptor::open(const std::string &path, int oflag,
                                               const ::google::protobuf::Message *file_meta,
-                                              butil::File::Error *e) {
+                                              mutil::File::Error *e) {
         (void) file_meta;
         pthread_once(&s_check_cloexec_once, check_cloexec);
         bool cloexec = (oflag & O_CLOEXEC);
@@ -177,20 +176,20 @@ namespace melon::raft {
         }
         int fd = ::open(path.c_str(), oflag, 0644);
         if (e) {
-            *e = (fd == -1) ? butil::File::OSErrorToFileError(errno) : butil::File::FILE_OK;
+            *e = (fd == -1) ? mutil::File::OSErrorToFileError(errno) : mutil::File::FILE_OK;
         }
         if (fd == -1) {
             return NULL;
         }
         if (cloexec && !s_support_cloexec_on_open) {
-            butil::make_close_on_exec(fd);
+            mutil::make_close_on_exec(fd);
         }
         return new PosixFileAdaptor(fd);
     }
 
     bool PosixFileSystemAdaptor::delete_file(const std::string &path, bool recursive) {
-        butil::FilePath file_path(path);
-        return butil::DeleteFile(file_path, recursive);
+        mutil::FilePath file_path(path);
+        return mutil::DeleteFile(file_path, recursive);
     }
 
     bool PosixFileSystemAdaptor::rename(const std::string &old_path, const std::string &new_path) {
@@ -202,20 +201,20 @@ namespace melon::raft {
     }
 
     bool PosixFileSystemAdaptor::create_directory(const std::string &path,
-                                                  butil::File::Error *error,
+                                                  mutil::File::Error *error,
                                                   bool create_parent_directories) {
-        butil::FilePath dir(path);
-        return butil::CreateDirectoryAndGetError(dir, error, create_parent_directories);
+        mutil::FilePath dir(path);
+        return mutil::CreateDirectoryAndGetError(dir, error, create_parent_directories);
     }
 
     bool PosixFileSystemAdaptor::path_exists(const std::string &path) {
-        butil::FilePath file_path(path);
-        return butil::PathExists(file_path);
+        mutil::FilePath file_path(path);
+        return mutil::PathExists(file_path);
     }
 
     bool PosixFileSystemAdaptor::directory_exists(const std::string &path) {
-        butil::FilePath file_path(path);
-        return butil::DirectoryExists(file_path);
+        mutil::FilePath file_path(path);
+        return mutil::DirectoryExists(file_path);
     }
 
     DirReader *PosixFileSystemAdaptor::directory_reader(const std::string &path) {
@@ -224,31 +223,31 @@ namespace melon::raft {
 
     FileSystemAdaptor *default_file_system() {
         static scoped_refptr<PosixFileSystemAdaptor> fs =
-                butil::get_leaky_singleton<PosixFileSystemAdaptor>();
+                mutil::get_leaky_singleton<PosixFileSystemAdaptor>();
         return fs.get();
     }
 
-    int file_error_to_os_error(butil::File::Error e) {
+    int file_error_to_os_error(mutil::File::Error e) {
         switch (e) {
-            case butil::File::FILE_OK:
+            case mutil::File::FILE_OK:
                 return 0;
-            case butil::File::FILE_ERROR_IN_USE:
+            case mutil::File::FILE_ERROR_IN_USE:
                 return EAGAIN;
-            case butil::File::FILE_ERROR_ACCESS_DENIED:
+            case mutil::File::FILE_ERROR_ACCESS_DENIED:
                 return EACCES;
-            case butil::File::FILE_ERROR_EXISTS:
+            case mutil::File::FILE_ERROR_EXISTS:
                 return EEXIST;
-            case butil::File::FILE_ERROR_NOT_FOUND:
+            case mutil::File::FILE_ERROR_NOT_FOUND:
                 return ENOENT;
-            case butil::File::FILE_ERROR_TOO_MANY_OPENED:
+            case mutil::File::FILE_ERROR_TOO_MANY_OPENED:
                 return EMFILE;
-            case butil::File::FILE_ERROR_NO_MEMORY:
+            case mutil::File::FILE_ERROR_NO_MEMORY:
                 return ENOMEM;
-            case butil::File::FILE_ERROR_NO_SPACE:
+            case mutil::File::FILE_ERROR_NO_SPACE:
                 return ENOSPC;
-            case butil::File::FILE_ERROR_NOT_A_DIRECTORY:
+            case mutil::File::FILE_ERROR_NOT_A_DIRECTORY:
                 return ENOTDIR;
-            case butil::File::FILE_ERROR_IO:
+            case mutil::File::FILE_ERROR_IO:
                 return EIO;
             default:
                 return EINVAL;
@@ -258,35 +257,35 @@ namespace melon::raft {
     bool create_sub_directory(const std::string &parent_path,
                               const std::string &sub_path,
                               FileSystemAdaptor *fs,
-                              butil::File::Error *error) {
+                              mutil::File::Error *error) {
         if (!fs) {
             fs = default_file_system();
         }
         if (!fs->directory_exists(parent_path)) {
             if (error) {
-                *error = butil::File::FILE_ERROR_NOT_FOUND;
+                *error = mutil::File::FILE_ERROR_NOT_FOUND;
             }
             return false;
         }
-        butil::FilePath sub_dir_path(sub_path);
+        mutil::FilePath sub_dir_path(sub_path);
         if (sub_dir_path.ReferencesParent()) {
             if (error) {
-                *error = butil::File::FILE_ERROR_INVALID_URL;
+                *error = mutil::File::FILE_ERROR_INVALID_URL;
             }
             return false;
         }
-        std::vector<butil::FilePath> subpaths;
+        std::vector<mutil::FilePath> subpaths;
 
         // Collect a list of all parent directories.
-        butil::FilePath last_path = sub_dir_path;
+        mutil::FilePath last_path = sub_dir_path;
         subpaths.push_back(sub_dir_path.BaseName());
-        for (butil::FilePath path = last_path.DirName();
+        for (mutil::FilePath path = last_path.DirName();
              path.value() != last_path.value(); path = path.DirName()) {
             subpaths.push_back(path.BaseName());
             last_path = path;
         }
-        butil::FilePath full_path(parent_path);
-        for (std::vector<butil::FilePath>::reverse_iterator i = subpaths.rbegin();
+        mutil::FilePath full_path(parent_path);
+        for (std::vector<mutil::FilePath>::reverse_iterator i = subpaths.rbegin();
              i != subpaths.rend(); ++i) {
             if (i->value() == "/") {
                 continue;

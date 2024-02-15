@@ -19,8 +19,7 @@
 #ifndef BRPC_PARTITION_CHANNEL_H
 #define BRPC_PARTITION_CHANNEL_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include "melon/rpc/parallel_channel.h"
 #include "melon/rpc/selective_channel.h" // For DynamicPartitionChannel
@@ -65,8 +64,8 @@ struct PartitionChannelOptions : public ChannelOptions {
 
     // Check comments on ParallelChannel.AddChannel in parallel_channel.h
     // Sub channels in PartitionChannel share the same mapper and merger.
-    butil::intrusive_ptr<CallMapper> call_mapper;
-    butil::intrusive_ptr<ResponseMerger> response_merger;
+    mutil::intrusive_ptr<CallMapper> call_mapper;
+    mutil::intrusive_ptr<ResponseMerger> response_merger;
 };
 
 // PartitionChannel is a specialized ParallelChannel whose sub channels are
@@ -121,7 +120,7 @@ private:
     int CheckHealth();
 
     PartitionChannelBase* _pchan;
-    butil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+    mutil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
     PartitionParser* _parser;
 };
 
@@ -164,7 +163,7 @@ private:
 
     SelectiveChannel _schan;
     Partitioner* _partitioner;
-    butil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+    mutil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
     PartitionParser* _parser;
 };
 

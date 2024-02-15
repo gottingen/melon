@@ -19,8 +19,8 @@
 #ifndef BRPC_PROFILER_LINKER_H
 #define BRPC_PROFILER_LINKER_H
 
-#if defined(BRPC_ENABLE_CPU_PROFILER) || defined(BAIDU_RPC_ENABLE_CPU_PROFILER)
-#include "melon/butil/gperftools_profiler.h"
+#if defined(MELON_ENABLE_CPU_PROFILER) || defined(MELON_RPC_ENABLE_CPU_PROFILER)
+#include "melon/utility/gperftools_profiler.h"
 #endif
 
 namespace melon {
@@ -38,7 +38,7 @@ struct ProfilerLinker {
     // etc when corresponding macros are defined.
     inline ProfilerLinker() {
         
-#if defined(BRPC_ENABLE_CPU_PROFILER) || defined(BAIDU_RPC_ENABLE_CPU_PROFILER)
+#if defined(MELON_ENABLE_CPU_PROFILER) || defined(MELON_RPC_ENABLE_CPU_PROFILER)
         cpu_profiler_enabled = true;
         // compiler has no way to tell if PROFILER_LINKER_DUMMY is 0 or not,
         // so it has to link the function inside the branch.

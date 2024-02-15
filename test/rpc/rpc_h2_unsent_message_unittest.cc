@@ -21,11 +21,11 @@
 
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include "melon/bthread/bthread.h"
-#include "melon/butil/atomicops.h"
+#include "melon/fiber/fiber.h"
+#include "melon/utility/atomicops.h"
 #include "melon/rpc/policy/http_rpc_protocol.h"
 #include "melon/rpc/policy/http2_rpc_protocol.h"
-#include "melon/butil/gperftools_profiler.h"
+#include "melon/utility/gperftools_profiler.h"
 
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
 TEST(H2UnsentMessage, request_throughput) {
     melon::Controller cntl;
-    butil::IOBuf request_buf;
+    mutil::IOBuf request_buf;
     cntl.http_request().uri() = "0.0.0.0:8010/HttpService/Echo";
     melon::policy::SerializeHttpRequest(&request_buf, &cntl, NULL);
 
@@ -55,14 +55,14 @@ TEST(H2UnsentMessage, request_throughput) {
     int64_t ntotal = 500000;
 
     // calc H2UnsentRequest throughput
-    butil::IOBuf dummy_buf;
+    mutil::IOBuf dummy_buf;
     ProfilerStart("h2_unsent_req.prof");
-    int64_t start_us = butil::gettimeofday_us();
+    int64_t start_us = mutil::gettimeofday_us();
     for (int i = 0; i < ntotal; ++i) {
         melon::policy::H2UnsentRequest* req = melon::policy::H2UnsentRequest::New(&cntl);
         req->AppendAndDestroySelf(&dummy_buf, h2_client_sock.get());
     }
-    int64_t end_us = butil::gettimeofday_us();
+    int64_t end_us = mutil::gettimeofday_us();
     ProfilerStop();
     int64_t elapsed = end_us - start_us;
     LOG(INFO) << "H2UnsentRequest average qps="
@@ -71,7 +71,7 @@ TEST(H2UnsentMessage, request_throughput) {
 
     // calc H2UnsentResponse throughput
     dummy_buf.clear();
-    start_us = butil::gettimeofday_us();
+    start_us = mutil::gettimeofday_us();
     for (int i = 0; i < ntotal; ++i) {
         // H2UnsentResponse::New would release cntl.http_response() and swap
         // cntl.response_attachment()
@@ -80,7 +80,7 @@ TEST(H2UnsentMessage, request_throughput) {
         melon::policy::H2UnsentResponse* res = melon::policy::H2UnsentResponse::New(&cntl, 0, false);
         res->AppendAndDestroySelf(&dummy_buf, h2_client_sock.get());
     }
-    end_us = butil::gettimeofday_us();
+    end_us = mutil::gettimeofday_us();
     elapsed = end_us - start_us;
     LOG(INFO) << "H2UnsentResponse average qps="
         << (ntotal * 1000000L) / elapsed << "/s, data throughput="

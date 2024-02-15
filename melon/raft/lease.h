@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Pengfei Zheng (zhengpengfei@baidu.com)
 
 #ifndef MELON__RAFT_LEASE_H_
 #define MELON__RAFT_LEASE_H_

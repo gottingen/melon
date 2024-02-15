@@ -110,7 +110,7 @@ message app_info_t {
 //    int32_t ctpl_or_php = optional(),default(0),range(0,1);   /**< 是否smarty渲染 */
 //    int32_t SeType = optional(),default(0);                   /**< 请求类型 0:US, 1:US_MID, 2:UI */
 //    //int32_t KeepAlive;                              /**< 保持连接 */
-//    string TemplateName;                              /**< 模版名 ex. baidu wisexmlnew */
+//    string TemplateName;                              /**< 模版名 ex. melon wisexmlnew */
 //    int32_t sid[] = optional();                       /**< 抽样id */
 //    binary UrlParaPack = optional();                  /**< Uri参数包 */
 //    binary gssqa = optional();                        /**< 经us透传的DA分析结果 */
@@ -154,7 +154,7 @@ message us_gss_req_t {
     optional int32 ctpl_or_php = 13 [default = 0];      	/**< 是否smarty渲染 */
     optional int32 SeType = 14 [default = 0];           	/**< 请求类型 0:US, 1:US_MID, 2:UI */
     //int32_t KeepAlive;                                	/**< 保持连接 */
-    required string TemplateName = 15;                  	/**< 模版名 ex. baidu wisexmlnew */
+    required string TemplateName = 15;                  	/**< 模版名 ex. melon wisexmlnew */
     repeated int32 sid = 16;                            	/**< 抽样id */
     optional bytes UrlParaPack = 17;                    	/**< Uri参数包*/
     optional bytes gssqa = 18;                          	/**< 经us透传的DA分析结果 */

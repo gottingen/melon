@@ -22,12 +22,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <melon/bthread/bthread.h>
-#include <melon/butil/file_util.h>                     // butil::FilePath
-#include <melon/butil/time.h>
+#include <melon/fiber/fiber.h>
+#include <melon/utility/file_util.h>                     // mutil::FilePath
+#include <melon/utility/time.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/json2pb/pb_to_json.h>
 #include "json_loader.h"
 #include "rpc_press_impl.h"
@@ -119,7 +119,7 @@ int RpcPress::init(const PressOptions* options) {
     sourceTree.MapPath("", proto_path.c_str());
     // Add paths in -inc
     if (!_options.proto_includes.empty()) {
-        butil::StringSplitter sp(_options.proto_includes.c_str(), ';');
+        mutil::StringSplitter sp(_options.proto_includes.c_str(), ';');
         for (; sp; ++sp) {
             sourceTree.MapPath("", std::string(sp.field(), sp.length()));
         }
@@ -134,10 +134,10 @@ int RpcPress::init(const PressOptions* options) {
     _pbrpc_client = new PressClient(&_options, _importer, &_factory);
 
     if (!_options.output.empty()) {
-        butil::File::Error error;
-        butil::FilePath path(_options.output);
-        butil::FilePath dir = path.DirName();
-        if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+        mutil::File::Error error;
+        mutil::FilePath path(_options.output);
+        mutil::FilePath dir = path.DirName();
+        if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
             LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return -1;
@@ -158,7 +158,7 @@ int RpcPress::init(const PressOptions* options) {
     }
     melon::JsonLoader json_util(_importer, &_factory,
                                      _options.service, _options.method);
-    if (butil::PathExists(butil::FilePath(_options.input))) {
+    if (mutil::PathExists(mutil::FilePath(_options.input))) {
         int fd = open(_options.input.c_str(), O_RDONLY);
         if (fd < 0) {
             PLOG(ERROR) << "Fail to open " << _options.input;
@@ -188,7 +188,7 @@ void RpcPress::handle_response(melon::Controller* cntl,
                                Message* response, 
                                int64_t start_time){
     if (!cntl->Failed()){
-        int64_t rpc_call_time_us = butil::gettimeofday_us() - start_time;
+        int64_t rpc_call_time_us = mutil::gettimeofday_us() - start_time;
         _latency_recorder << rpc_call_time_us;
 
         if (_output_json) {
@@ -208,7 +208,7 @@ void RpcPress::handle_response(melon::Controller* cntl,
     delete cntl;
 }
 
-static butil::atomic<int> g_thread_count(0);
+static mutil::atomic<int> g_thread_count(0);
 
 void RpcPress::sync_client() {
     double req_rate = _options.test_req_rate / _options.test_thread_num;
@@ -217,9 +217,9 @@ void RpcPress::sync_client() {
         LOG(ERROR) << "nothing to send!";
         return;
     }
-    const int thread_index = g_thread_count.fetch_add(1, butil::memory_order_relaxed);
+    const int thread_index = g_thread_count.fetch_add(1, mutil::memory_order_relaxed);
     int msg_index = thread_index;
-    int64_t last_expected_time = butil::monotonic_time_ns();
+    int64_t last_expected_time = mutil::monotonic_time_ns();
     const int64_t interval = (int64_t) (1000000000L / req_rate);
     // the max tolerant delay between end_time and expected_time. 10ms or 10 intervals
     int64_t max_tolerant_delay = std::max((int64_t) 10000000L, 10 * interval);    
@@ -228,7 +228,7 @@ void RpcPress::sync_client() {
         msg_index = (msg_index + _options.test_thread_num) % _msgs.size();
         Message* request = _msgs[msg_index];
         Message* response = _pbrpc_client->get_output_message();
-        const int64_t start_time = butil::gettimeofday_us();
+        const int64_t start_time = mutil::gettimeofday_us();
         google::protobuf::Closure* done = melon::NewCallback<
             RpcPress, 
             RpcPress*, 
@@ -243,7 +243,7 @@ void RpcPress::sync_client() {
         if (_options.test_req_rate <= 0) { 
             melon::Join(cid1);
         } else {
-            int64_t end_time = butil::monotonic_time_ns();
+            int64_t end_time = mutil::monotonic_time_ns();
             int64_t expected_time = last_expected_time + interval;
             if (end_time < expected_time) {
                 usleep((expected_time - end_time)/1000);

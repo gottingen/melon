@@ -17,13 +17,13 @@
 
 // Date: 2017/11/06 10:57:08
 
-#include "melon/butil/popen.h"
-#include "melon/butil/errno.h"
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/build_config.h"
+#include "melon/utility/popen.h"
+#include "melon/utility/errno.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/build_config.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 extern int read_command_output_through_clone(std::ostream&, const char*);
 extern int read_command_output_through_popen(std::ostream&, const char*);
 }
@@ -35,29 +35,29 @@ class PopenTest : public testing::Test {
 
 TEST(PopenTest, posix_popen) {
     std::ostringstream oss;
-    int rc = butil::read_command_output_through_popen(oss, "echo \"Hello World\"");
+    int rc = mutil::read_command_output_through_popen(oss, "echo \"Hello World\"");
     ASSERT_EQ(0, rc) << berror(errno);
     ASSERT_EQ("Hello World\n", oss.str());
 
     oss.str("");
-    rc = butil::read_command_output_through_popen(oss, "exit 1");
+    rc = mutil::read_command_output_through_popen(oss, "exit 1");
     EXPECT_EQ(1, rc) << berror(errno);
     ASSERT_TRUE(oss.str().empty()) << oss.str();
     oss.str("");
-    rc = butil::read_command_output_through_popen(oss, "kill -9 $$");
+    rc = mutil::read_command_output_through_popen(oss, "kill -9 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(butil::StringPiece(oss.str()).ends_with("was killed by signal 9"));
+    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 9"));
     oss.str("");
-    rc = butil::read_command_output_through_popen(oss, "kill -15 $$");
+    rc = mutil::read_command_output_through_popen(oss, "kill -15 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(butil::StringPiece(oss.str()).ends_with("was killed by signal 15"));
+    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 15"));
 
     // TODO(zhujiashun): Fix this in macos
     /*
     oss.str("");
-     ASSERT_EQ(0, butil::read_command_output_through_popen(oss, "for i in `seq 1 100000`; do echo -n '=' ; done"));
+     ASSERT_EQ(0, mutil::read_command_output_through_popen(oss, "for i in `seq 1 100000`; do echo -n '=' ; done"));
     ASSERT_EQ(100000u, oss.str().length());
     std::string expected;
     expected.resize(100000, '=');
@@ -69,27 +69,27 @@ TEST(PopenTest, posix_popen) {
 
 TEST(PopenTest, clone) {
     std::ostringstream oss;
-    int rc = butil::read_command_output_through_clone(oss, "echo \"Hello World\"");
+    int rc = mutil::read_command_output_through_clone(oss, "echo \"Hello World\"");
     ASSERT_EQ(0, rc) << berror(errno);
     ASSERT_EQ("Hello World\n", oss.str());
 
     oss.str("");
-    rc = butil::read_command_output_through_clone(oss, "exit 1");
+    rc = mutil::read_command_output_through_clone(oss, "exit 1");
     ASSERT_EQ(1, rc) << berror(errno);
     ASSERT_TRUE(oss.str().empty()) << oss.str();
     oss.str("");
-    rc = butil::read_command_output_through_clone(oss, "kill -9 $$");
+    rc = mutil::read_command_output_through_clone(oss, "kill -9 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(butil::StringPiece(oss.str()).ends_with("was killed by signal 9"));
+    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 9"));
     oss.str("");
-    rc = butil::read_command_output_through_clone(oss, "kill -15 $$");
+    rc = mutil::read_command_output_through_clone(oss, "kill -15 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(butil::StringPiece(oss.str()).ends_with("was killed by signal 15"));
+    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 15"));
 
     oss.str("");
-    ASSERT_EQ(0, butil::read_command_output_through_clone(oss, "for i in `seq 1 100000`; do echo -n '=' ; done"));
+    ASSERT_EQ(0, mutil::read_command_output_through_clone(oss, "for i in `seq 1 100000`; do echo -n '=' ; done"));
     ASSERT_EQ(100000u, oss.str().length());
     std::string expected;
     expected.resize(100000, '=');

@@ -56,15 +56,15 @@ namespace melon {
     }
 
     struct NameOfPoint {
-        explicit NameOfPoint(const butil::EndPoint &pt_) : pt(pt_) {}
+        explicit NameOfPoint(const mutil::EndPoint &pt_) : pt(pt_) {}
 
-        butil::EndPoint pt;
+        mutil::EndPoint pt;
     };
 
     std::ostream &operator<<(std::ostream &os, const NameOfPoint &nop) {
         char buf[128];
         if (FLAGS_show_hostname_instead_of_ip &&
-            butil::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
+            mutil::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
             return os << buf;
         } else {
             return os << nop.pt;
@@ -226,7 +226,7 @@ namespace melon {
                     if (pref_index == (int) PROTOCOL_NSHEAD &&
                         server->options().nshead_service != NULL) {
                         if (nshead_service_name.empty()) {
-                            nshead_service_name = BriefName(butil::class_name_str(
+                            nshead_service_name = BriefName(mutil::class_name_str(
                                     *server->options().nshead_service));
                         }
                         pref_prot = nshead_service_name.c_str();
@@ -338,7 +338,7 @@ namespace melon {
         const Server *server = cntl->server();
         Acceptor *am = server->_am;
         Acceptor *internal_am = server->_internal_am;
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         const bool use_html = UseHTML(cntl->http_request());
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");

@@ -18,9 +18,9 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/unstable.h>
 #include "echo.pb.h"
 
 DEFINE_bool(echo_attachment, true, "Echo attachment as well");
@@ -58,13 +58,13 @@ public:
 
 DEFINE_bool(h, false, "print help information");
 
-static void my_tagged_worker_start_fn(bthread_tag_t tag) {
+static void my_tagged_worker_start_fn(fiber_tag_t tag) {
     LOG(INFO) << "run tagged worker start function tag=" << tag;
 }
 
 static void* my_background_task(void*) {
-    LOG(INFO) << "run background task tag=" << bthread_self_tag();
-    bthread_usleep(1000000UL);
+    LOG(INFO) << "run background task tag=" << fiber_self_tag();
+    fiber_usleep(1000000UL);
 }
 
 int main(int argc, char* argv[]) {
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set tagged worker function
-    bthread_set_tagged_worker_startfn(my_tagged_worker_start_fn);
+    fiber_set_tagged_worker_startfn(my_tagged_worker_start_fn);
 
     // Generally you only need one Server.
     melon::Server server1;
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     options1.idle_timeout_sec = FLAGS_idle_timeout_s;
     options1.max_concurrency = FLAGS_max_concurrency;
     options1.internal_port = FLAGS_internal_port1;
-    options1.bthread_tag = FLAGS_tag1;
+    options1.fiber_tag = FLAGS_tag1;
     if (server1.Start(FLAGS_port1, &options1) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";
         return -1;
@@ -126,17 +126,17 @@ int main(int argc, char* argv[]) {
     options2.idle_timeout_sec = FLAGS_idle_timeout_s;
     options2.max_concurrency = FLAGS_max_concurrency;
     options2.internal_port = FLAGS_internal_port2;
-    options2.bthread_tag = FLAGS_tag2;
+    options2.fiber_tag = FLAGS_tag2;
     if (server2.Start(FLAGS_port2, &options2) != 0) {
         LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 
     // Start backgroup task
-    bthread_t tid;
-    bthread_attr_t attr = BTHREAD_ATTR_NORMAL;
+    fiber_t tid;
+    fiber_attr_t attr = FIBER_ATTR_NORMAL;
     attr.tag = FLAGS_tag3;
-    bthread_start_background(&tid, &attr, my_background_task, nullptr);
+    fiber_start_background(&tid, &attr, my_background_task, nullptr);
 
     // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
     server1.RunUntilAskedToQuit();

@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/iobuf.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/iobuf.h"
 #include "melon/builtin/prometheus_metrics_service.h"
 
 namespace {

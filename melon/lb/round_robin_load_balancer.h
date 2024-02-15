@@ -21,7 +21,7 @@
 
 #include <vector>                                      // std::vector
 #include <map>                                         // std::map
-#include "melon/butil/containers/doubly_buffered_data.h"
+#include "melon/utility/containers/doubly_buffered_data.h"
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/cluster_recover_policy.h"
 
@@ -41,7 +41,7 @@ namespace melon::lb {
 
         int SelectServer(const SelectIn &in, SelectOut *out);
 
-        RoundRobinLoadBalancer *New(const butil::StringPiece &) const;
+        RoundRobinLoadBalancer *New(const mutil::StringPiece &) const;
 
         void Destroy();
 
@@ -60,7 +60,7 @@ namespace melon::lb {
             uint32_t offset;
         };
 
-        bool SetParameters(const butil::StringPiece &params);
+        bool SetParameters(const mutil::StringPiece &params);
 
         static bool Add(Servers &bg, const ServerId &id);
 
@@ -70,7 +70,7 @@ namespace melon::lb {
 
         static size_t BatchRemove(Servers &bg, const std::vector<ServerId> &servers);
 
-        butil::DoublyBufferedData<Servers, TLS> _db_servers;
+        mutil::DoublyBufferedData<Servers, TLS> _db_servers;
         std::shared_ptr<ClusterRecoverPolicy> _cluster_recover_policy;
     };
 

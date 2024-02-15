@@ -20,7 +20,7 @@
 #define BRPC_CLOSURE_GUARD_H
 
 #include <google/protobuf/service.h>
-#include "melon/butil/macros.h"
+#include "melon/utility/macros.h"
 
 
 namespace melon {

@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #include <fstream>
-#include <melon/bthread/bthread.h>
+#include <melon/fiber/fiber.h>
 #include <gflags/gflags.h>
-#include <melon/butil/containers/flat_map.h>
-#include <melon/butil/logging.h>
-#include <melon/bthread/bthread.h>
+#include <melon/utility/containers/flat_map.h>
+#include <melon/utility/logging.h>
+#include <melon/fiber/fiber.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/server.h>
 #include <melon/raft/raft.h>
@@ -91,7 +91,7 @@ public:
 
     // Starts this node
     int start() {
-        butil::EndPoint addr(butil::my_ip(), FLAGS_port);
+        mutil::EndPoint addr(mutil::my_ip(), FLAGS_port);
         melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
             LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
@@ -161,13 +161,13 @@ friend class AtomicClosure;
         // will be inconsistent with others in this group.
         
         // Serialize request to IOBuf
-        const int64_t term = _leader_term.load(butil::memory_order_relaxed);
+        const int64_t term = _leader_term.load(mutil::memory_order_relaxed);
         if (term < 0) {
             return redirect(response);
         }
-        butil::IOBuf log;
+        mutil::IOBuf log;
         log.push_back((uint8_t)type);
-        butil::IOBufAsZeroCopyOutputStream wrapper(&log);
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&log);
         if (!request->SerializeToZeroCopyStream(&wrapper)) {
             LOG(ERROR) << "Fail to serialize request";
             response->set_success(false);
@@ -208,7 +208,7 @@ friend class AtomicClosure;
             melon::raft::AsyncClosureGuard done_guard(iter.done());
 
             // Parse data
-            butil::IOBuf data = iter.data();
+            mutil::IOBuf data = iter.data();
             // Fetch the type of operation from the leading byte.
             uint8_t type = OP_UNKNOWN;
             data.cutn(&type, sizeof(uint8_t));
@@ -256,7 +256,7 @@ friend class AtomicClosure;
 
     void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
 
-        // Save current StateMachine in memory and starts a new bthread to avoid
+        // Save current StateMachine in memory and starts a new fiber to avoid
         // blocking StateMachine since it's a bit slow to write data to disk
         // file.
         SnapshotClosure* sc = new SnapshotClosure;
@@ -268,8 +268,8 @@ friend class AtomicClosure;
             sc->values.push_back(std::make_pair(it->first, it->second));
         }
 
-        bthread_t tid;
-        bthread_start_urgent(&tid, NULL, save_snapshot, sc);
+        fiber_t tid;
+        fiber_start_urgent(&tid, NULL, save_snapshot, sc);
     }
 
     int on_snapshot_load(melon::raft::SnapshotReader* reader) {
@@ -287,12 +287,12 @@ friend class AtomicClosure;
     }
 
     void on_leader_start(int64_t term) {
-        _leader_term.store(term, butil::memory_order_release);
+        _leader_term.store(term, mutil::memory_order_release);
         LOG(INFO) << "Node becomes leader";
     }
 
-    void on_leader_stop(const butil::Status& status) {
-        _leader_term.store(-1, butil::memory_order_release);
+    void on_leader_stop(const mutil::Status& status) {
+        _leader_term.store(-1, mutil::memory_order_release);
         LOG(INFO) << "Node stepped down : " << status;
     }
 
@@ -314,7 +314,7 @@ friend class AtomicClosure;
 
     // end of @melon::raft::StateMachine
     
-    void get_value(const butil::IOBuf& data,
+    void get_value(const mutil::IOBuf& data,
                    const google::protobuf::Message* request,
                    AtomicResponse* response) {
         int64_t id = 0;
@@ -323,7 +323,7 @@ friend class AtomicClosure;
             // closure to avoid additional parsing.
             id = dynamic_cast<const GetRequest*>(request)->id();
         } else {
-            butil::IOBufAsZeroCopyInputStream wrapper(data);
+            mutil::IOBufAsZeroCopyInputStream wrapper(data);
             GetRequest req;
             CHECK(req.ParseFromZeroCopyStream(&wrapper));
             id = req.id();
@@ -335,7 +335,7 @@ friend class AtomicClosure;
         response->set_new_value(v ? *v : 0);
     }
 
-    void exchange(const butil::IOBuf& data,
+    void exchange(const mutil::IOBuf& data,
                   const google::protobuf::Message* request,
                   AtomicResponse* response) {
         int64_t id = 0;
@@ -348,7 +348,7 @@ friend class AtomicClosure;
             id = req->id();
             value = req->value();
         } else {
-            butil::IOBufAsZeroCopyInputStream wrapper(data);
+            mutil::IOBufAsZeroCopyInputStream wrapper(data);
             ExchangeRequest req;
             CHECK(req.ParseFromZeroCopyStream(&wrapper));
             id = req.id();
@@ -362,7 +362,7 @@ friend class AtomicClosure;
         old_value = value;
     }
 
-    void cas(const butil::IOBuf& data,
+    void cas(const mutil::IOBuf& data,
                   const google::protobuf::Message* request,
                   AtomicResponse* response) {
         int64_t id = 0;
@@ -377,7 +377,7 @@ friend class AtomicClosure;
             value = req->new_value();
             expected = req->expected_value();
         } else {
-            butil::IOBufAsZeroCopyInputStream wrapper(data);
+            mutil::IOBufAsZeroCopyInputStream wrapper(data);
             CompareExchangeRequest req;
             CHECK(req.ParseFromZeroCopyStream(&wrapper));
             id = req.id();
@@ -411,7 +411,7 @@ friend class AtomicClosure;
         return NULL;
     }
 
-    typedef butil::FlatMap<int64_t, int64_t> ValueMap;
+    typedef mutil::FlatMap<int64_t, int64_t> ValueMap;
 
     struct SnapshotClosure {
         std::vector<std::pair<int64_t, int64_t> > values;
@@ -420,7 +420,7 @@ friend class AtomicClosure;
     };
 
     melon::raft::Node* volatile _node;
-    butil::atomic<int64_t> _leader_term;
+    mutil::atomic<int64_t> _leader_term;
     ValueMap _value_map;
 };
 
@@ -468,7 +468,7 @@ private:
 
 int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
-    butil::AtExitManager exit_manager;
+    mutil::AtExitManager exit_manager;
 
     // Generally you only need one Server.
     melon::Server server;

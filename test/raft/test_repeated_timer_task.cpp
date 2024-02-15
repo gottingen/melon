@@ -1,9 +1,6 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2016 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2016/11/02 21:12:26
-
 #include <gtest/gtest.h>
 #include "melon/raft/repeated_timer_task.h"
 

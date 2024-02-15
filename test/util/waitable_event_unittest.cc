@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/synchronization/waitable_event.h"
+#include "melon/utility/synchronization/waitable_event.h"
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/threading/platform_thread.h"
-#include "melon/butil/time/time.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/threading/platform_thread.h"
+#include "melon/utility/time/time.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(WaitableEventTest, ManualBasics) {
   WaitableEvent event(true, false);
@@ -105,4 +105,4 @@ TEST(WaitableEventTest, WaitMany) {
     delete ev[i];
 }
 
-}  // namespace butil
+}  // namespace mutil

@@ -22,9 +22,9 @@
 #include <vector>                                      // std::vector
 #include <deque>                                       // std::deque
 #include <map>                                         // std::map
-#include "melon/butil/containers/flat_map.h"                  // FlatMap
-#include "melon/butil/containers/doubly_buffered_data.h"      // DoublyBufferedData
-#include "melon/butil/containers/bounded_queue.h"             // BoundedQueue
+#include "melon/utility/containers/flat_map.h"                  // FlatMap
+#include "melon/utility/containers/doubly_buffered_data.h"      // DoublyBufferedData
+#include "melon/utility/containers/bounded_queue.h"             // BoundedQueue
 #include "melon/rpc/load_balancer.h"
 #include "melon/rpc/controller.h"
 
@@ -51,7 +51,7 @@ namespace melon::lb {
 
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
 
-        LocalityAwareLoadBalancer *New(const butil::StringPiece &) const;
+        LocalityAwareLoadBalancer *New(const mutil::StringPiece &) const;
 
         void Destroy();
 
@@ -111,28 +111,28 @@ namespace melon::lb {
         private:
             int64_t _weight;
             int64_t _base_weight;
-            butil::Mutex _mutex;
+            mutil::Mutex _mutex;
             int64_t _begin_time_sum;
             int _begin_time_count;
             int64_t _old_diff_sum;
             size_t _old_index;
             int64_t _old_weight;
             int64_t _avg_latency;
-            butil::BoundedQueue<TimeInfo> _time_q;
+            mutil::BoundedQueue<TimeInfo> _time_q;
             // content of _time_q
             TimeInfo _time_q_items[RECV_QUEUE_SIZE];
         };
 
         struct ServerInfo {
             SocketId server_id;
-            butil::atomic<int64_t> *left;
+            mutil::atomic<int64_t> *left;
             Weight *weight;
         };
 
         class Servers {
         public:
             std::vector<ServerInfo> weight_tree;
-            butil::FlatMap<SocketId, size_t> server_map;
+            mutil::FlatMap<SocketId, size_t> server_map;
 
             Servers() {
                 CHECK_EQ(0, server_map.init(1024, 70));
@@ -160,15 +160,15 @@ namespace melon::lb {
         static bool RemoveAll(Servers &bg, const Servers &fg);
 
         // Add a entry to _left_weights.
-        butil::atomic<int64_t> *PushLeft() {
+        mutil::atomic<int64_t> *PushLeft() {
             _left_weights.push_back(0);
-            return (butil::atomic<int64_t> *) &_left_weights.back();
+            return (mutil::atomic<int64_t> *) &_left_weights.back();
         }
 
         void PopLeft() { _left_weights.pop_back(); }
 
-        butil::atomic<int64_t> _total;
-        butil::DoublyBufferedData<Servers> _db_servers;
+        mutil::atomic<int64_t> _total;
+        mutil::DoublyBufferedData<Servers> _db_servers;
         std::deque<int64_t> _left_weights;
         ServerId2SocketIdMapper _id_mapper;
     };
@@ -179,7 +179,7 @@ namespace melon::lb {
             const size_t parent_index = (index - 1) >> 1;
             if ((parent_index << 1) + 1 == index) {  // left child
                 weight_tree[parent_index].left->fetch_add(
-                        diff, butil::memory_order_relaxed);
+                        diff, mutil::memory_order_relaxed);
             }
             index = parent_index;
         }

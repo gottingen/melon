@@ -18,9 +18,9 @@
 // Date: Tue Jul 28 18:14:40 CST 2015
 
 #include <gflags/gflags.h>
-#include "melon/butil/threading/platform_thread.h"
-#include "melon/butil/time.h"
-#include "melon/butil/memory/singleton_on_pthread_once.h"
+#include "melon/utility/threading/platform_thread.h"
+#include "melon/utility/time.h"
+#include "melon/utility/memory/singleton_on_pthread_once.h"
 #include "melon/var/reducer.h"
 #include "melon/var/detail/sampler.h"
 #include "melon/var/passive_status.h"
@@ -84,7 +84,7 @@ namespace melon::var {
             // * A forked program can be forked again.
 
             static void child_callback_atfork() {
-                butil::get_leaky_singleton<SamplerCollector>()->after_forked_as_child();
+                mutil::get_leaky_singleton<SamplerCollector>()->after_forked_as_child();
             }
 
             void create_sampling_thread() {
@@ -108,7 +108,7 @@ namespace melon::var {
             void run();
 
             static void *sampling_thread(void *arg) {
-                butil::PlatformThread::SetName("bvar_sampler");
+                mutil::PlatformThread::SetName("bvar_sampler");
                 static_cast<SamplerCollector *>(arg)->run();
                 return NULL;
             }
@@ -151,17 +151,17 @@ namespace melon::var {
             }
 #endif
 
-            butil::LinkNode<Sampler> root;
+            mutil::LinkNode<Sampler> root;
             int consecutive_nosleep = 0;
             while (!_stop) {
-                int64_t abstime = butil::gettimeofday_us();
+                int64_t abstime = mutil::gettimeofday_us();
                 Sampler *s = this->reset();
                 if (s) {
                     s->InsertBeforeAsList(&root);
                 }
-                for (butil::LinkNode<Sampler> *p = root.next(); p != &root;) {
+                for (mutil::LinkNode<Sampler> *p = root.next(); p != &root;) {
                     // We may remove p from the list, save next first.
-                    butil::LinkNode<Sampler> *saved_next = p->next();
+                    mutil::LinkNode<Sampler> *saved_next = p->next();
                     Sampler *s = p->value();
                     s->_mutex.lock();
                     if (!s->_used) {
@@ -175,13 +175,13 @@ namespace melon::var {
                     p = saved_next;
                 }
                 bool slept = false;
-                int64_t now = butil::gettimeofday_us();
+                int64_t now = mutil::gettimeofday_us();
                 _cumulated_time_us += now - abstime;
                 abstime += 1000000L;
                 while (abstime > now) {
                     ::usleep(abstime - now);
                     slept = true;
-                    now = butil::gettimeofday_us();
+                    now = mutil::gettimeofday_us();
                 }
                 if (slept) {
                     consecutive_nosleep = 0;
@@ -205,7 +205,7 @@ namespace melon::var {
             // since the SamplerCollector is initialized before the program starts
             // flags will not take effect if used in the SamplerCollector constructor
             if (FLAGS_bvar_enable_sampling) {
-                *butil::get_leaky_singleton<SamplerCollector>() << this;
+                *mutil::get_leaky_singleton<SamplerCollector>() << this;
             }
         }
 

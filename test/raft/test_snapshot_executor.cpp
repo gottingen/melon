@@ -1,10 +1,8 @@
 // Copyright (c) 2016 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2016/07/27 20:13:42
 
 #include <gtest/gtest.h>
-#include <melon/butil/atomicops.h>
+#include <melon/utility/atomicops.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/snapshot_executor.h"
 #include "melon/raft/fsm_caller.h"
@@ -44,21 +42,21 @@ protected:
     BRAFT_MOCK int on_committed(int64_t /*committed_index*/) { return 0; }
     BRAFT_MOCK int on_snapshot_load(LoadSnapshotClosure* done) {
         _snapshot_load_times.fetch_add(1);
-        melon::raft::run_closure_in_bthread(done);
+        melon::raft::run_closure_in_fiber(done);
         return 0;
     }
     BRAFT_MOCK int on_snapshot_save(SaveSnapshotClosure* done) {
         _snapshot_save_times.fetch_add(1);
-        melon::raft::run_closure_in_bthread(done);
+        melon::raft::run_closure_in_fiber(done);
         return 0;
     }
     BRAFT_MOCK int on_error(const Error& /*e*/) {
         _on_error_times.fetch_add(1);
         return 0;
     }
-    butil::atomic<int> _on_error_times;
-    butil::atomic<int> _snapshot_load_times;
-    butil::atomic<int> _snapshot_save_times;
+    mutil::atomic<int> _on_error_times;
+    mutil::atomic<int> _snapshot_load_times;
+    mutil::atomic<int> _snapshot_save_times;
 };
 
 class MockLogManager : public melon::raft::LogManager {
@@ -76,8 +74,8 @@ protected:
         _clear_timers.fetch_add(1);
     }
 
-    butil::atomic<int> _set_times;
-    butil::atomic<int> _clear_timers;
+    mutil::atomic<int> _set_times;
+    mutil::atomic<int> _clear_timers;
 };
 
 class MockSnapshotReader : public melon::raft::SnapshotReader {
@@ -127,7 +125,7 @@ public:
     static void* start_copy(void* arg);
     
 private:
-    bthread_t _tid;
+    fiber_t _tid;
     MockSnapshotStorage* _storage;
     SnapshotReader* _reader;
 };
@@ -188,8 +186,8 @@ public:
         return NULL;
     }
     
-    virtual butil::Status gc_instance(const std::string& uri) const {
-        return butil::Status::OK();
+    virtual mutil::Status gc_instance(const std::string& uri) const {
+        return mutil::Status::OK();
     }
     
 private:
@@ -198,7 +196,7 @@ private:
 };
 
 MockSnapshotCopier::MockSnapshotCopier() 
-    : _tid(INVALID_BTHREAD)
+    : _tid(INVALID_FIBER)
     , _storage(NULL)
     , _reader(NULL)
 {}
@@ -206,7 +204,7 @@ MockSnapshotCopier::MockSnapshotCopier()
 void MockSnapshotCopier::cancel() {}
 
 void MockSnapshotCopier::join() {
-    bthread_join(_tid, NULL);
+    fiber_join(_tid, NULL);
 }
 
 SnapshotReader* MockSnapshotCopier::get_reader() { return _reader; }
@@ -214,9 +212,9 @@ SnapshotReader* MockSnapshotCopier::get_reader() { return _reader; }
 void MockSnapshotCopier::start() {
     LOG(INFO) << "In MockSnapshotCopier::start()"; 
     _reader = _storage->open();
-    if (bthread_start_background(
+    if (fiber_start_background(
                 &_tid, NULL, start_copy, this) != 0) {
-        LOG(INFO) << "Fail to start bthread."; 
+        LOG(INFO) << "Fail to start fiber.";
     } 
 }
 
@@ -226,13 +224,13 @@ void* MockSnapshotCopier::start_copy(void* arg) {
 }
 
 void write_file(const std::string& file, const std::string& content) {
-    butil::ScopedFILE fp(fopen(file.c_str(), "w"));
+    mutil::ScopedFILE fp(fopen(file.c_str(), "w"));
     ASSERT_TRUE(fp) << berror();
     fprintf(fp.get(), "%s", content.c_str());
 }
 
 std::string read_file(const std::string& file) {
-    butil::ScopedFILE fp(fopen(file.c_str(), "r"));
+    mutil::ScopedFILE fp(fopen(file.c_str(), "r"));
     char buf[1024];
     fscanf(fp.get(), "%s", buf);
     return buf;
@@ -248,7 +246,7 @@ protected:
     void wait() {
         _event.wait();
     }
-    bthread::CountdownEvent _event;
+    fiber::CountdownEvent _event;
 };
 
 struct InstallArg {
@@ -298,7 +296,7 @@ TEST_F(SnapshotExecutorTest, retry_request) {
     SnapshotReader* reader= storage1.open();
     std::string uri = reader->generate_uri_for_copy();
     const size_t N = 10;
-    bthread_t tids[N];
+    fiber_t tids[N];
     InstallArg args[N];
     for (size_t i = 0; i < N; ++i) {
         args[i].e = &executor;
@@ -308,10 +306,10 @@ TEST_F(SnapshotExecutorTest, retry_request) {
         args[i].request.set_uri(uri);
     }
     for (size_t i = 0; i < N; ++i) {
-        bthread_start_background(&tids[i], NULL, install_thread, &args[i]);
+        fiber_start_background(&tids[i], NULL, install_thread, &args[i]);
     }
     for (size_t i = 0; i < N; ++i) {
-        bthread_join(tids[i], NULL);
+        fiber_join(tids[i], NULL);
     }
     size_t suc = 0;
     for (size_t i = 0; i < N; ++i) {
@@ -363,11 +361,11 @@ TEST_F(SnapshotExecutorTest, interrupt_installing) {
     arg.request.set_term(1);
     arg.request.mutable_meta()->CopyFrom(meta);
     arg.request.set_uri(uri);
-    bthread_t tid;
-    bthread_start_background(&tid, NULL, install_thread, &arg);
+    fiber_t tid;
+    fiber_start_background(&tid, NULL, install_thread, &arg);
     usleep(5000);
     executor.interrupt_downloading_snapshot(2);
-    bthread_join(tid, NULL);
+    fiber_join(tid, NULL);
     ASSERT_TRUE(arg.cntl.Failed());
     if (arg.cntl.Failed()) {
         LOG(ERROR) << "error: " << arg.cntl.ErrorText();
@@ -406,9 +404,9 @@ TEST_F(SnapshotExecutorTest, retry_install_snapshot) {
     meta.set_last_included_term(1);
     SnapshotReader* reader= storage1.open();
     std::string uri = reader->generate_uri_for_copy();    
-    // using bthreads to simulate install_snapshot requests
+    // using fibers to simulate install_snapshot requests
     const size_t N = 10;
-    bthread_t tids[N];
+    fiber_t tids[N];
     InstallArg args[N];
     for (size_t i = 0; i < N; ++i) {
         args[i].e = &executor;
@@ -418,10 +416,10 @@ TEST_F(SnapshotExecutorTest, retry_install_snapshot) {
         args[i].request.set_uri(uri);
     }
     for (size_t i = 0; i < N; ++i) {
-        bthread_start_background(&tids[i], NULL, install_thread, &args[i]);
+        fiber_start_background(&tids[i], NULL, install_thread, &args[i]);
     }
     for (size_t i = 0; i < N; ++i) {
-        bthread_join(tids[i], NULL);
+        fiber_join(tids[i], NULL);
     }
     size_t suc = 0;
     for (size_t i = 0; i < N; ++i) {
@@ -476,7 +474,7 @@ TEST_F(SnapshotExecutorTest, retry_request_with_throttle) {
     SnapshotReader* reader= storage1.open();
     std::string uri = reader->generate_uri_for_copy();
     const size_t N = 10;
-    bthread_t tids[N];
+    fiber_t tids[N];
     InstallArg args[N];
     for (size_t i = 0; i < N; ++i) {
         args[i].e = &executor;
@@ -486,10 +484,10 @@ TEST_F(SnapshotExecutorTest, retry_request_with_throttle) {
         args[i].request.set_uri(uri);
     }
     for (size_t i = 0; i < N; ++i) {
-        bthread_start_background(&tids[i], NULL, install_thread, &args[i]);
+        fiber_start_background(&tids[i], NULL, install_thread, &args[i]);
     }
     for (size_t i = 0; i < N; ++i) {
-        bthread_join(tids[i], NULL);
+        fiber_join(tids[i], NULL);
     }
     size_t suc = 0;
     for (size_t i = 0; i < N; ++i) {

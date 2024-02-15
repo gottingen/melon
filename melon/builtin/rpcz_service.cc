@@ -19,10 +19,10 @@
 #include <ostream>
 #include <iomanip>
 #include <gflags/gflags.h>
-#include "melon/butil/string_printf.h"
-#include "melon/butil/string_splitter.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/time.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/string_splitter.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/time.h"
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/rpc/controller.h"           // Controller
 #include "melon/builtin/common.h"
@@ -151,7 +151,7 @@ namespace melon {
             return;
         }
 
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         DescribeSpanDB(os);
         os.move_to(cntl->response_attachment());
     }
@@ -195,7 +195,7 @@ namespace melon {
                 PrintRealTime(os, anno_time);
                 PrintElapse(os, anno_time, last_time);
                 os << ' ' << WebEscape(a);
-                if (a.empty() || butil::back_char(a) != '\n') {
+                if (a.empty() || mutil::back_char(a) != '\n') {
                     os << '\n';
                 }
             }
@@ -226,8 +226,8 @@ namespace melon {
         }
     };
 
-    static butil::ip_t loopback_ip = butil::IP_ANY;
-    static int ALLOW_UNUSED init_loopback_ip_dummy = butil::str2ip("127.0.0.1", &loopback_ip);
+    static mutil::ip_t loopback_ip = mutil::IP_ANY;
+    static int ALLOW_UNUSED init_loopback_ip_dummy = mutil::str2ip("127.0.0.1", &loopback_ip);
 
     static void PrintClientSpan(
             std::ostream &os, const RpczSpan &span,
@@ -244,10 +244,10 @@ namespace melon {
                                               last_time, extr, num_extr));
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
-        const butil::EndPoint remote_side(butil::int2ip(span.remote_ip()), span.remote_port());
-        butil::EndPoint abs_remote_side = remote_side;
+        const mutil::EndPoint remote_side(mutil::int2ip(span.remote_ip()), span.remote_port());
+        mutil::EndPoint abs_remote_side = remote_side;
         if (abs_remote_side.ip == loopback_ip) {
-            abs_remote_side.ip = butil::my_ip();
+            abs_remote_side.ip = mutil::my_ip();
         }
         os << " Requesting " << WebEscape(span.full_method_name()) << '@' << remote_side
            << ' ' << protocol_name << ' ' << LOG_ID_STR << '=';
@@ -290,7 +290,7 @@ namespace melon {
 
         if (PrintAnnotationsAndRealTimeSpan(os, span.start_parse_real_us(),
                                             last_time, extr, num_extr)) {
-            os << " Processing the response in a new bthread" << std::endl;
+            os << " Processing the response in a new fiber" << std::endl;
         }
 
         if (PrintAnnotationsAndRealTimeSpan(
@@ -315,8 +315,8 @@ namespace melon {
         SpanInfoExtractor server_extr(span.info().c_str());
         SpanInfoExtractor *extr[1] = {&server_extr};
         int64_t last_time = span.received_real_us();
-        const butil::EndPoint remote_side(
-                butil::int2ip(span.remote_ip()), span.remote_port());
+        const mutil::EndPoint remote_side(
+                mutil::int2ip(span.remote_ip()), span.remote_port());
         PrintRealDateTime(os, last_time);
         const Protocol *protocol = FindProtocol(span.protocol());
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
@@ -338,7 +338,7 @@ namespace melon {
         if (PrintAnnotationsAndRealTimeSpan(
                 os, span.start_parse_real_us(),
                 &last_time, extr, ARRAY_SIZE(extr))) {
-            os << " Processing the request in a new bthread" << std::endl;
+            os << " Processing the request in a new fiber" << std::endl;
         }
 
         bool entered_user_method = false;
@@ -478,7 +478,7 @@ namespace melon {
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
 
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         if (use_html) {
             os << "<!DOCTYPE html><html><head>\n"
                << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"
@@ -500,7 +500,7 @@ namespace melon {
             os.move_to(cntl->response_attachment());
             return;
         }
-        butil::EndPoint my_addr(butil::my_ip(),
+        mutil::EndPoint my_addr(mutil::my_ip(),
                                 cntl->server()->listen_address().port);
 
         const std::string *trace_id_str =
@@ -561,7 +561,7 @@ namespace melon {
                     cntl->http_request().uri().GetQuery(TIME_STR);
             int64_t start_tm;
             if (time_str == NULL) {
-                start_tm = butil::gettimeofday_us();
+                start_tm = mutil::gettimeofday_us();
             } else {
                 start_tm = ParseDateTime(*time_str);
                 if (start_tm < 0) {

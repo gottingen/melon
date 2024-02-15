@@ -20,7 +20,7 @@
 #include <google/protobuf/message.h>             // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "melon/butil/time.h"
+#include "melon/utility/time.h"
 #include "melon/rpc/controller.h"                // Controller
 #include "melon/rpc/socket.h"                    // Socket
 #include "melon/rpc/server.h"                    // Server
@@ -35,7 +35,7 @@
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 extern "C" {
-void bthread_assign_data(void* data);
+void fiber_assign_data(void* data);
 }
 
 
@@ -138,7 +138,7 @@ inline void PackSofaHeader(char* sofa_header, uint32_t meta_size, int body_size)
 }
 
 static void SerializeSofaHeaderAndMeta(
-    butil::IOBuf* out, const SofaRpcMeta& meta, int payload_size) {
+    mutil::IOBuf* out, const SofaRpcMeta& meta, int payload_size) {
     const uint32_t meta_size = GetProtobufByteSize(meta);
     if (meta_size <= 232) { // most common cases
         char header_and_meta[24 + meta_size];
@@ -152,14 +152,14 @@ static void SerializeSofaHeaderAndMeta(
         char header[24];
         PackSofaHeader(header, meta_size, payload_size);
         out->append(header, sizeof(header));
-        butil::IOBufAsZeroCopyOutputStream buf_stream(out);
+        mutil::IOBufAsZeroCopyOutputStream buf_stream(out);
         ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
         meta.SerializeWithCachedSizes(&coded_out);
         CHECK(!coded_out.HadError());
     }
 }
 
-ParseResult ParseSofaMessage(butil::IOBuf* source, Socket* socket,
+ParseResult ParseSofaMessage(mutil::IOBuf* source, Socket* socket,
                              bool /*read_eof*/, const void* /*arg*/) {
     char header_buf[24];
     const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -214,7 +214,7 @@ static void SendSofaResponse(int64_t correlation_id,
     ControllerPrivateAccessor accessor(cntl);
     Span* span = accessor.span();
     if (span) {
-        span->set_start_send_us(butil::cpuwide_time_us());
+        span->set_start_send_us(mutil::cpuwide_time_us());
     }
     Socket* sock = accessor.get_sending_socket();
     std::unique_ptr<Controller, LogErrorTextAndDelete> recycle_cntl(cntl);
@@ -232,7 +232,7 @@ static void SendSofaResponse(int64_t correlation_id,
         "your response_attachment will not be sent";
 
     bool append_body = false;
-    butil::IOBuf res_body;
+    mutil::IOBuf res_body;
     // `res' can be NULL here, in which case we don't serialize it
     // If user calls `SetFailed' on Controller, we don't serialize
     // response either
@@ -271,7 +271,7 @@ static void SendSofaResponse(int64_t correlation_id,
     meta.set_compress_type(
         CompressType2Sofa(cntl->response_compress_type()));
 
-    butil::IOBuf res_buf;
+    mutil::IOBuf res_buf;
     SerializeSofaHeaderAndMeta(&res_buf, meta, res_size);
     if (append_body) {
         res_buf.append(res_body.movable());
@@ -292,11 +292,11 @@ static void SendSofaResponse(int64_t correlation_id,
     }
     if (span) {
         // TODO: this is not sent
-        span->set_sent_us(butil::cpuwide_time_us());
+        span->set_sent_us(mutil::cpuwide_time_us());
     }
 }
 
-// Defined in baidu_rpc_protocol.cpp
+// Defined in melon_rpc_protocol.cpp
 void EndRunningCallMethodInPool(
     ::google::protobuf::Service* service,
     const ::google::protobuf::MethodDescriptor* method,
@@ -306,7 +306,7 @@ void EndRunningCallMethodInPool(
     ::google::protobuf::Closure* done);
 
 void ProcessSofaRequest(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     SocketUniquePtr socket_guard(msg->ReleaseSocket());
     Socket* socket = socket_guard.get();
@@ -356,9 +356,9 @@ void ProcessSofaRequest(InputMessageBase* msg_base) {
         .set_begin_time_us(msg->received_us())
         .move_in_server_receiving_sock(socket_guard);
 
-    // Tag the bthread with this server's key for thread_local_data().
+    // Tag the fiber with this server's key for thread_local_data().
     if (server->thread_local_options().thread_local_data_factory) {
-        bthread_assign_data((void*)&server->thread_local_options());
+        fiber_assign_data((void*)&server->thread_local_options());
     }
 
     Span* span = NULL;
@@ -383,7 +383,7 @@ void ProcessSofaRequest(InputMessageBase* msg_base) {
 
         if (socket->is_overcrowded()) {
             cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                            butil::endpoint2str(socket->remote_side()).c_str());
+                            mutil::endpoint2str(socket->remote_side()).c_str());
             break;
         }
 
@@ -450,7 +450,7 @@ void ProcessSofaRequest(InputMessageBase* msg_base) {
 
         // `cntl', `req' and `res' will be deleted inside `done'
         if (span) {
-            span->set_start_callback_us(butil::cpuwide_time_us());
+            span->set_start_callback_us(mutil::cpuwide_time_us());
             span->AsParent();
         }
         if (!FLAGS_usercode_in_pthread) {
@@ -485,7 +485,7 @@ bool VerifySofaRequest(const InputMessageBase* msg_base) {
 }
 
 void ProcessSofaResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     SofaRpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
@@ -493,9 +493,9 @@ void ProcessSofaResponse(InputMessageBase* msg_base) {
         return;
     }
 
-    const bthread_id_t cid = { static_cast<uint64_t>(meta.sequence_id()) };
+    const fiber_session_t cid = { static_cast<uint64_t>(meta.sequence_id()) };
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -535,12 +535,12 @@ void ProcessSofaResponse(InputMessageBase* msg_base) {
     accessor.OnResponse(cid, saved_error);
 }
 
-void PackSofaRequest(butil::IOBuf* req_buf,
+void PackSofaRequest(mutil::IOBuf* req_buf,
                      SocketMessage**,
                      uint64_t correlation_id,
                      const google::protobuf::MethodDescriptor* method,
                      Controller* cntl,
-                     const butil::IOBuf& req_body,
+                     const mutil::IOBuf& req_body,
                      const Authenticator* /*not supported*/) {
     if (!cntl->request_attachment().empty()) {
         LOG(WARNING) << "sofa-pbrpc does not support attachment, "

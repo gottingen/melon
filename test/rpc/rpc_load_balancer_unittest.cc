@@ -22,15 +22,15 @@
 #include <sys/types.h>
 #include <map>
 #include <gtest/gtest.h>
-#include "melon/bthread/bthread.h"
-#include "melon/butil/gperftools_profiler.h"
-#include "melon/butil/containers/doubly_buffered_data.h"
+#include "melon/fiber/fiber.h"
+#include "melon/utility/gperftools_profiler.h"
+#include "melon/utility/containers/doubly_buffered_data.h"
 #include "melon/rpc/describable.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/socket_map.h"
 #include "melon/rpc/global.h"
 #include "melon/rpc/details/load_balancer_with_naming.h"
-#include "melon/butil/strings/string_number_conversions.h"
+#include "melon/utility/strings/string_number_conversions.h"
 #include "melon/lb/weighted_round_robin_load_balancer.h"
 #include "melon/lb/round_robin_load_balancer.h"
 #include "melon/lb/weighted_randomized_load_balancer.h"
@@ -112,30 +112,30 @@ void test_doubly_buffered_data() {
 }
 
 TEST_F(LoadBalancerTest, doubly_buffered_data) {
-    test_doubly_buffered_data<butil::DoublyBufferedData<Foo>>();
-    test_doubly_buffered_data<butil::DoublyBufferedData<Foo, butil::Void, false>>();
-    test_doubly_buffered_data<butil::DoublyBufferedData<Foo, UserTLS, false>>();
-    test_doubly_buffered_data<butil::DoublyBufferedData<Foo, butil::Void, true>>();
+    test_doubly_buffered_data<mutil::DoublyBufferedData<Foo>>();
+    test_doubly_buffered_data<mutil::DoublyBufferedData<Foo, mutil::Void, false>>();
+    test_doubly_buffered_data<mutil::DoublyBufferedData<Foo, UserTLS, false>>();
+    test_doubly_buffered_data<mutil::DoublyBufferedData<Foo, mutil::Void, true>>();
 }
 
 bool exitFlag = false;
 
 template <typename DBD>
-void* DBDBthread(void* arg) {
+void* DBDFiber(void* arg) {
     auto d = static_cast<DBD*>(arg);
     while(!exitFlag){
         typename DBD::ScopedPtr ptr;
         d->Read(&ptr);
 
         // If DBD is DoublyBufferedData<T, TLS, false>, may cause deadlock.
-        bthread_usleep(100 * 1000);
+        fiber_usleep(100 * 1000);
     }
 
     return NULL;
 }
 
 template <typename DBD>
-void DBDMultiBthread() {
+void DBDMultiFiber() {
     DBD d;
     d.Modify(AddN, 1);
     {
@@ -144,14 +144,14 @@ void DBDMultiBthread() {
         ASSERT_EQ(1, ptr->x);
     }
 
-    bthread_t tids[10000];
+    fiber_t tids[10000];
     for (size_t i = 0; i < ARRAY_SIZE(tids); ++i) {
-        ASSERT_EQ(0, bthread_start_urgent(&tids[i], NULL, DBDBthread<DBD>, &d));
+        ASSERT_EQ(0, fiber_start_urgent(&tids[i], NULL, DBDFiber<DBD>, &d));
     }
 
     // Modify during reading.
-    int64_t start = butil::gettimeofday_ms();
-    while (butil::gettimeofday_ms() - start < 10 * 1000) {
+    int64_t start = mutil::gettimeofday_ms();
+    while (mutil::gettimeofday_ms() - start < 10 * 1000) {
         d.Modify(AddN, 1);
         typename DBD::ScopedPtr ptr;
         d.Read(&ptr);
@@ -159,18 +159,18 @@ void DBDMultiBthread() {
     }
     exitFlag = true;
     for (size_t i = 0; i < ARRAY_SIZE(tids); ++i) {
-        ASSERT_EQ(0, bthread_join(tids[i], NULL));
+        ASSERT_EQ(0, fiber_join(tids[i], NULL));
     }
 }
 
 // Deadlock, only for test.
-// TEST_F(LoadBalancerTest, doubly_buffered_data_multi_bthread) {
-//     DBDMultiBthread<butil::DoublyBufferedData<Foo>>();
-//     DBDMultiBthread<butil::DoublyBufferedData<Foo, butil::Void, false>>();
+// TEST_F(LoadBalancerTest, doubly_buffered_data_multi_fiber) {
+//     DBDMultiFiber<mutil::DoublyBufferedData<Foo>>();
+//     DBDMultiFiber<mutil::DoublyBufferedData<Foo, mutil::Void, false>>();
 // }
 
-TEST_F(LoadBalancerTest, doubly_buffered_data_bthread_multi_bthread) {
-    DBDMultiBthread<butil::DoublyBufferedData<Foo, butil::Void, true>>();
+TEST_F(LoadBalancerTest, doubly_buffered_data_fiber_multi_fiber) {
+    DBDMultiFiber<mutil::DoublyBufferedData<Foo, mutil::Void, true>>();
 }
 
 
@@ -186,7 +186,7 @@ bool AddMapN(PerfMap& f, int n) {
 }
 
 template<typename DBD>
-struct BAIDU_CACHELINE_ALIGNMENT PerfArgs {
+struct MELON_CACHELINE_ALIGNMENT PerfArgs {
     DBD* dbd;
     int64_t counter;
     int64_t elapse_ns;
@@ -199,12 +199,12 @@ template<typename DBD>
 void* read_dbd(void* void_arg) {
     auto args = (PerfArgs<DBD>*)void_arg;
     args->ready = true;
-    butil::Timer t;
+    mutil::Timer t;
     while (!g_stopped) {
         if (g_started) {
             break;
         }
-        bthread_usleep(10);
+        fiber_usleep(10);
     }
     t.start();
     while (!g_stopped) {
@@ -253,9 +253,9 @@ void PerfTest(int thread_num, bool modify_during_reading) {
     ProfilerStart(prof_name);
     int64_t run_ms = 5 * 1000;
     if (modify_during_reading) {
-        int64_t start = butil::gettimeofday_ms();
+        int64_t start = mutil::gettimeofday_ms();
         int i = 1;
-        while (butil::gettimeofday_ms() - start < run_ms) {
+        while (mutil::gettimeofday_ms() - start < run_ms) {
             ASSERT_TRUE(dbd.Modify(AddMapN, i++));
             usleep(1000);
         }
@@ -271,7 +271,7 @@ void PerfTest(int thread_num, bool modify_during_reading) {
         wait_time += args[i].elapse_ns;
         count += args[i].counter;
     }
-    LOG(INFO) << butil::class_name<DBD>()
+    LOG(INFO) << mutil::class_name<DBD>()
               << " thread_num=" << thread_num
               << " modify_during_reading=" << modify_during_reading
               << " count=" << count
@@ -281,28 +281,28 @@ void PerfTest(int thread_num, bool modify_during_reading) {
 
 TEST_F(LoadBalancerTest, dbd_performance) {
     int thread_num = 1;
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, true);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, true);
 
     thread_num = 4;
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, true);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, true);
 
     thread_num = 8;
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, true);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, true);
 
     thread_num = 16;
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap>>(thread_num, true);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, false);
-    PerfTest<butil::DoublyBufferedData<PerfMap, butil::Void, true>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap>>(thread_num, true);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, false);
+    PerfTest<mutil::DoublyBufferedData<PerfMap, mutil::Void, true>>(thread_num, true);
 }
 
 
@@ -324,7 +324,7 @@ static void ValidateWeightTree(
         }
     }
     for (size_t i = 0; i < weight_tree.size(); ++i) {
-        const int64_t left = weight_tree[i].left->load(butil::memory_order_relaxed);
+        const int64_t left = weight_tree[i].left->load(mutil::memory_order_relaxed);
         size_t left_child = i * 2 + 1;
         if (left_child < weight_tree.size()) {
             ASSERT_EQ(weight_sum[left_child], left) << "i=" << i;
@@ -368,7 +368,7 @@ TEST_F(LoadBalancerTest, la_sanity) {
         for (; cur_count < N; ++cur_count) {
             char addr[32];
             snprintf(addr, sizeof(addr), "192.168.1.%d:8080", (int)cur_count);
-            butil::EndPoint dummy;
+            mutil::EndPoint dummy;
             ASSERT_EQ(0, str2endpoint(addr, &dummy));
             melon::ServerId id(8888);
             melon::SocketOptions options;
@@ -434,10 +434,10 @@ void* select_server(void* arg) {
 }
 
 melon::SocketId recycled_sockets[1024];
-butil::atomic<size_t> nrecycle(0);
+mutil::atomic<size_t> nrecycle(0);
 class SaveRecycle : public melon::SocketUser {
     void BeforeRecycle(melon::Socket* s) {
-        recycled_sockets[nrecycle.fetch_add(1, butil::memory_order_relaxed)] = s->id();
+        recycled_sockets[nrecycle.fetch_add(1, mutil::memory_order_relaxed)] = s->id();
         delete this;
     }
 };
@@ -476,7 +476,7 @@ TEST_F(LoadBalancerTest, update_while_selection) {
         for (int i = 0; i < 256; ++i) {
             char addr[32];
             snprintf(addr, sizeof(addr), "192.%d.1.%d:8080", i, i);
-            butil::EndPoint dummy;
+            mutil::EndPoint dummy;
             ASSERT_EQ(0, str2endpoint(addr, &dummy));
             melon::ServerId id(8888);
             if (3 == round) {
@@ -500,8 +500,8 @@ TEST_F(LoadBalancerTest, update_while_selection) {
                 ptr->SetLogOff();
             }
         }
-        std::cout << "Time " << butil::class_name_str(*lb) << " ..." << std::endl;
-        butil::Timer tm;
+        std::cout << "Time " << mutil::class_name_str(*lb) << " ..." << std::endl;
+        mutil::Timer tm;
         tm.start();
         for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], NULL, select_server, &sa));
@@ -602,7 +602,7 @@ TEST_F(LoadBalancerTest, fairness) {
         }
         sa.lb = lb;
         
-        std::string lb_name = butil::class_name_str(*lb);
+        std::string lb_name = mutil::class_name_str(*lb);
         // Remove namespace
         size_t ns_pos = lb_name.find_last_of(':');
         if (ns_pos != std::string::npos) {
@@ -616,16 +616,16 @@ TEST_F(LoadBalancerTest, fairness) {
         for (int i = 0; i < 256; ++i) {
             char addr[32];
             snprintf(addr, sizeof(addr), "192.168.1.%d:8080", i);
-            butil::EndPoint dummy;
+            mutil::EndPoint dummy;
             ASSERT_EQ(0, str2endpoint(addr, &dummy));
             melon::ServerId id(8888);
             if (3 == round) {
                 id.tag = "100";
             } else if (4 == round) {
                 if ( i % 50 == 0) {
-                    id.tag = std::to_string(i*2 + butil::fast_rand_less_than(40) + 80); 
+                    id.tag = std::to_string(i*2 + mutil::fast_rand_less_than(40) + 80);
                 } else {
-                    id.tag = std::to_string(butil::fast_rand_less_than(40) + 80);
+                    id.tag = std::to_string(mutil::fast_rand_less_than(40) + 80);
                 }
             }
             melon::SocketOptions options;
@@ -639,9 +639,9 @@ TEST_F(LoadBalancerTest, fairness) {
         for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
             ASSERT_EQ(0, pthread_create(&th[i], NULL, select_server, &sa));
         }
-        bthread_usleep(10000);
+        fiber_usleep(10000);
         ProfilerStart((lb_name + ".prof").c_str());
-        bthread_usleep(300000);
+        fiber_usleep(300000);
         ProfilerStop();
 
         global_stop = true;
@@ -743,12 +743,12 @@ TEST_F(LoadBalancerTest, consistent_hashing) {
     for (size_t round = 0; round < ARRAY_SIZE(hashs); ++round) {
         melon::lb::ConsistentHashingLoadBalancer chlb(hash_type[round]);
         std::vector<melon::ServerId> ids;
-        std::vector<butil::EndPoint> addrs;
+        std::vector<mutil::EndPoint> addrs;
         for (int j = 0;j < 5; ++j) {
             for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
                 const char *addr = servers[i];
                 //snprintf(addr, sizeof(addr), "192.168.1.%d:8080", i);
-                butil::EndPoint dummy;
+                mutil::EndPoint dummy;
                 ASSERT_EQ(0, str2endpoint(addr, &dummy));
                 melon::ServerId id(8888);
                 melon::SocketOptions options;
@@ -768,7 +768,7 @@ TEST_F(LoadBalancerTest, consistent_hashing) {
             std::cout << chlb;
         }
         const size_t SELECT_TIMES = 1000000;
-        std::map<butil::EndPoint, size_t> times;
+        std::map<mutil::EndPoint, size_t> times;
         melon::SocketUniquePtr ptr;
         melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
         ::melon::LoadBalancer::SelectOut out(&ptr);
@@ -778,7 +778,7 @@ TEST_F(LoadBalancerTest, consistent_hashing) {
             chlb.SelectServer(in, &out);
             ++times[ptr->remote_side()];
         }
-        std::map<butil::EndPoint, double> load_map;
+        std::map<mutil::EndPoint, double> load_map;
         chlb.GetLoads(&load_map);
         ASSERT_EQ(times.size(), load_map.size());
         double load_sum = 0;;
@@ -812,13 +812,13 @@ TEST_F(LoadBalancerTest, weighted_round_robin) {
             "10.42.122.202:8836"
     };
     std::string weight[] = {"3", "2", "7", "200000000", "1ab", "-1", "0"};
-    std::map<butil::EndPoint, int> configed_weight;
+    std::map<mutil::EndPoint, int> configed_weight;
     melon::lb::WeightedRoundRobinLoadBalancer wrrlb;
 
     // Add server to selected list. The server with invalid weight will be skipped.
     for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
         const char *addr = servers[i];
-        butil::EndPoint dummy;
+        mutil::EndPoint dummy;
         ASSERT_EQ(0, str2endpoint(addr, &dummy));
         melon::ServerId id(8888);
         melon::SocketOptions options;
@@ -833,7 +833,7 @@ TEST_F(LoadBalancerTest, weighted_round_robin) {
         }
         if ( i < 4 ) {
             int weight_num = 0;
-            ASSERT_TRUE(butil::StringToInt(weight[i], &weight_num));
+            ASSERT_TRUE(mutil::StringToInt(weight[i], &weight_num));
             configed_weight[dummy] = weight_num;
             EXPECT_TRUE(wrrlb.AddServer(id));
         } else {
@@ -845,12 +845,12 @@ TEST_F(LoadBalancerTest, weighted_round_robin) {
     // There are 3 valid servers with weight 3, 2 and 7 respectively.
     // We run SelectServer for 12 times. The result number of each server selected should be
     // consistent with weight configured.
-    std::map<butil::EndPoint, size_t> select_result;
+    std::map<mutil::EndPoint, size_t> select_result;
     melon::SocketUniquePtr ptr;
     melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
     melon::LoadBalancer::SelectOut out(&ptr);
     int total_weight = 12;
-    std::vector<butil::EndPoint> select_servers;
+    std::vector<mutil::EndPoint> select_servers;
     for (int i = 0; i != total_weight; ++i) {
         EXPECT_EQ(0, wrrlb.SelectServer(in, &out));
         select_servers.emplace_back(ptr->remote_side());
@@ -877,12 +877,12 @@ TEST_F(LoadBalancerTest, weighted_round_robin_no_valid_server) {
             "10.36.150.32:8833" 
     };
     std::string weight[] = {"200000000", "2", "600000"};
-    std::map<butil::EndPoint, int> configed_weight;
+    std::map<mutil::EndPoint, int> configed_weight;
     melon::lb::WeightedRoundRobinLoadBalancer wrrlb;
     melon::ExcludedServers* exclude = melon::ExcludedServers::Create(3);
     for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
         const char *addr = servers[i];
-        butil::EndPoint dummy;
+        mutil::EndPoint dummy;
         ASSERT_EQ(0, str2endpoint(addr, &dummy));
         melon::ServerId id(8888);
         melon::SocketOptions options;
@@ -922,7 +922,7 @@ TEST_F(LoadBalancerTest, weighted_randomized) {
         "10.42.122.202:8836"
     };
     std::string weight[] = {"3", "2", "5", "10", "1ab", "-1", "0"};
-    std::map<butil::EndPoint, int> configed_weight;
+    std::map<mutil::EndPoint, int> configed_weight;
     uint64_t configed_weight_sum = 0;
     melon::lb::WeightedRandomizedLoadBalancer wrlb;
     size_t valid_weight_num = 4;
@@ -930,7 +930,7 @@ TEST_F(LoadBalancerTest, weighted_randomized) {
     // Add server to selected list. The server with invalid weight will be skipped.
     for (size_t i = 0;  i < ARRAY_SIZE(servers); ++i) {
         const char *addr = servers[i];
-        butil::EndPoint dummy;
+        mutil::EndPoint dummy;
         ASSERT_EQ(0, str2endpoint(addr, &dummy));
         melon::ServerId id(8888);
         melon::SocketOptions options;
@@ -940,7 +940,7 @@ TEST_F(LoadBalancerTest, weighted_randomized) {
         id.tag = weight[i];
         if (i < valid_weight_num) {
             int weight_num = 0;
-            ASSERT_TRUE(butil::StringToInt(weight[i], &weight_num));
+            ASSERT_TRUE(mutil::StringToInt(weight[i], &weight_num));
             configed_weight[dummy] = weight_num;
             configed_weight_sum += weight_num;
             EXPECT_TRUE(wrlb.AddServer(id));
@@ -953,12 +953,12 @@ TEST_F(LoadBalancerTest, weighted_randomized) {
     // There are 4 valid servers with weight 3, 2, 5 and 10 respectively.
     // We run SelectServer for multiple times. The result number of each server selected should be
     // weight randomized with weight configured.
-    std::map<butil::EndPoint, size_t> select_result;
+    std::map<mutil::EndPoint, size_t> select_result;
     melon::SocketUniquePtr ptr;
     melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
     melon::LoadBalancer::SelectOut out(&ptr);
     int run_times = configed_weight_sum * 10;
-    std::vector<butil::EndPoint> select_servers;
+    std::vector<mutil::EndPoint> select_servers;
     for (int i = 0; i < run_times; ++i) {
         EXPECT_EQ(0, wrlb.SelectServer(in, &out));
         select_servers.emplace_back(ptr->remote_side());
@@ -1002,7 +1002,7 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
         melon::LoadBalancer* lb = lbs[i];
         std::vector<melon::ServerId> ids;
         for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
-            butil::EndPoint dummy;
+            mutil::EndPoint dummy;
             ASSERT_EQ(0, str2endpoint(servers[i], &dummy));
             melon::ServerId id(8888);
             melon::SocketOptions options;
@@ -1023,7 +1023,7 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
 
         melon::SocketUniquePtr ptr;
         ASSERT_EQ(0, melon::Socket::Address(ids[0].id, &ptr));
-        ptr->_ninflight_app_health_check.store(1, butil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(1, mutil::memory_order_relaxed);
         for (int i = 0; i < 4; ++i) {
             melon::SocketUniquePtr ptr;
             melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
@@ -1034,7 +1034,7 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
         }
 
         ASSERT_EQ(0, melon::Socket::Address(ids[1].id, &ptr));
-        ptr->_ninflight_app_health_check.store(1, butil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(1, mutil::memory_order_relaxed);
         for (int i = 0; i < 4; ++i) {
             melon::SocketUniquePtr ptr;
             melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
@@ -1044,9 +1044,9 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
         }
 
         ASSERT_EQ(0, melon::Socket::Address(ids[0].id, &ptr));
-        ptr->_ninflight_app_health_check.store(0, butil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(0, mutil::memory_order_relaxed);
         ASSERT_EQ(0, melon::Socket::Address(ids[1].id, &ptr));
-        ptr->_ninflight_app_health_check.store(0, butil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(0, mutil::memory_order_relaxed);
         // After reset health check state, the lb should work fine
         bool get_server1 = false;
         bool get_server2 = false; 
@@ -1072,7 +1072,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_sanity) {
         "10.42.122.201:8833",
     };
     melon::LoadBalancer* lb = NULL;
-    int rand = butil::fast_rand_less_than(2);
+    int rand = mutil::fast_rand_less_than(2);
     if (rand == 0) {
         melon::lb::RandomizedLoadBalancer rlb;
         lb = rlb.New("min_working_instances=2 hold_seconds=2");
@@ -1082,7 +1082,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_sanity) {
     }
     melon::SocketUniquePtr ptr[2];
     for (size_t i = 0; i < ARRAY_SIZE(servers); ++i) {
-        butil::EndPoint dummy;
+        mutil::EndPoint dummy;
         ASSERT_EQ(0, str2endpoint(servers[i], &dummy));
         melon::SocketOptions options;
         options.remote_side = dummy;
@@ -1109,7 +1109,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_sanity) {
         ASSERT_EQ(1, melon::Socket::AddressFailedAsWell(ptr[0]->id(), &dummy_ptr));
         dummy_ptr->Revive();
     }
-    bthread_usleep(melon::FLAGS_detect_available_server_interval_ms * 1000);
+    fiber_usleep(melon::FLAGS_detect_available_server_interval_ms * 1000);
     // After one server is revived, the reject rate should be 50%
     int num_ereject = 0;
     int num_ok = 0;
@@ -1124,7 +1124,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_sanity) {
         }
     }
     ASSERT_TRUE(abs(num_ereject - num_ok) < 30);
-    bthread_usleep((2000 /* hold_seconds */ + 10) * 1000);
+    fiber_usleep((2000 /* hold_seconds */ + 10) * 1000);
 
     // After enough waiting time, traffic should be sent to all available servers.
     for (int i = 0; i < 10; ++i) {
@@ -1144,32 +1144,32 @@ public:
         //melon::Controller* cntl =
         //        static_cast<melon::Controller*>(cntl_base);
         melon::ClosureGuard done_guard(done);
-        int p = _num_request.fetch_add(1, butil::memory_order_relaxed);
+        int p = _num_request.fetch_add(1, mutil::memory_order_relaxed);
         // concurrency in normal case is 50
         if (p < 70) {
-            bthread_usleep(100 * 1000);
-            _num_request.fetch_sub(1, butil::memory_order_relaxed);
+            fiber_usleep(100 * 1000);
+            _num_request.fetch_sub(1, mutil::memory_order_relaxed);
             res->set_message("OK");
         } else {
-            _num_request.fetch_sub(1, butil::memory_order_relaxed);
-            bthread_usleep(1000 * 1000);
+            _num_request.fetch_sub(1, mutil::memory_order_relaxed);
+            fiber_usleep(1000 * 1000);
         }
         return;
     }
 
-    butil::atomic<int> _num_request;
+    mutil::atomic<int> _num_request;
 };
 
-butil::atomic<int32_t> num_failed(0);
-butil::atomic<int32_t> num_reject(0);
+mutil::atomic<int32_t> num_failed(0);
+mutil::atomic<int32_t> num_reject(0);
 
 class Done : public google::protobuf::Closure {
 public:
     void Run() {
         if (cntl.Failed()) {
-            num_failed.fetch_add(1, butil::memory_order_relaxed);
+            num_failed.fetch_add(1, mutil::memory_order_relaxed);
             if (cntl.ErrorCode() == melon::EREJECT) {
-                num_reject.fetch_add(1, butil::memory_order_relaxed);
+                num_reject.fetch_add(1, mutil::memory_order_relaxed);
             }
         }
         delete this;
@@ -1186,7 +1186,7 @@ TEST_F(LoadBalancerTest, invalid_lb_params) {
     melon::ChannelOptions options;
     options.protocol = "http";
     ASSERT_EQ(channel.Init("list://127.0.0.1:7777 50, 127.0.0.1:7778 50",
-                           lb_algo[butil::fast_rand_less_than(ARRAY_SIZE(lb_algo))],
+                           lb_algo[mutil::fast_rand_less_than(ARRAY_SIZE(lb_algo))],
                            &options), -1);
 }
 
@@ -1207,7 +1207,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_intergrated) {
     // Disable retry to make health check happen one by one
     options.max_retry = 0;
     ASSERT_EQ(channel.Init("list://127.0.0.1:7777 50, 127.0.0.1:7778 50",
-                           lb_algo[butil::fast_rand_less_than(ARRAY_SIZE(lb_algo))],
+                           lb_algo[mutil::fast_rand_less_than(ARRAY_SIZE(lb_algo))],
                            &options), 0);
     test::EchoRequest req;
     req.set_message("123");
@@ -1220,49 +1220,49 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_intergrated) {
     }
     // This sleep make one server revived 700ms earlier than the other server, which
     // can make the server down again if no request limit policy are applied here.
-    bthread_usleep(700000);
+    fiber_usleep(700000);
     {
         // trigger the other server to health check
         melon::Controller cntl;
         stub.Echo(&cntl, &req, &res, NULL);
     }
 
-    butil::EndPoint point(butil::IP_ANY, 7777);
+    mutil::EndPoint point(mutil::IP_ANY, 7777);
     melon::Server server;
     EchoServiceImpl service;
     ASSERT_EQ(0, server.AddService(&service, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server.Start(point, NULL));
 
-    butil::EndPoint point2(butil::IP_ANY, 7778);
+    mutil::EndPoint point2(mutil::IP_ANY, 7778);
     melon::Server server2;
     EchoServiceImpl service2;
     ASSERT_EQ(0, server2.AddService(&service2, melon::SERVER_DOESNT_OWN_SERVICE));
     ASSERT_EQ(0, server2.Start(point2, NULL));
     
-    int64_t start_ms = butil::gettimeofday_ms();
-    while ((butil::gettimeofday_ms() - start_ms) < 3500) {
+    int64_t start_ms = mutil::gettimeofday_ms();
+    while ((mutil::gettimeofday_ms() - start_ms) < 3500) {
         Done* done = new Done;
         done->req.set_message("123");
         stub.Echo(&done->cntl, &done->req, &done->res, done);
-        bthread_usleep(1000);
+        fiber_usleep(1000);
     }
     // All error code should be equal to EREJECT, except when the situation
     // all servers are down, the very first call that trigger recovering would
     // fail with EHOSTDOWN instead of EREJECT. This is where the number 1 comes
     // in following ASSERT.
-    ASSERT_TRUE(num_failed.load(butil::memory_order_relaxed) -
-            num_reject.load(butil::memory_order_relaxed) == 1);
-    num_failed.store(0, butil::memory_order_relaxed);
+    ASSERT_TRUE(num_failed.load(mutil::memory_order_relaxed) -
+            num_reject.load(mutil::memory_order_relaxed) == 1);
+    num_failed.store(0, mutil::memory_order_relaxed);
 
     // should recover now
     for (int i = 0; i < 1000; ++i) {
         Done* done = new Done;
         done->req.set_message("123");
         stub.Echo(&done->cntl, &done->req, &done->res, done);
-        bthread_usleep(1000);
+        fiber_usleep(1000);
     }
-    bthread_usleep(500000 /* sleep longer than timeout of channel */);
-    ASSERT_EQ(0, num_failed.load(butil::memory_order_relaxed));
+    fiber_usleep(500000 /* sleep longer than timeout of channel */);
+    ASSERT_EQ(0, num_failed.load(mutil::memory_order_relaxed));
 }
 
 TEST_F(LoadBalancerTest, la_selection_too_long) {
@@ -1270,7 +1270,7 @@ TEST_F(LoadBalancerTest, la_selection_too_long) {
     melon::LoadBalancerWithNaming lb;
     CHECK_EQ(0, lb.Init("list://127.0.0.1:8888", "la", nullptr, nullptr)); 
     char addr[] = "127.0.0.1:8888";
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint(addr, &ep));
     melon::SocketId id;
     ASSERT_EQ(0, melon::SocketMapFind(melon::SocketMapKey(ep), &id));

@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/butil/time.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/time.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/controller.h"           // Controller
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/builtin/memory_service.h"
@@ -29,16 +29,16 @@ namespace melon {
 
     static inline void get_tcmalloc_num_prop(MallocExtension *malloc_ext,
                                              const char *prop_name,
-                                             butil::IOBufBuilder &os) {
+                                             mutil::IOBufBuilder &os) {
         size_t value;
         if (malloc_ext->GetNumericProperty(prop_name, &value)) {
             os << prop_name << ": " << value << "\n";
         }
     }
 
-    static void get_tcmalloc_memory_info(butil::IOBuf &out) {
+    static void get_tcmalloc_memory_info(mutil::IOBuf &out) {
         MallocExtension *malloc_ext = MallocExtension::instance();
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         os << "------------------------------------------------\n";
         get_tcmalloc_num_prop(malloc_ext, "generic.total_physical_bytes", os);
         get_tcmalloc_num_prop(malloc_ext, "generic.current_allocated_bytes", os);
@@ -65,10 +65,10 @@ namespace melon {
         ClosureGuard done_guard(done);
         auto cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        butil::IOBuf &resp = cntl->response_attachment();
+        mutil::IOBuf &resp = cntl->response_attachment();
 
         if (IsTCMallocEnabled()) {
-            butil::IOBufBuilder os;
+            mutil::IOBufBuilder os;
             get_tcmalloc_memory_info(resp);
         } else {
             resp.append("tcmalloc is not enabled");

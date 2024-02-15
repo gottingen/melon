@@ -18,8 +18,8 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/butil/time.h"
-#include "melon/butil/iobuf.h"                         // butil::IOBuf
+#include "melon/utility/time.h"
+#include "melon/utility/iobuf.h"                         // mutil::IOBuf
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
 #include "melon/rpc/server.h"                   // Server
@@ -34,7 +34,7 @@
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 extern "C" {
-void bthread_assign_data(void* data);
+void fiber_assign_data(void* data);
 }
 
 
@@ -73,7 +73,7 @@ void SendMongoResponse::Run() {
     
     const MongoServiceAdaptor* adaptor =
             server->options().mongo_service_adaptor;
-    butil::IOBuf res_buf;
+    mutil::IOBuf res_buf;
     if (cntl.Failed()) {
         adaptor->SerializeError(res.header().response_to(), &res_buf);
     } else if (res.has_message()) {
@@ -107,7 +107,7 @@ void SendMongoResponse::Run() {
     }
 }
 
-ParseResult ParseMongoMessage(butil::IOBuf* source,
+ParseResult ParseMongoMessage(mutil::IOBuf* source,
                               Socket* socket, bool /*read_eof*/, const void *arg) {
     const Server* server = static_cast<const Server*>(arg);
     const MongoServiceAdaptor* adaptor = server->options().mongo_service_adaptor;
@@ -161,7 +161,7 @@ ParseResult ParseMongoMessage(butil::IOBuf* source,
     return MakeMessage(msg);
 }
 
-// Defined in baidu_rpc_protocol.cpp
+// Defined in melon_rpc_protocol.cpp
 void EndRunningCallMethodInPool(
     ::google::protobuf::Service* service,
     const ::google::protobuf::MethodDescriptor* method,
@@ -212,10 +212,10 @@ void ProcessMongoRequest(InputMessageBase* msg_base) {
         .set_begin_time_us(msg->received_us())
         .move_in_server_receiving_sock(socket_guard);
 
-    // Tag the bthread with this server's key for
+    // Tag the fiber with this server's key for
     // thread_local_data().
     if (server->thread_local_options().thread_local_data_factory) {
-        bthread_assign_data((void*)&server->thread_local_options());
+        fiber_assign_data((void*)&server->thread_local_options());
     }
     do {
         if (!server->IsRunning()) {

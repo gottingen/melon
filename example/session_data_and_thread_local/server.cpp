@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse asynchronously.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -28,13 +28,13 @@ DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
 DEFINE_int32(max_concurrency, 0, "Limit of request processing in parallel");
 
-butil::atomic<int> nsd(0);
+mutil::atomic<int> nsd(0);
 struct MySessionLocalData {
     MySessionLocalData() : x(123) {
-        nsd.fetch_add(1, butil::memory_order_relaxed);
+        nsd.fetch_add(1, mutil::memory_order_relaxed);
     }
     ~MySessionLocalData() {
-        nsd.fetch_sub(1, butil::memory_order_relaxed);
+        nsd.fetch_sub(1, mutil::memory_order_relaxed);
     }
 
     int x;
@@ -51,13 +51,13 @@ public:
     }
 };
 
-butil::atomic<int> ntls(0);
+mutil::atomic<int> ntls(0);
 struct MyThreadLocalData {
     MyThreadLocalData() : y(0) {
-        ntls.fetch_add(1, butil::memory_order_relaxed);
+        ntls.fetch_add(1, mutil::memory_order_relaxed);
     }
     ~MyThreadLocalData() {
-        ntls.fetch_sub(1, butil::memory_order_relaxed);
+        ntls.fetch_sub(1, mutil::memory_order_relaxed);
     }
     static void deleter(void* d) {
         delete static_cast<MyThreadLocalData*>(d);
@@ -103,10 +103,10 @@ static void* process_thread(void* args) {
 class EchoServiceWithThreadAndSessionLocal : public example::EchoService {
 public:
     EchoServiceWithThreadAndSessionLocal() {
-        CHECK_EQ(0, bthread_key_create(&_tls2_key, MyThreadLocalData::deleter));
+        CHECK_EQ(0, fiber_key_create(&_tls2_key, MyThreadLocalData::deleter));
     }
     ~EchoServiceWithThreadAndSessionLocal() {
-        CHECK_EQ(0, bthread_key_delete(_tls2_key));
+        CHECK_EQ(0, fiber_key_delete(_tls2_key));
     };
     void Echo(google::protobuf::RpcController* cntl_base,
               const example::EchoRequest* request,
@@ -143,28 +143,28 @@ public:
         }
         tls->y = expected_value;
 
-        // You can create bthread-local data for your own.
+        // You can create fiber-local data for your own.
         // The interfaces are similar with pthread equivalence:
-        //   pthread_key_create  -> bthread_key_create
-        //   pthread_key_delete  -> bthread_key_delete
-        //   pthread_getspecific -> bthread_getspecific
-        //   pthread_setspecific -> bthread_setspecific
+        //   pthread_key_create  -> fiber_key_create
+        //   pthread_key_delete  -> fiber_key_delete
+        //   pthread_getspecific -> fiber_getspecific
+        //   pthread_setspecific -> fiber_setspecific
         MyThreadLocalData* tls2 = 
-            static_cast<MyThreadLocalData*>(bthread_getspecific(_tls2_key));
+            static_cast<MyThreadLocalData*>(fiber_getspecific(_tls2_key));
         if (tls2 == NULL) {
             tls2 = new MyThreadLocalData;
-            CHECK_EQ(0, bthread_setspecific(_tls2_key, tls2));
+            CHECK_EQ(0, fiber_setspecific(_tls2_key, tls2));
         }
         tls2->y = expected_value + 1;
         
         // sleep awhile to force context switching.
-        bthread_usleep(10000);
+        fiber_usleep(10000);
 
         // tls is unchanged after context switching.
         CHECK_EQ(tls, melon::thread_local_data());
         CHECK_EQ(expected_value, tls->y);
 
-        CHECK_EQ(tls2, bthread_getspecific(_tls2_key));
+        CHECK_EQ(tls2, fiber_getspecific(_tls2_key));
         CHECK_EQ(expected_value + 1, tls2->y);
 
         // Process the request asynchronously.
@@ -175,25 +175,25 @@ public:
         job->request = request;
         job->response = response;
         job->done = done;
-        bthread_t th;
-        CHECK_EQ(0, bthread_start_background(&th, NULL, process_thread, job));
+        fiber_t th;
+        CHECK_EQ(0, fiber_start_background(&th, NULL, process_thread, job));
 
         // We don't want to call done->Run() here, release the guard.
         done_guard.release();
         
-        LOG_EVERY_SECOND(INFO) << "ntls=" << ntls.load(butil::memory_order_relaxed)
-                               << " nsd=" << nsd.load(butil::memory_order_relaxed);
+        LOG_EVERY_SECOND(INFO) << "ntls=" << ntls.load(mutil::memory_order_relaxed)
+                               << " nsd=" << nsd.load(mutil::memory_order_relaxed);
     }
 
 private:
-    bthread_key_t _tls2_key;
+    fiber_key_t _tls2_key;
 };
 
 void AsyncJob::run() {
     melon::ClosureGuard done_guard(done);
 
     // Sleep some time to make sure that Echo() exits.
-    bthread_usleep(10000);    
+    fiber_usleep(10000);
 
     // Still the session-local data that we saw in Echo().
     // This is the major difference between session-local data and thread-local

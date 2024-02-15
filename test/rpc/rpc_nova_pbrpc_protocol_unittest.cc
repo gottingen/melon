@@ -25,8 +25,8 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -53,7 +53,7 @@ public:
     }
 
     int VerifyCredential(const std::string& auth_str,
-                         const butil::EndPoint&,
+                         const mutil::EndPoint&,
                          melon::AuthContext* ctx) const {
         EXPECT_EQ(MOCK_CREDENTIAL, auth_str);
         ctx->set_user(MOCK_USER);
@@ -132,7 +132,7 @@ protected:
 
         test::EchoRequest req;
         req.set_message(EXP_REQUEST);
-        butil::IOBufAsZeroCopyOutputStream req_stream(&msg->payload);
+        mutil::IOBufAsZeroCopyOutputStream req_stream(&msg->payload);
         EXPECT_TRUE(req.SerializeToZeroCopyStream(&req_stream));
         return msg;
     }
@@ -146,7 +146,7 @@ protected:
         
         test::EchoResponse res;
         res.set_message(EXP_RESPONSE);
-        butil::IOBufAsZeroCopyOutputStream res_stream(&msg->payload);
+        mutil::IOBufAsZeroCopyOutputStream res_stream(&msg->payload);
         EXPECT_TRUE(res.SerializeToZeroCopyStream(&res_stream));
         return msg;
     }
@@ -208,8 +208,8 @@ TEST_F(NovaTest, process_response_after_eof) {
 }
 
 TEST_F(NovaTest, complete_flow) {
-    butil::IOBuf request_buf;
-    butil::IOBuf total_buf;
+    mutil::IOBuf request_buf;
+    mutil::IOBuf total_buf;
     melon::Controller cntl;
     test::EchoRequest req;
     test::EchoResponse res;
@@ -235,7 +235,7 @@ TEST_F(NovaTest, complete_flow) {
     ProcessMessage(melon::policy::ProcessNsheadRequest, req_msg, false);
 
     // Read response from pipe
-    butil::IOPortal response_buf;
+    mutil::IOPortal response_buf;
     response_buf.append_from_file_descriptor(_pipe_fds[0], 1024);
     melon::ParseResult res_pr =
             melon::policy::ParseNsheadMessage(&response_buf, NULL, false, NULL);
@@ -248,8 +248,8 @@ TEST_F(NovaTest, complete_flow) {
 }
 
 TEST_F(NovaTest, close_in_callback) {
-    butil::IOBuf request_buf;
-    butil::IOBuf total_buf;
+    mutil::IOBuf request_buf;
+    mutil::IOBuf total_buf;
     melon::Controller cntl;
     test::EchoRequest req;
     cntl._connection_type = melon::CONNECTION_TYPE_SHORT;

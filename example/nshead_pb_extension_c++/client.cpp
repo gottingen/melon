@@ -19,9 +19,9 @@
 
 #include <gflags/gflags.h>
 
-#include <melon/butil/logging.h>
-#include <melon/butil/time.h>
-#include <melon/butil/strings/string_piece.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/time.h>
+#include <melon/utility/strings/string_piece.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/nshead_message.h>
 #include <melon/var/var.h>

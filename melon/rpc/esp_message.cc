@@ -20,7 +20,7 @@
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
 #include <google/protobuf/wire_format.h>        // WireFormatLite::GetTagWireType
 
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 
 namespace melon {
 

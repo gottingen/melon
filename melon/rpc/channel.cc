@@ -20,11 +20,11 @@
 #include <google/protobuf/descriptor.h>
 #include <gflags/gflags.h>
 #include <memory>
-#include "melon/butil/time.h"                              // milliseconds_from_now
-#include "melon/butil/logging.h"
-#include "melon/butil/third_party/murmurhash3/murmurhash3.h"
-#include "melon/butil/strings/string_util.h"
-#include "melon/bthread/unstable.h"                        // bthread_timer_add
+#include "melon/utility/time.h"                              // milliseconds_from_now
+#include "melon/utility/logging.h"
+#include "melon/utility/third_party/murmurhash3/murmurhash3.h"
+#include "melon/utility/strings/string_util.h"
+#include "melon/fiber/unstable.h"                        // fiber_timer_add
 #include "melon/rpc/socket_map.h"                         // SocketMapInsert
 #include "melon/rpc/compress.h"
 #include "melon/rpc/global.h"
@@ -47,7 +47,7 @@ ChannelOptions::ChannelOptions()
     , backup_request_ms(-1)
     , max_retry(3)
     , enable_circuit_breaker(false)
-    , protocol(PROTOCOL_BAIDU_STD)
+    , protocol(PROTOCOL_MELON_STD)
     , connection_type(CONNECTION_TYPE_UNKNOWN)
     , succeed_without_server(true)
     , log_succeed_without_server(true)
@@ -74,10 +74,10 @@ static ChannelSignature ComputeChannelSignature(const ChannelOptions& opt) {
     uint32_t seed = 0;
     std::string buf;
     buf.reserve(1024);
-    butil::MurmurHash3_x64_128_Context mm_ctx;
+    mutil::MurmurHash3_x64_128_Context mm_ctx;
     do {
         buf.clear();
-        butil::MurmurHash3_x64_128_Init(&mm_ctx, seed);
+        mutil::MurmurHash3_x64_128_Init(&mm_ctx, seed);
 
         if (!opt.connection_group.empty()) {
             buf.append("|conng=");
@@ -106,22 +106,22 @@ static ChannelSignature ComputeChannelSignature(const ChannelOptions& opt) {
         if (opt.use_rdma) {
             buf.append("|rdma");
         }
-        butil::MurmurHash3_x64_128_Update(&mm_ctx, buf.data(), buf.size());
+        mutil::MurmurHash3_x64_128_Update(&mm_ctx, buf.data(), buf.size());
         buf.clear();
     
         if (opt.has_ssl_options()) {
             const CertInfo& cert = opt.ssl_options().client_cert;
             if (!cert.certificate.empty()) {
                 // Certificate may be too long (PEM string) to fit into `buf'
-                butil::MurmurHash3_x64_128_Update(
+                mutil::MurmurHash3_x64_128_Update(
                     &mm_ctx, cert.certificate.data(), cert.certificate.size());
-                butil::MurmurHash3_x64_128_Update(
+                mutil::MurmurHash3_x64_128_Update(
                     &mm_ctx, cert.private_key.data(), cert.private_key.size());
             }
         }
         // sni_filters has no effect in ChannelSSLOptions
         ChannelSignature result;
-        butil::MurmurHash3_x64_128_Final(result.data, &mm_ctx);
+        mutil::MurmurHash3_x64_128_Final(result.data, &mm_ctx);
         if (result != ChannelSignature()) {
             // the empty result is reserved for default case and cannot
             // be used, increment the seed and retry.
@@ -229,7 +229,7 @@ int Channel::InitChannelOptions(const ChannelOptions* options) {
     // Normalize connection_group
     std::string& cg = _options.connection_group;
     if (!cg.empty() && (::isspace(cg.front()) || ::isspace(cg.back()))) {
-        butil::TrimWhitespace(cg, butil::TRIM_ALL, &cg);
+        mutil::TrimWhitespace(cg, mutil::TRIM_ALL, &cg);
     }
     return 0;
 }
@@ -237,7 +237,7 @@ int Channel::InitChannelOptions(const ChannelOptions* options) {
 int Channel::Init(const char* server_addr_and_port,
                   const ChannelOptions* options) {
     GlobalInitializeOrDie();
-    butil::EndPoint point;
+    mutil::EndPoint point;
     const AdaptiveProtocolType& ptype = (options ? options->protocol : _options.protocol);
     const Protocol* protocol = FindProtocol(ptype);
     if (protocol == nullptr || !protocol->support_client()) {
@@ -270,7 +270,7 @@ int Channel::Init(const char* server_addr_and_port,
 int Channel::Init(const char* server_addr, int port,
                   const ChannelOptions* options) {
     GlobalInitializeOrDie();
-    butil::EndPoint point;
+    mutil::EndPoint point;
     const AdaptiveProtocolType& ptype = (options ? options->protocol : _options.protocol);
     const Protocol* protocol = FindProtocol(ptype);
     if (protocol == nullptr || !protocol->support_client()) {
@@ -311,12 +311,12 @@ static int CreateSocketSSLContext(const ChannelOptions& options,
     return 0;
 }
 
-int Channel::Init(butil::EndPoint server_addr_and_port,
+int Channel::Init(mutil::EndPoint server_addr_and_port,
                   const ChannelOptions* options) {
     return InitSingle(server_addr_and_port, "", options);
 }
 
-int Channel::InitSingle(const butil::EndPoint& server_addr_and_port,
+int Channel::InitSingle(const mutil::EndPoint& server_addr_and_port,
                         const char* raw_server_address,
                         const ChannelOptions* options,
                         int raw_port) {
@@ -397,13 +397,13 @@ int Channel::Init(const char* ns_url,
 }
 
 static void HandleTimeout(void* arg) {
-    bthread_id_t correlation_id = { (uint64_t)arg };
-    bthread_id_error(correlation_id, ERPCTIMEDOUT);
+    fiber_session_t correlation_id = { (uint64_t)arg };
+    fiber_session_error(correlation_id, ERPCTIMEDOUT);
 }
 
 static void HandleBackupRequest(void* arg) {
-    bthread_id_t correlation_id = { (uint64_t)arg };
-    bthread_id_error(correlation_id, EBACKUPREQUEST);
+    fiber_session_t correlation_id = { (uint64_t)arg };
+    fiber_session_error(correlation_id, EBACKUPREQUEST);
 }
 
 void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
@@ -411,7 +411,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
                          const google::protobuf::Message* request,
                          google::protobuf::Message* response,
                          google::protobuf::Closure* done) {
-    const int64_t start_send_real_us = butil::gettimeofday_us();
+    const int64_t start_send_real_us = mutil::gettimeofday_us();
     Controller* cntl = static_cast<Controller*>(controller_base);
     cntl->OnRPCBegin(start_send_real_us);
     // Override max_retry first to reset the range of correlation_id
@@ -441,7 +441,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
         cntl->add_flag(Controller::FLAGS_ENABLED_CIRCUIT_BREAKER);
     }
     const CallId correlation_id = cntl->call_id();
-    const int rc = bthread_id_lock_and_reset_range(
+    const int rc = fiber_session_lock_and_reset_range(
                     correlation_id, nullptr, 2 + cntl->max_retry());
     if (rc != 0) {
         CHECK_EQ(EINVAL, rc);
@@ -467,7 +467,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
     cntl->set_used_by_rpc();
 
     if (cntl->_sender == nullptr && IsTraceable(Span::tls_parent())) {
-        const int64_t start_send_us = butil::cpuwide_time_us();
+        const int64_t start_send_us = mutil::cpuwide_time_us();
         const std::string* method_name = nullptr;
         if (_get_method_name) {
             method_name = &_get_method_name(method, cntl);
@@ -549,12 +549,12 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
         } else {
             cntl->_deadline_us = cntl->timeout_ms() * 1000L + start_send_real_us;
         }
-        const int rc = bthread_timer_add(
+        const int rc = fiber_timer_add(
             &cntl->_timeout_id,
-            butil::microseconds_to_timespec(
+            mutil::microseconds_to_timespec(
                 cntl->backup_request_ms() * 1000L + start_send_real_us),
             HandleBackupRequest, (void*)correlation_id.value);
-        if (BAIDU_UNLIKELY(rc != 0)) {
+        if (MELON_UNLIKELY(rc != 0)) {
             cntl->SetFailed(rc, "Fail to add timer for backup request");
             return cntl->HandleSendFailed();
         }
@@ -563,11 +563,11 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
 
         // _deadline_us is for truncating _connect_timeout_ms
         cntl->_deadline_us = cntl->timeout_ms() * 1000L + start_send_real_us;
-        const int rc = bthread_timer_add(
+        const int rc = fiber_timer_add(
             &cntl->_timeout_id,
-            butil::microseconds_to_timespec(cntl->_deadline_us),
+            mutil::microseconds_to_timespec(cntl->_deadline_us),
             HandleTimeout, (void*)correlation_id.value);
-        if (BAIDU_UNLIKELY(rc != 0)) {
+        if (MELON_UNLIKELY(rc != 0)) {
             cntl->SetFailed(rc, "Fail to add timer for timeout");
             return cntl->HandleSendFailed();
         }
@@ -584,7 +584,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
         if (cntl->_span) {
             cntl->SubmitSpan();
         }
-        cntl->OnRPCEnd(butil::gettimeofday_us());
+        cntl->OnRPCEnd(mutil::gettimeofday_us());
     }
 }
 

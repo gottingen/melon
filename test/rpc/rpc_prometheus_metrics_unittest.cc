@@ -21,7 +21,7 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/controller.h"
-#include "melon/butil/strings/string_piece.h"
+#include "melon/utility/strings/string_piece.h"
 #include "echo.pb.h"
 
 int main(int argc, char* argv[]) {
@@ -82,7 +82,7 @@ TEST(PrometheusMetrics, sanity) {
     bool has_ever_summary = false;
     bool has_ever_gauge = false;
 
-    while ((end_pos = res.find('\n', start_pos)) != butil::StringPiece::npos) {
+    while ((end_pos = res.find('\n', start_pos)) != mutil::StringPiece::npos) {
         res[end_pos] = '\0';       // safe;
         switch (state) {
             case HELP:
@@ -110,15 +110,15 @@ TEST(PrometheusMetrics, sanity) {
                 has_ever_gauge = true;
                 break;
             case SUMMARY:
-                if (butil::StringPiece(res.data() + start_pos, end_pos - start_pos).find("quantile=")
-                        == butil::StringPiece::npos) {
+                if (mutil::StringPiece(res.data() + start_pos, end_pos - start_pos).find("quantile=")
+                        == mutil::StringPiece::npos) {
                     matched = sscanf(res.data() + start_pos, "%s %d", name_type, &gauge_num);
                     ASSERT_EQ(2, matched);
                     ASSERT_TRUE(strncmp(name_type, name_help, strlen(name_help)) == 0);
-                    if (butil::StringPiece(name_type).ends_with("_sum")) {
+                    if (mutil::StringPiece(name_type).ends_with("_sum")) {
                         ASSERT_FALSE(summary_sum_gathered);
                         summary_sum_gathered = true;
-                    } else if (butil::StringPiece(name_type).ends_with("_count")) {
+                    } else if (mutil::StringPiece(name_type).ends_with("_count")) {
                         ASSERT_FALSE(summary_count_gathered);
                         summary_count_gathered = true;
                     } else {

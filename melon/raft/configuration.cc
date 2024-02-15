@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/configuration.h"
-#include <melon/butil/logging.h>
-#include <melon/butil/string_splitter.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_splitter.h>
 
 namespace melon::raft {
 
@@ -33,10 +31,10 @@ namespace melon::raft {
         return os;
     }
 
-    int Configuration::parse_from(butil::StringPiece conf) {
+    int Configuration::parse_from(mutil::StringPiece conf) {
         reset();
         std::string peer_str;
-        for (butil::StringSplitter sp(conf.begin(), conf.end(), ','); sp; ++sp) {
+        for (mutil::StringSplitter sp(conf.begin(), conf.end(), ','); sp; ++sp) {
             melon::raft::PeerId peer;
             peer_str.assign(sp.field(), sp.length());
             if (peer.parse(peer_str) != 0) {

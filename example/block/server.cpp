@@ -15,7 +15,7 @@
 #include <sys/types.h>                  // O_CREAT
 #include <fcntl.h>                      // open
 #include <gflags/gflags.h>              // DEFINE_*
-#include <melon/butil/sys_byteorder.h>        // butil::NetToHost32
+#include <melon/utility/sys_byteorder.h>        // mutil::NetToHost32
 #include <melon/rpc/controller.h>            // melon::Controller
 #include <melon/rpc/server.h>                // melon::Server
 #include <melon/raft/raft.h>                 // melon::raft::Node melon::raft::StateMachine
@@ -43,7 +43,7 @@ public:
     BlockClosure(Block* block, 
                  const BlockRequest* request,
                  BlockResponse* response,
-                 butil::IOBuf* data,
+                 mutil::IOBuf* data,
                  google::protobuf::Closure* done)
         : _block(block)
         , _request(request)
@@ -55,14 +55,14 @@ public:
     const BlockRequest* request() const { return _request; }
     BlockResponse* response() const { return _response; }
     void Run();
-    butil::IOBuf* data() const { return _data; }
+    mutil::IOBuf* data() const { return _data; }
 
 private:
     // Disable explicitly delete
     Block* _block;
     const BlockRequest* _request;
     BlockResponse* _response;
-    butil::IOBuf* _data;
+    mutil::IOBuf* _data;
     google::protobuf::Closure* _done;
 };
 
@@ -80,7 +80,7 @@ public:
 
     // Starts this node
     int start() {
-        if (!butil::CreateDirectory(butil::FilePath(FLAGS_data_path))) {
+        if (!mutil::CreateDirectory(mutil::FilePath(FLAGS_data_path))) {
             LOG(ERROR) << "Fail to create directory " << FLAGS_data_path;
             return -1;
         }
@@ -91,7 +91,7 @@ public:
             return -1;
         }
         _fd = new SharedFD(fd);
-        butil::EndPoint addr(butil::my_ip(), FLAGS_port);
+        mutil::EndPoint addr(mutil::my_ip(), FLAGS_port);
         melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
             LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
@@ -119,7 +119,7 @@ public:
     // Impelements Service methods
     void write(const BlockRequest* request,
                BlockResponse* response,
-               butil::IOBuf* data,
+               mutil::IOBuf* data,
                google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         // Serialize request to the replicated write-ahead-log so that all the
@@ -128,14 +128,14 @@ public:
         // will be inconsistent with others in this group.
         
         // Serialize request to IOBuf
-        const int64_t term = _leader_term.load(butil::memory_order_relaxed);
+        const int64_t term = _leader_term.load(mutil::memory_order_relaxed);
         if (term < 0) {
             return redirect(response);
         }
-        butil::IOBuf log;
-        const uint32_t meta_size_raw = butil::HostToNet32(request->ByteSize());
+        mutil::IOBuf log;
+        const uint32_t meta_size_raw = mutil::HostToNet32(request->ByteSize());
         log.append(&meta_size_raw, sizeof(uint32_t));
-        butil::IOBufAsZeroCopyOutputStream wrapper(&log);
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&log);
         if (!request->SerializeToZeroCopyStream(&wrapper)) {
             LOG(ERROR) << "Fail to serialize request";
             response->set_success(false);
@@ -158,7 +158,7 @@ public:
     }
 
     void read(const BlockRequest *request, BlockResponse* response,
-              butil::IOBuf* buf) {
+              mutil::IOBuf* buf) {
         // In consideration of consistency. GetRequest to follower should be 
         // rejected.
         if (!is_leader()) {
@@ -174,7 +174,7 @@ public:
 
         // This is the leader and is up-to-date. It's safe to respond client
         scoped_fd fd = get_fd();
-        butil::IOPortal portal;
+        mutil::IOPortal portal;
         const ssize_t nr = melon::raft::file_pread(
                 &portal, fd->fd(), request->offset(), request->size());
         if (nr < 0) {
@@ -193,7 +193,7 @@ public:
     }
 
     bool is_leader() const 
-    { return _leader_term.load(butil::memory_order_acquire) > 0; }
+    { return _leader_term.load(mutil::memory_order_acquire) > 0; }
 
     // Shut this node down.
     void shutdown() {
@@ -210,12 +210,12 @@ public:
     }
 
 private:
-    class SharedFD : public butil::RefCountedThreadSafe<SharedFD> {
+    class SharedFD : public mutil::RefCountedThreadSafe<SharedFD> {
     public:
         explicit SharedFD(int fd) : _fd(fd) {}
         int fd() const { return _fd; }
     private:
-    friend class butil::RefCountedThreadSafe<SharedFD>;
+    friend class mutil::RefCountedThreadSafe<SharedFD>;
         ~SharedFD() {
             if (_fd >= 0) {
                 while (true) {
@@ -258,7 +258,7 @@ friend class BlockClosure;
             // This guard helps invoke iter.done()->Run() asynchronously to
             // avoid that callback blocks the StateMachine
             melon::raft::AsyncClosureGuard closure_guard(iter.done());
-            butil::IOBuf data;
+            mutil::IOBuf data;
             off_t offset = 0;
             if (iter.done()) {
                 // This task is applied by this node, get value from this
@@ -270,14 +270,14 @@ friend class BlockClosure;
             } else {
                 // Have to parse BlockRequest from this log.
                 uint32_t meta_size = 0;
-                butil::IOBuf saved_log = iter.data();
+                mutil::IOBuf saved_log = iter.data();
                 saved_log.cutn(&meta_size, sizeof(uint32_t));
                 // Remember that meta_size is in network order which hould be
                 // covert to host order
-                meta_size = butil::NetToHost32(meta_size);
-                butil::IOBuf meta;
+                meta_size = mutil::NetToHost32(meta_size);
+                mutil::IOBuf meta;
                 saved_log.cutn(&meta, meta_size);
-                butil::IOBufAsZeroCopyInputStream wrapper(meta);
+                mutil::IOBufAsZeroCopyInputStream wrapper(meta);
                 BlockRequest request;
                 CHECK(request.ParseFromZeroCopyStream(&wrapper));
                 data.swap(saved_log);
@@ -357,15 +357,15 @@ friend class BlockClosure;
     }
 
     void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
-        // Save current StateMachine in memory and starts a new bthread to avoid
+        // Save current StateMachine in memory and starts a new fiber to avoid
         // blocking StateMachine since it's a bit slow to write data to disk
         // file.
         SnapshotArg* arg = new SnapshotArg;
         arg->fd = _fd;
         arg->writer = writer;
         arg->done = done;
-        bthread_t tid;
-        bthread_start_urgent(&tid, NULL, save_snapshot, arg);
+        fiber_t tid;
+        fiber_start_urgent(&tid, NULL, save_snapshot, arg);
     }
 
     int on_snapshot_load(melon::raft::SnapshotReader* reader) {
@@ -394,11 +394,11 @@ friend class BlockClosure;
     }
 
     void on_leader_start(int64_t term) {
-        _leader_term.store(term, butil::memory_order_release);
+        _leader_term.store(term, mutil::memory_order_release);
         LOG(INFO) << "Node becomes leader";
     }
-    void on_leader_stop(const butil::Status& status) {
-        _leader_term.store(-1, butil::memory_order_release);
+    void on_leader_stop(const mutil::Status& status) {
+        _leader_term.store(-1, mutil::memory_order_release);
         LOG(INFO) << "Node stepped down : " << status;
     }
 
@@ -420,9 +420,9 @@ friend class BlockClosure;
     // end of @melon::raft::StateMachine
 
 private:
-    mutable butil::Mutex _fd_mutex;
+    mutable mutil::Mutex _fd_mutex;
     melon::raft::Node* volatile _node;
-    butil::atomic<int64_t> _leader_term;
+    mutil::atomic<int64_t> _leader_term;
     scoped_fd _fd;
 };
 
@@ -466,7 +466,7 @@ private:
 
 int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
-    butil::AtExitManager exit_manager;
+    mutil::AtExitManager exit_manager;
 
     // Generally you only need one Server.
     melon::Server server;

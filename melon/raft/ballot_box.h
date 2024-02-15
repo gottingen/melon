@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_BALLOT_BOX_H_
 #define  MELON_RAFT_BALLOT_BOX_H_
@@ -20,7 +19,7 @@
 #include <stdint.h>                             // int64_t
 #include <set>                                  // std::set
 #include <deque>
-#include <melon/butil/atomicops.h>                     // butil::atomic
+#include <melon/utility/atomicops.h>                     // mutil::atomic
 #include "melon/raft/raft.h"
 #include "melon/raft/util.h"
 #include "melon/raft/ballot.h"
@@ -84,7 +83,7 @@ namespace melon::raft {
         // Set committed index received from leader
         int set_last_committed_index(int64_t last_committed_index);
 
-        int64_t last_committed_index() { return _last_committed_index.load(butil::memory_order_acquire); }
+        int64_t last_committed_index() { return _last_committed_index.load(mutil::memory_order_acquire); }
 
         void describe(std::ostream &os, bool use_html);
 
@@ -95,7 +94,7 @@ namespace melon::raft {
         FSMCaller *_waiter;
         ClosureQueue *_closure_queue;
         raft_mutex_t _mutex;
-        butil::atomic<int64_t> _last_committed_index;
+        mutil::atomic<int64_t> _last_committed_index;
         int64_t _pending_index;
         std::deque<Ballot> _pending_meta_queue;
 

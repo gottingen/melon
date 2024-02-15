@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/type_traits.h"
+#include "melon/utility/type_traits.h"
 
-#include "melon/butil/basictypes.h"
+#include "melon/utility/basictypes.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace {
 
 struct AStruct {};
@@ -248,4 +248,4 @@ COMPILE_ASSERT((is_same<remove_reference<std::string>::type, std::string>::value
 
 
 }  // namespace
-}  // namespace butil
+}  // namespace mutil

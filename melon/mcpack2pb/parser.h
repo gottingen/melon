@@ -24,8 +24,8 @@
 
 #include <limits>  // std::numeric_limits
 #include <google/protobuf/io/zero_copy_stream.h>
-#include "melon/butil/logging.h"
-#include "melon/butil/strings/string_piece.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/strings/string_piece.h"
 #include "melon/mcpack2pb/field_type.h"
 
 // CAUTION: Methods in this header is not intended to be public to users of
@@ -61,7 +61,7 @@ public:
     // continuous memory, return the reference directly, otherwise copy
     // the data into `aux' and return reference of `aux'.
     // Returns a StringPiece referencing the cut-off data.
-    butil::StringPiece ref_cut(std::string* aux, size_t n);
+    mutil::StringPiece ref_cut(std::string* aux, size_t n);
 
     // Peek at the first character. If the stream is empty, 0 is returned.
     uint8_t peek1();
@@ -147,7 +147,7 @@ size_t unbox(InputStream* stream);
 class ObjectIterator {
 public:
     struct Field {
-        butil::StringPiece name;
+        mutil::StringPiece name;
         UnparsedValue value;
     };
 

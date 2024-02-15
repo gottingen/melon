@@ -23,15 +23,15 @@ endif()
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/melon)
 
-add_library(BUTIL_LIB OBJECT ${BUTIL_SOURCES})
+add_library(MUTIL_LIB OBJECT ${UTILITY_SOURCES})
 add_library(SOURCES_LIB OBJECT ${SOURCES})
 add_dependencies(SOURCES_LIB PROTO_LIB)
 
 # shared library needs POSITION_INDEPENDENT_CODE
 set_property(TARGET ${SOURCES_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_property(TARGET ${BUTIL_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_property(TARGET ${MUTIL_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(melon-static STATIC $<TARGET_OBJECTS:BUTIL_LIB>
+add_library(melon-static STATIC $<TARGET_OBJECTS:MUTIL_LIB>
                                $<TARGET_OBJECTS:SOURCES_LIB>
                                $<TARGET_OBJECTS:PROTO_LIB>)
 
@@ -71,7 +71,7 @@ set(protoc_gen_mcpack_SOURCES
 add_executable(protoc-gen-mcpack ${protoc_gen_mcpack_SOURCES})
 
 if(BUILD_SHARED_LIBS)
-    add_library(melon-shared SHARED $<TARGET_OBJECTS:BUTIL_LIB>
+    add_library(melon-shared SHARED $<TARGET_OBJECTS:MUTIL_LIB>
                                    $<TARGET_OBJECTS:SOURCES_LIB>
                                    $<TARGET_OBJECTS:PROTO_LIB>)
     target_link_libraries(melon-shared ${DYNAMIC_LIB})

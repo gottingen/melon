@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Pengfei Zheng (zhengpengfei@baidu.com)
 
 #ifndef PUBLIC_RAFT_TEST_UTIL_H
 #define PUBLIC_RAFT_TEST_UTIL_H
@@ -31,10 +30,10 @@ DECLARE_bool(raft_enable_witness_to_leader);
 }
 class MockFSM : public melon::raft::StateMachine {
 public:
-    MockFSM(const butil::EndPoint& address_):
+    MockFSM(const mutil::EndPoint& address_):
         MockFSM(address_,false) {
     }  
-    MockFSM(const butil::EndPoint& address_, bool witness)
+    MockFSM(const mutil::EndPoint& address_, bool witness)
         : address(address_)
         , applied_index(0)
         , snapshot_index(0)
@@ -51,8 +50,8 @@ public:
         pthread_mutex_destroy(&mutex);
     }
 
-    butil::EndPoint address;
-    std::vector<butil::IOBuf> logs;
+    mutil::EndPoint address;
+    std::vector<mutil::IOBuf> logs;
     pthread_mutex_t mutex;
     int64_t applied_index;
     int64_t snapshot_index;
@@ -127,7 +126,7 @@ public:
         lock();
         // write snapshot and log to file
         for (size_t i = 0; i < logs.size(); i++) {
-            butil::IOBuf data = logs[i];
+            mutil::IOBuf data = logs[i];
             int len = data.size();
             int ret = write(fd, &len, sizeof(int));
             CHECK_EQ(ret, 4);
@@ -160,7 +159,7 @@ public:
                 break;
             }
 
-            butil::IOPortal data;
+            mutil::IOPortal data;
             data.append_from_file_descriptor(fd, len);
             logs.push_back(data);
         }
@@ -200,13 +199,13 @@ public:
         delete this;
     }
 private:
-    ExpectClosure(bthread::CountdownEvent* cond, int expect_err_code, const char* pos)
+    ExpectClosure(fiber::CountdownEvent* cond, int expect_err_code, const char* pos)
         : _cond(cond), _expect_err_code(expect_err_code), _pos(pos) {}
 
-    ExpectClosure(bthread::CountdownEvent* cond, const char* pos)
+    ExpectClosure(fiber::CountdownEvent* cond, const char* pos)
         : _cond(cond), _expect_err_code(-1), _pos(pos) {}
 
-    bthread::CountdownEvent* _cond;
+    fiber::CountdownEvent* _cond;
     int _expect_err_code;
     const char* _pos;
 };
@@ -218,15 +217,15 @@ typedef ExpectClosure RemovePeerClosure;
 typedef ExpectClosure SnapshotClosure;
 
 #define NEW_SHUTDOWNCLOSURE(arg...) \
-        (new ExpectClosure(arg, __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__)))
+        (new ExpectClosure(arg, __FILE__ ":" MELON_SYMBOLSTR(__LINE__)))
 #define NEW_APPLYCLOSURE(arg...) \
-        (new ExpectClosure(arg, __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__)))
+        (new ExpectClosure(arg, __FILE__ ":" MELON_SYMBOLSTR(__LINE__)))
 #define NEW_ADDPEERCLOSURE(arg...) \
-        (new ExpectClosure(arg, __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__)))
+        (new ExpectClosure(arg, __FILE__ ":" MELON_SYMBOLSTR(__LINE__)))
 #define NEW_REMOVEPEERCLOSURE(arg...) \
-        (new ExpectClosure(arg, __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__)))
+        (new ExpectClosure(arg, __FILE__ ":" MELON_SYMBOLSTR(__LINE__)))
 #define NEW_SNAPSHOTCLOSURE(arg...) \
-        (new ExpectClosure(arg, __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__)))
+        (new ExpectClosure(arg, __FILE__ ":" MELON_SYMBOLSTR(__LINE__)))
 
 class Cluster {
 public:
@@ -244,7 +243,7 @@ public:
         stop_all();
     }
 
-    int start(const butil::EndPoint& listen_addr, bool empty_peers = false,
+    int start(const mutil::EndPoint& listen_addr, bool empty_peers = false,
               int snapshot_interval_s = 30,
               melon::raft::Closure* leader_start_closure = NULL, bool witness = false) {
         if (_server_map[listen_addr] == NULL) {
@@ -272,12 +271,12 @@ public:
         }
         options.fsm = fsm;
         options.node_owns_fsm = true;
-        butil::string_printf(&options.log_uri, "local://./data/%s/log",
-                            butil::endpoint2str(listen_addr).c_str());
-        butil::string_printf(&options.raft_meta_uri, "local://./data/%s/raft_meta",
-                            butil::endpoint2str(listen_addr).c_str());
-        butil::string_printf(&options.snapshot_uri, "local://./data/%s/snapshot",
-                            butil::endpoint2str(listen_addr).c_str());
+        mutil::string_printf(&options.log_uri, "local://./data/%s/log",
+                            mutil::endpoint2str(listen_addr).c_str());
+        mutil::string_printf(&options.raft_meta_uri, "local://./data/%s/raft_meta",
+                            mutil::endpoint2str(listen_addr).c_str());
+        mutil::string_printf(&options.snapshot_uri, "local://./data/%s/snapshot",
+                            mutil::endpoint2str(listen_addr).c_str());
         
         scoped_refptr<melon::raft::SnapshotThrottle> tst(_throttle);
         options.snapshot_throttle = &tst;
@@ -302,9 +301,9 @@ public:
         return 0;
     }
 
-    int stop(const butil::EndPoint& listen_addr) {
+    int stop(const mutil::EndPoint& listen_addr) {
         
-        bthread::CountdownEvent cond;
+        fiber::CountdownEvent cond;
         melon::raft::Node* node = remove_node(listen_addr);
         if (node) {
             node->shutdown(NEW_SHUTDOWNCLOSURE(&cond));
@@ -322,7 +321,7 @@ public:
     }
 
     void stop_all() {
-        std::vector<butil::EndPoint> addrs;
+        std::vector<mutil::EndPoint> addrs;
         all_nodes(&addrs);
 
         for (size_t i = 0; i < addrs.size(); i++) {
@@ -330,12 +329,12 @@ public:
         }
     }
 
-    void clean(const butil::EndPoint& listen_addr) {
+    void clean(const mutil::EndPoint& listen_addr) {
         std::string data_path;
-        butil::string_printf(&data_path, "./data/%s",
-                            butil::endpoint2str(listen_addr).c_str());
+        mutil::string_printf(&data_path, "./data/%s",
+                            mutil::endpoint2str(listen_addr).c_str());
 
-        if (!butil::DeleteFile(butil::FilePath(data_path), true)) {
+        if (!mutil::DeleteFile(mutil::FilePath(data_path), true)) {
             LOG(ERROR) << "delete path failed, path: " << data_path;
         }
     }
@@ -414,7 +413,7 @@ public:
         }
     }
 
-    void ensure_leader(const butil::EndPoint& expect_addr) {
+    void ensure_leader(const mutil::EndPoint& expect_addr) {
 CHECK:
         std::lock_guard<raft_mutex_t> guard(_mutex);
         for (size_t i = 0; i < _nodes.size(); i++) {
@@ -466,8 +465,8 @@ CHECK:
             }
 
             for (size_t j = 0; j < first->logs.size(); j++) {
-                butil::IOBuf& first_data = first->logs[j];
-                butil::IOBuf& fsm_data = fsm->logs[j];
+                mutil::IOBuf& first_data = first->logs[j];
+                mutil::IOBuf& fsm_data = fsm->logs[j];
                 if (first_data.to_string() != fsm_data.to_string()) {
                     LOG(INFO) << "log data of index=" << j << " not match, "
                               << " addr: " << first->address << " vs "
@@ -497,7 +496,7 @@ WAIT:
     }
 
 private:
-    void all_nodes(std::vector<butil::EndPoint>* addrs) {
+    void all_nodes(std::vector<mutil::EndPoint>* addrs) {
         addrs->clear();
 
         std::lock_guard<raft_mutex_t> guard(_mutex);
@@ -506,7 +505,7 @@ private:
         }
     }
 
-    melon::raft::Node* remove_node(const butil::EndPoint& addr) {
+    melon::raft::Node* remove_node(const mutil::EndPoint& addr) {
         std::lock_guard<raft_mutex_t> guard(_mutex);
 
         // remove node
@@ -537,7 +536,7 @@ private:
     std::vector<melon::raft::PeerId> _peers;
     std::vector<melon::raft::Node*> _nodes;
     std::vector<MockFSM*> _fsms;
-    std::map<butil::EndPoint, melon::Server*> _server_map;
+    std::map<mutil::EndPoint, melon::Server*> _server_map;
     int32_t _election_timeout_ms;
     int32_t _max_clock_drift_ms;
     raft_mutex_t _mutex;

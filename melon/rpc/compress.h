@@ -20,7 +20,7 @@
 #define MELON_RPC_COMPRESS_H_
 
 #include <google/protobuf/message.h>              // Message
-#include "melon/butil/iobuf.h"                           // butil::IOBuf
+#include "melon/utility/iobuf.h"                           // mutil::IOBuf
 #include "melon/proto/rpc/options.pb.h"                     // CompressType
 
 namespace melon {
@@ -28,11 +28,11 @@ namespace melon {
     struct CompressHandler {
         // Compress serialized `msg' into `buf'.
         // Returns true on success, false otherwise
-        bool (*Compress)(const google::protobuf::Message &msg, butil::IOBuf *buf);
+        bool (*Compress)(const google::protobuf::Message &msg, mutil::IOBuf *buf);
 
         // Parse decompressed `data' as `msg'.
         // Returns true on success, false otherwise
-        bool (*Decompress)(const butil::IOBuf &data, google::protobuf::Message *msg);
+        bool (*Decompress)(const mutil::IOBuf &data, google::protobuf::Message *msg);
 
         // Name of the compression algorithm, must be string constant.
         const char *name;
@@ -50,14 +50,14 @@ namespace melon {
 
     // Parse decompressed `data' as `msg' using registered `compress_type'.
     // Returns true on success, false otherwise
-    bool ParseFromCompressedData(const butil::IOBuf &data,
+    bool ParseFromCompressedData(const mutil::IOBuf &data,
                                  google::protobuf::Message *msg,
                                  CompressType compress_type);
 
     // Compress serialized `msg' into `buf' using registered `compress_type'.
     // Returns true on success, false otherwise
     bool SerializeAsCompressedData(const google::protobuf::Message &msg,
-                                   butil::IOBuf *buf,
+                                   mutil::IOBuf *buf,
                                    CompressType compress_type);
 
 } // namespace melon

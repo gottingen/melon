@@ -9,13 +9,13 @@ set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -D__const__=__unused__ -D_GNU_SOURCE -DU
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CPP_FLAGS} -O2 -pipe -Wall -W -fPIC -fstrict-aliasing -Wno-invalid-offsetof -Wno-unused-parameter -fno-omit-frame-pointer -Wno-unused-result")
 use_cxx11()
 
-# bthread_* functions are used in logging.cc, and they need to be marked as
+# fiber_* functions are used in logging.cc, and they need to be marked as
 # weak symbols explicitly in Darwin system.
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(DYNAMIC_LIB ${DYNAMIC_LIB}
-            "-Wl,-U,_bthread_getspecific"
-            "-Wl,-U,_bthread_setspecific"
-            "-Wl,-U,_bthread_key_create")
+            "-Wl,-U,_fiber_getspecific"
+            "-Wl,-U,_fiber_setspecific"
+            "-Wl,-U,_fiber_key_create")
 endif ()
 
 file(GLOB TEST_BRAFT_SRCS "test_*.cpp")

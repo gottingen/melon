@@ -27,11 +27,11 @@
 #include <deque>                            // std::deque
 #include <vector>                           // std::vector
 
-#include "melon/butil/errno.h"                     // errno
-#include "melon/butil/thread_local.h"              // thread_atexit
-#include "melon/butil/macros.h"                    // BAIDU_CACHELINE_ALIGNMENT
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/errno.h"                     // errno
+#include "melon/utility/thread_local.h"              // thread_atexit
+#include "melon/utility/macros.h"                    // MELON_CACHELINE_ALIGNMENT
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/logging.h"
 
 namespace melon::var {
     namespace detail {
@@ -79,7 +79,7 @@ namespace melon::var {
             // makes alignment of ThreadBlock harder and to address the agent we have
             // to touch an additional cacheline: the bitmap. Whereas in the first
             // method, bitmap and ThreadBlock* are in one cacheline.
-            struct BAIDU_CACHELINE_ALIGNMENT ThreadBlock {
+            struct MELON_CACHELINE_ALIGNMENT ThreadBlock {
                 inline Agent *at(size_t offset) { return _agents + offset; };
 
             private:
@@ -138,7 +138,7 @@ namespace melon::var {
                         LOG(FATAL) << "Fail to create vector, " << berror();
                         return NULL;
                     }
-                    butil::thread_atexit(_destroy_tls_blocks);
+                    mutil::thread_atexit(_destroy_tls_blocks);
                 }
                 const size_t block_id = (size_t) id / ELEMENTS_PER_BLOCK;
                 if (block_id >= _s_tls_blocks->size()) {

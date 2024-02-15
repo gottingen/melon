@@ -37,7 +37,7 @@ enum ConnectionType {
 
 enum ProtocolType {
     PROTOCOL_UNKNOWN = 0;
-    PROTOCOL_BAIDU_STD = 1;
+    PROTOCOL_MELON_STD = 1;
     PROTOCOL_STREAMING_RPC = 2;
     PROTOCOL_HULU_PBRPC = 3;
     PROTOCOL_SOFA_PBRPC = 4;
@@ -47,7 +47,7 @@ enum ProtocolType {
     PROTOCOL_PUBLIC_PBRPC = 8;
     PROTOCOL_NOVA_PBRPC = 9;
     PROTOCOL_REDIS = 10;
-    PROTOCOL_NSHEAD_CLIENT = 11;       // implemented in baidu-rpc-ub
+    PROTOCOL_NSHEAD_CLIENT = 11;       // implemented in ,melon-rpc-ub
     PROTOCOL_NSHEAD = 12;
     PROTOCOL_HADOOP_RPC = 13;
     PROTOCOL_HADOOP_SERVER_RPC = 14;

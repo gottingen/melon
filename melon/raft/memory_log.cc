@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Qin,Duohao(qinduohao@baidu.com)
-
-#include <melon/butil/time.h>
+#include <melon/utility/time.h>
 #include "melon/raft/log_entry.h"
 #include "melon/raft/memory_log.h"
 #include "melon/raft/memory_log.h"
@@ -29,11 +27,11 @@ namespace melon::raft {
 
     LogEntry *MemoryLogStorage::get_entry(const int64_t index) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
-        if (index < _first_log_index.load(butil::memory_order_relaxed)
-            || index > _last_log_index.load(butil::memory_order_relaxed)) {
+        if (index < _first_log_index.load(mutil::memory_order_relaxed)
+            || index > _last_log_index.load(mutil::memory_order_relaxed)) {
             return NULL;
         }
-        LogEntry *temp = _log_entry_data[index - _first_log_index.load(butil::memory_order_relaxed)];
+        LogEntry *temp = _log_entry_data[index - _first_log_index.load(mutil::memory_order_relaxed)];
         temp->AddRef();
         CHECK(temp->id.index == index) << "get_entry entry index not equal. logentry index:"
                                        << temp->id.index << " required_index:" << index;
@@ -43,11 +41,11 @@ namespace melon::raft {
 
     int64_t MemoryLogStorage::get_term(const int64_t index) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
-        if (index < _first_log_index.load(butil::memory_order_relaxed)
-            || index > _last_log_index.load(butil::memory_order_relaxed)) {
+        if (index < _first_log_index.load(mutil::memory_order_relaxed)
+            || index > _last_log_index.load(mutil::memory_order_relaxed)) {
             return 0;
         }
-        LogEntry *temp = _log_entry_data.at(index - _first_log_index.load(butil::memory_order_relaxed));
+        LogEntry *temp = _log_entry_data.at(index - _first_log_index.load(mutil::memory_order_relaxed));
         CHECK(temp->id.index == index) << "get_term entry index not equal. logentry index:"
                                        << temp->id.index << " required_index:" << index;
         int64_t ret = temp->id.term;
@@ -58,7 +56,7 @@ namespace melon::raft {
     int MemoryLogStorage::append_entry(const LogEntry *input_entry) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (input_entry->id.index !=
-            _last_log_index.load(butil::memory_order_relaxed) + 1) {
+            _last_log_index.load(mutil::memory_order_relaxed) + 1) {
             CHECK(false) << "input_entry index=" << input_entry->id.index
                          << " _last_log_index=" << _last_log_index
                          << " _first_log_index=" << _first_log_index;
@@ -66,7 +64,7 @@ namespace melon::raft {
         }
         input_entry->AddRef();
         _log_entry_data.push_back(const_cast<LogEntry *>(input_entry));
-        _last_log_index.fetch_add(1, butil::memory_order_relaxed);
+        _last_log_index.fetch_add(1, mutil::memory_order_relaxed);
         lck.unlock();
         return 0;
     }
@@ -95,10 +93,10 @@ namespace melon::raft {
                 break;
             }
         }
-        _first_log_index.store(first_index_kept, butil::memory_order_release);
-        if (_first_log_index.load(butil::memory_order_relaxed)
-            > _last_log_index.load(butil::memory_order_relaxed)) {
-            _last_log_index.store(first_index_kept - 1, butil::memory_order_release);
+        _first_log_index.store(first_index_kept, mutil::memory_order_release);
+        if (_first_log_index.load(mutil::memory_order_relaxed)
+            > _last_log_index.load(mutil::memory_order_relaxed)) {
+            _last_log_index.store(first_index_kept - 1, mutil::memory_order_release);
         }
         lck.unlock();
 
@@ -120,10 +118,10 @@ namespace melon::raft {
                 break;
             }
         }
-        _last_log_index.store(last_index_kept, butil::memory_order_release);
-        if (_first_log_index.load(butil::memory_order_relaxed)
-            > _last_log_index.load(butil::memory_order_relaxed)) {
-            _first_log_index.store(last_index_kept + 1, butil::memory_order_release);
+        _last_log_index.store(last_index_kept, mutil::memory_order_release);
+        if (_first_log_index.load(mutil::memory_order_relaxed)
+            > _last_log_index.load(mutil::memory_order_relaxed)) {
+            _first_log_index.store(last_index_kept + 1, mutil::memory_order_release);
         }
         lck.unlock();
 
@@ -145,8 +143,8 @@ namespace melon::raft {
             popped.push_back(entry);
             _log_entry_data.pop_back();
         }
-        _first_log_index.store(next_log_index, butil::memory_order_relaxed);
-        _last_log_index.store(next_log_index - 1, butil::memory_order_relaxed);
+        _first_log_index.store(next_log_index, mutil::memory_order_relaxed);
+        _last_log_index.store(next_log_index - 1, mutil::memory_order_relaxed);
         lck.unlock();
 
         for (size_t i = 0; i < popped.size(); ++i) {
@@ -159,8 +157,8 @@ namespace melon::raft {
         return new MemoryLogStorage(uri);
     }
 
-    butil::Status MemoryLogStorage::gc_instance(const std::string &uri) const {
-        return butil::Status::OK();
+    mutil::Status MemoryLogStorage::gc_instance(const std::string &uri) const {
+        return mutil::Status::OK();
     }
 
 } //  namespace melon::raft

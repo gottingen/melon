@@ -19,8 +19,8 @@
 #ifndef  BRPC_USERCODE_BACKUP_POOL_H
 #define  BRPC_USERCODE_BACKUP_POOL_H
 
-#include "melon/butil/atomicops.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/atomicops.h"
+#include "melon/fiber/fiber.h"
 #include <gflags/gflags_declare.h>
 
 
@@ -30,13 +30,13 @@ DECLARE_bool(usercode_in_pthread);
 DECLARE_int32(usercode_backup_threads);
 
 // "user code backup pool" is a set of pthreads to run user code when #pthread
-// workers of bthreads reaches a threshold, avoiding potential deadlock when
+// workers of fibers reaches a threshold, avoiding potential deadlock when
 // -usercode_in_pthread is on. These threads are NOT supposed to be active
 // frequently, if they're, user should configure more num_threads for the
-// server or set -bthread_concurrency to a larger value.
+// server or set -fiber_concurrency to a larger value.
 
 // Run the user code in-place or in backup threads. The place depends on
-// busy-ness of bthread workers.
+// busy-ness of fiber workers.
 // NOTE: To avoid memory allocation(for `arg') in the case of in-place running,
 // check out the inline impl. of this function just below.
 void RunUserCode(void (*fn)(void*), void* arg);
@@ -54,14 +54,14 @@ inline bool TooManyUserCode() {
 // in backup threads.
 // Check RunUserCode() below to see the usage pattern.
 inline bool BeginRunningUserCode() {
-    extern butil::static_atomic<int> g_usercode_inplace;
-    return (g_usercode_inplace.fetch_add(1, butil::memory_order_relaxed)
-            + FLAGS_usercode_backup_threads) < bthread_getconcurrency();
+    extern mutil::static_atomic<int> g_usercode_inplace;
+    return (g_usercode_inplace.fetch_add(1, mutil::memory_order_relaxed)
+            + FLAGS_usercode_backup_threads) < fiber_getconcurrency();
 }
 
 inline void EndRunningUserCodeInPlace() {
-    extern butil::static_atomic<int> g_usercode_inplace;
-    g_usercode_inplace.fetch_sub(1, butil::memory_order_relaxed);
+    extern mutil::static_atomic<int> g_usercode_inplace;
+    g_usercode_inplace.fetch_sub(1, mutil::memory_order_relaxed);
 }
 
 void EndRunningUserCodeInPool(void (*fn)(void*), void* arg);

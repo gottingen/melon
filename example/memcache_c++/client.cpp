@@ -18,15 +18,15 @@
 // A multi-threaded client getting keys from a memcache server constantly.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/string_printf.h>
+#include <melon/fiber/fiber.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_printf.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/memcache/memcache.h>
 #include <melon/rpc/policy/couchbase_authenticator.h>
 
 DEFINE_int32(thread_num, 10, "Number of threads to send requests");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_bool(use_couchbase, false, "Use couchbase.");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:11211", "IP Address of server");
@@ -43,19 +43,19 @@ DEFINE_int32(batch, 1, "Pipelined Operations");
 
 melon::var::LatencyRecorder g_latency_recorder("client");
 melon::var::Adder<int> g_error_count("client_error_count");
-butil::static_atomic<int> g_sender_count = BUTIL_STATIC_ATOMIC_INIT(0);
+mutil::static_atomic<int> g_sender_count = MUTIL_STATIC_ATOMIC_INIT(0);
 
 static void* sender(void* arg) {
     google::protobuf::RpcChannel* channel = 
         static_cast<google::protobuf::RpcChannel*>(arg);
-    const int base_index = g_sender_count.fetch_add(1, butil::memory_order_relaxed);
+    const int base_index = g_sender_count.fetch_add(1, mutil::memory_order_relaxed);
 
     std::string value;
     std::vector<std::pair<std::string, std::string> > kvs;
     kvs.resize(FLAGS_batch);
     for (int i = 0; i < FLAGS_batch; ++i) {
-        kvs[i].first = butil::string_printf("%s%d", FLAGS_key.c_str(), base_index + i);
-        kvs[i].second = butil::string_printf("%s%d", FLAGS_value.c_str(), base_index + i);
+        kvs[i].first = mutil::string_printf("%s%d", FLAGS_key.c_str(), base_index + i);
+        kvs[i].second = mutil::string_printf("%s%d", FLAGS_value.c_str(), base_index + i);
     }
     melon::MemcacheRequest request;
     for (int i = 0; i < FLAGS_batch; ++i) {
@@ -93,7 +93,7 @@ static void* sender(void* arg) {
             // is a specific sleeping to prevent this thread from spinning too
             // fast. You should continue the business logic in a production 
             // server rather than sleeping.
-            bthread_usleep(50000);
+            fiber_usleep(50000);
         }
     }
     return NULL;
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
     melon::MemcacheResponse response;
     melon::Controller cntl;
     for (int i = 0; i < FLAGS_batch * FLAGS_thread_num; ++i) {
-        if (!request.Set(butil::string_printf("%s%d", FLAGS_key.c_str(), i),
-                         butil::string_printf("%s%d", FLAGS_value.c_str(), i),
+        if (!request.Set(mutil::string_printf("%s%d", FLAGS_key.c_str(), i),
+                         mutil::string_printf("%s%d", FLAGS_value.c_str(), i),
                          0xdeadbeef + i, FLAGS_exptime, 0)) {
             LOG(ERROR) << "Fail to SET " << i << "th request";
             return -1;
@@ -161,9 +161,9 @@ int main(int argc, char* argv[]) {
                   << " values, never expired";
     }
     
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
@@ -174,9 +174,9 @@ int main(int argc, char* argv[]) {
     } else {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -190,10 +190,10 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "memcache_client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(bids[i], NULL);
+            fiber_join(bids[i], NULL);
         }
     }
     if (options.auth) {

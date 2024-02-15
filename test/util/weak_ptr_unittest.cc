@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/memory/weak_ptr.h"
+#include "melon/utility/memory/weak_ptr.h"
 
 #include <string>
 
-#include "melon/butil/debug/leak_annotations.h"
-#include "melon/butil/memory/scoped_ptr.h"
-#include "melon/butil/synchronization/waitable_event.h"
+#include "melon/utility/debug/leak_annotations.h"
+#include "melon/utility/memory/scoped_ptr.h"
+#include "melon/utility/synchronization/waitable_event.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace {
 
 struct Base {
@@ -149,4 +149,4 @@ TEST(WeakPtrTest, HasWeakPtrs) {
   EXPECT_FALSE(factory.HasWeakPtrs());
 }
 
-}  // namespace butil
+}  // namespace mutil

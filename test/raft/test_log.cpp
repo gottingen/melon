@@ -1,20 +1,19 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: WangYao (fisherman), wangyao02@baidu.com
-// Date: 2015/10/08 17:00:05
+
 
 #include <gtest/gtest.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <melon/butil/atomicops.h>
-#include <melon/butil/file_util.h>
-#include <melon/butil/files/file_path.h>
-#include <melon/butil/files/file_enumerator.h>
-#include <melon/butil/files/dir_reader_posix.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/atomicops.h>
+#include <melon/utility/file_util.h>
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/files/file_enumerator.h>
+#include <melon/utility/files/dir_reader_posix.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/logging.h>
 #include "melon/raft/util.h"
 #include "melon/raft/log.h"
 #include "melon/raft/storage.h"
@@ -547,14 +546,14 @@ TEST_F(LogStorageTest, data_lost) {
     delete configuration_manager;
 
     // last segment lost data
-    butil::DirReaderPosix dir_reader1("./data");
+    mutil::DirReaderPosix dir_reader1("./data");
     ASSERT_TRUE(dir_reader1.IsValid());
     while (dir_reader1.Next()) {
         int64_t first_index = 0;
         int match = sscanf(dir_reader1.name(), "log_inprogress_%020ld", 
                            &first_index);
         std::string path;
-        butil::string_appendf(&path, "./data/%s", dir_reader1.name());
+        mutil::string_appendf(&path, "./data/%s", dir_reader1.name());
         if (match == 1) {
             ASSERT_EQ(truncate_uninterrupted(path.c_str(), file_size(path.c_str()) - 1), 0);
         }
@@ -571,7 +570,7 @@ TEST_F(LogStorageTest, data_lost) {
     delete configuration_manager;
 
     // middle segment lost data
-    butil::DirReaderPosix dir_reader2("./data");
+    mutil::DirReaderPosix dir_reader2("./data");
     ASSERT_TRUE(dir_reader2.IsValid());
     while (dir_reader2.Next()) {
         int64_t first_index = 0;
@@ -579,7 +578,7 @@ TEST_F(LogStorageTest, data_lost) {
         int match = sscanf(dir_reader2.name(), "log_%020ld_%020ld", 
                            &first_index, &last_index);
         std::string path;
-        butil::string_appendf(&path, "./data/%s", dir_reader2.name());
+        mutil::string_appendf(&path, "./data/%s", dir_reader2.name());
         if (match == 2) {
             ASSERT_EQ(truncate_uninterrupted(path.c_str(), file_size(path.c_str()) - 1), 0);
         }
@@ -626,7 +625,7 @@ TEST_F(LogStorageTest, full_segment_has_garbage) {
     delete configuration_manager;
 
     // generate garbage entries
-    butil::DirReaderPosix dir_reader("./data");
+    mutil::DirReaderPosix dir_reader("./data");
     std::string first_segment;
     std::string second_segment;
     while (dir_reader.IsValid()) {
@@ -639,9 +638,9 @@ TEST_F(LogStorageTest, full_segment_has_garbage) {
             continue;
         }
         if (first_segment.empty()) {
-            butil::string_appendf(&first_segment, "./data/%s", dir_reader.name());
+            mutil::string_appendf(&first_segment, "./data/%s", dir_reader.name());
         } else {
-            butil::string_appendf(&second_segment, "./data/%s", dir_reader.name());
+            mutil::string_appendf(&second_segment, "./data/%s", dir_reader.name());
             break;
         }
     }
@@ -656,7 +655,7 @@ TEST_F(LogStorageTest, full_segment_has_garbage) {
     ASSERT_EQ(fstat(fd1, &st_buf), 0);
     off1 = st_buf.st_size;
     for (;;) {
-        butil::IOPortal buf;
+        mutil::IOPortal buf;
         ssize_t ret = melon::raft::file_pread(&buf, fd2, off2, 8192);
         ASSERT_TRUE(ret >= 0);
         if (ret == 0) {
@@ -711,12 +710,12 @@ TEST_F(LogStorageTest, append_read_badcase) {
     delete configuration_manager;
 
     // make file unwrite
-    butil::FileEnumerator dir1(butil::FilePath("./data"), false, 
-                              butil::FileEnumerator::FILES 
-                              | butil::FileEnumerator::DIRECTORIES);
-    for (butil::FilePath sub_path = dir1.Next(); !sub_path.empty(); sub_path = dir1.Next()) {
-        butil::File::Info info;
-        butil::GetFileInfo(sub_path, &info);
+    mutil::FileEnumerator dir1(mutil::FilePath("./data"), false,
+                              mutil::FileEnumerator::FILES
+                              | mutil::FileEnumerator::DIRECTORIES);
+    for (mutil::FilePath sub_path = dir1.Next(); !sub_path.empty(); sub_path = dir1.Next()) {
+        mutil::File::Info info;
+        mutil::GetFileInfo(sub_path, &info);
         if (!info.is_directory) {
             chmod(sub_path.value().c_str(), 0444);
         }
@@ -729,12 +728,12 @@ TEST_F(LogStorageTest, append_read_badcase) {
     delete storage;
     delete configuration_manager;
 
-    butil::FileEnumerator dir2(butil::FilePath("./data"), false, 
-                              butil::FileEnumerator::FILES 
-                              | butil::FileEnumerator::DIRECTORIES);
-    for (butil::FilePath sub_path = dir2.Next(); !sub_path.empty(); sub_path = dir2.Next()) {
-        butil::File::Info info;
-        butil::GetFileInfo(sub_path, &info);
+    mutil::FileEnumerator dir2(mutil::FilePath("./data"), false,
+                              mutil::FileEnumerator::FILES
+                              | mutil::FileEnumerator::DIRECTORIES);
+    for (mutil::FilePath sub_path = dir2.Next(); !sub_path.empty(); sub_path = dir2.Next()) {
+        mutil::File::Info info;
+        mutil::GetFileInfo(sub_path, &info);
         if (!info.is_directory) {
             chmod(sub_path.value().c_str(), 0644);
         }
@@ -746,12 +745,12 @@ TEST_F(LogStorageTest, append_read_badcase) {
     ASSERT_EQ(0, storage->init(configuration_manager));
 
     // make file chaos
-    butil::FileEnumerator dir3(butil::FilePath("./data"), false, 
-                              butil::FileEnumerator::FILES 
-                              | butil::FileEnumerator::DIRECTORIES);
-    for (butil::FilePath sub_path = dir3.Next(); !sub_path.empty(); sub_path = dir3.Next()) {
-        butil::File::Info info;
-        butil::GetFileInfo(sub_path, &info);
+    mutil::FileEnumerator dir3(mutil::FilePath("./data"), false,
+                              mutil::FileEnumerator::FILES
+                              | mutil::FileEnumerator::DIRECTORIES);
+    for (mutil::FilePath sub_path = dir3.Next(); !sub_path.empty(); sub_path = dir3.Next()) {
+        mutil::File::Info info;
+        mutil::GetFileInfo(sub_path, &info);
         if (!info.is_directory) {
             chmod(sub_path.value().c_str(), 0644);
 
@@ -868,21 +867,21 @@ TEST_F(LogStorageTest, configuration) {
     delete storage2;
 }
 
-butil::atomic<int> g_first_read_index(0); 
-butil::atomic<int> g_last_read_index(0);
+mutil::atomic<int> g_first_read_index(0);
+mutil::atomic<int> g_last_read_index(0);
 bool g_stop = false;
 
 void* read_thread_routine(void* arg) {
     melon::raft::SegmentLogStorage* storage = (melon::raft::SegmentLogStorage*)arg;
     while (!g_stop) {
-        int a = g_first_read_index.load(butil::memory_order_relaxed);
-        int b = g_last_read_index.load(butil::memory_order_relaxed);
+        int a = g_first_read_index.load(mutil::memory_order_relaxed);
+        int b = g_last_read_index.load(mutil::memory_order_relaxed);
         EXPECT_LE(a, b);
-        int index = butil::fast_rand_in(a, b);
+        int index = mutil::fast_rand_in(a, b);
         melon::raft::LogEntry* entry = storage->get_entry(index);
         if (entry != NULL) {
             std::string expect;
-            butil::string_printf(&expect, "hello_%d", index);
+            mutil::string_printf(&expect, "hello_%d", index);
             EXPECT_EQ(expect, entry->data.to_string());
             entry->Release();
         } else {
@@ -907,30 +906,30 @@ void* write_thread_routine(void* arg) {
     //  - 50% append new entry
     int next_log_index = storage->last_log_index() + 1;
     while (!g_stop) {
-        const int r = butil::fast_rand_in(0, 9);
+        const int r = mutil::fast_rand_in(0, 9);
         if (r < 1) {  // truncate_prefix
-            int truncate_index = butil::fast_rand_in(
-                    g_first_read_index.load(butil::memory_order_relaxed), 
-                    g_last_read_index.load(butil::memory_order_relaxed));
+            int truncate_index = mutil::fast_rand_in(
+                    g_first_read_index.load(mutil::memory_order_relaxed),
+                    g_last_read_index.load(mutil::memory_order_relaxed));
             EXPECT_EQ(0, storage->truncate_prefix(truncate_index));
-            g_first_read_index.store(truncate_index, butil::memory_order_relaxed);
+            g_first_read_index.store(truncate_index, mutil::memory_order_relaxed);
         } else if (r < 2) {  // truncate suffix
-            int truncate_index = butil::fast_rand_in(
-                    g_last_read_index.load(butil::memory_order_relaxed),
+            int truncate_index = mutil::fast_rand_in(
+                    g_last_read_index.load(mutil::memory_order_relaxed),
                     next_log_index - 1);
             EXPECT_EQ(0, storage->truncate_suffix(truncate_index));
             next_log_index = truncate_index + 1;
         } else if (r < 5) { // increase last_read_index which cannot be truncate
-            int next_read_index = butil::fast_rand_in(
-                    g_last_read_index.load(butil::memory_order_relaxed),
+            int next_read_index = mutil::fast_rand_in(
+                    g_last_read_index.load(mutil::memory_order_relaxed),
                     next_log_index - 1);
-            g_last_read_index.store(next_read_index, butil::memory_order_relaxed);
+            g_last_read_index.store(next_read_index, mutil::memory_order_relaxed);
         } else  {  // Append entry
             melon::raft::LogEntry* entry = new melon::raft::LogEntry;
             entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.index = next_log_index;
             std::string data;
-            butil::string_printf(&data, "hello_%d", next_log_index);
+            mutil::string_printf(&data, "hello_%d", next_log_index);
             entry->data.append(data);
             ++next_log_index;
             EXPECT_EQ(0, storage->append_entry(entry));
@@ -957,7 +956,7 @@ TEST_F(LogStorageTest, multi_read_single_modify_thread_safe) {
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.index = i;
         std::string data;
-        butil::string_printf(&data, "hello_%d", i);
+        mutil::string_printf(&data, "hello_%d", i);
         entry->data.append(data);
         ASSERT_EQ(0, storage->append_entry(entry));
         entry->Release();
@@ -966,20 +965,20 @@ TEST_F(LogStorageTest, multi_read_single_modify_thread_safe) {
     g_stop = false;
     g_first_read_index.store(1);
     g_last_read_index.store(N);
-    bthread_t read_thread[8];
+    fiber_t read_thread[8];
     for (size_t i = 0; i < ARRAY_SIZE(read_thread); ++i) {
-        ASSERT_EQ(0, bthread_start_urgent(&read_thread[i], NULL, 
+        ASSERT_EQ(0, fiber_start_urgent(&read_thread[i], NULL,
                                    read_thread_routine, storage));
     }
-    bthread_t write_thread;
-    ASSERT_EQ(0, bthread_start_urgent(&write_thread, NULL,
+    fiber_t write_thread;
+    ASSERT_EQ(0, fiber_start_urgent(&write_thread, NULL,
                                       write_thread_routine, storage));
     ::usleep(5 * 1000 * 1000);
     g_stop = true;
     for (size_t i = 0; i < ARRAY_SIZE(read_thread); ++i) {
-        bthread_join(read_thread[i], NULL);
+        fiber_join(read_thread[i], NULL);
     }
-    bthread_join(write_thread, NULL);
+    fiber_join(write_thread, NULL);
 
     delete configuration_manager;
     delete storage;

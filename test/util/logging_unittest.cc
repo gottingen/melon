@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/gperftools_profiler.h"
-#include "melon/butil/files/temp_file.h"
-#include "melon/butil/popen.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/gperftools_profiler.h"
+#include "melon/utility/files/temp_file.h"
+#include "melon/utility/popen.h"
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 
@@ -481,7 +481,7 @@ TEST_F(LoggingTest, log_func) {
 bool g_started = false;
 bool g_stopped = false;
 int g_prof_name_counter = 0;
-butil::atomic<uint64_t> test_logging_count(0);
+mutil::atomic<uint64_t> test_logging_count(0);
 
 void* test_async_log(void* arg) {
     if (arg == NULL) {
@@ -499,7 +499,7 @@ void* test_async_log(void* arg) {
 TEST_F(LoggingTest, async_log) {
     bool saved_async_log = FLAGS_async_log;
     FLAGS_async_log = true;
-    butil::TempFile temp_file;
+    mutil::TempFile temp_file;
     LoggingSettings settings;
     settings.logging_dest = LOG_TO_FILE;
     settings.log_file = temp_file.fname();
@@ -523,16 +523,16 @@ TEST_F(LoggingTest, async_log) {
     sleep(10);
 
     std::ostringstream oss;
-    std::string cmd = butil::string_printf("grep -c %s %s",
+    std::string cmd = mutil::string_printf("grep -c %s %s",
         log.c_str(), temp_file.fname());
-    ASSERT_LE(0, butil::read_command_output(oss, cmd.c_str()));
+    ASSERT_LE(0, mutil::read_command_output(oss, cmd.c_str()));
     uint64_t log_count = std::strtol(oss.str().c_str(), NULL, 10);
     ASSERT_EQ(log_count, test_logging_count.load());
 
     FLAGS_async_log = saved_async_log;
 }
 
-struct BAIDU_CACHELINE_ALIGNMENT PerfArgs {
+struct MELON_CACHELINE_ALIGNMENT PerfArgs {
     const std::string* log;
     int64_t counter;
     int64_t elapse_ns;
@@ -544,7 +544,7 @@ struct BAIDU_CACHELINE_ALIGNMENT PerfArgs {
 void* test_log(void* void_arg) {
     auto args = (PerfArgs*)void_arg;
     args->ready = true;
-    butil::Timer t;
+    mutil::Timer t;
     while (!g_stopped) {
         if (g_started) {
             break;
@@ -555,7 +555,7 @@ void* test_log(void* void_arg) {
     while (!g_stopped) {
         {
             LOG(INFO) << *args->log;
-            test_logging_count.fetch_add(1, butil::memory_order_relaxed);
+            test_logging_count.fetch_add(1, mutil::memory_order_relaxed);
         }
         ++args->counter;
     }

@@ -93,16 +93,16 @@ public:
         , HttpMessage(read_body_progressively, request_method)
         , _is_stage2(false) {
         // add one ref for Destroy
-        butil::intrusive_ptr<HttpContext>(this).detach();
+        mutil::intrusive_ptr<HttpContext>(this).detach();
     }
 
     void AddOneRefForStage2() {
-        butil::intrusive_ptr<HttpContext>(this).detach();
+        mutil::intrusive_ptr<HttpContext>(this).detach();
         _is_stage2 = true;
     }
 
     void RemoveOneRefForStage2() {
-        butil::intrusive_ptr<HttpContext>(this, false);
+        mutil::intrusive_ptr<HttpContext>(this, false);
     }
 
     // True if AddOneRefForStage2() was ever called.
@@ -125,22 +125,22 @@ private:
 };
 
 // Implement functions required in protocol.h
-ParseResult ParseHttpMessage(butil::IOBuf *source, Socket *socket,
+ParseResult ParseHttpMessage(mutil::IOBuf *source, Socket *socket,
                              bool read_eof, const void *arg);
 void ProcessHttpRequest(InputMessageBase *msg);
 void ProcessHttpResponse(InputMessageBase* msg);
 bool VerifyHttpRequest(const InputMessageBase* msg);
-void SerializeHttpRequest(butil::IOBuf* request_buf,
+void SerializeHttpRequest(mutil::IOBuf* request_buf,
                           Controller* cntl,
                           const google::protobuf::Message* msg);
-void PackHttpRequest(butil::IOBuf* buf,
+void PackHttpRequest(mutil::IOBuf* buf,
                      SocketMessage** user_message_out,
                      uint64_t correlation_id,
                      const google::protobuf::MethodDescriptor* method,
                      Controller* controller,
-                     const butil::IOBuf& request,
+                     const mutil::IOBuf& request,
                      const Authenticator* auth);
-bool ParseHttpServerAddress(butil::EndPoint* out, const char* server_addr_and_port);
+bool ParseHttpServerAddress(mutil::EndPoint* out, const char* server_addr_and_port);
 const std::string& GetHttpMethodName(const google::protobuf::MethodDescriptor*,
                                      const Controller*);
 
@@ -154,7 +154,7 @@ enum HttpContentType {
 // Parse from the textual content type. One type may have more than one literals.
 // Returns a numerical type. *is_grpc_ct is set to true if the content-type is
 // set by gRPC.
-HttpContentType ParseContentType(butil::StringPiece content_type, bool* is_grpc_ct);
+HttpContentType ParseContentType(mutil::StringPiece content_type, bool* is_grpc_ct);
 
 } // namespace policy
 } // namespace melon

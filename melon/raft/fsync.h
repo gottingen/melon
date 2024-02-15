@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
-
 #ifndef  MELON_RAFT_FSYNC_H_
 #define  MELON_RAFT_FSYNC_H_
 

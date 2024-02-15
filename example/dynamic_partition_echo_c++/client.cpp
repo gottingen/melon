@@ -18,21 +18,21 @@
 // A client sending requests to server in parallel by multiple threads.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/time.h>
-#include <melon/butil/macros.h>
+#include <melon/fiber/fiber.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
 #include <melon/rpc/partition_channel.h>
 #include <deque>
 #include "echo.pb.h"
 
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_int32(attachment_size, 0, "Carry so many byte attachment along with requests");
 DEFINE_int32(request_size, 16, "Bytes of each request");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
+DEFINE_string(protocol, "melon_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_string(server, "file://server_list", "Mapping to servers");
 DEFINE_string(load_balancer, "rr", "Name of load balancer");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
@@ -42,7 +42,7 @@ DEFINE_bool(dont_fail, false, "Print fatal when some call failed");
 std::string g_request;
 std::string g_attachment;
 pthread_mutex_t g_latency_mutex = PTHREAD_MUTEX_INITIALIZER;
-struct BAIDU_CACHELINE_ALIGNMENT SenderInfo {
+struct MELON_CACHELINE_ALIGNMENT SenderInfo {
     size_t nsuccess;
     int64_t latency_sum;
 };
@@ -89,7 +89,7 @@ static void* sender(void* arg) {
             // is a specific sleeping to prevent this thread from spinning too
             // fast. You should continue the business logic in a production 
             // server rather than sleeping.
-            bthread_usleep(50000);
+            fiber_usleep(50000);
         }
     }
     return NULL;
@@ -107,7 +107,7 @@ public:
         char* endptr = NULL;
         out->index = strtol(tag.c_str(), &endptr, 10);
         if (endptr != tag.data() + pos) {
-            LOG(ERROR) << "Invalid index=" << butil::StringPiece(tag.data(), pos);
+            LOG(ERROR) << "Invalid index=" << mutil::StringPiece(tag.data(), pos);
             return false;
         }
         out->num_partition_kinds = strtol(tag.c_str() + pos + 1, &endptr, 10);
@@ -151,9 +151,9 @@ int main(int argc, char* argv[]) {
     }
     g_request.resize(FLAGS_request_size, 'r');
 
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
@@ -164,9 +164,9 @@ int main(int argc, char* argv[]) {
     } else {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -202,10 +202,10 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(bids[i], NULL);
+            fiber_join(bids[i], NULL);
         }
     }
 

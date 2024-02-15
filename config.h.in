@@ -13,12 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef  BUTIL_CONFIG_H
-#define  BUTIL_CONFIG_H
+#ifndef  MUTIL_CONFIG_H
+#define  MUTIL_CONFIG_H
 
 #ifdef BRPC_WITH_GLOG
 #undef BRPC_WITH_GLOG
 #endif
 #cmakedefine BRPC_WITH_GLOG @WITH_GLOG_VAL@
 
-#endif  // BUTIL_CONFIG_H
+#endif  // MUTIL_CONFIG_H

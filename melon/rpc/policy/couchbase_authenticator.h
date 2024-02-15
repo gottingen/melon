@@ -35,7 +35,7 @@ class CouchbaseAuthenticator : public Authenticator {
 
   int GenerateCredential(std::string* auth_str) const;
 
-  int VerifyCredential(const std::string&, const butil::EndPoint&,
+  int VerifyCredential(const std::string&, const mutil::EndPoint&,
                        melon::AuthContext*) const {
     return 0;
   }

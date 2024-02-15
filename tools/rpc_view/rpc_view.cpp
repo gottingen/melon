@@ -17,7 +17,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include "view.pb.h"
@@ -37,8 +37,8 @@ static void handle_response(melon::Controller* client_cntl,
     server_cntl->response_attachment() = client_cntl->response_attachment();
     // Insert "rpc_view: <target>" before </body> so that users are always
     // visually notified with target server w/o confusions.
-    butil::IOBuf& content = server_cntl->response_attachment();
-    butil::IOBuf before_body;
+    mutil::IOBuf& content = server_cntl->response_attachment();
+    mutil::IOBuf before_body;
     if (content.cut_until(&before_body, "</body>") == 0) {
         before_body.append(
             "<style type=\"text/css\">\n"

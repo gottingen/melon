@@ -21,21 +21,21 @@
 #include <limits>
 #include <sys/stat.h>
 #include <fcntl.h>                          // O_RDONLY
-#include "melon/butil/string_printf.h"             // string_printf
-#include "melon/butil/string_splitter.h"           // StringSplitter
-#include "melon/butil/file_util.h"                 // butil::FilePath
-#include "melon/butil/files/scoped_file.h"         // ScopedFILE
-#include "melon/butil/time.h"
-#include "melon/butil/popen.h"                    // butil::read_command_output
-#include "melon/butil/process_util.h"             // butil::ReadCommandLine
+#include "melon/utility/string_printf.h"             // string_printf
+#include "melon/utility/string_splitter.h"           // StringSplitter
+#include "melon/utility/file_util.h"                 // mutil::FilePath
+#include "melon/utility/files/scoped_file.h"         // ScopedFILE
+#include "melon/utility/time.h"
+#include "melon/utility/popen.h"                    // mutil::read_command_output
+#include "melon/utility/process_util.h"             // mutil::ReadCommandLine
 #include "melon/rpc/log.h"
 #include "melon/rpc/controller.h"                // Controller
 #include "melon/rpc/closure_guard.h"             // ClosureGuard
 #include "melon/builtin/pprof_service.h"
 #include "melon/builtin/common.h"
 #include "melon/rpc/details/tcmalloc_extension.h"
-#include "melon/bthread/bthread.h"                // bthread_usleep
-#include "melon/butil/fd_guard.h"
+#include "melon/fiber/fiber.h"                // fiber_usleep
+#include "melon/utility/fd_guard.h"
 
 extern "C" {
 #if defined(OS_LINUX)
@@ -45,7 +45,7 @@ int __attribute__((weak)) ProfilerStart(const char *fname);
 void __attribute__((weak)) ProfilerStop();
 }
 
-namespace bthread {
+namespace fiber {
     bool ContentionProfilerStart(const char *filename);
 
     void ContentionProfilerStop();
@@ -131,9 +131,9 @@ namespace melon {
             cntl->SetFailed(errno, "Fail to create .prof file, %s", berror());
             return;
         }
-        butil::File::Error error;
-        const butil::FilePath dir = butil::FilePath(prof_name).DirName();
-        if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+        mutil::File::Error error;
+        const mutil::FilePath dir = mutil::FilePath(prof_name).DirName();
+        if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
             cntl->SetFailed(EPERM, "Fail to create directory=`%s'", dir.value().c_str());
             return;
         }
@@ -141,17 +141,17 @@ namespace melon {
             cntl->SetFailed(EAGAIN, "Another profiler is running, try again later");
             return;
         }
-        if (bthread_usleep(sleep_sec * 1000000L) != 0) {
+        if (fiber_usleep(sleep_sec * 1000000L) != 0) {
             PLOG(WARNING) << "Profiling has been interrupted";
         }
         ProfilerStop();
 
-        butil::fd_guard fd(open(prof_name, O_RDONLY));
+        mutil::fd_guard fd(open(prof_name, O_RDONLY));
         if (fd < 0) {
             cntl->SetFailed(ENOENT, "Fail to open %s", prof_name);
             return;
         }
-        butil::IOPortal portal;
+        mutil::IOPortal portal;
         portal.append_from_file_descriptor(fd, ULONG_MAX);
         cntl->response_attachment().swap(portal);
     }
@@ -188,21 +188,21 @@ namespace melon {
             cntl->SetFailed(errno, "Fail to create .prof file, %s", berror());
             return;
         }
-        if (!bthread::ContentionProfilerStart(prof_name)) {
+        if (!fiber::ContentionProfilerStart(prof_name)) {
             cntl->SetFailed(EAGAIN, "Another profiler is running, try again later");
             return;
         }
-        if (bthread_usleep(sleep_sec * 1000000L) != 0) {
+        if (fiber_usleep(sleep_sec * 1000000L) != 0) {
             PLOG(WARNING) << "Profiling has been interrupted";
         }
-        bthread::ContentionProfilerStop();
+        fiber::ContentionProfilerStop();
 
-        butil::fd_guard fd(open(prof_name, O_RDONLY));
+        mutil::fd_guard fd(open(prof_name, O_RDONLY));
         if (fd < 0) {
             cntl->SetFailed(ENOENT, "Fail to open %s", prof_name);
             return;
         }
-        butil::IOPortal portal;
+        mutil::IOPortal portal;
         portal.append_from_file_descriptor(fd, ULONG_MAX);
         cntl->response_attachment().swap(portal);
     }
@@ -293,19 +293,19 @@ namespace melon {
     static int ExtractSymbolsFromBinary(
             std::map<uintptr_t, std::string> &addr_map,
             const LibInfo &lib_info) {
-        butil::Timer tm;
+        mutil::Timer tm;
         tm.start();
         std::string cmd = "nm -C -p ";
         cmd.append(lib_info.path);
         std::stringstream ss;
-        const int rc = butil::read_command_output(ss, cmd.c_str());
+        const int rc = mutil::read_command_output(ss, cmd.c_str());
         if (rc < 0) {
             LOG(ERROR) << "Fail to popen `" << cmd << "'";
             return -1;
         }
         std::string line;
         while (std::getline(ss, line)) {
-            butil::StringSplitter sp(line.c_str(), ' ');
+            mutil::StringSplitter sp(line.c_str(), ' ');
             if (sp == NULL) {
                 continue;
             }
@@ -394,9 +394,9 @@ namespace melon {
     }
 
     static void LoadSymbols() {
-        butil::Timer tm;
+        mutil::Timer tm;
         tm.start();
-        butil::ScopedFILE fp(fopen("/proc/self/maps", "r"));
+        mutil::ScopedFILE fp(fopen("/proc/self/maps", "r"));
         if (fp == NULL) {
             return;
         }
@@ -404,7 +404,7 @@ namespace melon {
         size_t line_len = 0;
         ssize_t nr = 0;
         while ((nr = getline(&line, &line_len, fp.get())) != -1) {
-            butil::StringSplitter sp(line, line + nr, ' ');
+            mutil::StringSplitter sp(line, line + nr, ' ');
             if (sp == NULL) {
                 continue;
             }
@@ -467,7 +467,7 @@ namespace melon {
 #endif
         ExtractSymbolsFromBinary(symbol_map, info);
 
-        butil::Timer tm2;
+        mutil::Timer tm2;
         tm2.start();
         size_t num_removed = 0;
         bool last_is_empty = false;
@@ -493,7 +493,7 @@ namespace melon {
         RPC_VLOG << "Loaded all symbols in " << tm.m_elapsed() << "ms";
     }
 
-    static void FindSymbols(butil::IOBuf *out, std::vector<uintptr_t> &addr_list) {
+    static void FindSymbols(mutil::IOBuf *out, std::vector<uintptr_t> &addr_list) {
         char buf[32];
         for (size_t i = 0; i < addr_list.size(); ++i) {
             int len = snprintf(buf, sizeof(buf), "0x%08lx\t", addr_list[i]);
@@ -544,7 +544,7 @@ namespace melon {
             }
             std::vector<uintptr_t> addr_list;
             addr_list.reserve(32);
-            butil::StringSplitter sp(addr_cstr, '+');
+            mutil::StringSplitter sp(addr_cstr, '+');
             for (; sp != NULL; ++sp) {
                 char *endptr;
                 uintptr_t addr = strtoull(sp.field(), &endptr, 16);
@@ -562,7 +562,7 @@ namespace melon {
         Controller *cntl = static_cast<Controller *>(controller_base);
         cntl->http_response().set_content_type("text/plain" /*FIXME*/);
         char buf[1024];  // should be enough?
-        const ssize_t nr = butil::ReadCommandLine(buf, sizeof(buf), true);
+        const ssize_t nr = mutil::ReadCommandLine(buf, sizeof(buf), true);
         if (nr < 0) {
             cntl->SetFailed(ENOENT, "Fail to read cmdline");
             return;

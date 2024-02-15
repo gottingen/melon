@@ -1,11 +1,10 @@
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2015/12/01 17:03:46
+
 
 #include <gtest/gtest.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/memory/scoped_ptr.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/raft/fsm_caller.h"
 #include "melon/raft/raft.h"
 #include "melon/raft/log.h"
@@ -31,7 +30,7 @@ public:
     void on_apply(melon::raft::Iterator& iter) {
         for (; iter.valid(); iter.next()) {
             std::string expected;
-            butil::string_printf(&expected, "hello_%" PRIu64, _expected_next++);
+            mutil::string_printf(&expected, "hello_%" PRIu64, _expected_next++);
             ASSERT_EQ(expected, iter.data().to_string());
             if (iter.done()) {
                 ASSERT_TRUE(iter.done()->status().ok()) << "index=" << iter.index();
@@ -53,12 +52,12 @@ public:
     void on_leader_start(int64_t term) {
         _on_leader_start_times++;
     }
-    virtual void on_leader_stop(const butil::Status& status) {
+    virtual void on_leader_stop(const mutil::Status& status) {
         _on_leader_stop_times++;
     }
     void join() {
         while (!_stopped) {
-            bthread_usleep(100);
+            fiber_usleep(100);
         }
     }
 private:
@@ -73,15 +72,15 @@ private:
 class SyncClosure : public melon::raft::LogManager::StableClosure {
 public:
     SyncClosure() {
-        _butex = bthread::butex_create_checked<butil::atomic<int> >();
+        _butex = fiber::butex_create_checked<mutil::atomic<int> >();
         *_butex = 0;
     }
     ~SyncClosure() {
-        bthread::butex_destroy(_butex);
+        fiber::butex_destroy(_butex);
     }
     void Run() {
         _butex->store(1);
-        bthread::butex_wake(_butex);
+        fiber::butex_wake(_butex);
     }
     void reset() {
         status().reset();
@@ -89,11 +88,11 @@ public:
     }
     void join() {
         while (*_butex != 1) {
-            bthread::butex_wait(_butex, 0, NULL);
+            fiber::butex_wait(_butex, 0, NULL);
         }
     }
 private:
-    butil::atomic<int> *_butex;
+    mutil::atomic<int> *_butex;
 };
 
 TEST_F(FSMCallerTest, sanity) {
@@ -130,7 +129,7 @@ TEST_F(FSMCallerTest, sanity) {
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         std::string buf;
-        butil::string_printf(&buf, "hello_%lld", (long long)i);
+        mutil::string_printf(&buf, "hello_%lld", (long long)i);
         entry->data.append(buf);
         entry->id.index = i + 1;
         entry->id.term = i;
@@ -158,7 +157,7 @@ TEST_F(FSMCallerTest, on_leader_start_and_stop) {
     opt.closure_queue = &cq;
     melon::raft::FSMCaller caller;
     ASSERT_EQ(0, caller.init(opt));
-    butil::Status status;
+    mutil::Status status;
     caller.on_leader_stop(status);
     caller.shutdown();
     fsm.join();

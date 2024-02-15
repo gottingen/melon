@@ -6,11 +6,11 @@
 #include <sstream>
 #include <string>
 
-#include "melon/butil/debug/stack_trace.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/debug/stack_trace.h"
+#include "melon/utility/logging.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace debug {
 
 typedef testing::Test StackTraceTest;
@@ -199,4 +199,4 @@ TEST_F(StackTraceTest, itoa_r) {
 #endif  // defined(OS_POSIX) && !defined(OS_ANDROID)
 
 }  // namespace debug
-}  // namespace butil
+}  // namespace mutil

@@ -19,7 +19,7 @@
 #include <stdlib.h>                                   // strtol
 #include <string>                                     // std::string
 #include <set>                                        // std::set
-#include "melon/butil/string_splitter.h"                     // StringSplitter
+#include "melon/utility/string_splitter.h"                     // StringSplitter
 #include "melon/rpc/log.h"
 #include "melon/naming/list_naming_service.h"
 
@@ -27,9 +27,9 @@
 namespace melon::naming {
 
 // Defined in file_naming_service.cpp
-    bool SplitIntoServerAndTag(const butil::StringPiece &line,
-                               butil::StringPiece *server_addr,
-                               butil::StringPiece *tag);
+    bool SplitIntoServerAndTag(const mutil::StringPiece &line,
+                               mutil::StringPiece *server_addr,
+                               mutil::StringPiece *tag);
 
     int ParseServerList(const char *service_name,
                         std::vector<ServerNode> *servers) {
@@ -44,15 +44,15 @@ namespace melon::naming {
             LOG(FATAL) << "Param[service_name] is NULL";
             return -1;
         }
-        for (butil::StringSplitter sp(service_name, ','); sp != NULL; ++sp) {
+        for (mutil::StringSplitter sp(service_name, ','); sp != NULL; ++sp) {
             line.assign(sp.field(), sp.length());
-            butil::StringPiece addr;
-            butil::StringPiece tag;
+            mutil::StringPiece addr;
+            mutil::StringPiece tag;
             if (!SplitIntoServerAndTag(line, &addr, &tag)) {
                 continue;
             }
             const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-            butil::EndPoint point;
+            mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
                 LOG(ERROR) << "Invalid address=`" << addr << '\'';

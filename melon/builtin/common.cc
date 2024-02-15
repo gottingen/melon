@@ -20,11 +20,11 @@
 #include <sys/time.h>
 #include <fcntl.h>                           // O_RDONLY
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"
-#include "melon/butil/fd_guard.h"                  // fd_guard
-#include "melon/butil/file_util.h"                 // butil::FilePath
-#include "melon/butil/third_party/murmurhash3/murmurhash3.h"
-#include "melon/butil/process_util.h"              // ReadCommandLine
+#include "melon/utility/logging.h"
+#include "melon/utility/fd_guard.h"                  // fd_guard
+#include "melon/utility/file_util.h"                 // mutil::FilePath
+#include "melon/utility/third_party/murmurhash3/murmurhash3.h"
+#include "melon/utility/process_util.h"              // ReadCommandLine
 #include "melon/rpc/server.h"
 #include "melon/builtin/common.h"
 
@@ -142,7 +142,7 @@ namespace melon {
         return os;
     }
 
-    const butil::EndPoint *Path::LOCAL = (butil::EndPoint *) 0x01;
+    const mutil::EndPoint *Path::LOCAL = (mutil::EndPoint *) 0x01;
 
     void AppendFileName(std::string *dir, const std::string &filename) {
         if (dir->empty()) {
@@ -151,20 +151,20 @@ namespace melon {
         }
         const size_t len = filename.size();
         if (len >= 3) {
-            if (butil::back_char(*dir) != '/') {
+            if (mutil::back_char(*dir) != '/') {
                 dir->push_back('/');
             }
             dir->append(filename);
         } else if (len == 1) {
             if (filename[0] != '.') {
-                if (butil::back_char(*dir) != '/') {
+                if (mutil::back_char(*dir) != '/') {
                     dir->push_back('/');
                 }
                 dir->append(filename);
             }
         } else if (len == 2) {
             if (filename[0] != '.' || filename[1] != '.') {
-                if (butil::back_char(*dir) != '/') {
+                if (mutil::back_char(*dir) != '/') {
                     dir->push_back('/');
                 }
                 dir->append(filename);
@@ -317,19 +317,19 @@ namespace melon {
     }
 
     int FileChecksum(const char *file_path, unsigned char *checksum) {
-        butil::fd_guard fd(open(file_path, O_RDONLY));
+        mutil::fd_guard fd(open(file_path, O_RDONLY));
         if (fd < 0) {
             PLOG(ERROR) << "Fail to open `" << file_path << "'";
             return -1;
         }
         char block[16 * 1024];   // 16k each time
         ssize_t size = 0L;
-        butil::MurmurHash3_x64_128_Context mm_ctx;
-        butil::MurmurHash3_x64_128_Init(&mm_ctx, 0);
+        mutil::MurmurHash3_x64_128_Context mm_ctx;
+        mutil::MurmurHash3_x64_128_Init(&mm_ctx, 0);
         while ((size = read(fd, block, sizeof(block))) > 0) {
-            butil::MurmurHash3_x64_128_Update(&mm_ctx, block, size);
+            mutil::MurmurHash3_x64_128_Update(&mm_ctx, block, size);
         }
-        butil::MurmurHash3_x64_128_Final(checksum, &mm_ctx);
+        mutil::MurmurHash3_x64_128_Final(checksum, &mm_ctx);
         return 0;
     }
 
@@ -338,7 +338,7 @@ namespace melon {
     static char s_cmdline[256];
 
     static void CreateProgramName() {
-        const ssize_t nr = butil::ReadCommandLine(s_cmdline, sizeof(s_cmdline) - 1, false);
+        const ssize_t nr = mutil::ReadCommandLine(s_cmdline, sizeof(s_cmdline) - 1, false);
         if (nr > 0) {
             s_cmdline[nr] = '\0';
             s_program_name = s_cmdline;

@@ -16,8 +16,8 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/files/file_watcher.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/files/file_watcher.h"
+#include "melon/utility/logging.h"
 
 namespace {
 class FileWatcherTest : public ::testing::Test{
@@ -30,27 +30,27 @@ protected:
     };
 };
  
-//! gejun: check basic functions of butil::FileWatcher
+//! gejun: check basic functions of mutil::FileWatcher
 TEST_F(FileWatcherTest, random_op) {
     srand (time(0));
     
-    butil::FileWatcher fw;
+    mutil::FileWatcher fw;
     EXPECT_EQ (0, fw.init("dummy_file"));
     
     for (int i=0; i<30; ++i) {
         if (rand() % 2) {
-            const butil::FileWatcher::Change ret = fw.check_and_consume();
+            const mutil::FileWatcher::Change ret = fw.check_and_consume();
             switch (ret) {
-            case butil::FileWatcher::UPDATED:
+            case mutil::FileWatcher::UPDATED:
                 LOG(INFO) << fw.filepath() << " is updated";
                 break;
-            case butil::FileWatcher::CREATED:
+            case mutil::FileWatcher::CREATED:
                 LOG(INFO) << fw.filepath() << " is created";
                 break;
-            case butil::FileWatcher::DELETED:
+            case mutil::FileWatcher::DELETED:
                 LOG(INFO) << fw.filepath() << " is deleted";
                 break;
-            case butil::FileWatcher::UNCHANGED:
+            case mutil::FileWatcher::UNCHANGED:
                 LOG(INFO) << fw.filepath() << " does not change or still not exist";
                 break;
             }

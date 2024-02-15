@@ -2,20 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/time/time.h"
+#include "melon/utility/time/time.h"
 
 #include <time.h>
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/strings/stringprintf.h"
-#include "melon/butil/threading/platform_thread.h"
-#include "melon/butil/build_config.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/strings/stringprintf.h"
+#include "melon/utility/threading/platform_thread.h"
+#include "melon/utility/build_config.h"
 #include <gtest/gtest.h>
 
-using butil::Time;
-using butil::TimeDelta;
-using butil::TimeTicks;
+using mutil::Time;
+using mutil::TimeDelta;
+using mutil::TimeTicks;
 
 // Specialized test fixture allowing time strings without timezones to be
 // tested by comparing them to a known time in the local zone.
@@ -621,7 +621,7 @@ TEST_F(TimeTest, FromLocalExplodedCrashOnAndroid) {
 TEST(TimeTicks, Deltas) {
   for (int index = 0; index < 50; index++) {
     TimeTicks ticks_start = TimeTicks::Now();
-    butil::PlatformThread::Sleep(butil::TimeDelta::FromMilliseconds(10));
+    mutil::PlatformThread::Sleep(mutil::TimeDelta::FromMilliseconds(10));
     TimeTicks ticks_stop = TimeTicks::Now();
     TimeDelta delta = ticks_stop - ticks_start;
     // Note:  Although we asked for a 10ms sleep, if the
@@ -702,7 +702,7 @@ TEST(TimeTicks, MAYBE_ThreadNow) {
     // Make sure that ThreadNow value is non-zero.
     EXPECT_GT(begin_thread, TimeTicks());
     // Sleep for 10 milliseconds to get the thread de-scheduled.
-    butil::PlatformThread::Sleep(butil::TimeDelta::FromMilliseconds(10));
+    mutil::PlatformThread::Sleep(mutil::TimeDelta::FromMilliseconds(10));
     TimeTicks end_thread = TimeTicks::ThreadNow();
     TimeTicks end = TimeTicks::Now();
     TimeDelta delta = end - begin;

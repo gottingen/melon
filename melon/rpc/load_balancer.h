@@ -102,7 +102,7 @@ namespace melon {
 
         // Create/destroy an instance.
         // Caller is responsible for Destroy() the instance after usage.
-        virtual LoadBalancer *New(const butil::StringPiece &params) const = 0;
+        virtual LoadBalancer *New(const mutil::StringPiece &params) const = 0;
 
     protected:
         virtual ~LoadBalancer() {}
@@ -132,7 +132,7 @@ namespace melon {
 
         bool AddServer(const ServerId &server) {
             if (_lb->AddServer(server)) {
-                _weight_sum.fetch_add(1, butil::memory_order_relaxed);
+                _weight_sum.fetch_add(1, mutil::memory_order_relaxed);
                 return true;
             }
             return false;
@@ -140,7 +140,7 @@ namespace melon {
 
         bool RemoveServer(const ServerId &server) {
             if (_lb->RemoveServer(server)) {
-                _weight_sum.fetch_sub(1, butil::memory_order_relaxed);
+                _weight_sum.fetch_sub(1, mutil::memory_order_relaxed);
                 return true;
             }
             return false;
@@ -149,7 +149,7 @@ namespace melon {
         size_t AddServersInBatch(const std::vector<ServerId> &servers) {
             size_t n = _lb->AddServersInBatch(servers);
             if (n) {
-                _weight_sum.fetch_add(n, butil::memory_order_relaxed);
+                _weight_sum.fetch_add(n, mutil::memory_order_relaxed);
             }
             return n;
         }
@@ -157,7 +157,7 @@ namespace melon {
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers) {
             size_t n = _lb->RemoveServersInBatch(servers);
             if (n) {
-                _weight_sum.fetch_sub(n, butil::memory_order_relaxed);
+                _weight_sum.fetch_sub(n, mutil::memory_order_relaxed);
             }
             return n;
         }
@@ -165,22 +165,22 @@ namespace melon {
         virtual void Describe(std::ostream &os, const DescribeOptions &);
 
         virtual int Weight() {
-            return _weight_sum.load(butil::memory_order_relaxed);
+            return _weight_sum.load(mutil::memory_order_relaxed);
         }
 
     private:
-        static bool ParseParameters(const butil::StringPiece &lb_protocol,
+        static bool ParseParameters(const mutil::StringPiece &lb_protocol,
                                     std::string *lb_name,
-                                    butil::StringPiece *lb_params);
+                                    mutil::StringPiece *lb_params);
 
         static void DescribeLB(std::ostream &os, void *arg);
 
         void ExposeLB();
 
         LoadBalancer *_lb;
-        butil::atomic<int> _weight_sum;
+        mutil::atomic<int> _weight_sum;
         volatile bool _exposed;
-        butil::Mutex _st_mutex;
+        mutil::Mutex _st_mutex;
         melon::var::PassiveStatus<std::string> _st;
     };
 

@@ -154,7 +154,7 @@ struct ServerSSLOptions {
 
     // Options used to choose the most suitable application protocol, separated by comma.
     // The NPN protocol is not commonly used, so only ALPN is supported.
-    // Available protocols: http, h2, baidu_std etc.
+    // Available protocols: http, h2, melon_std etc.
     // Default: empty
     std::string alpns;
 

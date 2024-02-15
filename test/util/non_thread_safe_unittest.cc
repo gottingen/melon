@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/memory/scoped_ptr.h"
-#include "melon/butil/threading/non_thread_safe.h"
-#include "melon/butil/threading/simple_thread.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/memory/scoped_ptr.h"
+#include "melon/utility/threading/non_thread_safe.h"
+#include "melon/utility/threading/simple_thread.h"
 #include <gtest/gtest.h>
 
-// Duplicated from butil/threading/non_thread_safe.h so that we can be
+// Duplicated from threading/non_thread_safe.h so that we can be
 // good citizens there and undef the macro.
 #if (!defined(NDEBUG) || defined(DCHECK_ALWAYS_ON))
 #define ENABLE_NON_THREAD_SAFE 1
@@ -17,7 +17,7 @@
 #define ENABLE_NON_THREAD_SAFE 0
 #endif
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -164,4 +164,4 @@ TEST(NonThreadSafeTest, DestructorAllowedOnDifferentThreadInRelease) {
 // Just in case we ever get lumped together with other compilation units.
 #undef ENABLE_NON_THREAD_SAFE
 
-}  // namespace butil
+}  // namespace mutil

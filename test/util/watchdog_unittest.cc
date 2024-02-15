@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/threading/watchdog.h"
+#include "melon/utility/threading/watchdog.h"
 
-#include "melon/butil/logging.h"
-#include "melon/butil/synchronization/spin_wait.h"
-#include "melon/butil/threading/platform_thread.h"
-#include "melon/butil/time/time.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/synchronization/spin_wait.h"
+#include "melon/utility/threading/platform_thread.h"
+#include "melon/utility/time/time.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -139,4 +139,4 @@ TEST_F(WatchdogTest, DisarmTest) {
   EXPECT_EQ(1, watchdog.alarm_counter());
 }
 
-}  // namespace butil
+}  // namespace mutil

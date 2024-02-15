@@ -1,11 +1,9 @@
 // Copyright (c) 2016 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2016/02/03 15:59:18
 
 #include <algorithm>
 #include <gtest/gtest.h>
-#include <melon/butil/string_printf.h>
+#include <melon/utility/string_printf.h>
 #include "melon/raft/ballot_box.h"
 #include "melon/raft/configuration.h"
 #include "melon/raft/fsm_caller.h"
@@ -21,7 +19,7 @@ void benchmark_vector_set(int num_peers) {
     std::vector<melon::raft::PeerId> peer_vector;
     for (int i = 0; i < num_peers; ++i) {
         std::string peer_desc;
-        butil::string_printf(&peer_desc, "192.168.1.%d:9876", i);
+        mutil::string_printf(&peer_desc, "192.168.1.%d:9876", i);
         melon::raft::PeerId peer(peer_desc);
         peer_set.insert(peer);
         peer_vector.push_back(peer);
@@ -30,7 +28,7 @@ void benchmark_vector_set(int num_peers) {
     std::random_shuffle(find_list.begin(), find_list.end());
     const size_t N = 100000;
     size_t counter = 0;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < find_list.size(); ++j) {
@@ -101,7 +99,7 @@ TEST_F(BallotBoxTest, odd_cluster) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 1; i <= 3; ++i) {
         std::string peer_addr;
-        butil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
+        mutil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
         peers.push_back(melon::raft::PeerId(peer_addr));
     }
     melon::raft::Configuration conf(peers);
@@ -134,7 +132,7 @@ TEST_F(BallotBoxTest, even_cluster) {
     std::vector<melon::raft::PeerId> peers;
     for (int i = 1; i <= 4; ++i) {
         std::string peer_addr;
-        butil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
+        mutil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
         peers.push_back(melon::raft::PeerId(peer_addr));
     }
     melon::raft::Configuration conf(peers);

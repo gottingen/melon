@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/memory/ref_counted_memory.h"
+#include "melon/utility/memory/ref_counted_memory.h"
 
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(RefCountedMemoryUnitTest, RefCountedStaticMemory) {
   scoped_refptr<RefCountedMemory> mem = new RefCountedStaticMemory(
@@ -86,4 +86,4 @@ TEST(RefCountedMemoryUnitTest, EqualsNull) {
   EXPECT_FALSE(mem->Equals(NULL));
 }
 
-}  //  namespace butil
+}  //  namespace mutil

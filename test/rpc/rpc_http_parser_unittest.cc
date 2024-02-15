@@ -18,8 +18,8 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "melon/butil/time.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/time.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/http/http_parser.h"
 #include "melon/builtin/common.h"  // AppendFileName
 
@@ -35,7 +35,7 @@ protected:
 
 TEST_F(HttpParserTest, init_perf) {
     const size_t loops = 10000000;
-    butil::Timer timer;
+    mutil::Timer timer;
     timer.start();
     for (size_t i = 0; i < loops; ++i) {
         http_parser parser;

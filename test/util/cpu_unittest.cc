@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/cpu.h"
-#include "melon/butil/build_config.h"
+#include "melon/utility/cpu.h"
+#include "melon/utility/build_config.h"
 
 #include <gtest/gtest.h>
 
@@ -15,7 +15,7 @@
 TEST(CPU, RunExtendedInstructions) {
 #if defined(ARCH_CPU_X86_FAMILY)
   // Retrieve the CPU information.
-  butil::CPU cpu;
+  mutil::CPU cpu;
 
 // TODO(jschuh): crbug.com/168866 Find a way to enable this on Win64.
 #if defined(OS_WIN) && !defined(_M_X64)

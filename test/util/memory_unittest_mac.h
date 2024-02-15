@@ -5,12 +5,12 @@
 // This file contains helpers for the process_util_unittest to allow it to fully
 // test the Mac code.
 
-#ifndef BUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
-#define BUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
+#ifndef MUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
+#define MUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
 
-#include "melon/butil/basictypes.h"
+#include "melon/utility/basictypes.h"
 
-namespace butil {
+namespace mutil {
 
 // Allocates memory via system allocators. Alas, they take a _signed_ size for
 // allocation.
@@ -27,6 +27,6 @@ void* AllocatePsychoticallyBigObjCObject();
 
 #endif  // !ARCH_CPU_64_BITS
 
-}  // namespace butil
+}  // namespace mutil
 
-#endif  // BUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
+#endif  // MUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_

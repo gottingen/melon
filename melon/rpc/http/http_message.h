@@ -21,10 +21,10 @@
 
 #include <memory>                      // std::unique_ptr
 #include <string>                      // std::string
-#include "melon/butil/macros.h"
-#include "melon/butil/iobuf.h"               // butil::IOBuf
-#include "melon/butil/scoped_lock.h"         // butil::unique_lock
-#include "melon/butil/endpoint.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/iobuf.h"               // mutil::IOBuf
+#include "melon/utility/scoped_lock.h"         // mutil::unique_lock
+#include "melon/utility/endpoint.h"
 #include "melon/rpc/http/http_parser.h"  // http_parser
 #include "melon/rpc/http/http_header.h"          // HttpHeader
 #include "melon/rpc/progressive_reader.h"   // ProgressiveReader
@@ -52,18 +52,18 @@ namespace melon {
 
         ~HttpMessage();
 
-        const butil::IOBuf &body() const { return _body; }
+        const mutil::IOBuf &body() const { return _body; }
 
-        butil::IOBuf &body() { return _body; }
+        mutil::IOBuf &body() { return _body; }
 
         // Parse from array, length=0 is treated as EOF.
         // Returns bytes parsed, -1 on failure.
         ssize_t ParseFromArray(const char *data, const size_t length);
 
-        // Parse from butil::IOBuf.
+        // Parse from mutil::IOBuf.
         // Emtpy `buf' is sliently ignored, which is different from ParseFromArray.
         // Returns bytes parsed, -1 on failure.
-        ssize_t ParseFromIOBuf(const butil::IOBuf &buf);
+        ssize_t ParseFromIOBuf(const mutil::IOBuf &buf);
 
         bool Completed() const { return _stage == HTTP_ON_MESSAGE_COMPLETE; }
 
@@ -118,7 +118,7 @@ namespace melon {
     private:
         DISALLOW_COPY_AND_ASSIGN(HttpMessage);
 
-        int UnlockAndFlushToBodyReader(std::unique_lock<butil::Mutex> &locked);
+        int UnlockAndFlushToBodyReader(std::unique_lock<mutil::Mutex> &locked);
 
         HttpParserStage _stage;
         std::string _url;
@@ -126,10 +126,10 @@ namespace melon {
         HttpHeader _header;
         bool _read_body_progressively;
         // For mutual exclusion between on_body and SetBodyReader.
-        butil::Mutex _body_mutex;
+        mutil::Mutex _body_mutex;
         // Read body progressively
         ProgressiveReader *_body_reader;
-        butil::IOBuf _body;
+        mutil::IOBuf _body;
 
         // Parser related members
         struct http_parser _parser;
@@ -138,7 +138,7 @@ namespace melon {
 
     protected:
         // Only valid when -http_verbose is on
-        std::unique_ptr<butil::IOBufBuilder> _vmsgbuilder;
+        std::unique_ptr<mutil::IOBufBuilder> _vmsgbuilder;
         size_t _vbodylen;
     };
 
@@ -148,17 +148,17 @@ namespace melon {
     // header: may be modified in some cases
     // remote_side: used when "Host" is absent
     // content: could be NULL.
-    void MakeRawHttpRequest(butil::IOBuf *request,
+    void MakeRawHttpRequest(mutil::IOBuf *request,
                             HttpHeader *header,
-                            const butil::EndPoint &remote_side,
-                            const butil::IOBuf *content);
+                            const mutil::EndPoint &remote_side,
+                            const mutil::IOBuf *content);
 
     // Serialize a http response.
     // header: may be modified in some cases
     // content: cleared after usage. could be NULL.
-    void MakeRawHttpResponse(butil::IOBuf *response,
+    void MakeRawHttpResponse(mutil::IOBuf *response,
                              HttpHeader *header,
-                             butil::IOBuf *content);
+                             mutil::IOBuf *content);
 
 } // namespace melon
 

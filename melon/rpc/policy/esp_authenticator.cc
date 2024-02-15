@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/butil/logging.h"
-#include "melon/butil/memory/singleton_on_pthread_once.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/memory/singleton_on_pthread_once.h"
 #include "melon/rpc/policy/esp_authenticator.h"
 
 
@@ -35,14 +35,14 @@ int EspAuthenticator::GenerateCredential(std::string* auth_str) const {
 
 int EspAuthenticator::VerifyCredential(
         const std::string& /*auth_str*/,
-        const butil::EndPoint& /*client_addr*/,
+        const mutil::EndPoint& /*client_addr*/,
         AuthContext* /*out_ctx*/) const {
     //nothing to do
     return 0;
 }
 
 const Authenticator* global_esp_authenticator() {
-    return butil::get_leaky_singleton<EspAuthenticator>();
+    return mutil::get_leaky_singleton<EspAuthenticator>();
 }
 
 }  // namespace policy

@@ -1,7 +1,5 @@
 // Copyright (c) 2016 Baidu.com, Inc. All Rights Reserved
 
-// Author: qinduohao@baidu.com
-// Date: 2017/05/23
 
 #include <gtest/gtest.h>
 #include "melon/raft/memory_log.h"

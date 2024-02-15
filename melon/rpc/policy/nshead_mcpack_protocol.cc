@@ -20,8 +20,8 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 
-#include "melon/butil/time.h"
-#include "melon/butil/iobuf.h"                        // butil::IOBuf
+#include "melon/utility/time.h"
+#include "melon/utility/iobuf.h"                        // mutil::IOBuf
 
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/socket.h"                   // Socket
@@ -96,14 +96,14 @@ void NsheadMcpackAdaptor::SerializeResponseToIOBuf(
 }
 
 void ProcessNsheadMcpackResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     const Socket* socket = msg->socket();
     
     // Fetch correlation id that we saved before in `PackNsheadMcpackRequest'
-    const bthread_id_t cid = { static_cast<uint64_t>(socket->correlation_id()) };
+    const fiber_session_t cid = { static_cast<uint64_t>(socket->correlation_id()) };
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -135,7 +135,7 @@ void ProcessNsheadMcpackResponse(InputMessageBase* msg_base) {
     accessor.OnResponse(cid, saved_error);
 } 
 
-void SerializeNsheadMcpackRequest(butil::IOBuf* buf, Controller* cntl,
+void SerializeNsheadMcpackRequest(mutil::IOBuf* buf, Controller* cntl,
                           const google::protobuf::Message* pb_req) {
     CompressType type = cntl->request_compress_type();
     if (type != COMPRESS_TYPE_NONE) {
@@ -151,12 +151,12 @@ void SerializeNsheadMcpackRequest(butil::IOBuf* buf, Controller* cntl,
     }
 }
 
-void PackNsheadMcpackRequest(butil::IOBuf* buf,
+void PackNsheadMcpackRequest(mutil::IOBuf* buf,
                              SocketMessage**,
                              uint64_t correlation_id,
                              const google::protobuf::MethodDescriptor*,
                              Controller* controller,
-                             const butil::IOBuf& request,
+                             const mutil::IOBuf& request,
                              const Authenticator* /*not supported*/) {
     ControllerPrivateAccessor accessor(controller);
     if (controller->connection_type() == CONNECTION_TYPE_SINGLE) {

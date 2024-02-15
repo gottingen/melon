@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/files/file_path.h"
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/files/file_path.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 #include <gtest/gtest.h>
 
@@ -14,7 +14,7 @@
 // This macro constructs strings which can contain NULs.
 #define FPS(x) FilePath::StringType(FPL(x), arraysize(FPL(x)) - 1)
 
-namespace butil {
+namespace mutil {
 
 struct UnaryTestData {
   const FilePath::CharType* input;
@@ -1283,4 +1283,4 @@ TEST_F(FilePathTest, ContentUriTest) {
 }
 #endif
 
-}  // namespace butil
+}  // namespace mutil

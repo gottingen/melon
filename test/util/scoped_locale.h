@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef BUTIL_TEST_SCOPED_LOCALE_H_
-#define BUTIL_TEST_SCOPED_LOCALE_H_
+#ifndef MUTIL_TEST_SCOPED_LOCALE_H_
+#define MUTIL_TEST_SCOPED_LOCALE_H_
 
 #include <string>
 
-#include "melon/butil/basictypes.h"
+#include "melon/utility/basictypes.h"
 
-namespace butil {
+namespace mutil {
 
 // Sets the given |locale| on construction, and restores the previous locale
 // on destruction.
@@ -24,6 +24,6 @@ class ScopedLocale {
   DISALLOW_COPY_AND_ASSIGN(ScopedLocale);
 };
 
-}  // namespace butil
+}  // namespace mutil
 
-#endif  // BUTIL_TEST_SCOPED_LOCALE_H_
+#endif  // MUTIL_TEST_SCOPED_LOCALE_H_

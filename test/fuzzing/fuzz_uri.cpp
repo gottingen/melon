@@ -39,11 +39,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         uri.SetHttpURL(input);
     }
     {
-        butil::StringPiece host;
-        butil::StringPiece vhost;
-        butil::StringPiece port;
-        butil::StringPiece app;
-        butil::StringPiece stream_name;
+        mutil::StringPiece host;
+        mutil::StringPiece vhost;
+        mutil::StringPiece port;
+        mutil::StringPiece app;
+        mutil::StringPiece stream_name;
 
         melon::ParseRtmpURL(input, &host, &vhost, &port, &app, &stream_name);
     }

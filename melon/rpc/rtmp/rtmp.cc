@@ -18,8 +18,8 @@
 
 #include <gflags/gflags.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h> // StringOutputStream
-#include "melon/bthread/bthread.h"                      // bthread_id_xx
-#include "melon/bthread/unstable.h"                     // bthread_timer_del
+#include "melon/fiber/fiber.h"                      // fiber_session_xx
+#include "melon/fiber/unstable.h"                     // fiber_timer_del
 #include "melon/rpc/log.h"
 #include "melon/rpc/callback.h"                   // Closure
 #include "melon/rpc/channel.h"                    // Channel
@@ -51,7 +51,7 @@ struct RtmpBvars {
     }
 };
 inline RtmpBvars* get_rtmp_bvars() {
-    return butil::get_leaky_singleton<RtmpBvars>();
+    return mutil::get_leaky_singleton<RtmpBvars>();
 }
 
 namespace policy {
@@ -59,15 +59,15 @@ int SendC0C1(int fd, bool* is_simple_handshake);
 int WriteWithoutOvercrowded(Socket*, SocketMessagePtr<>& msg);
 }
 
-FlvWriter::FlvWriter(butil::IOBuf* buf)
+FlvWriter::FlvWriter(mutil::IOBuf* buf)
     : _write_header(false), _buf(buf), _options() {
 }
 
-FlvWriter::FlvWriter(butil::IOBuf* buf, const FlvWriterOptions& options)
+FlvWriter::FlvWriter(mutil::IOBuf* buf, const FlvWriterOptions& options)
     : _write_header(false), _buf(buf), _options(options) {
 }
 
-butil::Status FlvWriter::Write(const RtmpVideoMessage& msg) {
+mutil::Status FlvWriter::Write(const RtmpVideoMessage& msg) {
     char buf[32];
     char* p = buf;
     if (!_write_header) {
@@ -92,10 +92,10 @@ butil::Status FlvWriter::Write(const RtmpVideoMessage& msg) {
     p = buf;
     policy::WriteBigEndian4Bytes(&p, 11 + msg.size());
     _buf->append(buf, p - buf);
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvWriter::Write(const RtmpAudioMessage& msg) {
+mutil::Status FlvWriter::Write(const RtmpAudioMessage& msg) {
     char buf[32];
     char* p = buf;
     if (!_write_header) {
@@ -123,10 +123,10 @@ butil::Status FlvWriter::Write(const RtmpAudioMessage& msg) {
     p = buf;
     policy::WriteBigEndian4Bytes(&p, 11 + msg.size());
     _buf->append(buf, p - buf);
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvWriter::WriteScriptData(const butil::IOBuf& req_buf, uint32_t timestamp) {
+mutil::Status FlvWriter::WriteScriptData(const mutil::IOBuf& req_buf, uint32_t timestamp) {
     char buf[32];
     char* p = buf;
     if (!_write_header) {
@@ -149,96 +149,96 @@ butil::Status FlvWriter::WriteScriptData(const butil::IOBuf& req_buf, uint32_t t
     p = buf;
     policy::WriteBigEndian4Bytes(&p, 11 + req_buf.size());
     _buf->append(buf, p - buf);
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvWriter::Write(const RtmpCuePoint& cuepoint) {
-    butil::IOBuf req_buf;
+mutil::Status FlvWriter::Write(const RtmpCuePoint& cuepoint) {
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_SET_DATAFRAME, &ostream);
         WriteAMFString(RTMP_AMF0_ON_CUE_POINT, &ostream);
         WriteAMFObject(cuepoint.data, &ostream);
         if (!ostream.good()) {
-            return butil::Status(EINVAL, "Fail to serialize cuepoint");
+            return mutil::Status(EINVAL, "Fail to serialize cuepoint");
         }
     }
     return WriteScriptData(req_buf, cuepoint.timestamp);
 }
 
-butil::Status FlvWriter::Write(const RtmpMetaData& metadata) {
-    butil::IOBuf req_buf;
+mutil::Status FlvWriter::Write(const RtmpMetaData& metadata) {
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_ON_META_DATA, &ostream);
         WriteAMFObject(metadata.data, &ostream);
         if (!ostream.good()) {
-            return butil::Status(EINVAL, "Fail to serialize metadata");
+            return mutil::Status(EINVAL, "Fail to serialize metadata");
         }
     }
     return WriteScriptData(req_buf, metadata.timestamp);
 }
 
-FlvReader::FlvReader(butil::IOBuf* buf)
+FlvReader::FlvReader(mutil::IOBuf* buf)
     : _read_header(false), _buf(buf) {
 }
 
-butil::Status FlvReader::ReadHeader() {
+mutil::Status FlvReader::ReadHeader() {
     if (!_read_header) {
         // 9 is the size of FlvHeader, which is usually composed of
         // { 'F', 'L', 'V', 0x01, 0x05, 0, 0, 0, 0x09 }.
         char header_buf[9 + 4/* PreviousTagSize0 */];
         const char* p = (const char*)_buf->fetch(header_buf, sizeof(header_buf));
         if (p == NULL) {
-            return butil::Status(EAGAIN, "Fail to read, not enough data");
+            return mutil::Status(EAGAIN, "Fail to read, not enough data");
         }
         const char flv_header_signature[3] = { 'F', 'L', 'V' };
         if (memcmp(p, flv_header_signature, sizeof(flv_header_signature)) != 0) {
             LOG(FATAL) << "Fail to parse FLV header";
-            return butil::Status(EINVAL, "Fail to parse FLV header");
+            return mutil::Status(EINVAL, "Fail to parse FLV header");
         }
         _buf->pop_front(sizeof(header_buf));
         _read_header = true;
     }
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvReader::PeekMessageType(FlvTagType* type_out) {
-    butil::Status st = ReadHeader();
+mutil::Status FlvReader::PeekMessageType(FlvTagType* type_out) {
+    mutil::Status st = ReadHeader();
     if (!st.ok()) {
         return st;
     }
     const char* p = (const char*)_buf->fetch1();
     if (p == NULL) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     FlvTagType type = (FlvTagType)*p;
     if (type != FLV_TAG_AUDIO && type != FLV_TAG_VIDEO &&
         type != FLV_TAG_SCRIPT_DATA) {
-        return butil::Status(EINVAL, "Fail to parse FLV tag");
+        return mutil::Status(EINVAL, "Fail to parse FLV tag");
     }
     if (type_out) {
         *type_out = type;
     }
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvReader::Read(RtmpVideoMessage* msg) {
+mutil::Status FlvReader::Read(RtmpVideoMessage* msg) {
     char tags[11];
     const unsigned char* p = (const unsigned char*)_buf->fetch(tags, sizeof(tags));
     if (p == NULL) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     if (*p != FLV_TAG_VIDEO) {
-        return butil::Status(EINVAL, "Fail to parse RtmpVideoMessage");
+        return mutil::Status(EINVAL, "Fail to parse RtmpVideoMessage");
     }
     uint32_t msg_size = policy::ReadBigEndian3Bytes(p + 1);
     uint32_t timestamp = policy::ReadBigEndian3Bytes(p + 4);
     timestamp |= (*(p + 7) << 24);
     if (_buf->length() < 11 + msg_size + 4/*PreviousTagSize*/) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     _buf->pop_front(11);
     char first_byte = 0;
@@ -250,23 +250,23 @@ butil::Status FlvReader::Read(RtmpVideoMessage* msg) {
     _buf->cutn(&msg->data, msg_size - 1);
     _buf->pop_front(4/* PreviousTagSize0 */);
 
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvReader::Read(RtmpAudioMessage* msg) {
+mutil::Status FlvReader::Read(RtmpAudioMessage* msg) {
     char tags[11];
     const unsigned char* p = (const unsigned char*)_buf->fetch(tags, sizeof(tags));
     if (p == NULL) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     if (*p != FLV_TAG_AUDIO) {
-        return butil::Status(EINVAL, "Fail to parse RtmpAudioMessage");
+        return mutil::Status(EINVAL, "Fail to parse RtmpAudioMessage");
     }
     uint32_t msg_size = policy::ReadBigEndian3Bytes(p + 1);
     uint32_t timestamp = policy::ReadBigEndian3Bytes(p + 4);
     timestamp |= (*(p + 7) << 24);
     if (_buf->length() < 11 + msg_size + 4/*PreviousTagSize*/) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     _buf->pop_front(11);
     char first_byte = 0;
@@ -279,40 +279,40 @@ butil::Status FlvReader::Read(RtmpAudioMessage* msg) {
     _buf->cutn(&msg->data, msg_size - 1);
     _buf->pop_front(4/* PreviousTagSize0 */);
 
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status FlvReader::Read(RtmpMetaData* msg, std::string* name) {
+mutil::Status FlvReader::Read(RtmpMetaData* msg, std::string* name) {
     char tags[11];
     const unsigned char* p = (const unsigned char*)_buf->fetch(tags, sizeof(tags));
     if (p == NULL) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     if (*p != FLV_TAG_SCRIPT_DATA) {
-        return butil::Status(EINVAL, "Fail to parse RtmpScriptMessage");
+        return mutil::Status(EINVAL, "Fail to parse RtmpScriptMessage");
     }
     uint32_t msg_size = policy::ReadBigEndian3Bytes(p + 1);
     uint32_t timestamp = policy::ReadBigEndian3Bytes(p + 4);
     timestamp |= (*(p + 7) << 24);
     if (_buf->length() < 11 + msg_size + 4/*PreviousTagSize*/) {
-        return butil::Status(EAGAIN, "Fail to read, not enough data");
+        return mutil::Status(EAGAIN, "Fail to read, not enough data");
     }
     _buf->pop_front(11);
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     _buf->cutn(&req_buf, msg_size);
     _buf->pop_front(4/* PreviousTagSize0 */);
     {
-        butil::IOBufAsZeroCopyInputStream zc_stream(req_buf);
+        mutil::IOBufAsZeroCopyInputStream zc_stream(req_buf);
         AMFInputStream istream(&zc_stream);
         if (!ReadAMFString(name, &istream)) {
-            return butil::Status(EINVAL, "Fail to read AMF string");
+            return mutil::Status(EINVAL, "Fail to read AMF string");
         }
         if (!ReadAMFObject(&msg->data, &istream)) {
-            return butil::Status(EINVAL, "Fail to read AMF object");
+            return mutil::Status(EINVAL, "Fail to read AMF object");
         }
     }
     msg->timestamp = timestamp;
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
 const char* FlvVideoFrameType2Str(FlvVideoFrameType t) {
@@ -402,27 +402,27 @@ std::ostream& operator<<(std::ostream& os, const RtmpAudioMessage& msg) {
               << " rate=" << FlvSoundRate2Str(msg.rate)
               << " bits=" << FlvSoundBits2Str(msg.bits)
               << " type=" << FlvSoundType2Str(msg.type)
-              << " data=" << butil::ToPrintable(msg.data) << '}';
+              << " data=" << mutil::ToPrintable(msg.data) << '}';
 }
 
 std::ostream& operator<<(std::ostream& os, const RtmpVideoMessage& msg) {
     return os << "VideoMessage{timestamp=" << msg.timestamp
               << " type=" << FlvVideoFrameType2Str(msg.frame_type)
               << " codec=" << FlvVideoCodec2Str(msg.codec)
-              << " data=" << butil::ToPrintable(msg.data) << '}';
+              << " data=" << mutil::ToPrintable(msg.data) << '}';
 }
 
-butil::Status RtmpAACMessage::Create(const RtmpAudioMessage& msg) {
+mutil::Status RtmpAACMessage::Create(const RtmpAudioMessage& msg) {
     if (msg.codec != FLV_AUDIO_AAC) {
-        return butil::Status(EINVAL, "codec=%s is not AAC",
+        return mutil::Status(EINVAL, "codec=%s is not AAC",
                             FlvAudioCodec2Str(msg.codec));
     }
     const uint8_t* p = (const uint8_t*)msg.data.fetch1();
     if (p == NULL) {
-        return butil::Status(EINVAL, "Not enough data in AudioMessage");
+        return mutil::Status(EINVAL, "Not enough data in AudioMessage");
     }
     if (*p > FLV_AAC_PACKET_RAW) {
-        return butil::Status(EINVAL, "Invalid AAC packet_type=%d", (int)*p);
+        return mutil::Status(EINVAL, "Invalid AAC packet_type=%d", (int)*p);
     }
     this->timestamp = msg.timestamp;
     this->rate = msg.rate;
@@ -430,7 +430,7 @@ butil::Status RtmpAACMessage::Create(const RtmpAudioMessage& msg) {
     this->type = msg.type;
     this->packet_type = (FlvAACPacketType)*p;
     msg.data.append_to(&data, msg.data.size() - 1, 1);
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
 AudioSpecificConfig::AudioSpecificConfig()
@@ -439,9 +439,9 @@ AudioSpecificConfig::AudioSpecificConfig()
     , aac_channels(0) {
 }
 
-butil::Status AudioSpecificConfig::Create(const butil::IOBuf& buf) {
+mutil::Status AudioSpecificConfig::Create(const mutil::IOBuf& buf) {
     if (buf.size() < 2u) {
-        return butil::Status(EINVAL, "data_size=%" PRIu64 " is too short",
+        return mutil::Status(EINVAL, "data_size=%" PRIu64 " is too short",
                              (uint64_t)buf.size());
     }
     char tmpbuf[2];
@@ -449,9 +449,9 @@ butil::Status AudioSpecificConfig::Create(const butil::IOBuf& buf) {
     return Create(tmpbuf, arraysize(tmpbuf));
 }
 
-butil::Status AudioSpecificConfig::Create(const void* data, size_t len) {
+mutil::Status AudioSpecificConfig::Create(const void* data, size_t len) {
     if (len < 2u) {
-        return butil::Status(EINVAL, "data_size=%" PRIu64 " is too short", (uint64_t)len);
+        return mutil::Status(EINVAL, "data_size=%" PRIu64 " is too short", (uint64_t)len);
     }
     uint8_t profile_ObjectType = ((const char*)data)[0];
     uint8_t samplingFrequencyIndex = ((const char*)data)[1];
@@ -459,9 +459,9 @@ butil::Status AudioSpecificConfig::Create(const void* data, size_t len) {
     aac_sample_rate = ((profile_ObjectType << 1) & 0x0e) | ((samplingFrequencyIndex >> 7) & 0x01);
     aac_object = (AACObjectType)((profile_ObjectType >> 3) & 0x1f);
     if (aac_object == AAC_OBJECT_UNKNOWN) {
-        return butil::Status(EINVAL, "Invalid object type");
+        return mutil::Status(EINVAL, "Invalid object type");
     }
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
 bool RtmpAudioMessage::IsAACSequenceHeader() const {
@@ -475,25 +475,25 @@ bool RtmpAudioMessage::IsAACSequenceHeader() const {
     return *p == FLV_AAC_PACKET_SEQUENCE_HEADER;
 }
 
-butil::Status RtmpAVCMessage::Create(const RtmpVideoMessage& msg) {
+mutil::Status RtmpAVCMessage::Create(const RtmpVideoMessage& msg) {
     if (msg.codec != FLV_VIDEO_AVC) {
-        return butil::Status(EINVAL, "codec=%s is not AVC",
+        return mutil::Status(EINVAL, "codec=%s is not AVC",
                             FlvVideoCodec2Str(msg.codec));
     }
     uint8_t buf[4];
     const uint8_t* p = (const uint8_t*)msg.data.fetch(buf, sizeof(buf));
     if (p == NULL) {
-        return butil::Status(EINVAL, "Not enough data in VideoMessage");
+        return mutil::Status(EINVAL, "Not enough data in VideoMessage");
     }
     if (*p > FLV_AVC_PACKET_END_OF_SEQUENCE) {
-        return butil::Status(EINVAL, "Invalid AVC packet_type=%d", (int)*p);
+        return mutil::Status(EINVAL, "Invalid AVC packet_type=%d", (int)*p);
     }
     this->timestamp = msg.timestamp;
     this->frame_type = msg.frame_type;
     this->packet_type = (FlvAVCPacketType)*p;
     this->composition_time = policy::ReadBigEndian3Bytes(p + 1);
     msg.data.append_to(&data, msg.data.size() - 4, 4);
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
 bool RtmpVideoMessage::IsAVCSequenceHeader() const {
@@ -569,7 +569,7 @@ std::ostream& operator<<(std::ostream& os,
     return os;
 }
 
-butil::Status AVCDecoderConfigurationRecord::Create(const butil::IOBuf& buf) {
+mutil::Status AVCDecoderConfigurationRecord::Create(const mutil::IOBuf& buf) {
     // the buf should be short generally, copy it out to continuous memory
     // to simplify parsing.
     DEFINE_SMALL_ARRAY(char, cont_buf, buf.size(), 64);
@@ -577,10 +577,10 @@ butil::Status AVCDecoderConfigurationRecord::Create(const butil::IOBuf& buf) {
     return Create(cont_buf, buf.size());
 }
 
-butil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len) {
-    butil::StringPiece buf((const char*)data, len);
+mutil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len) {
+    mutil::StringPiece buf((const char*)data, len);
     if (buf.size() < 6) {
-        return butil::Status(EINVAL, "Length=%lu is not long enough",
+        return mutil::Status(EINVAL, "Length=%lu is not long enough",
                             (unsigned long)buf.size());
     }
     // skip configurationVersion at buf[0]
@@ -595,7 +595,7 @@ butil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len
     // length encoded with 1, 2, or 4 bytes, respectively.
     length_size_minus1 = buf[4] & 0x03;
     if (length_size_minus1 == 2) {
-        return butil::Status(EINVAL, "lengthSizeMinusOne should never be 2");
+        return mutil::Status(EINVAL, "lengthSizeMinusOne should never be 2");
     }
 
     // Parsing SPS
@@ -605,14 +605,14 @@ butil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len
     sps_list.reserve(num_sps);
     for (int i = 0; i < num_sps; ++i) {
         if (buf.size() < 2) {
-            return butil::Status(EINVAL, "Not enough data to decode SPS-length");
+            return mutil::Status(EINVAL, "Not enough data to decode SPS-length");
         }
         const uint16_t sps_length = policy::ReadBigEndian2Bytes(buf.data());
         if (buf.size() < 2u + sps_length) {
-            return butil::Status(EINVAL, "Not enough data to decode SPS");
+            return mutil::Status(EINVAL, "Not enough data to decode SPS");
         }
         if (sps_length > 0) {
-            butil::Status st = ParseSPS(buf.data() + 2, sps_length);
+            mutil::Status st = ParseSPS(buf.data() + 2, sps_length);
             if (!st.ok()) {
                 return st;
             }
@@ -623,37 +623,37 @@ butil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len
     // Parsing PPS
     pps_list.clear();
     if (buf.empty()) {
-        return butil::Status(EINVAL, "Not enough data to decode PPS");
+        return mutil::Status(EINVAL, "Not enough data to decode PPS");
     }
     const int num_pps = (int)buf[0];
     buf.remove_prefix(1);
     for (int i = 0; i < num_pps; ++i) {
         if (buf.size() < 2) {
-            return butil::Status(EINVAL, "Not enough data to decode PPS-length");
+            return mutil::Status(EINVAL, "Not enough data to decode PPS-length");
         }
         const uint16_t pps_length = policy::ReadBigEndian2Bytes(buf.data());
         if (buf.size() < 2u + pps_length) {
-            return butil::Status(EINVAL, "Not enough data to decode PPS");
+            return mutil::Status(EINVAL, "Not enough data to decode PPS");
         }
         if (pps_length > 0) {
             pps_list.push_back(buf.substr(2, pps_length).as_string());
         }
         buf.remove_prefix(2 + pps_length);
     }
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-butil::Status AVCDecoderConfigurationRecord::ParseSPS(
-    const butil::StringPiece& buf, size_t sps_length) {
+mutil::Status AVCDecoderConfigurationRecord::ParseSPS(
+    const mutil::StringPiece& buf, size_t sps_length) {
     // for NALU, 7.3.1 NAL unit syntax
     // H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 61.
     if (buf.empty()) {
-        return butil::Status(EINVAL, "SPS is empty");
+        return mutil::Status(EINVAL, "SPS is empty");
     }
     const int8_t nutv = buf[0];
     const int8_t forbidden_zero_bit = (nutv >> 7) & 0x01;
     if (forbidden_zero_bit) {
-        return butil::Status(EINVAL, "forbidden_zero_bit shall equal 0");
+        return mutil::Status(EINVAL, "forbidden_zero_bit shall equal 0");
     }
     // nal_ref_idc not equal to 0 specifies that the content of the NAL unit
     // contains:
@@ -663,7 +663,7 @@ butil::Status AVCDecoderConfigurationRecord::ParseSPS(
     // or a slice data partition of a reference picture.
     int8_t nal_ref_idc = (nutv >> 5) & 0x03;
     if (!nal_ref_idc) {
-        return butil::Status(EINVAL, "nal_ref_idc is 0");
+        return mutil::Status(EINVAL, "nal_ref_idc is 0");
     }
     // 7.4.1 NAL unit semantics
     // H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 61.
@@ -671,7 +671,7 @@ butil::Status AVCDecoderConfigurationRecord::ParseSPS(
     // the NAL unit as specified in Table 7-1.
     const AVCNaluType nal_unit_type = (AVCNaluType)(nutv & 0x1f);
     if (nal_unit_type != AVC_NALU_SPS) {
-        return butil::Status(EINVAL, "nal_unit_type is not %d", (int)AVC_NALU_SPS);
+        return mutil::Status(EINVAL, "nal_unit_type is not %d", (int)AVC_NALU_SPS);
     }
     // Extract the rbsp from sps.
     DEFINE_SMALL_ARRAY(char, rbsp, sps_length - 1, 64);
@@ -686,29 +686,29 @@ butil::Status AVCDecoderConfigurationRecord::ParseSPS(
     // for SPS, 7.3.2.1.1 Sequence parameter set data syntax
     // H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 62.
     if (rbsp_len < 3) {
-        return butil::Status(EINVAL, "rbsp must be at least 3 bytes");
+        return mutil::Status(EINVAL, "rbsp must be at least 3 bytes");
     }
     // Decode rbsp.
     const char* p = rbsp;
     uint8_t profile_idc = *p++;
     if (!profile_idc) {
-        return butil::Status(EINVAL, "profile_idc is 0");
+        return mutil::Status(EINVAL, "profile_idc is 0");
     }
     int8_t flags = *p++;
     if (flags & 0x03) {
-        return butil::Status(EINVAL, "Invalid flags=%d", (int)flags);
+        return mutil::Status(EINVAL, "Invalid flags=%d", (int)flags);
     }
     uint8_t level_idc = *p++;
     if (!level_idc) {
-        return butil::Status(EINVAL, "level_idc is 0");
+        return mutil::Status(EINVAL, "level_idc is 0");
     }
     BitStream bs(p, rbsp + rbsp_len - p);
     int32_t seq_parameter_set_id = -1;
     if (avc_nalu_read_uev(&bs, &seq_parameter_set_id) != 0) {
-        return butil::Status(EINVAL, "Fail to read seq_parameter_set_id");
+        return mutil::Status(EINVAL, "Fail to read seq_parameter_set_id");
     }
     if (seq_parameter_set_id < 0) {
-        return butil::Status(EINVAL, "Invalid seq_parameter_set_id=%d",
+        return mutil::Status(EINVAL, "Invalid seq_parameter_set_id=%d",
                             (int)seq_parameter_set_id);
     }
     int32_t chroma_format_idc = -1;
@@ -716,40 +716,40 @@ butil::Status AVCDecoderConfigurationRecord::ParseSPS(
         profile_idc == 244 || profile_idc == 44 || profile_idc == 83 ||
         profile_idc == 86 || profile_idc == 118 || profile_idc == 128) {
         if (avc_nalu_read_uev(&bs, &chroma_format_idc) != 0) {
-            return butil::Status(EINVAL, "Fail to read chroma_format_idc");
+            return mutil::Status(EINVAL, "Fail to read chroma_format_idc");
         }
         if (chroma_format_idc == 3) {
             int8_t separate_colour_plane_flag = -1;
             if (avc_nalu_read_bit(&bs, &separate_colour_plane_flag) != 0) {
-                return butil::Status(EINVAL, "Fail to read separate_colour_plane_flag");
+                return mutil::Status(EINVAL, "Fail to read separate_colour_plane_flag");
             }
         }
         int32_t bit_depth_luma_minus8 = -1;
         if (avc_nalu_read_uev(&bs, &bit_depth_luma_minus8) != 0) {
-            return butil::Status(EINVAL, "Fail to read bit_depth_luma_minus8");
+            return mutil::Status(EINVAL, "Fail to read bit_depth_luma_minus8");
         }
         int32_t bit_depth_chroma_minus8 = -1;
         if (avc_nalu_read_uev(&bs, &bit_depth_chroma_minus8) != 0) {
-            return butil::Status(EINVAL, "Fail to read bit_depth_chroma_minus8");
+            return mutil::Status(EINVAL, "Fail to read bit_depth_chroma_minus8");
         }
         int8_t qpprime_y_zero_transform_bypass_flag = -1;
         if (avc_nalu_read_bit(&bs, &qpprime_y_zero_transform_bypass_flag) != 0) {
-            return butil::Status(EINVAL, "Fail to read qpprime_y_zero_transform_bypass_flag");
+            return mutil::Status(EINVAL, "Fail to read qpprime_y_zero_transform_bypass_flag");
         }
         int8_t seq_scaling_matrix_present_flag = -1;
         if (avc_nalu_read_bit(&bs, &seq_scaling_matrix_present_flag) != 0) {
-            return butil::Status(EINVAL, "Fail to read seq_scaling_matrix_present_flag");
+            return mutil::Status(EINVAL, "Fail to read seq_scaling_matrix_present_flag");
         }
         if (seq_scaling_matrix_present_flag) {
             int nb_scmpfs = (chroma_format_idc != 3 ? 8 : 12);
             for (int i = 0; i < nb_scmpfs; i++) {
                 int8_t seq_scaling_matrix_present_flag_i = -1;
                 if (avc_nalu_read_bit(&bs, &seq_scaling_matrix_present_flag_i)) {
-                    return butil::Status(EINVAL, "Fail to read seq_scaling_"
+                    return mutil::Status(EINVAL, "Fail to read seq_scaling_"
                                         "matrix_present_flag[%d]", i);
                 }
                 if (seq_scaling_matrix_present_flag_i) {
-                    return butil::Status(EINVAL, "Invalid seq_scaling_matrix_"
+                    return mutil::Status(EINVAL, "Invalid seq_scaling_matrix_"
                                         "present_flag[%d]=%d nb_scmpfs=%d",
                                         i, (int)seq_scaling_matrix_present_flag_i,
                                         nb_scmpfs);
@@ -759,64 +759,64 @@ butil::Status AVCDecoderConfigurationRecord::ParseSPS(
     }
     int32_t log2_max_frame_num_minus4 = -1;
     if (avc_nalu_read_uev(&bs, &log2_max_frame_num_minus4) != 0) {
-        return butil::Status(EINVAL, "Fail to read log2_max_frame_num_minus4");
+        return mutil::Status(EINVAL, "Fail to read log2_max_frame_num_minus4");
     }
     int32_t pic_order_cnt_type = -1;
     if (avc_nalu_read_uev(&bs, &pic_order_cnt_type) != 0) {
-        return butil::Status(EINVAL, "Fail to read pic_order_cnt_type");
+        return mutil::Status(EINVAL, "Fail to read pic_order_cnt_type");
     }
     if (pic_order_cnt_type == 0) {
         int32_t log2_max_pic_order_cnt_lsb_minus4 = -1;
         if (avc_nalu_read_uev(&bs, &log2_max_pic_order_cnt_lsb_minus4) != 0) {
-            return butil::Status(EINVAL, "Fail to read log2_max_pic_order_cnt_lsb_minus4");
+            return mutil::Status(EINVAL, "Fail to read log2_max_pic_order_cnt_lsb_minus4");
         }
     } else if (pic_order_cnt_type == 1) {
         int8_t delta_pic_order_always_zero_flag = -1;
         if (avc_nalu_read_bit(&bs, &delta_pic_order_always_zero_flag) != 0) {
-            return butil::Status(EINVAL, "Fail to read delta_pic_order_always_zero_flag");
+            return mutil::Status(EINVAL, "Fail to read delta_pic_order_always_zero_flag");
         }
         int32_t offset_for_non_ref_pic = -1;
         if (avc_nalu_read_uev(&bs, &offset_for_non_ref_pic) != 0) {
-            return butil::Status(EINVAL, "Fail to read offset_for_non_ref_pic");
+            return mutil::Status(EINVAL, "Fail to read offset_for_non_ref_pic");
         }
         int32_t offset_for_top_to_bottom_field = -1;
         if (avc_nalu_read_uev(&bs, &offset_for_top_to_bottom_field) != 0) {
-            return butil::Status(EINVAL, "Fail to read offset_for_top_to_bottom_field");
+            return mutil::Status(EINVAL, "Fail to read offset_for_top_to_bottom_field");
         }
         int32_t num_ref_frames_in_pic_order_cnt_cycle = -1;
         if (avc_nalu_read_uev(&bs, &num_ref_frames_in_pic_order_cnt_cycle) != 0) {
-            return butil::Status(EINVAL, "Fail to read num_ref_frames_in_pic_order_cnt_cycle");
+            return mutil::Status(EINVAL, "Fail to read num_ref_frames_in_pic_order_cnt_cycle");
         }
         if (num_ref_frames_in_pic_order_cnt_cycle) {
-            return butil::Status(EINVAL, "Invalid num_ref_frames_in_pic_order_cnt_cycle=%d",
+            return mutil::Status(EINVAL, "Invalid num_ref_frames_in_pic_order_cnt_cycle=%d",
                                 num_ref_frames_in_pic_order_cnt_cycle);
         }
     }
     int32_t max_num_ref_frames = -1;
     if (avc_nalu_read_uev(&bs, &max_num_ref_frames) != 0) {
-        return butil::Status(EINVAL, "Fail to read max_num_ref_frames");
+        return mutil::Status(EINVAL, "Fail to read max_num_ref_frames");
     }
     int8_t gaps_in_frame_num_value_allowed_flag = -1;
     if (avc_nalu_read_bit(&bs, &gaps_in_frame_num_value_allowed_flag) != 0) {
-        return butil::Status(EINVAL, "Fail to read gaps_in_frame_num_value_allowed_flag");
+        return mutil::Status(EINVAL, "Fail to read gaps_in_frame_num_value_allowed_flag");
     }
     int32_t pic_width_in_mbs_minus1 = -1;
     if (avc_nalu_read_uev(&bs, &pic_width_in_mbs_minus1) != 0) {
-        return butil::Status(EINVAL, "Fail to read pic_width_in_mbs_minus1");
+        return mutil::Status(EINVAL, "Fail to read pic_width_in_mbs_minus1");
     }
     int32_t pic_height_in_map_units_minus1 = -1;
     if (avc_nalu_read_uev(&bs, &pic_height_in_map_units_minus1) != 0) {
-        return butil::Status(EINVAL, "Fail to read pic_height_in_map_units_minus1");
+        return mutil::Status(EINVAL, "Fail to read pic_height_in_map_units_minus1");
     }
     width = (int)(pic_width_in_mbs_minus1 + 1) * 16;
     height = (int)(pic_height_in_map_units_minus1 + 1) * 16;
-    return butil::Status::OK();
+    return mutil::Status::OK();
 }
 
-static bool find_avc_annexb_nalu_start_code(const butil::IOBuf& buf,
+static bool find_avc_annexb_nalu_start_code(const mutil::IOBuf& buf,
                                             size_t* start_code_length) {
     size_t consecutive_zero_count = 0;
-    for (butil::IOBufBytesIterator it(buf); it != NULL; ++it) {
+    for (mutil::IOBufBytesIterator it(buf); it != NULL; ++it) {
         char c = *it;
         if (c == 0) {
             ++consecutive_zero_count;
@@ -835,12 +835,12 @@ static bool find_avc_annexb_nalu_start_code(const butil::IOBuf& buf,
     return false;
 }
 
-static void find_avc_annexb_nalu_stop_code(const butil::IOBuf& buf,
+static void find_avc_annexb_nalu_stop_code(const mutil::IOBuf& buf,
                                            size_t* nalu_length_out,
                                            size_t* stop_code_length) {
     size_t nalu_length = 0;
     size_t consecutive_zero_count = 0;
-    for (butil::IOBufBytesIterator it(buf); it != NULL; ++it) {
+    for (mutil::IOBufBytesIterator it(buf); it != NULL; ++it) {
         unsigned char c = (unsigned char)*it;
         if (c > 1) { // most frequent
             ++nalu_length;
@@ -871,7 +871,7 @@ static void find_avc_annexb_nalu_stop_code(const butil::IOBuf& buf,
     }
 }
 
-AVCNaluIterator::AVCNaluIterator(butil::IOBuf* data, uint32_t length_size_minus1,
+AVCNaluIterator::AVCNaluIterator(mutil::IOBuf* data, uint32_t length_size_minus1,
                                  AVCNaluFormat* format)
     : _data(data)
     , _format(format)
@@ -1004,7 +1004,7 @@ public:
     }
 
     // Specify the servers to connect.
-    int Init(butil::EndPoint server_addr_and_port,
+    int Init(mutil::EndPoint server_addr_and_port,
              const RtmpClientOptions& options);
     int Init(const char* server_addr_and_port,
              const RtmpClientOptions& options);
@@ -1017,7 +1017,7 @@ public:
     const RtmpClientOptions& options() const { return _connect_options; }
     SocketMap& socket_map() { return _socket_map; }
 
-    int CreateSocket(const butil::EndPoint& pt, SocketId* id);
+    int CreateSocket(const mutil::EndPoint& pt, SocketId* id);
 
 private:
     DISALLOW_COPY_AND_ASSIGN(RtmpClientImpl);
@@ -1098,7 +1098,7 @@ private:
     RtmpClientOptions _connect_options;
 };
 
-int RtmpClientImpl::CreateSocket(const butil::EndPoint& pt, SocketId* id) {
+int RtmpClientImpl::CreateSocket(const mutil::EndPoint& pt, SocketId* id) {
     SocketOptions sock_opt;
     sock_opt.remote_side = pt;
     sock_opt.app_connect = std::make_shared<RtmpConnect>();
@@ -1117,7 +1117,7 @@ int RtmpClientImpl::CommonInit(const RtmpClientOptions& options) {
     return 0;
 }
 
-int RtmpClientImpl::Init(butil::EndPoint server_addr_and_port,
+int RtmpClientImpl::Init(mutil::EndPoint server_addr_and_port,
                          const RtmpClientOptions& options) {
     if (CommonInit(options) != 0) {
         return -1;
@@ -1181,9 +1181,9 @@ const RtmpClientOptions& RtmpClient::options() const {
     }
 }
 
-int RtmpClient::Init(butil::EndPoint server_addr_and_port,
+int RtmpClient::Init(mutil::EndPoint server_addr_and_port,
                      const RtmpClientOptions& options) {
-    butil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
+    mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
         LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
@@ -1197,7 +1197,7 @@ int RtmpClient::Init(butil::EndPoint server_addr_and_port,
 
 int RtmpClient::Init(const char* server_addr_and_port,
                      const RtmpClientOptions& options) {
-    butil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
+    mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
         LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
@@ -1211,7 +1211,7 @@ int RtmpClient::Init(const char* server_addr_and_port,
 
 int RtmpClient::Init(const char* server_addr, int port,
                      const RtmpClientOptions& options) {
-    butil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
+    mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
         LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
@@ -1226,7 +1226,7 @@ int RtmpClient::Init(const char* server_addr, int port,
 int RtmpClient::Init(const char* naming_service_url, 
                      const char* load_balancer_name,
                      const RtmpClientOptions& options) {
-    butil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
+    mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
         LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
@@ -1248,7 +1248,7 @@ RtmpStreamBase::RtmpStreamBase(bool is_client)
     , _has_data_ever(false)
     , _message_stream_id(0)
     , _chunk_stream_id(0)
-    , _create_realtime_us(butil::gettimeofday_us())
+    , _create_realtime_us(mutil::gettimeofday_us())
     , _is_server_accepted(false) {
 }
 
@@ -1261,7 +1261,7 @@ void RtmpStreamBase::Destroy() {
 
 int RtmpStreamBase::SendMessage(uint32_t timestamp,
                                 uint8_t message_type,
-                                const butil::IOBuf& body) {
+                                const mutil::IOBuf& body) {
     if (_rtmpsock == NULL) {
         errno = EPERM;
         return -1;
@@ -1293,9 +1293,9 @@ int RtmpStreamBase::SendControlMessage(
 }
 
 int RtmpStreamBase::SendCuePoint(const RtmpCuePoint& cuepoint) {
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_SET_DATAFRAME, &ostream);
         WriteAMFString(RTMP_AMF0_ON_CUE_POINT, &ostream);
@@ -1309,10 +1309,10 @@ int RtmpStreamBase::SendCuePoint(const RtmpCuePoint& cuepoint) {
 }
 
 int RtmpStreamBase::SendMetaData(const RtmpMetaData& metadata,
-                                 const butil::StringPiece& name) {
-    butil::IOBuf req_buf;
+                                 const mutil::StringPiece& name) {
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(name, &ostream);
         WriteAMFObject(metadata.data, &ostream);
@@ -1464,7 +1464,7 @@ int RtmpStreamBase::SendAVCMessage(const RtmpAVCMessage& msg) {
     return _rtmpsock->Write(msg2);
 }
 
-int RtmpStreamBase::SendStopMessage(const butil::StringPiece&) {
+int RtmpStreamBase::SendStopMessage(const mutil::StringPiece&) {
     return -1;
 }
 
@@ -1492,7 +1492,7 @@ void RtmpStreamBase::OnCuePoint(RtmpCuePoint* cuepoint) {
               << "] ignored CuePoint{" << cuepoint->data << '}';
 }
 
-void RtmpStreamBase::OnMetaData(RtmpMetaData* metadata, const butil::StringPiece& name) {
+void RtmpStreamBase::OnMetaData(RtmpMetaData* metadata, const mutil::StringPiece& name) {
     LOG(INFO) << remote_side() << '[' << stream_id()
               << "] ignored MetaData{" << metadata->data << '}'
               << " name{" << name << '}';
@@ -1516,7 +1516,7 @@ void RtmpStreamBase::OnStop() {
 }
 
 bool RtmpStreamBase::BeginProcessingMessage(const char* fun_name) {
-    std::unique_lock<butil::Mutex> mu(_call_mutex);
+    std::unique_lock<mutil::Mutex> mu(_call_mutex);
     if (_stopped) {
         mu.unlock();
         LOG(ERROR) << fun_name << " is called after OnStop()";
@@ -1536,7 +1536,7 @@ bool RtmpStreamBase::BeginProcessingMessage(const char* fun_name) {
 }
 
 void RtmpStreamBase::EndProcessingMessage() {
-    std::unique_lock<butil::Mutex> mu(_call_mutex);
+    std::unique_lock<mutil::Mutex> mu(_call_mutex);
     _processing_msg = false;
     if (_stopped) {
         mu.unlock();
@@ -1558,7 +1558,7 @@ void RtmpStreamBase::CallOnCuePoint(RtmpCuePoint* obj) {
     }
 }
 
-void RtmpStreamBase::CallOnMetaData(RtmpMetaData* obj, const butil::StringPiece& name) {
+void RtmpStreamBase::CallOnMetaData(RtmpMetaData* obj, const mutil::StringPiece& name) {
     if (BeginProcessingMessage("OnMetaData()")) {
         OnMetaData(obj, name);
         EndProcessingMessage();
@@ -1588,7 +1588,7 @@ void RtmpStreamBase::CallOnVideoMessage(RtmpVideoMessage* msg) {
 
 void RtmpStreamBase::CallOnStop() {
     {
-        std::unique_lock<butil::Mutex> mu(_call_mutex);
+        std::unique_lock<mutil::Mutex> mu(_call_mutex);
         if (_stopped) {
             mu.unlock();
             LOG(ERROR) << "OnStop() was called more than once";
@@ -1603,18 +1603,18 @@ void RtmpStreamBase::CallOnStop() {
     OnStop();
 }
  
-butil::EndPoint RtmpStreamBase::remote_side() const
-{ return _rtmpsock ? _rtmpsock->remote_side() : butil::EndPoint(); }
+mutil::EndPoint RtmpStreamBase::remote_side() const
+{ return _rtmpsock ? _rtmpsock->remote_side() : mutil::EndPoint(); }
 
-butil::EndPoint RtmpStreamBase::local_side() const
-{ return _rtmpsock ? _rtmpsock->local_side() : butil::EndPoint(); }
+mutil::EndPoint RtmpStreamBase::local_side() const
+{ return _rtmpsock ? _rtmpsock->local_side() : mutil::EndPoint(); }
 
 // ============ RtmpClientStream =============
 
 RtmpClientStream::RtmpClientStream()
     : RtmpStreamBase(true)
-    , _onfail_id(INVALID_BTHREAD_ID)
-    , _create_stream_rpc_id(INVALID_BTHREAD_ID)
+    , _onfail_id(INVALID_FIBER_ID)
+    , _create_stream_rpc_id(INVALID_FIBER_ID)
     , _from_socketmap(true)
     , _created_stream_with_play_or_publish(false)
     , _state(STATE_UNINITIALIZED) {
@@ -1627,11 +1627,11 @@ RtmpClientStream::~RtmpClientStream() {
 }
 
 void RtmpClientStream::Destroy() {
-    bthread_id_t onfail_id = INVALID_BTHREAD_ID;
-    CallId create_stream_rpc_id = INVALID_BTHREAD_ID;
-    butil::intrusive_ptr<RtmpClientStream> self_ref;
+    fiber_session_t onfail_id = INVALID_FIBER_ID;
+    CallId create_stream_rpc_id = INVALID_FIBER_ID;
+    mutil::intrusive_ptr<RtmpClientStream> self_ref;
     
-    std::unique_lock<butil::Mutex> mu(_state_mutex);
+    std::unique_lock<mutil::Mutex> mu(_state_mutex);
     switch (_state) {
     case STATE_UNINITIALIZED:
         _state = STATE_DESTROYING;
@@ -1651,7 +1651,7 @@ void RtmpClientStream::Destroy() {
         onfail_id = _onfail_id;
         mu.unlock();
         _self_ref.swap(self_ref);
-        bthread_id_error(onfail_id, 0);
+        fiber_session_error(onfail_id, 0);
         return;
     case STATE_ERROR:
         _state = STATE_DESTROYING;
@@ -1665,8 +1665,8 @@ void RtmpClientStream::Destroy() {
 }
 
 void RtmpClientStream::SignalError() {
-    bthread_id_t onfail_id = INVALID_BTHREAD_ID;
-    std::unique_lock<butil::Mutex> mu(_state_mutex);
+    fiber_session_t onfail_id = INVALID_FIBER_ID;
+    std::unique_lock<mutil::Mutex> mu(_state_mutex);
     switch (_state) {
     case STATE_UNINITIALIZED:
         _state = STATE_ERROR;
@@ -1681,7 +1681,7 @@ void RtmpClientStream::SignalError() {
         _state = STATE_ERROR;
         onfail_id = _onfail_id;
         mu.unlock();
-        bthread_id_error(onfail_id, 0);
+        fiber_session_error(onfail_id, 0);
         return;
     case STATE_ERROR:
     case STATE_DESTROYING:
@@ -1693,7 +1693,7 @@ void RtmpClientStream::SignalError() {
 StreamUserData* RtmpClientStream::OnCreatingStream(
     SocketUniquePtr* inout, Controller* cntl) {
     {
-        std::unique_lock<butil::Mutex> mu(_state_mutex);
+        std::unique_lock<mutil::Mutex> mu(_state_mutex);
         if (_state == STATE_ERROR || _state == STATE_DESTROYING) {
             cntl->SetFailed(EINVAL, "Fail to replace socket for stream, _state is error or destroying");
             return NULL;
@@ -1726,20 +1726,20 @@ StreamUserData* RtmpClientStream::OnCreatingStream(
     return this;
 }
 
-int RtmpClientStream::RunOnFailed(bthread_id_t id, void* data, int) {
-    butil::intrusive_ptr<RtmpClientStream> stream(
+int RtmpClientStream::RunOnFailed(fiber_session_t id, void* data, int) {
+    mutil::intrusive_ptr<RtmpClientStream> stream(
         static_cast<RtmpClientStream*>(data), false);
     CHECK(stream->_rtmpsock);
     // Must happen after NotifyOnFailed which is after all other callsites
     // to OnStopInternal().
     stream->OnStopInternal();
-    bthread_id_unlock_and_destroy(id);
+    fiber_session_unlock_and_destroy(id);
     return 0;
 }
 
 void RtmpClientStream::OnFailedToCreateStream() {
     {
-        std::unique_lock<butil::Mutex> mu(_state_mutex);
+        std::unique_lock<mutil::Mutex> mu(_state_mutex);
         switch (_state) {
         case STATE_CREATING:
             _state = STATE_ERROR;
@@ -1809,20 +1809,20 @@ void RtmpClientStream::DestroyStreamCreator(Controller* cntl) {
     }
 
     int rc = 0;
-    bthread_id_t onfail_id = INVALID_BTHREAD_ID;
+    fiber_session_t onfail_id = INVALID_FIBER_ID;
     {
-        std::unique_lock<butil::Mutex> mu(_state_mutex);
+        std::unique_lock<mutil::Mutex> mu(_state_mutex);
         switch (_state) {
         case STATE_CREATING:
             CHECK(_rtmpsock);
-            rc = bthread_id_create(&onfail_id, this, RunOnFailed);
+            rc = fiber_session_create(&onfail_id, this, RunOnFailed);
             if (rc) {
                 cntl->SetFailed(ENOMEM, "Fail to create _onfail_id: %s", berror(rc));
                 mu.unlock();
                 return OnFailedToCreateStream();
             }
             // Add a ref for RunOnFailed.
-            butil::intrusive_ptr<RtmpClientStream>(this).detach();
+            mutil::intrusive_ptr<RtmpClientStream>(this).detach();
             _state = STATE_CREATED;
             _onfail_id = onfail_id;
             break;
@@ -1838,7 +1838,7 @@ void RtmpClientStream::DestroyStreamCreator(Controller* cntl) {
             return OnStopInternal();
         }
     }
-    if (onfail_id != INVALID_BTHREAD_ID) {
+    if (onfail_id != INVALID_FIBER_ID) {
         _rtmpsock->NotifyOnFailed(onfail_id);
     }
 }
@@ -1850,9 +1850,9 @@ void RtmpClientStream::OnStopInternal() {
 
     if (!_rtmpsock->Failed() && _chunk_stream_id != 0) {
         // SRS requires closeStream which is sent over this stream.
-        butil::IOBuf req_buf1;
+        mutil::IOBuf req_buf1;
         {
-            butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf1);
+            mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf1);
             AMFOutputStream ostream(&zc_stream);
             WriteAMFString(RTMP_AMF0_COMMAND_CLOSE_STREAM, &ostream);
             WriteAMFUint32(0, &ostream);
@@ -1867,9 +1867,9 @@ void RtmpClientStream::OnStopInternal() {
         msg1->body = req_buf1;
     
         // Send deleteStream over the control stream.
-        butil::IOBuf req_buf2;
+        mutil::IOBuf req_buf2;
         {
-            butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf2);
+            mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf2);
             AMFOutputStream ostream(&zc_stream);
             WriteAMFString(RTMP_AMF0_COMMAND_DELETE_STREAM, &ostream);
             WriteAMFUint32(0, &ostream);
@@ -1933,9 +1933,9 @@ int RtmpClientStream::Play(const RtmpPlayOptions& opt) {
         errno = EPERM;
         return -1;
     }
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_COMMAND_PLAY, &ostream);
         WriteAMFUint32(0, &ostream);
@@ -1974,9 +1974,9 @@ int RtmpClientStream::Play(const RtmpPlayOptions& opt) {
 }
 
 int RtmpClientStream::Play2(const RtmpPlay2Options& opt) {
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_COMMAND_PLAY2, &ostream);
         WriteAMFUint32(0, &ostream);
@@ -2000,7 +2000,7 @@ const char* RtmpPublishType2Str(RtmpPublishType type) {
     return "Unknown RtmpPublishType";
 }
 
-bool Str2RtmpPublishType(const butil::StringPiece& str, RtmpPublishType* type) {
+bool Str2RtmpPublishType(const mutil::StringPiece& str, RtmpPublishType* type) {
     if (str == "record") {
         *type = RTMP_PUBLISH_RECORD;
         return true;
@@ -2014,11 +2014,11 @@ bool Str2RtmpPublishType(const butil::StringPiece& str, RtmpPublishType* type) {
     return false;
 }
 
-int RtmpClientStream::Publish(const butil::StringPiece& name,
+int RtmpClientStream::Publish(const mutil::StringPiece& name,
                               RtmpPublishType type) {
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_COMMAND_PUBLISH, &ostream);
         WriteAMFUint32(0, &ostream);
@@ -2031,9 +2031,9 @@ int RtmpClientStream::Publish(const butil::StringPiece& name,
 }
 
 int RtmpClientStream::Seek(double offset_ms) {
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_COMMAND_SEEK, &ostream);
         WriteAMFUint32(0, &ostream);
@@ -2045,9 +2045,9 @@ int RtmpClientStream::Seek(double offset_ms) {
 }
 
 int RtmpClientStream::Pause(bool pause_or_unpause, double offset_ms) {
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_COMMAND_PAUSE, &ostream);
         WriteAMFUint32(0, &ostream);
@@ -2072,7 +2072,7 @@ void RtmpClientStream::OnStatus(const RtmpInfo& info) {
             // the memory fence makes sure that if _is_server_accepted is true, 
             // publish request must be sent (so that SendXXX functions can
             // be enabled)
-            _is_server_accepted.store(true, butil::memory_order_release);
+            _is_server_accepted.store(true, mutil::memory_order_release);
         }
     }
 }
@@ -2093,7 +2093,7 @@ public:
     Controller cntl;
     // Hold a reference of stream to prevent it from destructing during an
     // async Create().
-    butil::intrusive_ptr<RtmpClientStream> stream;
+    mutil::intrusive_ptr<RtmpClientStream> stream;
 };
 
 void OnClientStreamCreated::Run() {
@@ -2138,7 +2138,7 @@ void RtmpClientStream::Init(const RtmpClient* client,
         return OnStopInternal();
     }
     {
-        std::unique_lock<butil::Mutex> mu(_state_mutex);
+        std::unique_lock<mutil::Mutex> mu(_state_mutex);
         if (_state == STATE_DESTROYING || _state == STATE_ERROR) {
             // already Destroy()-ed or SignalError()-ed
             LOG(WARNING) << "RtmpClientStream=" << this << " was already "
@@ -2165,7 +2165,7 @@ void RtmpClientStream::Init(const RtmpClient* client,
     google::protobuf::Message* res = (google::protobuf::Message*)this;
     const CallId call_id = done->cntl.call_id();
     {
-        std::unique_lock<butil::Mutex> mu(_state_mutex);
+        std::unique_lock<mutil::Mutex> mu(_state_mutex);
         switch (_state) {
         case STATE_UNINITIALIZED:
             _state = STATE_CREATING;
@@ -2193,8 +2193,8 @@ std::string RtmpClientStream::rtmp_url() const {
     if (_client_impl == NULL) {
         return std::string();
     }
-    butil::StringPiece tcurl = _client_impl->options().tcUrl;
-    butil::StringPiece stream_name = _options.stream_name();
+    mutil::StringPiece tcurl = _client_impl->options().tcUrl;
+    mutil::StringPiece stream_name = _options.stream_name();
     std::string result;
     result.reserve(tcurl.size() + 1 + stream_name.size());
     result.append(tcurl.data(), tcurl.size());
@@ -2237,14 +2237,14 @@ RtmpRetryingClientStream::~RtmpRetryingClientStream() {
 void RtmpRetryingClientStream::CallOnStopIfNeeded() {
     // CallOnStop uses locks, we don't need memory fence on _called_on_stop,
     // atomic ops is enough.
-    if (!_called_on_stop.load(butil::memory_order_relaxed) &&
-        !_called_on_stop.exchange(true, butil::memory_order_relaxed)) {
+    if (!_called_on_stop.load(mutil::memory_order_relaxed) &&
+        !_called_on_stop.exchange(true, mutil::memory_order_relaxed)) {
         CallOnStop();
     }
 }        
 
 void RtmpRetryingClientStream::Destroy() {
-    if (_destroying.exchange(true, butil::memory_order_relaxed)) {
+    if (_destroying.exchange(true, mutil::memory_order_relaxed)) {
         // Destroy() was already called.
         return;
     }
@@ -2252,10 +2252,10 @@ void RtmpRetryingClientStream::Destroy() {
     // Make sure _self_ref is released before quiting this function.
     // Notice that _self_ref.reset(NULL) is wrong because it may destructs
     // this object immediately.
-    butil::intrusive_ptr<RtmpRetryingClientStream> self_ref;
+    mutil::intrusive_ptr<RtmpRetryingClientStream> self_ref;
     _self_ref.swap(self_ref);
 
-    butil::intrusive_ptr<RtmpStreamBase> old_sub_stream;
+    mutil::intrusive_ptr<RtmpStreamBase> old_sub_stream;
     {
         MELON_SCOPED_LOCK(_stream_mutex);
         // swap instead of reset(NULL) to make the stream destructed
@@ -2267,10 +2267,10 @@ void RtmpRetryingClientStream::Destroy() {
     }
     
     if (_has_timer_ever) {
-        if (bthread_timer_del(_create_timer_id) == 0) {
+        if (fiber_timer_del(_create_timer_id) == 0) {
             // The callback is not run yet. Remove the additional ref added
             // before creating the timer.
-            butil::intrusive_ptr<RtmpRetryingClientStream> deref(this, false);
+            mutil::intrusive_ptr<RtmpRetryingClientStream> deref(this, false);
         }
     }
     return CallOnStopIfNeeded();
@@ -2284,7 +2284,7 @@ void RtmpRetryingClientStream::Init(
         return CallOnStopIfNeeded();
     }
     _sub_stream_creator = sub_stream_creator;
-    if (_destroying.load(butil::memory_order_relaxed)) {
+    if (_destroying.load(mutil::memory_order_relaxed)) {
         LOG(WARNING) << "RtmpRetryingClientStream=" << this << " was already "
             "Destroy()-ed, stop Init()";
         return;
@@ -2292,7 +2292,7 @@ void RtmpRetryingClientStream::Init(
     _options = options;
     // retrying stream does not support this option.
     _options.wait_until_play_or_publish_is_sent = false;
-    _last_retry_start_time_us = butil::gettimeofday_us();
+    _last_retry_start_time_us = mutil::gettimeofday_us();
     Recreate();
 }
 
@@ -2308,7 +2308,7 @@ void RetryingClientMessageHandler::OnCuePoint(melon::RtmpCuePoint* cuepoint) {
     _parent->CallOnCuePoint(cuepoint);
 }
 
-void RetryingClientMessageHandler::OnMetaData(melon::RtmpMetaData* metadata, const butil::StringPiece& name) {
+void RetryingClientMessageHandler::OnMetaData(melon::RtmpMetaData* metadata, const mutil::StringPiece& name) {
     _parent->CallOnMetaData(metadata, name);
 }
 
@@ -2332,18 +2332,18 @@ RetryingClientMessageHandler::RetryingClientMessageHandler(RtmpRetryingClientStr
     : _parent(parent) {}
 
 void RtmpRetryingClientStream::Recreate() {
-    butil::intrusive_ptr<RtmpStreamBase> sub_stream;
+    mutil::intrusive_ptr<RtmpStreamBase> sub_stream;
     _sub_stream_creator->NewSubStream(new RetryingClientMessageHandler(this), &sub_stream);
-    butil::intrusive_ptr<RtmpStreamBase> old_sub_stream;
+    mutil::intrusive_ptr<RtmpStreamBase> old_sub_stream;
     bool destroying = false;
     {
         MELON_SCOPED_LOCK(_stream_mutex);
         // Need to check _destroying to avoid setting the new sub_stream to a 
         // destroying retrying stream. 
         // Note: the load of _destroying and the setting of _using_sub_stream 
-        // must be in the same lock, otherwise current bthread may be scheduled
+        // must be in the same lock, otherwise current fiber may be scheduled
         // and Destroy() may be called, making new sub_stream leaked.
-        destroying = _destroying.load(butil::memory_order_relaxed);
+        destroying = _destroying.load(mutil::memory_order_relaxed);
         if (!destroying) {
             _using_sub_stream.swap(old_sub_stream);
             _using_sub_stream = sub_stream;
@@ -2357,7 +2357,7 @@ void RtmpRetryingClientStream::Recreate() {
         sub_stream->Destroy();
         return;
     }
-    _last_creation_time_us = butil::gettimeofday_us();
+    _last_creation_time_us = mutil::gettimeofday_us();
     // If Init() of sub_stream is called before setting _using_sub_stream,
     // OnStop() may happen before _using_sub_stream is set and the stopped
     // stream is wrongly left in the variable.
@@ -2367,7 +2367,7 @@ void RtmpRetryingClientStream::Recreate() {
 
 void RtmpRetryingClientStream::OnRecreateTimer(void* arg) {
     // Hold the referenced stream.
-    butil::intrusive_ptr<RtmpRetryingClientStream> ptr(
+    mutil::intrusive_ptr<RtmpRetryingClientStream> ptr(
         static_cast<RtmpRetryingClientStream*>(arg), false/*not add ref*/);
     ptr->Recreate();
 }
@@ -2376,7 +2376,7 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
     // Make sure the sub_stream is destroyed after this function.
     DestroyingPtr<RtmpStreamBase> sub_stream_guard(sub_stream);
     
-    butil::intrusive_ptr<RtmpStreamBase> removed_sub_stream;
+    mutil::intrusive_ptr<RtmpStreamBase> removed_sub_stream;
     {
         MELON_SCOPED_LOCK(_stream_mutex);
         if (sub_stream == _using_sub_stream) {
@@ -2384,8 +2384,8 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
         }
     }
     if (removed_sub_stream == NULL ||
-        _destroying.load(butil::memory_order_relaxed) ||
-        _called_on_stop.load(butil::memory_order_relaxed)) {
+        _destroying.load(mutil::memory_order_relaxed) ||
+        _called_on_stop.load(mutil::memory_order_relaxed)) {
         return;
     }
     // Update _is_server_accepted_ever
@@ -2400,7 +2400,7 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
     // of RtmpRetryingClientStreamOptions.max_retry_duration_ms.
     if ((!_options.play_name.empty() && sub_stream->has_data_ever()) ||
         (!_options.publish_name.empty() && sub_stream->is_server_accepted())) {
-        const int64_t now = butil::gettimeofday_us();
+        const int64_t now = mutil::gettimeofday_us();
         if (now >= _last_retry_start_time_us +
             3 * _options.retry_interval_ms * 1000L) {
             // re-enable fast retries when the interval is long enough.
@@ -2412,7 +2412,7 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
     // Check max duration. Notice that this branch cannot be moved forward
     // above branch which may update _last_retry_start_time_us
     if (_options.max_retry_duration_ms > 0 &&
-        butil::gettimeofday_us() >
+        mutil::gettimeofday_us() >
         (_last_retry_start_time_us + _options.max_retry_duration_ms * 1000L)) {
         // exceed the duration, stop retrying.
         return CallOnStopIfNeeded();
@@ -2432,13 +2432,13 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
         return CallOnStopIfNeeded();
     }
     const int64_t wait_us = _last_creation_time_us +
-        _options.retry_interval_ms * 1000L - butil::gettimeofday_us();
+        _options.retry_interval_ms * 1000L - mutil::gettimeofday_us();
     if (wait_us > 0) {
         // retry is too frequent, schedule the retry.
         // Add a ref for OnRecreateTimer which does deref.
-        butil::intrusive_ptr<RtmpRetryingClientStream>(this).detach();
-        if (bthread_timer_add(&_create_timer_id,
-                              butil::microseconds_from_now(wait_us),
+        mutil::intrusive_ptr<RtmpRetryingClientStream>(this).detach();
+        if (fiber_timer_add(&_create_timer_id,
+                              mutil::microseconds_from_now(wait_us),
                               OnRecreateTimer, this) != 0) {
             LOG(ERROR) << "Fail to create timer";
             return CallOnStopIfNeeded();
@@ -2450,7 +2450,7 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
 }
 
 int RtmpRetryingClientStream::AcquireStreamToSend(
-    butil::intrusive_ptr<RtmpStreamBase>* ptr) {
+    mutil::intrusive_ptr<RtmpStreamBase>* ptr) {
     MELON_SCOPED_LOCK(_stream_mutex);
     if (!_using_sub_stream) {
         errno = EPERM;
@@ -2471,15 +2471,15 @@ int RtmpRetryingClientStream::AcquireStreamToSend(
 }
 
 int RtmpRetryingClientStream::SendCuePoint(const RtmpCuePoint& obj) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
     return ptr->SendCuePoint(obj);
 }
 
-int RtmpRetryingClientStream::SendMetaData(const RtmpMetaData& obj, const butil::StringPiece& name) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+int RtmpRetryingClientStream::SendMetaData(const RtmpMetaData& obj, const mutil::StringPiece& name) {
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
@@ -2488,7 +2488,7 @@ int RtmpRetryingClientStream::SendMetaData(const RtmpMetaData& obj, const butil:
 
 int RtmpRetryingClientStream::SendSharedObjectMessage(
     const RtmpSharedObjectMessage& msg) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
@@ -2496,7 +2496,7 @@ int RtmpRetryingClientStream::SendSharedObjectMessage(
 }
 
 int RtmpRetryingClientStream::SendAudioMessage(const RtmpAudioMessage& msg) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
@@ -2504,7 +2504,7 @@ int RtmpRetryingClientStream::SendAudioMessage(const RtmpAudioMessage& msg) {
 }
 
 int RtmpRetryingClientStream::SendAACMessage(const RtmpAACMessage& msg) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
@@ -2512,7 +2512,7 @@ int RtmpRetryingClientStream::SendAACMessage(const RtmpAACMessage& msg) {
 }
 
 int RtmpRetryingClientStream::SendVideoMessage(const RtmpVideoMessage& msg) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
@@ -2520,7 +2520,7 @@ int RtmpRetryingClientStream::SendVideoMessage(const RtmpVideoMessage& msg) {
 }
 
 int RtmpRetryingClientStream::SendAVCMessage(const RtmpAVCMessage& msg) {
-    butil::intrusive_ptr<RtmpStreamBase> ptr;
+    mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
     }
@@ -2528,7 +2528,7 @@ int RtmpRetryingClientStream::SendAVCMessage(const RtmpAVCMessage& msg) {
 }
 
 void RtmpRetryingClientStream::StopCurrentStream() {
-    butil::intrusive_ptr<RtmpStreamBase> sub_stream;
+    mutil::intrusive_ptr<RtmpStreamBase> sub_stream;
     {
         MELON_SCOPED_LOCK(_stream_mutex);
         sub_stream = _using_sub_stream;
@@ -2540,28 +2540,28 @@ void RtmpRetryingClientStream::StopCurrentStream() {
 
 void RtmpRetryingClientStream::OnPlayable() {}
 
-butil::EndPoint RtmpRetryingClientStream::remote_side() const {
+mutil::EndPoint RtmpRetryingClientStream::remote_side() const {
     {
         MELON_SCOPED_LOCK(_stream_mutex);
         if (_using_sub_stream) {
             return _using_sub_stream->remote_side();
         }
     }
-    return butil::EndPoint();
+    return mutil::EndPoint();
 }
 
-butil::EndPoint RtmpRetryingClientStream::local_side() const {
+mutil::EndPoint RtmpRetryingClientStream::local_side() const {
     {
         MELON_SCOPED_LOCK(_stream_mutex);
         if (_using_sub_stream) {
             return _using_sub_stream->local_side();
         }
     }
-    return butil::EndPoint();
+    return mutil::EndPoint();
 }
 
 // =========== RtmpService ===============
-void RtmpService::OnPingResponse(const butil::EndPoint&, uint32_t) {
+void RtmpService::OnPingResponse(const mutil::EndPoint&, uint32_t) {
     // TODO: put into some bvars?
 }
 
@@ -2569,7 +2569,7 @@ RtmpServerStream::RtmpServerStream()
     : RtmpStreamBase(false)
     , _client_supports_stream_multiplexing(false)
     , _is_publish(false)
-    , _onfail_id(INVALID_BTHREAD_ID) {
+    , _onfail_id(INVALID_FIBER_ID) {
     get_rtmp_bvars()->server_stream_count << 1;
 }
 
@@ -2582,12 +2582,12 @@ void RtmpServerStream::Destroy() {
 }
 
 void RtmpServerStream::OnPlay(const RtmpPlayOptions& opt,
-                              butil::Status* status,
+                              mutil::Status* status,
                               google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     status->set_error(EPERM, "%s[%u] ignored play{stream_name=%s start=%f"
                       " duration=%f reset=%d}",
-                      butil::endpoint2str(remote_side()).c_str(), stream_id(),
+                      mutil::endpoint2str(remote_side()).c_str(), stream_id(),
                       opt.stream_name.c_str(), opt.start, opt.duration,
                       (int)opt.reset);
 }
@@ -2599,11 +2599,11 @@ void RtmpServerStream::OnPlay2(const RtmpPlay2Options& opt) {
 
 void RtmpServerStream::OnPublish(const std::string& name,
                                  RtmpPublishType type,
-                                 butil::Status* status,
+                                 mutil::Status* status,
                                  google::protobuf::Closure* done) {
     ClosureGuard done_guard(done);
     status->set_error(EPERM, "%s[%u] ignored publish{stream_name=%s type=%s}",
-                      butil::endpoint2str(remote_side()).c_str(), stream_id(),
+                      mutil::endpoint2str(remote_side()).c_str(), stream_id(),
                       name.c_str(), RtmpPublishType2Str(type));
 }
 
@@ -2622,7 +2622,7 @@ int RtmpServerStream::OnPause(bool pause, double offset_ms) {
 
 void RtmpServerStream::OnSetBufferLength(uint32_t /*buffer_length_ms*/) {}
 
-int RtmpServerStream::SendStopMessage(const butil::StringPiece& error_desc) {
+int RtmpServerStream::SendStopMessage(const mutil::StringPiece& error_desc) {
     if (_rtmpsock == NULL) {
         errno = EINVAL;
         return -1;
@@ -2641,10 +2641,10 @@ int RtmpServerStream::SendStopMessage(const butil::StringPiece& error_desc) {
     // Send StreamNotFound error to make the client close connections.
     // Works for flashplayer and ffplay(not started playing), not work for SRS
     // and ffplay(started playing)
-    butil::IOBuf req_buf;
+    mutil::IOBuf req_buf;
     RtmpInfo info;
     {
-        butil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
+        mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
         AMFOutputStream ostream(&zc_stream);
         WriteAMFString(RTMP_AMF0_COMMAND_ON_STATUS, &ostream);
         WriteAMFUint32(0, &ostream);
@@ -2693,12 +2693,12 @@ int RtmpServerStream::SendStreamDry() {
     return SendControlMessage(policy::RTMP_MESSAGE_USER_CONTROL, data, sizeof(data));
 }
 
-int RtmpServerStream::RunOnFailed(bthread_id_t id, void* data, int) {
-    butil::intrusive_ptr<RtmpServerStream> stream(
+int RtmpServerStream::RunOnFailed(fiber_session_t id, void* data, int) {
+    mutil::intrusive_ptr<RtmpServerStream> stream(
         static_cast<RtmpServerStream*>(data), false);
     CHECK(stream->_rtmpsock);
     stream->OnStopInternal();
-    bthread_id_unlock_and_destroy(id);
+    fiber_session_unlock_and_destroy(id);
     return 0;
 }
 
@@ -2718,34 +2718,34 @@ void RtmpServerStream::OnStopInternal() {
     }
 }
 
-butil::StringPiece RemoveRtmpPrefix(const butil::StringPiece& url_in) {
+mutil::StringPiece RemoveRtmpPrefix(const mutil::StringPiece& url_in) {
     if (!url_in.starts_with("rtmp://")) {
         return url_in;
     }
-    butil::StringPiece url = url_in;
+    mutil::StringPiece url = url_in;
     size_t i = 7;
     for (; i < url.size() && url[i] == '/'; ++i);
     url.remove_prefix(i);
     return url;
 }
 
-butil::StringPiece RemoveProtocolPrefix(const butil::StringPiece& url_in) {
+mutil::StringPiece RemoveProtocolPrefix(const mutil::StringPiece& url_in) {
     size_t proto_pos = url_in.find("://");
-    if (proto_pos == butil::StringPiece::npos) {
+    if (proto_pos == mutil::StringPiece::npos) {
         return url_in;
     }
-    butil::StringPiece url = url_in;
+    mutil::StringPiece url = url_in;
     size_t i = proto_pos + 3;
     for (; i < url.size() && url[i] == '/'; ++i);
     url.remove_prefix(i);
     return url;
 }
 
-void ParseRtmpHostAndPort(const butil::StringPiece& host_and_port,
-                          butil::StringPiece* host,
-                          butil::StringPiece* port) {
+void ParseRtmpHostAndPort(const mutil::StringPiece& host_and_port,
+                          mutil::StringPiece* host,
+                          mutil::StringPiece* port) {
     size_t colon_pos = host_and_port.find(':');
-    if (colon_pos == butil::StringPiece::npos) {
+    if (colon_pos == mutil::StringPiece::npos) {
         if (host) {
             *host = host_and_port;
         }
@@ -2762,10 +2762,10 @@ void ParseRtmpHostAndPort(const butil::StringPiece& host_and_port,
     }
 }
 
-butil::StringPiece RemoveQueryStrings(const butil::StringPiece& stream_name_in,
-                                     butil::StringPiece* query_strings) {
+mutil::StringPiece RemoveQueryStrings(const mutil::StringPiece& stream_name_in,
+                                     mutil::StringPiece* query_strings) {
     const size_t qm_pos = stream_name_in.find('?');
-    if (qm_pos == butil::StringPiece::npos) {
+    if (qm_pos == mutil::StringPiece::npos) {
         if (query_strings) {
             query_strings->clear();
         }
@@ -2779,11 +2779,11 @@ butil::StringPiece RemoveQueryStrings(const butil::StringPiece& stream_name_in,
 }
 
 // Split vhost from *app in forms of "APP?vhost=..." and overwrite *host.
-static void SplitVHostFromApp(const butil::StringPiece& app_and_vhost,
-                              butil::StringPiece* app,
-                              butil::StringPiece* vhost) {
+static void SplitVHostFromApp(const mutil::StringPiece& app_and_vhost,
+                              mutil::StringPiece* app,
+                              mutil::StringPiece* vhost) {
     const size_t q_pos = app_and_vhost.find('?');
-    if (q_pos == butil::StringPiece::npos) {
+    if (q_pos == mutil::StringPiece::npos) {
         if (app) {
             *app = app_and_vhost;
         }
@@ -2797,15 +2797,15 @@ static void SplitVHostFromApp(const butil::StringPiece& app_and_vhost,
         *app = app_and_vhost.substr(0, q_pos);
     }
     if (vhost) {
-        butil::StringPiece qstr = app_and_vhost.substr(q_pos + 1);
-        butil::StringSplitter sp(qstr.data(), qstr.data() + qstr.size(), '&');
+        mutil::StringPiece qstr = app_and_vhost.substr(q_pos + 1);
+        mutil::StringSplitter sp(qstr.data(), qstr.data() + qstr.size(), '&');
         for (; sp; ++sp) {
-            butil::StringPiece field(sp.field(), sp.length());
+            mutil::StringPiece field(sp.field(), sp.length());
             if (field.starts_with("vhost=")) {
                 *vhost = field.substr(6);
                 // vhost cannot have port.
                 const size_t colon_pos = vhost->find_last_of(':');
-                if (colon_pos != butil::StringPiece::npos) {
+                if (colon_pos != mutil::StringPiece::npos) {
                     vhost->remove_suffix(vhost->size() - colon_pos);
                 }
                 return;
@@ -2815,18 +2815,18 @@ static void SplitVHostFromApp(const butil::StringPiece& app_and_vhost,
     }
 }
 
-void ParseRtmpURL(const butil::StringPiece& rtmp_url_in,
-                  butil::StringPiece* host,
-                  butil::StringPiece* vhost,
-                  butil::StringPiece* port,
-                  butil::StringPiece* app,
-                  butil::StringPiece* stream_name) {
+void ParseRtmpURL(const mutil::StringPiece& rtmp_url_in,
+                  mutil::StringPiece* host,
+                  mutil::StringPiece* vhost,
+                  mutil::StringPiece* port,
+                  mutil::StringPiece* app,
+                  mutil::StringPiece* stream_name) {
     if (stream_name) {
         stream_name->clear();
     }
-    butil::StringPiece rtmp_url = RemoveRtmpPrefix(rtmp_url_in);
+    mutil::StringPiece rtmp_url = RemoveRtmpPrefix(rtmp_url_in);
     size_t slash1_pos = rtmp_url.find_first_of('/');
-    if (slash1_pos == butil::StringPiece::npos) {
+    if (slash1_pos == mutil::StringPiece::npos) {
         if (host || port) {
             ParseRtmpHostAndPort(rtmp_url, host, port);
         }
@@ -2843,7 +2843,7 @@ void ParseRtmpURL(const butil::StringPiece& rtmp_url_in,
              rtmp_url[slash1_pos] == '/'; ++slash1_pos);
     rtmp_url.remove_prefix(slash1_pos);
     size_t slash2_pos = rtmp_url.find_first_of('/');
-    if (slash2_pos == butil::StringPiece::npos) {
+    if (slash2_pos == mutil::StringPiece::npos) {
         return SplitVHostFromApp(rtmp_url, app, vhost);
     }
     SplitVHostFromApp(rtmp_url.substr(0, slash2_pos), app, vhost);
@@ -2856,10 +2856,10 @@ void ParseRtmpURL(const butil::StringPiece& rtmp_url_in,
     }
 }
 
-std::string MakeRtmpURL(const butil::StringPiece& host,
-                        const butil::StringPiece& port,
-                        const butil::StringPiece& app,
-                        const butil::StringPiece& stream_name) {
+std::string MakeRtmpURL(const mutil::StringPiece& host,
+                        const mutil::StringPiece& port,
+                        const mutil::StringPiece& app,
+                        const mutil::StringPiece& stream_name) {
     std::string result;
     result.reserve(15 + host.size() + app.size() + stream_name.size());
     result.append("rtmp://");

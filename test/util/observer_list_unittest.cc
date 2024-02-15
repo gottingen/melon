@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/observer_list.h"
+#include "melon/utility/observer_list.h"
 
 #include <vector>
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/memory/weak_ptr.h"
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/memory/weak_ptr.h"
+#include "melon/utility/threading/platform_thread.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace {
 
 class Foo {
@@ -186,4 +186,4 @@ TEST(ObserverListTest, IteratorOutlivesList) {
 }
 
 }  // namespace
-}  // namespace butil
+}  // namespace mutil

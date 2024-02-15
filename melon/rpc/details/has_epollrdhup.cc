@@ -16,14 +16,14 @@
 // under the License.
 
 
-#include "melon/butil/build_config.h"
+#include "melon/utility/build_config.h"
 
 #if defined(OS_LINUX)
 
 #include <sys/epoll.h>                             // epoll_create
 #include <sys/types.h>                             // socketpair
 #include <sys/socket.h>                            // ^
-#include "melon/butil/fd_guard.h"                         // fd_guard
+#include "melon/utility/fd_guard.h"                         // fd_guard
 #include "melon/rpc/details/has_epollrdhup.h"
 
 #ifndef EPOLLRDHUP
@@ -33,11 +33,11 @@
 namespace melon {
 
 static unsigned int check_epollrdhup() {
-    butil::fd_guard epfd(epoll_create(16));
+    mutil::fd_guard epfd(epoll_create(16));
     if (epfd < 0) {
         return 0;
     }
-    butil::fd_guard fds[2];
+    mutil::fd_guard fds[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, (int*)fds) < 0) {
         return 0;
     }

@@ -20,15 +20,15 @@
 #include <gflags/gflags.h>
 #include <leveldb/db.h>
 #include <leveldb/comparator.h>
-#include "melon/bthread/bthread.h"
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/thread_local.h"
-#include "melon/butil/string_printf.h"
-#include "melon/butil/time.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/object_pool.h"
-#include "melon/butil/fast_rand.h"
-#include "melon/butil/file_util.h"
+#include "melon/fiber/fiber.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/thread_local.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/time.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/object_pool.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/utility/file_util.h"
 #include "melon/rpc/shared_object.h"
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/rpc/span.h"
@@ -63,7 +63,7 @@ struct IdGen {
     bool init;
     uint16_t seq;
     uint64_t current_random;
-    butil::FastRandSeed seed;
+    mutil::FastRandSeed seed;
 };
 
 static __thread IdGen tls_trace_id_gen = { false, 0, 0, { { 0, 0 } } };
@@ -101,13 +101,13 @@ inline uint64_t GenerateTraceId() {
 
 Span* Span::CreateClientSpan(const std::string& full_method_name,
                              int64_t base_real_us) {
-    Span* span = butil::get_object<Span>(Forbidden());
+    Span* span = mutil::get_object<Span>(Forbidden());
     if (__builtin_expect(span == NULL, 0)) {
         return NULL;
     }
     span->_log_id = 0;
-    span->_base_cid = INVALID_BTHREAD_ID;
-    span->_ending_cid = INVALID_BTHREAD_ID;
+    span->_base_cid = INVALID_FIBER_ID;
+    span->_ending_cid = INVALID_FIBER_ID;
     span->_type = SPAN_TYPE_CLIENT;
     span->_async = false;
     span->_protocol = PROTOCOL_UNKNOWN;
@@ -124,7 +124,7 @@ Span* Span::CreateClientSpan(const std::string& full_method_name,
     span->_tls_next = NULL;
     span->_full_method_name = full_method_name;
     span->_info.clear();
-    Span* parent = (Span*)bthread::tls_bls.rpcz_parent_span;
+    Span* parent = (Span*)fiber::tls_bls.rpcz_parent_span;
     if (parent) {
         span->_trace_id = parent->trace_id();
         span->_parent_span_id = parent->span_id();
@@ -150,7 +150,7 @@ Span* Span::CreateServerSpan(
     const std::string& full_method_name,
     uint64_t trace_id, uint64_t span_id, uint64_t parent_span_id,
     int64_t base_real_us) {
-    Span* span = butil::get_object<Span>(Forbidden());
+    Span* span = mutil::get_object<Span>(Forbidden());
     if (__builtin_expect(span == NULL, 0)) {
         return NULL;
     }
@@ -158,8 +158,8 @@ Span* Span::CreateServerSpan(
     span->_span_id = (span_id ? span_id : GenerateSpanId());
     span->_parent_span_id = parent_span_id;
     span->_log_id = 0;
-    span->_base_cid = INVALID_BTHREAD_ID;
-    span->_ending_cid = INVALID_BTHREAD_ID;
+    span->_base_cid = INVALID_FIBER_ID;
+    span->_ending_cid = INVALID_FIBER_ID;
     span->_type = SPAN_TYPE_SERVER;
     span->_async = false;
     span->_protocol = PROTOCOL_UNKNOWN;
@@ -199,40 +199,40 @@ void Span::destroy() {
     while (p) {
         Span* p_next = p->_next_client;
         p->_info.clear();
-        butil::return_object(p);
+        mutil::return_object(p);
         p = p_next;
     }
     _info.clear();
-    butil::return_object(this);
+    mutil::return_object(this);
 }
 
 void Span::Annotate(const char* fmt, ...) {
-    const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    const int64_t anno_time = mutil::cpuwide_time_us() + _base_real_us;
+    mutil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     va_list ap;
     va_start(ap, fmt);
-    butil::string_vappendf(&_info, fmt, ap);
+    mutil::string_vappendf(&_info, fmt, ap);
     va_end(ap);
 }
 
 void Span::Annotate(const char* fmt, va_list args) {
-    const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    const int64_t anno_time = mutil::cpuwide_time_us() + _base_real_us;
+    mutil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
-    butil::string_vappendf(&_info, fmt, args);
+    mutil::string_vappendf(&_info, fmt, args);
 }
 
 void Span::Annotate(const std::string& info) {
-    const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    const int64_t anno_time = mutil::cpuwide_time_us() + _base_real_us;
+    mutil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     _info.append(info);
 }
 
 void Span::AnnotateCStr(const char* info, size_t length) {
-    const int64_t anno_time = butil::cpuwide_time_us() + _base_real_us;
-    butil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
+    const int64_t anno_time = mutil::cpuwide_time_us() + _base_real_us;
+    mutil::string_appendf(&_info, BRPC_SPAN_INFO_SEP "%lld ",
                          (long long)anno_time);
     if (length <= 0) {
         _info.append(info);
@@ -268,7 +268,7 @@ SpanInfoExtractor::SpanInfoExtractor(const char* info)
 bool SpanInfoExtractor::PopAnnotation(
     int64_t before_this_time, int64_t* time, std::string* annotation) {
     for (; _sp != NULL; ++_sp) {
-        butil::StringSplitter sp_time(_sp.field(), _sp.field() + _sp.length(), ' ');
+        mutil::StringSplitter sp_time(_sp.field(), _sp.field() + _sp.length(), ' ');
         if (sp_time) {
             char* endptr;
             const int64_t anno_time = strtoll(sp_time.field(), &endptr, 10);
@@ -292,11 +292,11 @@ bool SpanInfoExtractor::PopAnnotation(
 }
 
 bool CanAnnotateSpan() {
-    return bthread::tls_bls.rpcz_parent_span;
+    return fiber::tls_bls.rpcz_parent_span;
 }
 
 void AnnotateSpan(const char* fmt, ...) {
-    Span* span = (Span*)bthread::tls_bls.rpcz_parent_span;
+    Span* span = (Span*)fiber::tls_bls.rpcz_parent_span;
     va_list ap;
     va_start(ap, fmt);
     span->Annotate(fmt, ap);
@@ -330,10 +330,10 @@ private:
         delete id_db;
         delete time_db;
         if (!FLAGS_rpcz_keep_span_db) {
-            std::string cmd = butil::string_printf("rm -rf %s %s",
+            std::string cmd = mutil::string_printf("rm -rf %s %s",
                                                   id_db_name.c_str(),
                                                   time_db_name.c_str());
-            butil::ignore_result(system(cmd.c_str()));
+            mutil::ignore_result(system(cmd.c_str()));
         }
     }
 };
@@ -409,7 +409,7 @@ static int StartIndexingIfNeeded() {
     return started_span_indexing ? 0 : -1;
 }
 
-inline int GetSpanDB(butil::intrusive_ptr<SpanDB>* db) {
+inline int GetSpanDB(mutil::intrusive_ptr<SpanDB>* db) {
     MELON_SCOPED_LOCK(g_span_db_mutex);
     if (g_span_db != NULL) {
         *db = g_span_db;
@@ -431,7 +431,7 @@ static void Span2Proto(const Span* span, RpczSpan* out) {
     out->set_log_id(span->log_id());
     out->set_base_cid(span->base_cid().value);
     out->set_ending_cid(span->ending_cid().value);
-    out->set_remote_ip(butil::ip2int(span->remote_side().ip));
+    out->set_remote_ip(mutil::ip2int(span->remote_side().ip));
     out->set_remote_port(span->remote_side().port);
     out->set_type(span->type());
     out->set_async(span->async());
@@ -476,9 +476,9 @@ SpanDB* SpanDB::Open() {
     local.id_db_name.append(FLAGS_rpcz_database_dir);
     local.id_db_name.append(prefix, nw + nw2);
     // Create the dir first otherwise leveldb fails.
-    butil::File::Error error;
-    const butil::FilePath dir(local.id_db_name);
-    if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+    mutil::File::Error error;
+    const mutil::FilePath dir(local.id_db_name);
+    if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
         LOG(ERROR) << "Fail to create directory=`" << dir.value() << ", "
                    << error;
         return NULL;
@@ -638,7 +638,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
 
     std::string value_buf;
 
-    butil::intrusive_ptr<SpanDB> db;
+    mutil::intrusive_ptr<SpanDB> db;
     if (GetSpanDB(&db) != 0) {
         if (g_span_ending) {
             destroy();
@@ -665,7 +665,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
     }
 
     // Remove old spans
-    const int64_t now = butil::gettimeofday_us();
+    const int64_t now = mutil::gettimeofday_us();
     if (now > g_last_delete_tm + SPAN_DELETE_INTERVAL_US) {
         g_last_delete_tm = now;
         leveldb::Status st = db->RemoveSpansBefore(
@@ -681,7 +681,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
 }
 
 int FindSpan(uint64_t trace_id, uint64_t span_id, RpczSpan* response) {
-    butil::intrusive_ptr<SpanDB> db;
+    mutil::intrusive_ptr<SpanDB> db;
     if (GetSpanDB(&db) != 0) {
         return -1;
     }
@@ -703,7 +703,7 @@ int FindSpan(uint64_t trace_id, uint64_t span_id, RpczSpan* response) {
 
 void FindSpans(uint64_t trace_id, std::deque<RpczSpan>* out) {
     out->clear();
-    butil::intrusive_ptr<SpanDB> db;
+    mutil::intrusive_ptr<SpanDB> db;
     if (GetSpanDB(&db) != 0) {
         return;
     }
@@ -735,7 +735,7 @@ void FindSpans(uint64_t trace_id, std::deque<RpczSpan>* out) {
 void ListSpans(int64_t starting_realtime, size_t max_scan,
                std::deque<BriefSpan>* out, SpanFilter* filter) {
     out->clear();
-    butil::intrusive_ptr<SpanDB> db;
+    mutil::intrusive_ptr<SpanDB> db;
     if (GetSpanDB(&db) != 0) {
         return;
     }
@@ -772,7 +772,7 @@ void ListSpans(int64_t starting_realtime, size_t max_scan,
 }
 
 void DescribeSpanDB(std::ostream& os) {
-    butil::intrusive_ptr<SpanDB> db;
+    mutil::intrusive_ptr<SpanDB> db;
     if (GetSpanDB(&db) != 0) {
         return;
     }

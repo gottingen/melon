@@ -26,7 +26,7 @@ namespace melon {
 namespace policy {
 
 // Parse binary format of hulu-pbrpc.
-ParseResult ParseHuluMessage(butil::IOBuf* source, Socket *socket, bool read_eof, const void *arg);
+ParseResult ParseHuluMessage(mutil::IOBuf* source, Socket *socket, bool read_eof, const void *arg);
 
 // Actions to a (client) request in hulu-pbrpc format.
 void ProcessHuluRequest(InputMessageBase* msg);
@@ -38,12 +38,12 @@ void ProcessHuluResponse(InputMessageBase* msg);
 bool VerifyHuluRequest(const InputMessageBase* msg);
 
 // Pack `request' to `method' into `buf'.
-void PackHuluRequest(butil::IOBuf* buf,
+void PackHuluRequest(mutil::IOBuf* buf,
                      SocketMessage**,
                      uint64_t correlation_id,
                      const google::protobuf::MethodDescriptor* method,
                      Controller* controller,
-                     const butil::IOBuf& request,
+                     const mutil::IOBuf& request,
                      const Authenticator* auth);
 
 }  // namespace policy

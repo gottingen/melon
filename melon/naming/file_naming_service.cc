@@ -19,18 +19,18 @@
 #include <stdio.h>                                      // getline
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/butil/files/file_watcher.h"                    // FileWatcher
-#include "melon/butil/files/scoped_file.h"                     // ScopedFILE
-#include "melon/bthread/bthread.h"                            // bthread_usleep
+#include "melon/utility/files/file_watcher.h"                    // FileWatcher
+#include "melon/utility/files/scoped_file.h"                     // ScopedFILE
+#include "melon/fiber/fiber.h"                            // fiber_usleep
 #include "melon/rpc/log.h"
 #include "melon/naming/file_naming_service.h"
 
 
 namespace melon::naming {
 
-    bool SplitIntoServerAndTag(const butil::StringPiece &line,
-                               butil::StringPiece *server_addr,
-                               butil::StringPiece *tag) {
+    bool SplitIntoServerAndTag(const mutil::StringPiece &line,
+                               mutil::StringPiece *server_addr,
+                               mutil::StringPiece *tag) {
         size_t i = 0;
         for (; i < line.size() && isspace(line[i]); ++i) {}
         if (i == line.size() || line[i] == '#') {  // blank line or comments
@@ -76,7 +76,7 @@ namespace melon::naming {
         // set to de-duplicate and keep the order.
         std::set<ServerNode> presence;
 
-        butil::ScopedFILE fp(fopen(service_name, "r"));
+        mutil::ScopedFILE fp(fopen(service_name, "r"));
         if (!fp) {
             PLOG(ERROR) << "Fail to open `" << service_name << "'";
             return errno;
@@ -85,14 +85,14 @@ namespace melon::naming {
             if (line[nr - 1] == '\n') { // remove ending newline
                 --nr;
             }
-            butil::StringPiece addr;
-            butil::StringPiece tag;
-            if (!SplitIntoServerAndTag(butil::StringPiece(line, nr),
+            mutil::StringPiece addr;
+            mutil::StringPiece tag;
+            if (!SplitIntoServerAndTag(mutil::StringPiece(line, nr),
                                        &addr, &tag)) {
                 continue;
             }
             const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-            butil::EndPoint point;
+            mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
                 LOG(ERROR) << "Invalid address=`" << addr << '\'';
@@ -116,7 +116,7 @@ namespace melon::naming {
     int FileNamingService::RunNamingService(const char *service_name,
                                             NamingServiceActions *actions) {
         std::vector<ServerNode> servers;
-        butil::FileWatcher fw;
+        mutil::FileWatcher fw;
         if (fw.init(service_name) < 0) {
             LOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
             return -1;
@@ -129,14 +129,14 @@ namespace melon::naming {
             actions->ResetServers(servers);
 
             for (;;) {
-                butil::FileWatcher::Change change = fw.check_and_consume();
+                mutil::FileWatcher::Change change = fw.check_and_consume();
                 if (change > 0) {
                     break;
                 }
                 if (change < 0) {
                     LOG(ERROR) << "`" << service_name << "' was deleted";
                 }
-                if (bthread_usleep(100000L/*100ms*/) < 0) {
+                if (fiber_usleep(100000L/*100ms*/) < 0) {
                     if (errno == ESTOP) {
                         return 0;
                     }

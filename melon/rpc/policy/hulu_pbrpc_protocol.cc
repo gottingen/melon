@@ -20,7 +20,7 @@
 #include <google/protobuf/message.h>             // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "melon/butil/time.h"
+#include "melon/utility/time.h"
 #include "melon/rpc/controller.h"                     // Controller
 #include "melon/rpc/socket.h"                         // Socket
 #include "melon/rpc/server.h"                         // Server
@@ -36,7 +36,7 @@
 #include "melon/rpc/details/usercode_backup_pool.h"
 
 extern "C" {
-void bthread_assign_data(void* data);
+void fiber_assign_data(void* data);
 }
 
 
@@ -151,7 +151,7 @@ inline void PackHuluHeader(char* hulu_header, uint32_t meta_size, int body_size)
 
 template <typename Meta>
 static void SerializeHuluHeaderAndMeta(
-    butil::IOBuf* out, const Meta& meta, int payload_size) {
+    mutil::IOBuf* out, const Meta& meta, int payload_size) {
     const uint32_t meta_size = GetProtobufByteSize(meta);
     if (meta_size <= 244) { // most common cases
         char header_and_meta[12 + meta_size];
@@ -165,14 +165,14 @@ static void SerializeHuluHeaderAndMeta(
         char header[12];
         PackHuluHeader(header, meta_size, payload_size);
         out->append(header, sizeof(header));
-        butil::IOBufAsZeroCopyOutputStream buf_stream(out);
+        mutil::IOBufAsZeroCopyOutputStream buf_stream(out);
         ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
         meta.SerializeWithCachedSizes(&coded_out);
         CHECK(!coded_out.HadError());
     }
 }
 
-ParseResult ParseHuluMessage(butil::IOBuf* source, Socket* socket,
+ParseResult ParseHuluMessage(mutil::IOBuf* source, Socket* socket,
                              bool /*read_eof*/, const void* /*arg*/) {
     char header_buf[12];
     const size_t n = source->copy_to(header_buf, sizeof(header_buf));
@@ -229,7 +229,7 @@ static void SendHuluResponse(int64_t correlation_id,
     ControllerPrivateAccessor accessor(cntl);
     Span* span = accessor.span();
     if (span) {
-        span->set_start_send_us(butil::cpuwide_time_us());
+        span->set_start_send_us(mutil::cpuwide_time_us());
     }
     Socket* sock = accessor.get_sending_socket();
     std::unique_ptr<HuluController, LogErrorTextAndDelete> recycle_cntl(cntl);
@@ -243,7 +243,7 @@ static void SendHuluResponse(int64_t correlation_id,
     }
     
     bool append_body = false;
-    butil::IOBuf res_body_buf;
+    mutil::IOBuf res_body_buf;
     // `res' can be NULL here, in which case we don't serialize it
     // If user calls `SetFailed' on Controller, we don't serialize
     // response either
@@ -290,7 +290,7 @@ static void SendHuluResponse(int64_t correlation_id,
         meta.set_user_data(cntl->response_user_data());
     }
 
-    butil::IOBuf res_buf;
+    mutil::IOBuf res_buf;
     SerializeHuluHeaderAndMeta(&res_buf, meta, res_size + attached_size);
     if (append_body) {
         res_buf.append(res_body_buf.movable());
@@ -315,11 +315,11 @@ static void SendHuluResponse(int64_t correlation_id,
     }
     if (span) {
         // TODO: this is not sent
-        span->set_sent_us(butil::cpuwide_time_us());
+        span->set_sent_us(mutil::cpuwide_time_us());
     }
 }
 
-// Defined in baidu_rpc_protocol.cpp
+// Defined in melon_rpc_protocol.cpp
 void EndRunningCallMethodInPool(
     ::google::protobuf::Service* service,
     const ::google::protobuf::MethodDescriptor* method,
@@ -329,7 +329,7 @@ void EndRunningCallMethodInPool(
     ::google::protobuf::Closure* done);
 
 void ProcessHuluRequest(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     SocketUniquePtr socket_guard(msg->ReleaseSocket());
     Socket* socket = socket_guard.get();
@@ -396,9 +396,9 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
     }
     
 
-    // Tag the bthread with this server's key for thread_local_data().
+    // Tag the fiber with this server's key for thread_local_data().
     if (server->thread_local_options().thread_local_data_factory) {
-        bthread_assign_data((void*)&server->thread_local_options());
+        fiber_assign_data((void*)&server->thread_local_options());
     }
 
     Span* span = NULL;
@@ -424,7 +424,7 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
 
         if (socket->is_overcrowded()) {
             cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                            butil::endpoint2str(socket->remote_side()).c_str());
+                            mutil::endpoint2str(socket->remote_side()).c_str());
             break;
         }
 
@@ -478,8 +478,8 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
             span->ResetServerSpanName(method->full_name());
         }
         const int reqsize = msg->payload.length();
-        butil::IOBuf req_buf;
-        butil::IOBuf* req_buf_ptr = &msg->payload;
+        mutil::IOBuf req_buf;
+        mutil::IOBuf* req_buf_ptr = &msg->payload;
         if (meta.has_user_message_size()) {
             msg->payload.cutn(&req_buf, meta.user_message_size());
             req_buf_ptr = &req_buf;
@@ -509,7 +509,7 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
         req_buf.clear();
 
         if (span) {
-            span->set_start_callback_us(butil::cpuwide_time_us());
+            span->set_start_callback_us(mutil::cpuwide_time_us());
             span->AsParent();
         }
         if (!FLAGS_usercode_in_pthread) {
@@ -559,7 +559,7 @@ bool VerifyHuluRequest(const InputMessageBase* msg_base) {
 }
 
 void ProcessHuluResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     HuluRpcResponseMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
@@ -567,9 +567,9 @@ void ProcessHuluResponse(InputMessageBase* msg_base) {
         return;
     }
 
-    const bthread_id_t cid = { static_cast<uint64_t>(meta.correlation_id()) };
+    const fiber_session_t cid = { static_cast<uint64_t>(meta.correlation_id()) };
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -591,8 +591,8 @@ void ProcessHuluResponse(InputMessageBase* msg_base) {
                               "%s", meta.error_text().c_str());
     } else {
         // Parse response message iff error code from meta is 0
-        butil::IOBuf res_buf;
-        butil::IOBuf* res_buf_ptr = &msg->payload;
+        mutil::IOBuf res_buf;
+        mutil::IOBuf* res_buf_ptr = &msg->payload;
         if (meta.has_user_message_size()) {
             msg->payload.cutn(&res_buf, meta.user_message_size());
             res_buf_ptr = &res_buf;
@@ -628,12 +628,12 @@ void ProcessHuluResponse(InputMessageBase* msg_base) {
     accessor.OnResponse(cid, saved_error);
 }
 
-void PackHuluRequest(butil::IOBuf* req_buf,
+void PackHuluRequest(mutil::IOBuf* req_buf,
                      SocketMessage**,
                      uint64_t correlation_id,
                      const google::protobuf::MethodDescriptor* method,
                      Controller* cntl,
-                     const butil::IOBuf& req_body,
+                     const mutil::IOBuf& req_body,
                      const Authenticator* auth) {
     HuluRpcRequestMeta meta;
     if (auth != NULL && auth->GenerateCredential(

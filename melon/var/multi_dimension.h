@@ -20,11 +20,11 @@
 #ifndef MELON_VAR_MULTI_DIMENSION_H_
 #define MELON_VAR_MULTI_DIMENSION_H_
 
-#include "melon/butil/logging.h"                           // LOG
-#include "melon/butil/macros.h"                            // BAIDU_CASSERT
-#include "melon/butil/scoped_lock.h"                       // BAIDU_SCOPE_LOCK
-#include "melon/butil/containers/doubly_buffered_data.h"   // DBD
-#include "melon/butil/containers/flat_map.h"               // butil::FlatMap
+#include "melon/utility/logging.h"                           // LOG
+#include "melon/utility/macros.h"                            // MELON_CASSERT
+#include "melon/utility/scoped_lock.h"                       // MELON_SCOPE_LOCK
+#include "melon/utility/containers/doubly_buffered_data.h"   // DBD
+#include "melon/utility/containers/flat_map.h"               // mutil::FlatMap
 #include "melon/var/mvariable.h"
 
 namespace melon::var {
@@ -56,19 +56,19 @@ namespace melon::var {
         };
 
         typedef value_ptr_type op_value_type;
-        typedef typename butil::FlatMap<key_type, op_value_type, KeyHash> MetricMap;
+        typedef typename mutil::FlatMap<key_type, op_value_type, KeyHash> MetricMap;
 
         typedef typename MetricMap::const_iterator MetricMapConstIterator;
-        typedef typename butil::DoublyBufferedData<MetricMap> MetricMapDBD;
+        typedef typename mutil::DoublyBufferedData<MetricMap> MetricMapDBD;
         typedef typename MetricMapDBD::ScopedPtr MetricMapScopedPtr;
 
         explicit MultiDimension(const key_type &labels);
 
-        MultiDimension(const butil::StringPiece &name,
+        MultiDimension(const mutil::StringPiece &name,
                        const key_type &labels);
 
-        MultiDimension(const butil::StringPiece &prefix,
-                       const butil::StringPiece &name,
+        MultiDimension(const mutil::StringPiece &prefix,
+                       const mutil::StringPiece &name,
                        const key_type &labels);
 
         ~MultiDimension();

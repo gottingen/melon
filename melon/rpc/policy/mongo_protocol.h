@@ -26,7 +26,7 @@ namespace melon {
 namespace policy {
 
 // Parse binary format of mongo
-ParseResult ParseMongoMessage(butil::IOBuf* source, Socket* socket, bool read_eof, const void *arg);
+ParseResult ParseMongoMessage(mutil::IOBuf* source, Socket* socket, bool read_eof, const void *arg);
 
 // Actions to a (client) request in mongo format
 void ProcessMongoRequest(InputMessageBase* msg);

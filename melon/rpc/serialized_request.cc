@@ -17,7 +17,7 @@
 
 
 #include "melon/rpc/serialized_request.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 
 namespace melon {
 

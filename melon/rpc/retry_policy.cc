@@ -17,7 +17,7 @@
 
 
 #include "melon/rpc/retry_policy.h"
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/fast_rand.h"
 
 
 namespace melon {
@@ -57,7 +57,7 @@ const RetryPolicy* DefaultRetryPolicy() {
 int32_t RpcRetryPolicyWithFixedBackoff::GetBackoffTimeMs(
     const Controller* controller) const {
     int64_t remaining_rpc_time_ms =
-        (controller->deadline_us() - butil::gettimeofday_us()) / 1000;
+        (controller->deadline_us() - mutil::gettimeofday_us()) / 1000;
     if (remaining_rpc_time_ms < _no_backoff_remaining_rpc_time_ms) {
         return 0;
     }
@@ -67,11 +67,11 @@ int32_t RpcRetryPolicyWithFixedBackoff::GetBackoffTimeMs(
 int32_t RpcRetryPolicyWithJitteredBackoff::GetBackoffTimeMs(
     const Controller* controller) const {
     int64_t remaining_rpc_time_ms =
-        (controller->deadline_us() - butil::gettimeofday_us()) / 1000;
+        (controller->deadline_us() - mutil::gettimeofday_us()) / 1000;
     if (remaining_rpc_time_ms < _no_backoff_remaining_rpc_time_ms) {
         return 0;
     }
-    return butil::fast_rand_in(_min_backoff_time_ms,
+    return mutil::fast_rand_in(_min_backoff_time_ms,
                                _max_backoff_time_ms);
 }
 

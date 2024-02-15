@@ -18,10 +18,10 @@
 #if BRPC_WITH_RDMA
 
 #include <gflags/gflags.h>
-#include "melon/butil/fd_utility.h"
-#include "melon/butil/logging.h"                   // CHECK, LOG
-#include "melon/butil/sys_byteorder.h"             // HostToNet,NetToHost
-#include "melon/bthread/bthread.h"
+#include "melon/utility/fd_utility.h"
+#include "melon/utility/logging.h"                   // CHECK, LOG
+#include "melon/utility/sys_byteorder.h"             // HostToNet,NetToHost
+#include "melon/fiber/fiber.h"
 #include "melon/proto/rpc/errno.pb.h"
 #include "melon/rpc/event_dispatcher.h"
 #include "melon/rpc/input_messenger.h"
@@ -61,7 +61,7 @@ BRPC_VALIDATE_GFLAG(rdma_trace_verbose, melon::PassValidate);
 
 static const size_t IOBUF_BLOCK_HEADER_LEN = 32; // implementation-dependent
 static const size_t IOBUF_BLOCK_DEFAULT_PAYLOAD =
-        butil::IOBuf::DEFAULT_BLOCK_SIZE - IOBUF_BLOCK_HEADER_LEN;
+        mutil::IOBuf::DEFAULT_BLOCK_SIZE - IOBUF_BLOCK_HEADER_LEN;
 
 // DO NOT change this value unless you know the safe value!!!
 // This is the number of reserved WRs in SQ/RQ for pure ACK.
@@ -95,7 +95,7 @@ static const uint16_t MAX_QP_SIZE = 4096;
 static const uint16_t MIN_BLOCK_SIZE = 1024;
 static const uint32_t ACK_MSG_RDMA_OK = 0x1;
 
-static butil::Mutex* g_rdma_resource_mutex = NULL;
+static mutil::Mutex* g_rdma_resource_mutex = NULL;
 static RdmaResource* g_rdma_resource_list = NULL;
 
 struct HelloMessage {
@@ -115,32 +115,32 @@ struct HelloMessage {
 
 void HelloMessage::Serialize(void* data) const {
     uint16_t* current_pos = (uint16_t*)data;
-    *(current_pos++) = butil::HostToNet16(msg_len);
-    *(current_pos++) = butil::HostToNet16(hello_ver);
-    *(current_pos++) = butil::HostToNet16(impl_ver);
+    *(current_pos++) = mutil::HostToNet16(msg_len);
+    *(current_pos++) = mutil::HostToNet16(hello_ver);
+    *(current_pos++) = mutil::HostToNet16(impl_ver);
     uint32_t* block_size_pos = (uint32_t*)current_pos;
-    *block_size_pos = butil::HostToNet32(block_size);
+    *block_size_pos = mutil::HostToNet32(block_size);
     current_pos += 2; // move forward 4 Bytes
-    *(current_pos++) = butil::HostToNet16(sq_size);
-    *(current_pos++) = butil::HostToNet16(rq_size);
-    *(current_pos++) = butil::HostToNet16(lid);
+    *(current_pos++) = mutil::HostToNet16(sq_size);
+    *(current_pos++) = mutil::HostToNet16(rq_size);
+    *(current_pos++) = mutil::HostToNet16(lid);
     memcpy(current_pos, gid.raw, 16);
     uint32_t* qp_num_pos = (uint32_t*)((char*)current_pos + 16);
-    *qp_num_pos = butil::HostToNet32(qp_num);
+    *qp_num_pos = mutil::HostToNet32(qp_num);
 }
 
 void HelloMessage::Deserialize(void* data) {
     uint16_t* current_pos = (uint16_t*)data;
-    msg_len = butil::NetToHost16(*current_pos++);
-    hello_ver = butil::NetToHost16(*current_pos++);
-    impl_ver = butil::NetToHost16(*current_pos++);
-    block_size = butil::NetToHost32(*(uint32_t*)current_pos);
+    msg_len = mutil::NetToHost16(*current_pos++);
+    hello_ver = mutil::NetToHost16(*current_pos++);
+    impl_ver = mutil::NetToHost16(*current_pos++);
+    block_size = mutil::NetToHost32(*(uint32_t*)current_pos);
     current_pos += 2; // move forward 4 Bytes
-    sq_size = butil::NetToHost16(*current_pos++);
-    rq_size = butil::NetToHost16(*current_pos++);
-    lid = butil::NetToHost16(*current_pos++);
+    sq_size = mutil::NetToHost16(*current_pos++);
+    rq_size = mutil::NetToHost16(*current_pos++);
+    lid = mutil::NetToHost16(*current_pos++);
     memcpy(gid.raw, current_pos, 16);
-    qp_num = butil::NetToHost32(*(uint32_t*)((char*)current_pos + 16));
+    qp_num = mutil::NetToHost32(*(uint32_t*)((char*)current_pos + 16));
 }
 
 RdmaResource::RdmaResource() 
@@ -200,12 +200,12 @@ RdmaEndpoint::RdmaEndpoint(Socket* s)
     if (_rq_size > MAX_QP_SIZE) {
         _rq_size = MAX_QP_SIZE;
     }
-    _read_butex = bthread::butex_create_checked<butil::atomic<int> >();
+    _read_butex = fiber::butex_create_checked<mutil::atomic<int> >();
 }
 
 RdmaEndpoint::~RdmaEndpoint() {
     Reset();
-    bthread::butex_destroy(_read_butex);
+    fiber::butex_destroy(_read_butex);
 }
 
 void RdmaEndpoint::Reset() {
@@ -223,7 +223,7 @@ void RdmaEndpoint::Reset() {
     _sq_unsignaled = 0;
     _local_window_capacity = 0;
     _remote_window_capacity = 0;
-    _window_size.store(0, butil::memory_order_relaxed);
+    _window_size.store(0, mutil::memory_order_relaxed);
     _new_rq_wrs = 0;
     _sq_sent = 0;
     _rq_received = 0;
@@ -245,10 +245,10 @@ void RdmaConnect::StartConnect(const Socket* socket,
     }
     _done = done;
     _data = data;
-    bthread_t tid;
-    if (bthread_start_background(&tid, &BTHREAD_ATTR_NORMAL,
+    fiber_t tid;
+    if (fiber_start_background(&tid, &FIBER_ATTR_NORMAL,
                 RdmaEndpoint::ProcessHandshakeAtClient, socket->_rdma_ep) < 0) {
-        LOG(FATAL) << "Fail to start handshake bthread";
+        LOG(FATAL) << "Fail to start handshake fiber";
     } else {
         s.release();
     }
@@ -301,14 +301,14 @@ void RdmaEndpoint::OnNewDataFromTcp(Socket* m) {
                     m->_rdma_state = Socket::RDMA_OFF;
                     continue;
                 }
-                bthread_t tid;
+                fiber_t tid;
                 ep->_state = S_HELLO_WAIT;
                 SocketUniquePtr s;
                 m->ReAddress(&s);
-                if (bthread_start_background(&tid, &BTHREAD_ATTR_NORMAL,
+                if (fiber_start_background(&tid, &FIBER_ATTR_NORMAL,
                             ProcessHandshakeAtServer, ep) < 0) {
                     ep->_state = UNINIT;
-                    LOG(FATAL) << "Fail to start handshake bthread";
+                    LOG(FATAL) << "Fail to start handshake fiber";
                 } else {
                     s.release();
                 }
@@ -318,8 +318,8 @@ void RdmaEndpoint::OnNewDataFromTcp(Socket* m) {
                 // Ignore the exception here.
             }
         } else if (ep->_state < ESTABLISHED) {  // during handshake
-            ep->_read_butex->fetch_add(1, butil::memory_order_release);
-            bthread::butex_wake(ep->_read_butex);
+            ep->_read_butex->fetch_add(1, mutil::memory_order_release);
+            fiber::butex_wake(ep->_read_butex);
         } else if (ep->_state == FALLBACK_TCP){  // handshake finishes
             InputMessenger::OnNewMessages(m);
             return;
@@ -352,12 +352,12 @@ int RdmaEndpoint::ReadFromFd(void* data, size_t len) {
     int nr = 0;
     size_t received = 0;
     do {
-        const int expected_val = _read_butex->load(butil::memory_order_acquire);
-        const timespec duetime = butil::milliseconds_from_now(WAIT_TIMEOUT_MS);
+        const int expected_val = _read_butex->load(mutil::memory_order_acquire);
+        const timespec duetime = mutil::milliseconds_from_now(WAIT_TIMEOUT_MS);
         nr = read(_socket->fd(), (uint8_t*)data + received, len - received);
         if (nr < 0) {
             if (errno == EAGAIN) {
-                if (bthread::butex_wait(_read_butex, expected_val, &duetime) < 0) {
+                if (fiber::butex_wait(_read_butex, expected_val, &duetime) < 0) {
                     if (errno != EWOULDBLOCK && errno != ETIMEDOUT) {
                         return -1;
                     }
@@ -380,7 +380,7 @@ int RdmaEndpoint::WriteToFd(void* data, size_t len) {
     int nw = 0;
     size_t written = 0;
     do {
-        const timespec duetime = butil::milliseconds_from_now(WAIT_TIMEOUT_MS);
+        const timespec duetime = mutil::milliseconds_from_now(WAIT_TIMEOUT_MS);
         nw = write(_socket->fd(), (uint8_t*)data + written, len - written);
         if (nw < 0) {
             if (errno == EAGAIN) {
@@ -400,7 +400,7 @@ int RdmaEndpoint::WriteToFd(void* data, size_t len) {
 }
 
 inline void RdmaEndpoint::TryReadOnTcp() {
-    if (_socket->_nevent.fetch_add(1, butil::memory_order_acq_rel) == 0) {
+    if (_socket->_nevent.fetch_add(1, mutil::memory_order_acq_rel) == 0) {
         if (_state == FALLBACK_TCP) {
             InputMessenger::OnNewMessages(_socket);
         } else if (_state == ESTABLISHED) {
@@ -439,7 +439,7 @@ void* RdmaEndpoint::ProcessHandshakeAtClient(void* arg) {
     local_msg.rq_size = ep->_rq_size;
     local_msg.lid = GetRdmaLid();
     local_msg.gid = GetRdmaGid();
-    if (BAIDU_LIKELY(ep->_resource)) {
+    if (MELON_LIKELY(ep->_resource)) {
         local_msg.qp_num = ep->_resource->qp->qp_num;
     } else {
         // Only happens in UT
@@ -509,7 +509,7 @@ void* RdmaEndpoint::ProcessHandshakeAtClient(void* arg) {
             std::min(ep->_sq_size, remote_msg.rq_size) - RESERVED_WR_NUM;
         ep->_remote_window_capacity = 
             std::min(ep->_rq_size, remote_msg.sq_size) - RESERVED_WR_NUM,
-        ep->_window_size.store(ep->_local_window_capacity, butil::memory_order_relaxed);
+        ep->_window_size.store(ep->_local_window_capacity, mutil::memory_order_relaxed);
 
         ep->_state = C_BRINGUP_QP;
         if (ep->BringUpQp(remote_msg.lid, remote_msg.gid, remote_msg.qp_num) < 0) {
@@ -527,7 +527,7 @@ void* RdmaEndpoint::ProcessHandshakeAtClient(void* arg) {
         flags |= ACK_MSG_RDMA_OK;
     }
     uint32_t* tmp = (uint32_t*)data;  // avoid GCC warning on strict-aliasing
-    *tmp = butil::HostToNet32(flags);
+    *tmp = mutil::HostToNet32(flags);
     if (ep->WriteToFd(data, ACK_MSG_LEN) < 0) {
         const int saved_errno = errno;
         PLOG(WARNING) << "Fail to send Ack Message to server:" << s->description();
@@ -617,7 +617,7 @@ void* RdmaEndpoint::ProcessHandshakeAtServer(void* arg) {
             std::min(ep->_sq_size, remote_msg.rq_size) - RESERVED_WR_NUM;
         ep->_remote_window_capacity = 
             std::min(ep->_rq_size, remote_msg.sq_size) - RESERVED_WR_NUM,
-        ep->_window_size.store(ep->_local_window_capacity, butil::memory_order_relaxed);
+        ep->_window_size.store(ep->_local_window_capacity, mutil::memory_order_relaxed);
 
         ep->_state = S_ALLOC_QPCQ;
         if (ep->AllocateResources() < 0) {
@@ -649,7 +649,7 @@ void* RdmaEndpoint::ProcessHandshakeAtServer(void* arg) {
         local_msg.rq_size = ep->_rq_size;
         local_msg.hello_ver = g_rdma_hello_version;
         local_msg.impl_ver = g_rdma_impl_version;
-        if (BAIDU_LIKELY(ep->_resource)) {
+        if (MELON_LIKELY(ep->_resource)) {
             local_msg.qp_num = ep->_resource->qp->qp_num;
         } else {
             // Only happens in UT
@@ -680,7 +680,7 @@ void* RdmaEndpoint::ProcessHandshakeAtServer(void* arg) {
 
     // Check RDMA enable flag
     uint32_t* tmp = (uint32_t*)data;  // avoid GCC warning on strict-aliasing
-    uint32_t flags = butil::NetToHost32(*tmp);
+    uint32_t flags = mutil::NetToHost32(*tmp);
     if (flags & ACK_MSG_RDMA_OK) {
         if (s->_rdma_state == Socket::RDMA_OFF) {
             LOG(WARNING) << "Fail to parse Hello Message length from client:"
@@ -708,30 +708,30 @@ void* RdmaEndpoint::ProcessHandshakeAtServer(void* arg) {
 }
 
 bool RdmaEndpoint::IsWritable() const {
-    if (BAIDU_UNLIKELY(g_skip_rdma_init)) {
+    if (MELON_UNLIKELY(g_skip_rdma_init)) {
         // Just for UT
         return false;
     }
 
-    return _window_size.load(butil::memory_order_relaxed) > 0;
+    return _window_size.load(mutil::memory_order_relaxed) > 0;
 }
 
 // RdmaIOBuf inherits from IOBuf to provide a new function.
 // The reason is that we need to use some protected member function of IOBuf.
-class RdmaIOBuf : public butil::IOBuf {
+class RdmaIOBuf : public mutil::IOBuf {
 friend class RdmaEndpoint;
 private:
     // Cut the current IOBuf to ibv_sge list and `to' for at most first max_sge
     // blocks or first max_len bytes.
     // Return: the bytes included in the sglist, or -1 if failed
     ssize_t cut_into_sglist_and_iobuf(ibv_sge* sglist, size_t* sge_index,
-            butil::IOBuf* to, size_t max_sge, size_t max_len) {
+            mutil::IOBuf* to, size_t max_sge, size_t max_len) {
         size_t len = 0;
         while (*sge_index < max_sge) {
             if (len == max_len || _ref_num() == 0) {
                 break;
             }
-            butil::IOBuf::BlockRef const& r = _ref_at(0);
+            mutil::IOBuf::BlockRef const& r = _ref_at(0);
             CHECK(r.length > 0);
             const void* start = fetch1();
             uint32_t lkey = GetRegionId(start);
@@ -741,7 +741,7 @@ private:
                     lkey = (uint32_t)meta;
                 }
             }
-            if (BAIDU_UNLIKELY(lkey == 0)) {  // only happens when meta is not specified
+            if (MELON_UNLIKELY(lkey == 0)) {  // only happens when meta is not specified
                 lkey = GetLKey((char*)start - r.offset);
             }
             if (lkey == 0) {
@@ -771,8 +771,8 @@ private:
 };
 
 // Note this function is coupled with the implementation of IOBuf
-ssize_t RdmaEndpoint::CutFromIOBufList(butil::IOBuf** from, size_t ndata) {
-    if (BAIDU_UNLIKELY(g_skip_rdma_init)) {
+ssize_t RdmaEndpoint::CutFromIOBufList(mutil::IOBuf** from, size_t ndata) {
+    if (MELON_UNLIKELY(g_skip_rdma_init)) {
         // Just for UT
         errno = EAGAIN;
         return -1;
@@ -788,7 +788,7 @@ ssize_t RdmaEndpoint::CutFromIOBufList(butil::IOBuf** from, size_t ndata) {
     int max_sge = GetRdmaMaxSge();
     ibv_sge sglist[max_sge];
     while (current < ndata) {
-        window = _window_size.load(butil::memory_order_relaxed);
+        window = _window_size.load(mutil::memory_order_relaxed);
         if (window == 0) {
             if (total_len > 0) {
                 break;
@@ -797,7 +797,7 @@ ssize_t RdmaEndpoint::CutFromIOBufList(butil::IOBuf** from, size_t ndata) {
                 return -1;
             }
         }
-        butil::IOBuf* to = &_sbuf[_sq_current];
+        mutil::IOBuf* to = &_sbuf[_sq_current];
         size_t this_len = 0;
 
         memset(&wr, 0, sizeof(wr));
@@ -834,8 +834,8 @@ ssize_t RdmaEndpoint::CutFromIOBufList(butil::IOBuf** from, size_t ndata) {
 
         wr.num_sge = sge_index;
 
-        uint32_t imm = _new_rq_wrs.exchange(0, butil::memory_order_relaxed);
-        wr.imm_data = butil::HostToNet32(imm);
+        uint32_t imm = _new_rq_wrs.exchange(0, mutil::memory_order_relaxed);
+        wr.imm_data = mutil::HostToNet32(imm);
         // Avoid too much recv completion event to reduce the cpu overhead
         bool solicited = false;
         if (window == 1 || current + 1 >= ndata) {
@@ -891,15 +891,15 @@ ssize_t RdmaEndpoint::CutFromIOBufList(butil::IOBuf** from, size_t ndata) {
         // Because there is at most one thread can enter this function for each
         // Socket, and the other thread of HandleCompletion can only add this
         // counter.
-        _window_size.fetch_sub(1, butil::memory_order_relaxed);
+        _window_size.fetch_sub(1, mutil::memory_order_relaxed);
     }
 
     return total_len;
 }
 
 int RdmaEndpoint::SendAck(int num) {
-    if (_new_rq_wrs.fetch_add(num, butil::memory_order_relaxed) > _remote_window_capacity / 2) {
-        return SendImm(_new_rq_wrs.exchange(0, butil::memory_order_relaxed));
+    if (_new_rq_wrs.fetch_add(num, mutil::memory_order_relaxed) > _remote_window_capacity / 2) {
+        return SendImm(_new_rq_wrs.exchange(0, mutil::memory_order_relaxed));
     }
     return 0;
 }
@@ -912,7 +912,7 @@ int RdmaEndpoint::SendImm(uint32_t imm) {
     ibv_send_wr wr;
     memset(&wr, 0, sizeof(wr));
     wr.opcode = IBV_WR_SEND_WITH_IMM;
-    wr.imm_data = butil::HostToNet32(imm);
+    wr.imm_data = mutil::HostToNet32(imm);
     wr.send_flags |= IBV_SEND_SOLICITED;
     wr.send_flags |= IBV_SEND_SIGNALED;
 
@@ -941,7 +941,7 @@ ssize_t RdmaEndpoint::HandleCompletion(ibv_wc& wc) {
             }
             CHECK(_state != FALLBACK_TCP);
             if (zerocopy) {
-                butil::IOBuf tmp;
+                mutil::IOBuf tmp;
                 _rbuf[_rq_received].cutn(&tmp, wc.byte_len);
                 _socket->_read_buf.append(tmp);
             } else {
@@ -951,7 +951,7 @@ ssize_t RdmaEndpoint::HandleCompletion(ibv_wc& wc) {
         }
         if (wc.imm_data > 0) {
             // Clear sbuf here because we ignore event wakeup for send completions
-            uint32_t acks = butil::NetToHost32(wc.imm_data);
+            uint32_t acks = mutil::NetToHost32(wc.imm_data);
             uint32_t num = acks;
             while (num > 0) {
                 _sbuf[_sq_sent++].clear();
@@ -960,11 +960,11 @@ ssize_t RdmaEndpoint::HandleCompletion(ibv_wc& wc) {
                 }
                 --num;
             }
-            butil::subtle::MemoryBarrier();
+            mutil::subtle::MemoryBarrier();
 
             // Update window
             uint32_t wnd_thresh = _local_window_capacity / 8;
-            if (_window_size.fetch_add(acks, butil::memory_order_relaxed) >= wnd_thresh
+            if (_window_size.fetch_add(acks, mutil::memory_order_relaxed) >= wnd_thresh
                     || acks >= wnd_thresh) {
                 // Do not wake up writing thread right after _window_size > 0.
                 // Otherwise the writing thread may switch to background too quickly.
@@ -1013,7 +1013,7 @@ int RdmaEndpoint::PostRecv(uint32_t num, bool zerocopy) {
     while (num > 0) {
         if (zerocopy) {
             _rbuf[_rq_received].clear();
-            butil::IOBufAsZeroCopyOutputStream os(&_rbuf[_rq_received],
+            mutil::IOBufAsZeroCopyOutputStream os(&_rbuf[_rq_received],
                     g_rdma_recv_block_size + IOBUF_BLOCK_HEADER_LEN);
             int size = 0;
             if (!os.Next(&_rbuf_data[_rq_received], &size)) {
@@ -1050,8 +1050,8 @@ static RdmaResource* AllocateQpCq(uint16_t sq_size, uint16_t rq_size) {
         return NULL;
     }
 
-    butil::make_close_on_exec(res->comp_channel->fd);
-    if (butil::make_non_blocking(res->comp_channel->fd) < 0) {
+    mutil::make_close_on_exec(res->comp_channel->fd);
+    if (mutil::make_non_blocking(res->comp_channel->fd) < 0) {
         PLOG(WARNING) << "Fail to set comp channel nonblocking";
         delete res;
         return NULL;
@@ -1095,7 +1095,7 @@ static RdmaResource* AllocateQpCq(uint16_t sq_size, uint16_t rq_size) {
 }
 
 int RdmaEndpoint::AllocateResources() {
-    if (BAIDU_UNLIKELY(g_skip_rdma_init)) {
+    if (MELON_UNLIKELY(g_skip_rdma_init)) {
         // For UT
         return 0;
     }
@@ -1151,7 +1151,7 @@ int RdmaEndpoint::AllocateResources() {
 }
 
 int RdmaEndpoint::BringUpQp(uint16_t lid, ibv_gid gid, uint32_t qp_num) {
-    if (BAIDU_UNLIKELY(g_skip_rdma_init)) {
+    if (MELON_UNLIKELY(g_skip_rdma_init)) {
         // For UT
         return 0;
     }
@@ -1257,7 +1257,7 @@ void RdmaEndpoint::DeallocateResources() {
         if (_resource->comp_channel) {
             // destroy comp_channel will destroy this fd
             // so that we should remove it from epoll fd first
-            GetGlobalEventDispatcher(fd, _socket->_bthread_tag).RemoveConsumer(fd);
+            GetGlobalEventDispatcher(fd, _socket->_fiber_tag).RemoveConsumer(fd);
             fd = -1;
             if (IbvDestroyCompChannel(_resource->comp_channel) < 0) {
                 PLOG(WARNING) << "Fail to destroy CQ channel";
@@ -1273,7 +1273,7 @@ void RdmaEndpoint::DeallocateResources() {
         if (Socket::Address(_cq_sid, &s) == 0) {
             s->_user = NULL;  // do not release user (this RdmaEndpoint)
             if (fd >= 0) {
-                GetGlobalEventDispatcher(fd, _socket->_bthread_tag).RemoveConsumer(fd);
+                GetGlobalEventDispatcher(fd, _socket->_fiber_tag).RemoveConsumer(fd);
             }
             s->_fd = -1;  // already remove fd from epoll fd
             s->SetFailed();
@@ -1406,9 +1406,9 @@ void RdmaEndpoint::PollCq(Socket* m) {
         }
 
         // Just call PrcessNewMessage once for all of these CQEs.
-        // Otherwise it may call too many bthread_flush to affect performance.
-        const int64_t received_us = butil::cpuwide_time_us();
-        const int64_t base_realtime = butil::gettimeofday_us() - received_us;
+        // Otherwise it may call too many fiber_flush to affect performance.
+        const int64_t received_us = mutil::cpuwide_time_us();
+        const int64_t base_realtime = mutil::gettimeofday_us() - received_us;
         InputMessenger* messenger = static_cast<InputMessenger*>(s->user());
         if (messenger->ProcessNewMessage(
                     s.get(), bytes, false, received_us, base_realtime, last_msg) < 0) {
@@ -1440,7 +1440,7 @@ std::string RdmaEndpoint::GetStateStr() const {
 void RdmaEndpoint::DebugInfo(std::ostream& os) const {
     os << "\nrdma_state=ON"
        << "\nhandshake_state=" << GetStateStr()
-       << "\nrdma_window_size=" << _window_size.load(butil::memory_order_relaxed)
+       << "\nrdma_window_size=" << _window_size.load(mutil::memory_order_relaxed)
        << "\nrdma_local_window_capacity=" << _local_window_capacity
        << "\nrdma_remote_window_capacity=" << _remote_window_capacity
        << "\nrdma_sbuf_head=" << _sq_current
@@ -1465,7 +1465,7 @@ int RdmaEndpoint::GlobalInitialize() {
         return -1;
     }
 
-    g_rdma_resource_mutex = new butil::Mutex;
+    g_rdma_resource_mutex = new mutil::Mutex;
     for (int i = 0; i < FLAGS_rdma_prepared_qp_cnt; ++i) {
         RdmaResource* res = AllocateQpCq(FLAGS_rdma_prepared_qp_size,
                                          FLAGS_rdma_prepared_qp_size);

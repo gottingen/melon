@@ -1,13 +1,11 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: WangYao (fisherman), wangyao02@baidu.com
-// Date: 2015/10/08 17:00:05
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/file_util.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/file_util.h>
 #include <errno.h>
 #include <melon/rpc/server.h>
 #include "melon/raft/snapshot.h"
@@ -41,7 +39,7 @@ public:
             delete _file;
         }
     }
-    virtual int do_read(butil::IOPortal* portal, size_t need_count, size_t* nread) {
+    virtual int do_read(mutil::IOPortal* portal, size_t need_count, size_t* nread) {
         ssize_t r = _file->read(portal, _offset, need_count);
         if (r >= 0) {
             _offset += r;
@@ -63,7 +61,7 @@ public:
 
     virtual melon::raft::FileAdaptor* open(const std::string& path, int oflag,
                                     const ::google::protobuf::Message* file_meta,
-                                    butil::File::Error* e) {
+                                    mutil::File::Error* e) {
         melon::raft::FileAdaptor* file =
             melon::raft::PosixFileSystemAdaptor::open(path, oflag, file_meta, e);
         if (file && (oflag & O_RDONLY)) {
@@ -237,7 +235,7 @@ TEST_F(SnapshotTest, copy) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // normal create writer
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -312,7 +310,7 @@ TEST_F(SnapshotTest, file_escapes_directory) {
         CHECK(file != NULL);
         delete file;
     }
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // normal create writer
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -333,7 +331,7 @@ TEST_F(SnapshotTest, file_escapes_directory) {
     ASSERT_EQ(0, storage2->init());
     melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
     if (!fs) {
-        ASSERT_TRUE(butil::PathExists(butil::FilePath("./data/snapshot2/dir1/file")));
+        ASSERT_TRUE(mutil::PathExists(mutil::FilePath("./data/snapshot2/dir1/file")));
     } else {
         ASSERT_TRUE(fs->path_exists("./data/snapshot2/dir1/file"));
     }
@@ -439,7 +437,7 @@ void write_file(melon::raft::FileSystemAdaptor* fs, const std::string& path, con
     }
     melon::raft::FileAdaptor* file = fs->open(path, O_CREAT | O_TRUNC | O_RDWR, NULL, NULL);
     CHECK(file != NULL);
-    butil::IOBuf io_buf;
+    mutil::IOBuf io_buf;
     io_buf.append(data);
     CHECK_EQ(data.size(), file->write(io_buf, 0));
     delete file;
@@ -481,7 +479,7 @@ std::string read_from_file(melon::raft::FileSystemAdaptor* fs, const std::string
     ss << path << "/file" << index;
     melon::raft::FileAdaptor* file = fs->open(ss.str(), O_RDONLY, NULL, NULL);
     ssize_t size = file->size();
-    butil::IOPortal buf;
+    mutil::IOPortal buf;
     file->read(&buf, 0, size_t(size));
     delete file;
     return buf.to_string();
@@ -520,7 +518,7 @@ TEST_F(SnapshotTest, filter_before_copy) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // normal create writer
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -681,7 +679,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage1->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // normal create writer
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -753,7 +751,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // create writer1
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -845,7 +843,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     ASSERT_TRUE(throttle);
     ASSERT_EQ(storage1->set_snapshot_throttle(throttle), 0);
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // normal create writer
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -924,7 +922,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // create writer1
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
@@ -1007,7 +1005,7 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
         ASSERT_EQ(storage1->set_file_system_adaptor(fs), 0);
     }
     ASSERT_EQ(0, storage1->init());
-    storage1->set_server_addr(butil::EndPoint(butil::my_ip(), 6006));
+    storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
     // create writer1
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);

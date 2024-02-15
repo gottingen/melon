@@ -18,7 +18,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/json2pb/pb_to_json.h>
 #include "echo.pb.h"
@@ -111,14 +111,14 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    butil::EndPoint point;
+    mutil::EndPoint point;
     if (!FLAGS_listen_addr.empty()) {
-        if (butil::str2endpoint(FLAGS_listen_addr.c_str(), &point) < 0) {
+        if (mutil::str2endpoint(FLAGS_listen_addr.c_str(), &point) < 0) {
             LOG(ERROR) << "Invalid listen address:" << FLAGS_listen_addr;
             return -1;
         }
     } else {
-        point = butil::EndPoint(butil::IP_ANY, FLAGS_port);
+        point = mutil::EndPoint(mutil::IP_ANY, FLAGS_port);
     }
     // Start the server.
     melon::ServerOptions options;

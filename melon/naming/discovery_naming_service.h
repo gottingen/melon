@@ -21,7 +21,7 @@
 
 #include "melon/naming/periodic_naming_service.h"
 #include "melon/rpc/channel.h"
-#include "melon/butil/synchronization/lock.h"
+#include "melon/utility/synchronization/lock.h"
 
 namespace melon::naming {
 
@@ -64,10 +64,10 @@ namespace melon::naming {
         int DoRenew() const;
 
     private:
-        bthread_t _th;
-        butil::atomic<bool> _registered;
+        fiber_t _th;
+        mutil::atomic<bool> _registered;
         DiscoveryRegisterParam _params;
-        butil::EndPoint _current_discovery_server;
+        mutil::EndPoint _current_discovery_server;
     };
 
     class DiscoveryNamingService : public PeriodicNamingService {

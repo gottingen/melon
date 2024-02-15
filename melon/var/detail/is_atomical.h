@@ -18,19 +18,19 @@
 #ifndef MELON_VAR_DETAIL_IS_ATOMICAL_H_
 #define MELON_VAR_DETAIL_IS_ATOMICAL_H_
 
-#include "melon/butil/type_traits.h"
+#include "melon/utility/type_traits.h"
 
 namespace melon::var {
     namespace detail {
         template<class T>
         struct is_atomical
-                : butil::integral_constant<bool, (butil::is_integral<T>::value ||
-                                                  butil::is_floating_point<T>::value)
+                : mutil::integral_constant<bool, (mutil::is_integral<T>::value ||
+                                                  mutil::is_floating_point<T>::value)
                         // FIXME(gejun): Not work in gcc3.4
-                        // butil::is_enum<T>::value ||
+                        // mutil::is_enum<T>::value ||
                         // NOTE(gejun): Ops on pointers are not
                         // atomic generally
-                        // butil::is_pointer<T>::value
+                        // mutil::is_pointer<T>::value
                 > {
         };
         template<class T>

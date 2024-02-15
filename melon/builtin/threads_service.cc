@@ -16,14 +16,14 @@
 // under the License.
 
 
-#include "melon/butil/time.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/popen.h"
+#include "melon/utility/time.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/popen.h"
 #include "melon/rpc/controller.h"           // Controller
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
 #include "melon/builtin/threads_service.h"
 #include "melon/builtin/common.h"
-#include "melon/butil/string_printf.h"
+#include "melon/utility/string_printf.h"
 
 namespace melon {
 
@@ -34,20 +34,20 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        butil::IOBuf &resp = cntl->response_attachment();
+        mutil::IOBuf &resp = cntl->response_attachment();
 
-        std::string cmd = butil::string_printf("pstack %lld", (long long) getpid());
-        butil::Timer tm;
+        std::string cmd = mutil::string_printf("pstack %lld", (long long) getpid());
+        mutil::Timer tm;
         tm.start();
-        butil::IOBufBuilder pstack_output;
-        const int rc = butil::read_command_output(pstack_output, cmd.c_str());
+        mutil::IOBufBuilder pstack_output;
+        const int rc = mutil::read_command_output(pstack_output, cmd.c_str());
         if (rc < 0) {
             LOG(ERROR) << "Fail to popen `" << cmd << "'";
             return;
         }
         pstack_output.move_to(resp);
         tm.stop();
-        resp.append(butil::string_printf("\n\ntime=%" PRId64 "ms", tm.m_elapsed()));
+        resp.append(mutil::string_printf("\n\ntime=%" PRId64 "ms", tm.m_elapsed()));
     }
 
 } // namespace melon

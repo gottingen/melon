@@ -17,7 +17,7 @@
 
 
 #include <pthread.h>
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 #include "melon/compress/gzip_compress.h"
 #include "melon/builtin/jquery_min_js.h"
 
@@ -25,22 +25,22 @@
 namespace melon {
 
     static pthread_once_t s_jquery_min_buf_once = PTHREAD_ONCE_INIT;
-    static butil::IOBuf *s_jquery_min_buf = NULL;
-    static butil::IOBuf *s_jquery_min_buf_gzip = NULL;
+    static mutil::IOBuf *s_jquery_min_buf = NULL;
+    static mutil::IOBuf *s_jquery_min_buf_gzip = NULL;
 
     static void InitJQueryMinBuf() {
-        s_jquery_min_buf = new butil::IOBuf;
+        s_jquery_min_buf = new mutil::IOBuf;
         s_jquery_min_buf->append(jquery_min_js());
-        s_jquery_min_buf_gzip = new butil::IOBuf;
+        s_jquery_min_buf_gzip = new mutil::IOBuf;
         CHECK(compress::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, NULL));
     }
 
-    const butil::IOBuf &jquery_min_js_iobuf() {
+    const mutil::IOBuf &jquery_min_js_iobuf() {
         pthread_once(&s_jquery_min_buf_once, InitJQueryMinBuf);
         return *s_jquery_min_buf;
     }
 
-    const butil::IOBuf &jquery_min_js_iobuf_gzip() {
+    const mutil::IOBuf &jquery_min_js_iobuf_gzip() {
         pthread_once(&s_jquery_min_buf_once, InitJQueryMinBuf);
         return *s_jquery_min_buf_gzip;
     }

@@ -18,8 +18,8 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 #include <vector>
-#include "melon/butil/string_printf.h"
-#include "melon/butil/files/temp_file.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/files/temp_file.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/load_balancer.h"
@@ -47,7 +47,7 @@ TEST_F(NamingServiceFilterTest, sanity) {
         "localhost:1234",
         "baidu.com:1234"
     };
-    butil::TempFile tmp_file;
+    mutil::TempFile tmp_file;
     {
         FILE* fp = fopen(tmp_file.fname(), "w");
         for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
@@ -62,8 +62,8 @@ TEST_F(NamingServiceFilterTest, sanity) {
     std::string ns = std::string("file://") + tmp_file.fname();
     ASSERT_EQ(0, channel.Init(ns.c_str(), "rr", &opt));
 
-    butil::EndPoint ep;
-    ASSERT_EQ(0, butil::hostname2endpoint("10.128.0.1:1234", &ep));
+    mutil::EndPoint ep;
+    ASSERT_EQ(0, mutil::hostname2endpoint("10.128.0.1:1234", &ep));
     for (int i = 0; i < 10; ++i) {
         melon::SocketUniquePtr tmp_sock;
         melon::LoadBalancer::SelectIn sel_in = { 0, false, false, 0, NULL };

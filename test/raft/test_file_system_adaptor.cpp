@@ -1,8 +1,7 @@
 // libraft - Quorum-based replication of states across machines.
 // Copyright (c) 2017 Baidu.com, Inc. All Rights Reserved
 
-// Author: ZhengPengFei (zhengpengfei@baidu.com)
-// Date: 2017/06/16 10:29:05
+
 
 #include <gtest/gtest.h>
 #include "melon/raft/file_system_adaptor.h"
@@ -17,18 +16,18 @@ TEST_F(TestFileSystemAdaptorSuits, read_write) {
     ::system("rm -f test_file");
     ::system("rm -f test_file1");
     scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
-    butil::File::Error e;
+    mutil::File::Error e;
     melon::raft::FileAdaptor* file = fs->open("test_file", O_CREAT | O_TRUNC | O_RDWR, NULL, &e);
     ASSERT_TRUE(file != NULL);
     ASSERT_EQ(file->size(), 0);
 
-    butil::IOBuf data;
+    mutil::IOBuf data;
     data.append("ccccc");
     ASSERT_EQ(data.size(), file->write(data, 0));
     ASSERT_EQ(data.size(), file->write(data, data.size() * 2));
     ASSERT_EQ(file->size(), data.size() * 3);
 
-    butil::IOPortal portal;
+    mutil::IOPortal portal;
     ASSERT_EQ(data.size(), file->read(&portal, 0, data.size()));
     ASSERT_EQ(portal.to_string(), data.to_string());
     ASSERT_EQ(2, file->read(&portal, data.size() * 3 - 2, 10));
@@ -45,7 +44,7 @@ TEST_F(TestFileSystemAdaptorSuits, read_write) {
 
     file = fs->open("test_file1", O_RDWR, NULL, &e);
     ASSERT_TRUE(file == NULL);
-    ASSERT_EQ(butil::File::FILE_ERROR_NOT_FOUND, e);
+    ASSERT_EQ(mutil::File::FILE_ERROR_NOT_FOUND, e);
 
     ::system("rm -f test_file");
     ::system("rm -f test_file1");
@@ -111,20 +110,20 @@ TEST_F(TestFileSystemAdaptorSuits, rename) {
 TEST_F(TestFileSystemAdaptorSuits, create_directory) {
     ::system("rm -rf test_dir");
     scoped_refptr<melon::raft::FileSystemAdaptor> fs = new melon::raft::PosixFileSystemAdaptor();
-    butil::File::Error error;
+    mutil::File::Error error;
     ASSERT_TRUE(fs->create_directory("test_dir", &error, false));
     ASSERT_TRUE(fs->create_directory("test_dir", &error, false));
     ASSERT_TRUE(!fs->create_directory("test_dir/test_dir/test_dir", &error, false));
-    ASSERT_EQ(error, butil::File::FILE_ERROR_NOT_FOUND);
+    ASSERT_EQ(error, mutil::File::FILE_ERROR_NOT_FOUND);
     ASSERT_TRUE(fs->create_directory("test_dir/test_dir/test_dir", &error, true));
     ASSERT_TRUE(fs->create_directory("test_dir/test_dir", &error, true));
 
     ::system("touch test_dir/test_file");
     ASSERT_TRUE(!fs->create_directory("test_dir/test_file", &error, true));
-    ASSERT_EQ(error, butil::File::FILE_ERROR_EXISTS);
+    ASSERT_EQ(error, mutil::File::FILE_ERROR_EXISTS);
 
     ASSERT_TRUE(!melon::raft::create_sub_directory("test_dir/test_dir2", "test_dir2/test2", fs, &error));
-    ASSERT_EQ(error, butil::File::FILE_ERROR_NOT_FOUND);
+    ASSERT_EQ(error, mutil::File::FILE_ERROR_NOT_FOUND);
 
     ASSERT_TRUE(melon::raft::create_sub_directory("test_dir", "test_dir2/test2", fs, &error));
     ASSERT_TRUE(fs->directory_exists("test_dir/test_dir2/test2"));
@@ -181,17 +180,17 @@ class TestFileReadAdaptor : public melon::raft::BufferedSequentialReadFileAdapto
 public:
     TestFileReadAdaptor(int bytes, int align_size) {
         for (int i = 0; i < bytes; ++i) {
-            char c = butil::fast_rand() % 26 + 'a';
+            char c = mutil::fast_rand() % 26 + 'a';
             _buf.append(&c, 1);
         }
         _error = 0;
         _align_size = align_size;
     }
-    butil::IOBuf& data() { return _buf; }
+    mutil::IOBuf& data() { return _buf; }
     void inject_error(int error) { _error = error; }
 
 protected:
-    virtual int do_read(butil::IOPortal* portal, size_t need_count, size_t* nread) {
+    virtual int do_read(mutil::IOPortal* portal, size_t need_count, size_t* nread) {
         if (_error == 0) {
             need_count = (need_count + _align_size - 1) / _align_size * _align_size;
             *nread = std::min(need_count, _buf.size());
@@ -203,7 +202,7 @@ protected:
     }
 
 private:
-    butil::IOBuf _buf;
+    mutil::IOBuf _buf;
     int _error;
     int _align_size;
 };
@@ -214,12 +213,12 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_read_file_adaptor_su
     int index = 0;
     for (auto& rs : read_size) {
         TestFileReadAdaptor* file = new TestFileReadAdaptor(1 * 1024 * 1024, align_size[index++]);
-        butil::IOBuf expected_data = file->data();
-        butil::IOBuf read_data;
+        mutil::IOBuf expected_data = file->data();
+        mutil::IOBuf read_data;
         size_t remain_size = expected_data.size();
         off_t offset = 0;
         while (remain_size > 0) {
-            butil::IOPortal portal;
+            mutil::IOPortal portal;
             ssize_t nread = file->read(&portal, offset, rs);
 
             if (nread < 0) {
@@ -243,7 +242,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_read_file_adaptor_su
 TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_read_file_adaptor_fail) {
     int rs = 1024;
     TestFileReadAdaptor* file = new TestFileReadAdaptor(1 * 1024 * 1024, 1);
-    butil::IOPortal portal;
+    mutil::IOPortal portal;
     ssize_t nread = file->read(&portal, 0, rs);
     ASSERT_TRUE(nread == rs);
     nread = file->read(&portal, rs, rs);
@@ -265,18 +264,18 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_read_file_adaptor_fa
 // align each write to `_align_size'
 class TestFileWriteAdapor : public melon::raft::BufferedSequentialWriteFileAdaptor {
 public:
-    TestFileWriteAdapor(butil::IOPortal& portal, int align_size) {
+    TestFileWriteAdapor(mutil::IOPortal& portal, int align_size) {
         _portal = portal;
         _align_size = align_size;
         _error = 0;
     }
-    butil::IOPortal& data() { return _portal; }
+    mutil::IOPortal& data() { return _portal; }
     void inject_error(int error) { _error = error; }
 
 protected:
    
-    virtual int do_write(const butil::IOBuf& data, size_t* nwrite) {
-        butil::IOBuf piece_data(data);
+    virtual int do_write(const mutil::IOBuf& data, size_t* nwrite) {
+        mutil::IOBuf piece_data(data);
         ssize_t left = piece_data.size();
         if (_error == 0) {
             while (left >= (size_t)_align_size) {
@@ -295,26 +294,26 @@ protected:
     }
 
 private:
-    butil::IOPortal _portal;
+    mutil::IOPortal _portal;
     int _error;
     int _align_size;
 };
 
 TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_write_file_adaptor) {
     const int align_size = 8;
-    butil::IOPortal target_file;
+    mutil::IOPortal target_file;
     TestFileWriteAdapor* file = new TestFileWriteAdapor(target_file, align_size);
     ASSERT_TRUE(file != NULL);
-    butil::IOBuf src_file;
+    mutil::IOBuf src_file;
     for (int i = 0; i < 1024; i++) {
-        char c = butil::fast_rand() % 26 + 'a';
+        char c = mutil::fast_rand() % 26 + 'a';
         src_file.append(&c, 1);
     }
     std::string src_string = src_file.to_string(); 
     int offset = 0;
     size_t remain_size = src_file.size();
     int times = 0;
-    butil::IOBuf tmp_buf;
+    mutil::IOBuf tmp_buf;
     while (remain_size > 0) {
         ++times;
         tmp_buf.clear();
@@ -351,7 +350,7 @@ public:
     void inject_error(int error) { _error = error; }
 
 protected:
-    virtual int do_read(butil::IOPortal* portal, size_t need_count, size_t* nread) {
+    virtual int do_read(mutil::IOPortal* portal, size_t need_count, size_t* nread) {
         if (_error == 0) {
             need_count = (need_count + _align_size - 1) / _align_size * _align_size;
             *nread = portal->append_from_file_descriptor(_fd, need_count);
@@ -384,8 +383,8 @@ public:
 
 protected:
    
-    virtual int do_write(const butil::IOBuf& data, size_t* nwrite) {
-        butil::IOBuf piece_data(data);
+    virtual int do_write(const mutil::IOBuf& data, size_t* nwrite) {
+        mutil::IOBuf piece_data(data);
         size_t left = piece_data.size();
         if (_error == 0) {
             while (left >= (size_t)_align_size) {
@@ -444,7 +443,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_writer_with_hole) {
     ASSERT_TRUE(writer != NULL);
    
     { 
-        butil::IOPortal buf; 
+        mutil::IOPortal buf;
         off_t offset = 0;
         bool is_eof = false;
         const size_t per_rpc_size = 8;

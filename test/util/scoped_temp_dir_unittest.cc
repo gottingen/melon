@@ -4,16 +4,16 @@
 
 #include <string>
 
-#include "melon/butil/file_util.h"
-#include "melon/butil/files/file.h"
-#include "melon/butil/files/scoped_temp_dir.h"
+#include "melon/utility/file_util.h"
+#include "melon/utility/files/file.h"
+#include "melon/utility/files/scoped_temp_dir.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(ScopedTempDir, FullPath) {
   FilePath test_path;
-  butil::CreateNewTempDirectory(FILE_PATH_LITERAL("scoped_temp_dir"),
+  mutil::CreateNewTempDirectory(FILE_PATH_LITERAL("scoped_temp_dir"),
                                &test_path);
 
   // Against an existing dir, it should get destroyed when leaving scope.
@@ -55,7 +55,7 @@ TEST(ScopedTempDir, TempDir) {
     test_path = dir.path();
     EXPECT_TRUE(DirectoryExists(test_path));
     FilePath tmp_dir;
-    EXPECT_TRUE(butil::GetTempDir(&tmp_dir));
+    EXPECT_TRUE(mutil::GetTempDir(&tmp_dir));
     EXPECT_TRUE(test_path.value().find(tmp_dir.value()) != std::string::npos);
   }
   EXPECT_FALSE(DirectoryExists(test_path));
@@ -64,7 +64,7 @@ TEST(ScopedTempDir, TempDir) {
 TEST(ScopedTempDir, UniqueTempDirUnderPath) {
   // Create a path which will contain a unique temp path.
   FilePath base_path;
-  ASSERT_TRUE(butil::CreateNewTempDirectory(FILE_PATH_LITERAL("base_dir"),
+  ASSERT_TRUE(mutil::CreateNewTempDirectory(FILE_PATH_LITERAL("base_dir"),
                                            &base_path));
 
   FilePath test_path;
@@ -77,7 +77,7 @@ TEST(ScopedTempDir, UniqueTempDirUnderPath) {
     EXPECT_TRUE(test_path.value().find(base_path.value()) != std::string::npos);
   }
   EXPECT_FALSE(DirectoryExists(test_path));
-  butil::DeleteFile(base_path, true);
+  mutil::DeleteFile(base_path, true);
 }
 
 TEST(ScopedTempDir, MultipleInvocations) {
@@ -98,10 +98,10 @@ TEST(ScopedTempDir, MultipleInvocations) {
 TEST(ScopedTempDir, LockedTempDir) {
   ScopedTempDir dir;
   EXPECT_TRUE(dir.CreateUniqueTempDir());
-  butil::File file(dir.path().Append(FILE_PATH_LITERAL("temp")),
-                  butil::File::FLAG_CREATE_ALWAYS | butil::File::FLAG_WRITE);
+  mutil::File file(dir.path().Append(FILE_PATH_LITERAL("temp")),
+                  mutil::File::FLAG_CREATE_ALWAYS | mutil::File::FLAG_WRITE);
   EXPECT_TRUE(file.IsValid());
-  EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+  EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
   EXPECT_FALSE(dir.Delete());  // We should not be able to delete.
   EXPECT_FALSE(dir.path().empty());  // We should still have a valid path.
   file.Close();
@@ -110,4 +110,4 @@ TEST(ScopedTempDir, LockedTempDir) {
 }
 #endif  // defined(OS_WIN)
 
-}  // namespace butil
+}  // namespace mutil

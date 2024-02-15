@@ -17,12 +17,12 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/time.h>
-#include <melon/butil/macros.h>
-#include <melon/butil/file_util.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/file_util.h>
 #include <melon/var/var.h>
-#include <melon/bthread/bthread.h>
+#include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/dump/rpc_dump.h>
@@ -36,7 +36,7 @@ DEFINE_string(dir, "", "The directory of dumped requests");
 DEFINE_int32(times, 1, "Repeat replaying for so many times");
 DEFINE_int32(qps, 0, "Limit QPS if this flag is positive");
 DEFINE_int32(thread_num, 0, "Number of threads for replaying");
-DEFINE_bool(use_bthread, true, "Use bthread to replay");
+DEFINE_bool(use_fiber, true, "Use fiber to replay");
 DEFINE_string(connection_type, "", "Connection type, choose automatically "
               "according to protocol by default");
 DEFINE_string(server, "0.0.0.0:8002", "IP Address of server");
@@ -116,31 +116,31 @@ ChannelGroup::~ChannelGroup() {
 
 static void handle_response(melon::Controller* cntl, int64_t start_time,
                             bool sleep_on_error/*note*/) {
-    // TODO(gejun): some bthreads are starved when new bthreads are created 
+    // TODO(gejun): some fibers are starved when new fibers are created
     // continuously, which happens when server is down and RPC keeps failing.
     // Sleep a while on error to avoid that now.
-    const int64_t end_time = butil::gettimeofday_us();
+    const int64_t end_time = mutil::gettimeofday_us();
     const int64_t elp = end_time - start_time;
     if (!cntl->Failed()) {
         g_latency_recorder << elp;
     } else {
         g_error_count << 1;
         if (sleep_on_error) {
-            bthread_usleep(10000);
+            fiber_usleep(10000);
         }
     }
     delete cntl;
 }
 
-butil::atomic<int> g_thread_offset(0);
+mutil::atomic<int> g_thread_offset(0);
 
 static void* replay_thread(void* arg) {
     ChannelGroup* chan_group = static_cast<ChannelGroup*>(arg);
-    const int thread_offset = g_thread_offset.fetch_add(1, butil::memory_order_relaxed);
+    const int thread_offset = g_thread_offset.fetch_add(1, mutil::memory_order_relaxed);
     double req_rate = FLAGS_qps / (double)FLAGS_thread_num;
     melon::SerializedRequest req;
     melon::NsheadMessage nshead_req;
-    int64_t last_expected_time = butil::monotonic_time_ns();
+    int64_t last_expected_time = mutil::monotonic_time_ns();
     const int64_t interval = (int64_t) (1000000000L / req_rate);
     // the max tolerant delay between end_time and expected_time. 10ms or 10 intervals
     int64_t max_tolerant_delay = std::max((int64_t) 10000000L, 10 * interval);
@@ -190,7 +190,7 @@ static void* replay_thread(void* arg) {
                 req.serialized_data() = sample->request.movable();
             }
             g_sent_count << 1;
-            const int64_t start_time = butil::gettimeofday_us();
+            const int64_t start_time = mutil::gettimeofday_us();
             if (FLAGS_qps <= 0) {
                 chan->CallMethod(NULL/*use rpc_dump_context in cntl instead*/,
                         cntl, req_ptr, NULL/*ignore response*/, NULL);
@@ -200,7 +200,7 @@ static void* replay_thread(void* arg) {
                     melon::NewCallback(handle_response, cntl, start_time, false);
                 chan->CallMethod(NULL/*use rpc_dump_context in cntl instead*/,
                         cntl, req_ptr, NULL/*ignore response*/, done);
-                int64_t end_time = butil::monotonic_time_ns();
+                int64_t end_time = mutil::monotonic_time_ns();
                 int64_t expected_time = last_expected_time + interval;
                 if (end_time < expected_time) {
                     usleep((expected_time - end_time)/1000);
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_dir.empty() ||
-        !butil::DirectoryExists(butil::FilePath(FLAGS_dir))) {
+        !mutil::DirectoryExists(mutil::FilePath(FLAGS_dir))) {
         LOG(ERROR) << "--dir=<dir-of-dumped-files> is required";
         return -1;
     }
@@ -257,9 +257,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }    
 
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, replay_thread, &chan_group) != 0) {
@@ -270,9 +270,9 @@ int main(int argc, char* argv[]) {
     } else {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], NULL, replay_thread, &chan_group) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -289,10 +289,10 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(bids[i], NULL);
+            fiber_join(bids[i], NULL);
         }
     }
     info_thr.stop();

@@ -16,11 +16,11 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 
-#define BAIDU_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
-#include "melon/butil/object_pool.h"
+#define MELON_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
+#include "melon/utility/object_pool.h"
 
 namespace {
 struct MyObject {};
@@ -37,7 +37,7 @@ struct Foo {
 };
 }
 
-namespace butil {
+namespace mutil {
 template <> struct ObjectPoolBlockMaxSize<MyObject> {
     static const size_t value = 128;
 };
@@ -58,7 +58,7 @@ template <> struct ObjectPoolValidator<Foo> {
 }
 
 namespace {
-using namespace butil;
+using namespace mutil;
 
 class ObjectPoolTest : public ::testing::Test{
 protected:
@@ -169,7 +169,7 @@ TEST_F(ObjectPoolTest, get_int) {
     // Perf of this test is affected by previous case.
     const size_t N = 100000;
     
-    butil::Timer tm;
+    mutil::Timer tm;
 
     // warm up
     int* p = get_object<int>();
@@ -206,7 +206,7 @@ TEST_F(ObjectPoolTest, get_perf) {
     std::vector<SilentObj*> new_list;
     new_list.reserve(N);
     
-    butil::Timer tm1, tm2;
+    mutil::Timer tm1, tm2;
 
     // warm up
     return_object(get_object<SilentObj>());
@@ -245,7 +245,7 @@ void* get_and_return_int(void*) {
     const size_t N = 100000;
     std::vector<D*> v;
     v.reserve(N);
-    butil::Timer tm0, tm1, tm2;
+    mutil::Timer tm0, tm1, tm2;
     D tmp = D();
     int sr = 0;
 
@@ -291,7 +291,7 @@ void* new_and_delete_int(void*) {
     const size_t N = 100000;
     std::vector<D*> v2;
     v2.reserve(N);
-    butil::Timer tm0, tm1, tm2;
+    mutil::Timer tm0, tm1, tm2;
     D tmp = D();
 
     for (int j = 0; j < 3; ++j) {

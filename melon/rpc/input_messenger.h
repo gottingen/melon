@@ -19,7 +19,7 @@
 #ifndef BRPC_INPUT_MESSENGER_H
 #define BRPC_INPUT_MESSENGER_H
 
-#include "melon/butil/iobuf.h"                    // butil::IOBuf
+#include "melon/utility/iobuf.h"                    // mutil::IOBuf
 #include "melon/rpc/socket.h"              // SocketId, SocketUser
 #include "melon/rpc/parse_result.h"        // ParseResult
 #include "melon/rpc/input_message_base.h"  // InputMessageBase
@@ -44,7 +44,7 @@ struct InputMessageHandler {
     //     from `source' before returning.
     //  MakeMessage(InputMessageBase*):
     //     The message is parsed successfully and cut from `source'.
-    typedef ParseResult (*Parse)(butil::IOBuf* source, Socket *socket,
+    typedef ParseResult (*Parse)(mutil::IOBuf* source, Socket *socket,
                                  bool read_eof, const void *arg);
     Parse parse;
     
@@ -85,7 +85,7 @@ public:
     int AddHandler(const InputMessageHandler& handler);
 
     // [thread-safe] Create a socket to process input messages.
-    int Create(const butil::EndPoint& remote_side,
+    int Create(const mutil::EndPoint& remote_side,
                time_t health_check_interval_s,
                SocketId* id);
     // Overwrite necessary fields in `base_options' and create a socket with
@@ -143,15 +143,15 @@ private:
     // the index of handler is exactly the same as the protocol
     InputMessageHandler* _handlers;
     // Max added protocol type
-    butil::atomic<int> _max_index;
+    mutil::atomic<int> _max_index;
     bool _non_protocol;
     size_t _capacity;
 
-    butil::Mutex _add_handler_mutex;
+    mutil::Mutex _add_handler_mutex;
 };
 
 // Get the global InputMessenger at client-side.
-BUTIL_FORCE_INLINE InputMessenger* get_client_side_messenger() {
+MUTIL_FORCE_INLINE InputMessenger* get_client_side_messenger() {
     extern InputMessenger* g_messenger;
     return g_messenger;
 }

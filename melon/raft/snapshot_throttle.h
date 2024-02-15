@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Xiong,Kai(xiongkai@baidu.com)
 
 #ifndef  MELON_RAFT_SNAPSHOT_THROTTLE_H_
 #define  MELON_RAFT_SNAPSHOT_THROTTLE_H_
 
-#include <melon/butil/memory/ref_counted.h>                // butil::RefCountedThreadSafe
+#include <melon/utility/memory/ref_counted.h>                // mutil::RefCountedThreadSafe
 #include "melon/raft/util.h"
 
 namespace melon::raft {
 
     // Abstract class with the function of throttling during heavy disk reading/writing
-    class SnapshotThrottle : public butil::RefCountedThreadSafe<SnapshotThrottle> {
+    class SnapshotThrottle : public mutil::RefCountedThreadSafe<SnapshotThrottle> {
     public:
         SnapshotThrottle() {}
 
@@ -53,7 +52,7 @@ namespace melon::raft {
     private:
         DISALLOW_COPY_AND_ASSIGN(SnapshotThrottle);
 
-        friend class butil::RefCountedThreadSafe<SnapshotThrottle>;
+        friend class mutil::RefCountedThreadSafe<SnapshotThrottle>;
     };
 
 // SnapshotThrottle with throughput threshold used in install_snapshot

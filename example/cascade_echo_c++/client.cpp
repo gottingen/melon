@@ -19,24 +19,24 @@
 // again according to the field `depth'
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/time.h>
-#include <melon/bthread/bthread.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/time.h>
+#include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/var/var.h>
-#include <melon/butil/fast_rand.h>
+#include <melon/utility/fast_rand.h>
 
 DEFINE_int32(thread_num, 2, "Number of threads to send requests");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_string(attachment, "foo", "Carry this along with requests");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:8000", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
-DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in melon/rpc/options.proto");
+DEFINE_string(protocol, "melon_std", "Protocol type. Defined in melon/rpc/options.proto");
 DEFINE_int32(depth, 0, "number of loop calls");
 // Don't send too frequently in this example
 DEFINE_int32(sleep_ms, 1000, "milliseconds to sleep after each RPC");
@@ -64,7 +64,7 @@ void* sender(void* arg) {
         }
 
         // Set request_id to be a random string
-        cntl.set_request_id(butil::fast_rand_printable(9));
+        cntl.set_request_id(mutil::fast_rand_printable(9));
 
         // Set attachment which is wired to network directly instead of 
         // being serialized into protobuf messages.
@@ -79,7 +79,7 @@ void* sender(void* arg) {
             g_latency_recorder << cntl.latency_us();
         }
         if (FLAGS_sleep_ms != 0) {
-            bthread_usleep(FLAGS_sleep_ms * 1000L);
+            fiber_usleep(FLAGS_sleep_ms * 1000L);
         }
     }
     return NULL;
@@ -106,9 +106,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
@@ -119,9 +119,9 @@ int main(int argc, char* argv[]) {
     } else {
         bids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -139,10 +139,10 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(bids[i], NULL);
+            fiber_join(bids[i], NULL);
         }
     }
     return 0;

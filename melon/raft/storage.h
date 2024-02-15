@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef MELON_RAFT_RAFT_STORAGE_H_
 #define MELON_RAFT_RAFT_STORAGE_H_
@@ -21,10 +19,10 @@
 #include <string>
 #include <vector>
 #include <gflags/gflags.h>
-#include <melon/butil/status.h>
-#include <melon/butil/class_name.h>
+#include <melon/utility/status.h>
+#include <melon/utility/class_name.h>
 #include <melon/rpc/extension.h>
-#include <melon/butil/strings/string_piece.h>
+#include <melon/utility/strings/string_piece.h>
 #include "melon/raft/configuration.h"
 #include "melon/raft/configuration_manager.h"
 
@@ -47,36 +45,36 @@ namespace melon::raft {
     struct IOMetric {
     public:
         IOMetric()
-                : start_time_us(butil::cpuwide_time_us()), bthread_queue_time_us(0), open_segment_time_us(0),
+                : start_time_us(mutil::cpuwide_time_us()), fiber_queue_time_us(0), open_segment_time_us(0),
                   append_entry_time_us(0), sync_segment_time_us(0) {}
 
         int64_t start_time_us;
-        int64_t bthread_queue_time_us;
+        int64_t fiber_queue_time_us;
         int64_t open_segment_time_us;
         int64_t append_entry_time_us;
         int64_t sync_segment_time_us;
     };
 
     inline std::ostream &operator<<(std::ostream &os, const IOMetric &m) {
-        return os << " bthread_queue_time_us: " << m.bthread_queue_time_us
+        return os << " fiber_queue_time_us: " << m.fiber_queue_time_us
                   << " open_segment_time_us: " << m.open_segment_time_us
                   << " append_entry_time_us: " << m.append_entry_time_us
                   << " sync_segment_time_us: " << m.sync_segment_time_us;
     }
 
-    inline butil::StringPiece parse_uri(butil::StringPiece *uri, std::string *parameter) {
+    inline mutil::StringPiece parse_uri(mutil::StringPiece *uri, std::string *parameter) {
         // ${protocol}://${parameters}
         size_t pos = uri->find("://");
-        if (pos == butil::StringPiece::npos) {
-            return butil::StringPiece();
+        if (pos == mutil::StringPiece::npos) {
+            return mutil::StringPiece();
         }
-        butil::StringPiece protocol = uri->substr(0, pos);
+        mutil::StringPiece protocol = uri->substr(0, pos);
         uri->remove_prefix(pos + 3/* length of '://' */);
         protocol.trim_spaces();
         parameter->reserve(uri->size());
         parameter->clear();
         size_t removed_spaces = 0;
-        for (butil::StringPiece::const_iterator
+        for (mutil::StringPiece::const_iterator
                      iter = uri->begin(); iter != uri->end(); ++iter) {
             if (!isspace(*iter)) {
                 parameter->push_back(*iter);
@@ -90,24 +88,24 @@ namespace melon::raft {
     }
 
     inline int gc_dir(const std::string &path) {
-        butil::File::Error e;
-        butil::FilePath target_path(path);
-        butil::FilePath tmp_path(path + ".tmp");
+        mutil::File::Error e;
+        mutil::FilePath target_path(path);
+        mutil::FilePath tmp_path(path + ".tmp");
         // delete tmp path firstly in case there is garbage
-        if (!butil::DeleteFile(tmp_path, true)) {
+        if (!mutil::DeleteFile(tmp_path, true)) {
             LOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
             return -1;
         }
 
-        if (butil::PathExists(target_path)) {
-            const bool rc = butil::ReplaceFile(butil::FilePath(target_path),
-                                               butil::FilePath(tmp_path), &e);
+        if (mutil::PathExists(target_path)) {
+            const bool rc = mutil::ReplaceFile(mutil::FilePath(target_path),
+                                               mutil::FilePath(tmp_path), &e);
             if (!rc) {
                 LOG(ERROR) << "Fail to rename `" << target_path.value()
                            << " to `" << tmp_path.value() << "' : " << e;
                 return -1;
             }
-            if (!butil::DeleteFile(tmp_path, true)) {
+            if (!mutil::DeleteFile(tmp_path, true)) {
                 LOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
                 return -1;
             }
@@ -162,16 +160,16 @@ namespace melon::raft {
 
         // GC an instance of this kind of LogStorage with the parameters encoded
         // in |uri|
-        virtual butil::Status gc_instance(const std::string &uri) const {
-            CHECK(false) << butil::class_name_str(*this)
+        virtual mutil::Status gc_instance(const std::string &uri) const {
+            CHECK(false) << mutil::class_name_str(*this)
                          << " didn't implement gc_instance interface while deleting"
                             " raft log in " << uri;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
         }
 
-        static butil::Status destroy(const std::string &uri);
+        static mutil::Status destroy(const std::string &uri);
     };
 
     class RaftMetaStorage {
@@ -179,14 +177,14 @@ namespace melon::raft {
         virtual ~RaftMetaStorage() {}
 
         // init stable storage
-        virtual butil::Status init() = 0;
+        virtual mutil::Status init() = 0;
 
         // set term and votedfor information
-        virtual butil::Status set_term_and_votedfor(const int64_t term,
+        virtual mutil::Status set_term_and_votedfor(const int64_t term,
                                                     const PeerId &peer_id, const VersionedGroupId &group) = 0;
 
         // get term and votedfor information
-        virtual butil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
+        virtual mutil::Status get_term_and_votedfor(int64_t *term, PeerId *peer_id,
                                                     const VersionedGroupId &group) = 0;
 
         // Create an instance of this kind of RaftMetaStorage with the parameters encoded
@@ -198,23 +196,23 @@ namespace melon::raft {
 
         // GC an instance of this kind of StableStorage with the parameters encoded
         // in |uri|
-        virtual butil::Status gc_instance(const std::string &uri,
+        virtual mutil::Status gc_instance(const std::string &uri,
                                           const VersionedGroupId &vgid) const {
-            CHECK(false) << butil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                          << " didn't implement gc_instance interface while deleting"
                             " raft stable meta in " << uri;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
         }
 
-        static butil::Status destroy(const std::string &uri,
+        static mutil::Status destroy(const std::string &uri,
                                      const VersionedGroupId &vgid);
 
     };
 
 // Snapshot 
-    class Snapshot : public butil::Status {
+    class Snapshot : public mutil::Status {
     public:
         Snapshot() {}
 
@@ -281,7 +279,7 @@ namespace melon::raft {
     };
 
 // Copy Snapshot from the given resource
-    class SnapshotCopier : public butil::Status {
+    class SnapshotCopier : public mutil::Status {
     public:
         virtual ~SnapshotCopier() {}
 
@@ -306,21 +304,21 @@ namespace melon::raft {
         virtual ~SnapshotStorage() {}
 
         virtual int set_filter_before_copy_remote() {
-            CHECK(false) << butil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                          << " doesn't support filter before copy remote";
             return -1;
         }
 
         virtual int set_file_system_adaptor(FileSystemAdaptor *fs) {
             (void) fs;
-            CHECK(false) << butil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                          << " doesn't support file system adaptor";
             return -1;
         }
 
         virtual int set_snapshot_throttle(SnapshotThrottle *st) {
             (void) st;
-            CHECK(false) << butil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                          << " doesn't support snapshot throttle";
             return -1;
         }
@@ -356,16 +354,16 @@ namespace melon::raft {
 
         // GC an instance of this kind of SnapshotStorage with the parameters encoded
         // in |uri|
-        virtual butil::Status gc_instance(const std::string &uri) const {
-            CHECK(false) << butil::class_name_str(*this)
+        virtual mutil::Status gc_instance(const std::string &uri) const {
+            CHECK(false) << mutil::class_name_str(*this)
                          << " didn't implement gc_instance interface while deleting"
                             " raft snapshot in " << uri;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
         }
 
-        static butil::Status destroy(const std::string &uri);
+        static mutil::Status destroy(const std::string &uri);
     };
 
     inline melon::Extension<const LogStorage> *log_storage_extension() {

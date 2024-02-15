@@ -17,12 +17,12 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/butil/fd_guard.h"                      // fd_guard
-#include "melon/butil/logging.h"                       // CHECK
-#include "melon/butil/time.h"                          // cpuwide_time_us
-#include "melon/butil/fd_utility.h"                    // make_non_blocking
-#include "melon/bthread/bthread.h"                     // bthread_start_background
-#include "melon/bthread/unstable.h"                   // bthread_flush
+#include "melon/utility/fd_guard.h"                      // fd_guard
+#include "melon/utility/logging.h"                       // CHECK
+#include "melon/utility/time.h"                          // cpuwide_time_us
+#include "melon/utility/fd_utility.h"                    // make_non_blocking
+#include "melon/fiber/fiber.h"                     // fiber_start_background
+#include "melon/fiber/unstable.h"                   // fiber_flush
 #include "melon/var/var.h"                          // melon::var::Adder
 #include "melon/proto/rpc/options.pb.h"               // ProtocolType
 #include "melon/rpc/reloadable_flags.h"         // BRPC_VALIDATE_GFLAG
@@ -77,7 +77,7 @@ const size_t PROTO_DUMMY_LEN = 4;
 ParseResult InputMessenger::CutInputMessage(
         Socket* m, size_t* index, bool read_eof) {
     const int preferred = m->preferred_index();
-    const int max_index = (int)_max_index.load(butil::memory_order_acquire);
+    const int max_index = (int)_max_index.load(mutil::memory_order_acquire);
     // Try preferred handler first. The preferred_index is set on last
     // selection or by client.
     if (preferred >= 0 && preferred <= max_index
@@ -114,8 +114,8 @@ ParseResult InputMessenger::CutInputMessage(
             }
 
             if (m->CreatedByConnect()) {
-                if((ProtocolType)cur_index == PROTOCOL_BAIDU_STD) {
-                    // baidu_std may fall to streaming_rpc.
+                if((ProtocolType)cur_index == PROTOCOL_MELON_STD) {
+                    // melon_std may fall to streaming_rpc.
                     cur_index = (int)PROTOCOL_STREAMING_RPC;
                     continue;
                 } else {
@@ -181,24 +181,24 @@ struct RunLastMessage {
 };
 
 static void QueueMessage(InputMessageBase* to_run_msg,
-                         int* num_bthread_created,
-                         bthread_keytable_pool_t* keytable_pool) {
+                         int* num_fiber_created,
+                         fiber_keytable_pool_t* keytable_pool) {
     if (!to_run_msg) {
         return;
     }
-    // Create bthread for last_msg. The bthread is not scheduled
-    // until bthread_flush() is called (in the worse case).
+    // Create fiber for last_msg. The fiber is not scheduled
+    // until fiber_flush() is called (in the worse case).
                 
     // TODO(gejun): Join threads.
-    bthread_t th;
-    bthread_attr_t tmp = (FLAGS_usercode_in_pthread ?
-                          BTHREAD_ATTR_PTHREAD :
-                          BTHREAD_ATTR_NORMAL) | BTHREAD_NOSIGNAL;
+    fiber_t th;
+    fiber_attr_t tmp = (FLAGS_usercode_in_pthread ?
+                          FIBER_ATTR_PTHREAD :
+                          FIBER_ATTR_NORMAL) | FIBER_NOSIGNAL;
     tmp.keytable_pool = keytable_pool;
-    tmp.tag = bthread_self_tag();
-    if (!FLAGS_usercode_in_coroutine && bthread_start_background(
+    tmp.tag = fiber_self_tag();
+    if (!FLAGS_usercode_in_coroutine && fiber_start_background(
             &th, &tmp, ProcessInputMessage, to_run_msg) == 0) {
-        ++*num_bthread_created;
+        ++*num_fiber_created;
     } else {
         ProcessInputMessage(to_run_msg);
     }
@@ -224,10 +224,10 @@ int InputMessenger::ProcessNewMessage(
     m->AddInputBytes(bytes);
 
     // Avoid this socket to be closed due to idle_timeout_s
-    m->_last_readtime_us.store(received_us, butil::memory_order_relaxed);
+    m->_last_readtime_us.store(received_us, mutil::memory_order_relaxed);
     
     size_t last_size = m->_read_buf.length();
-    int num_bthread_created = 0;
+    int num_fiber_created = 0;
     while (1) {
         size_t index = 8888;
         ParseResult pr = CutInputMessage(m, &index, read_eof);
@@ -241,7 +241,7 @@ int InputMessenger::ProcessNewMessage(
             } else if (pr.error() == PARSE_ERROR_TRY_OTHERS) {
                 LOG(WARNING)
                     << "Close " << *m << " due to unknown message: "
-                    << butil::ToPrintable(m->_read_buf);
+                    << mutil::ToPrintable(m->_read_buf);
                 m->SetFailed(EINVAL, "Close %s due to unknown message",
                                 m->description().c_str());
                 return -1;
@@ -283,7 +283,7 @@ int InputMessenger::ProcessNewMessage(
         // This unique_ptr prevents msg to be lost before transfering
         // ownership to last_msg
         DestroyingPtr<InputMessageBase> msg(pr.message());
-        QueueMessage(last_msg.release(), &num_bthread_created,
+        QueueMessage(last_msg.release(), &num_fiber_created,
                             m->_keytable_pool);
         if (_handlers[index].process == NULL) {
             LOG(ERROR) << "process of index=" << index << " is NULL";
@@ -317,14 +317,14 @@ int InputMessenger::ProcessNewMessage(
             // Transfer ownership to last_msg
             last_msg.reset(msg.release());
         } else {
-            QueueMessage(msg.release(), &num_bthread_created,
+            QueueMessage(msg.release(), &num_fiber_created,
                                 m->_keytable_pool);
-            bthread_flush();
-            num_bthread_created = 0;
+            fiber_flush();
+            num_fiber_created = 0;
         }
     }
-    if (num_bthread_created) {
-        bthread_flush();
+    if (num_fiber_created) {
+        fiber_flush();
     }
     return 0;
 }
@@ -332,13 +332,13 @@ int InputMessenger::ProcessNewMessage(
 void InputMessenger::OnNewMessages(Socket* m) {
     // Notes:
     // - If the socket has only one message, the message will be parsed and
-    //   processed in this bthread. nova-pbrpc and http works in this way.
+    //   processed in this fiber. nova-pbrpc and http works in this way.
     // - If the socket has several messages, all messages will be parsed (
-    //   meaning cutting from butil::IOBuf. serializing from protobuf is part of
-    //   "process") in this bthread. All messages except the last one will be
-    //   processed in separate bthreads. To minimize the overhead, scheduling
-    //   is batched(notice the BTHREAD_NOSIGNAL and bthread_flush).
-    // - Verify will always be called in this bthread at most once and before
+    //   meaning cutting from mutil::IOBuf. serializing from protobuf is part of
+    //   "process") in this fiber. All messages except the last one will be
+    //   processed in separate fibers. To minimize the overhead, scheduling
+    //   is batched(notice the FIBER_NOSIGNAL and fiber_flush).
+    // - Verify will always be called in this fiber at most once and before
     //   any process.
     InputMessenger* messenger = static_cast<InputMessenger*>(m->user());
     int progress = Socket::PROGRESS_INIT;
@@ -349,8 +349,8 @@ void InputMessenger::OnNewMessages(Socket* m) {
     InputMessageClosure last_msg;
     bool read_eof = false;
     while (!read_eof) {
-        const int64_t received_us = butil::cpuwide_time_us();
-        const int64_t base_realtime = butil::gettimeofday_us() - received_us;
+        const int64_t received_us = mutil::cpuwide_time_us();
+        const int64_t base_realtime = mutil::gettimeofday_us() - received_us;
 
         // Calculate bytes to be read.
         size_t once_read = m->_avg_msg_size * 16;
@@ -406,7 +406,7 @@ InputMessenger::InputMessenger(size_t capacity)
 InputMessenger::~InputMessenger() {
     delete[] _handlers;
     _handlers = NULL;        
-    _max_index.store(-1, butil::memory_order_relaxed);
+    _max_index.store(-1, mutil::memory_order_relaxed);
     _capacity = 0;
 }
 
@@ -449,8 +449,8 @@ int InputMessenger::AddHandler(const InputMessageHandler& handler) {
         CHECK(_handlers[index].process == handler.process);
         return -1;
     }
-    if (index > _max_index.load(butil::memory_order_relaxed)) {
-        _max_index.store(index, butil::memory_order_release);
+    if (index > _max_index.load(mutil::memory_order_relaxed)) {
+        _max_index.store(index, mutil::memory_order_release);
     }
     return 0;
 }
@@ -475,13 +475,13 @@ int InputMessenger::AddNonProtocolHandler(const InputMessageHandler& handler) {
         CHECK(false) << "AddHandler was invoked";
         return -1;
     }
-    const int index = _max_index.load(butil::memory_order_relaxed) + 1;
+    const int index = _max_index.load(mutil::memory_order_relaxed) + 1;
     _handlers[index] = handler;
-    _max_index.store(index, butil::memory_order_release);
+    _max_index.store(index, mutil::memory_order_release);
     return 0;
 }
 
-int InputMessenger::Create(const butil::EndPoint& remote_side,
+int InputMessenger::Create(const mutil::EndPoint& remote_side,
                            time_t health_check_interval_s,
                            SocketId* id) {
     SocketOptions options;

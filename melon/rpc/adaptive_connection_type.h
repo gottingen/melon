@@ -16,13 +16,12 @@
 // under the License.
 
 
-#ifndef BRPC_ADAPTIVE_CONNECTION_TYPE_H
-#define BRPC_ADAPTIVE_CONNECTION_TYPE_H
+#ifndef MELON_RPC_ADAPTIVE_CONNECTION_TYPE_H_
+#define MELON_RPC_ADAPTIVE_CONNECTION_TYPE_H_
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
 
-#include "melon/butil/strings/string_piece.h"
+
+#include "melon/utility/strings/string_piece.h"
 #include "melon/proto/rpc/options.pb.h"
 
 namespace melon {
@@ -30,9 +29,9 @@ namespace melon {
 // Convert a case-insensitive string to corresponding ConnectionType
 // Possible options are: short, pooled, single
 // Returns: CONNECTION_TYPE_UNKNOWN on error.
-ConnectionType StringToConnectionType(const butil::StringPiece& type,
+ConnectionType StringToConnectionType(const mutil::StringPiece& type,
                                       bool print_log_on_unknown);
-inline ConnectionType StringToConnectionType(const butil::StringPiece& type)
+inline ConnectionType StringToConnectionType(const mutil::StringPiece& type)
 { return StringToConnectionType(type, true); }
 
 // Convert a ConnectionType to a c-style string.
@@ -49,7 +48,7 @@ public:
         _type = type;
         _error = false;
     }
-    void operator=(const butil::StringPiece& name);
+    void operator=(const mutil::StringPiece& name);
 
     operator ConnectionType() const { return _type; }
     const char* name() const { return ConnectionTypeToString(_type); }
@@ -67,4 +66,4 @@ private:
 } // namespace melon
 
 
-#endif  // BRPC_ADAPTIVE_CONNECTION_TYPE_H
+#endif  // MELON_RPC_ADAPTIVE_CONNECTION_TYPE_H_

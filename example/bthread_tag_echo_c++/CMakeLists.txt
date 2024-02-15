@@ -16,7 +16,7 @@
 # under the License.
 
 cmake_minimum_required(VERSION 2.8.10)
-project(bthread_tag_echo_c++ C CXX)
+project(fiber_tag_echo_c++ C CXX)
 
 option(LINK_SO "Whether examples are linked dynamically" OFF)
 
@@ -76,7 +76,7 @@ endif()
 
 set(CMAKE_CPP_FLAGS "${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS_NS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CPP_FLAGS} -DNDEBUG -O2 -D__const__=__unused__ -pipe -W -Wall -Wno-unused-parameter -fPIC -fno-omit-frame-pointer")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBRPC_ENABLE_CPU_PROFILER")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMELON_ENABLE_CPU_PROFILER")
 
 if(CMAKE_VERSION VERSION_LESS "3.1.3")
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

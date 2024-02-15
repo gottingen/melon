@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/file_util.h"
-#include "melon/butil/files/file.h"
-#include "melon/butil/files/scoped_temp_dir.h"
-#include "melon/butil/time/time.h"
+#include "melon/utility/file_util.h"
+#include "melon/utility/files/file.h"
+#include "melon/utility/files/scoped_temp_dir.h"
+#include "melon/utility/time/time.h"
 #include <gtest/gtest.h>
 
-using butil::File;
-using butil::FilePath;
+using mutil::File;
+using mutil::FilePath;
 
 TEST(FileTest, Create) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("create_file_1");
 
@@ -20,34 +20,34 @@ TEST(FileTest, Create) {
     // Don't create a File at all.
     File file;
     EXPECT_FALSE(file.IsValid());
-    EXPECT_EQ(butil::File::FILE_ERROR_FAILED, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_ERROR_FAILED, file.error_details());
 
-    File file2(butil::File::FILE_ERROR_TOO_MANY_OPENED);
+    File file2(mutil::File::FILE_ERROR_TOO_MANY_OPENED);
     EXPECT_FALSE(file2.IsValid());
-    EXPECT_EQ(butil::File::FILE_ERROR_TOO_MANY_OPENED, file2.error_details());
+    EXPECT_EQ(mutil::File::FILE_ERROR_TOO_MANY_OPENED, file2.error_details());
   }
 
   {
     // Open a file that doesn't exist.
-    File file(file_path, butil::File::FLAG_OPEN | butil::File::FLAG_READ);
+    File file(file_path, mutil::File::FLAG_OPEN | mutil::File::FLAG_READ);
     EXPECT_FALSE(file.IsValid());
-    EXPECT_EQ(butil::File::FILE_ERROR_NOT_FOUND, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_ERROR_NOT_FOUND, file.error_details());
   }
 
   {
     // Open or create a file.
-    File file(file_path, butil::File::FLAG_OPEN_ALWAYS | butil::File::FLAG_READ);
+    File file(file_path, mutil::File::FLAG_OPEN_ALWAYS | mutil::File::FLAG_READ);
     EXPECT_TRUE(file.IsValid());
     EXPECT_TRUE(file.created());
-    EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
   }
 
   {
     // Open an existing file.
-    File file(file_path, butil::File::FLAG_OPEN | butil::File::FLAG_READ);
+    File file(file_path, mutil::File::FLAG_OPEN | mutil::File::FLAG_READ);
     EXPECT_TRUE(file.IsValid());
     EXPECT_FALSE(file.created());
-    EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
 
     // This time verify closing the file.
     file.Close();
@@ -57,10 +57,10 @@ TEST(FileTest, Create) {
   {
     // Open an existing file through Initialize
     File file;
-    file.Initialize(file_path, butil::File::FLAG_OPEN | butil::File::FLAG_READ);
+    file.Initialize(file_path, mutil::File::FLAG_OPEN | mutil::File::FLAG_READ);
     EXPECT_TRUE(file.IsValid());
     EXPECT_FALSE(file.created());
-    EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
 
     // This time verify closing the file.
     file.Close();
@@ -69,87 +69,87 @@ TEST(FileTest, Create) {
 
   {
     // Create a file that exists.
-    File file(file_path, butil::File::FLAG_CREATE | butil::File::FLAG_READ);
+    File file(file_path, mutil::File::FLAG_CREATE | mutil::File::FLAG_READ);
     EXPECT_FALSE(file.IsValid());
     EXPECT_FALSE(file.created());
-    EXPECT_EQ(butil::File::FILE_ERROR_EXISTS, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_ERROR_EXISTS, file.error_details());
   }
 
   {
     // Create or overwrite a file.
     File file(file_path,
-              butil::File::FLAG_CREATE_ALWAYS | butil::File::FLAG_WRITE);
+              mutil::File::FLAG_CREATE_ALWAYS | mutil::File::FLAG_WRITE);
     EXPECT_TRUE(file.IsValid());
     EXPECT_TRUE(file.created());
-    EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
   }
 
   {
     // Create a delete-on-close file.
     file_path = temp_dir.path().AppendASCII("create_file_2");
     File file(file_path,
-              butil::File::FLAG_OPEN_ALWAYS | butil::File::FLAG_READ |
-                  butil::File::FLAG_DELETE_ON_CLOSE);
+              mutil::File::FLAG_OPEN_ALWAYS | mutil::File::FLAG_READ |
+                  mutil::File::FLAG_DELETE_ON_CLOSE);
     EXPECT_TRUE(file.IsValid());
     EXPECT_TRUE(file.created());
-    EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+    EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
   }
 
-  EXPECT_FALSE(butil::PathExists(file_path));
+  EXPECT_FALSE(mutil::PathExists(file_path));
 }
 
 TEST(FileTest, Async) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("create_file");
 
   {
-    File file(file_path, butil::File::FLAG_OPEN_ALWAYS | butil::File::FLAG_ASYNC);
+    File file(file_path, mutil::File::FLAG_OPEN_ALWAYS | mutil::File::FLAG_ASYNC);
     EXPECT_TRUE(file.IsValid());
     EXPECT_TRUE(file.async());
   }
 
   {
-    File file(file_path, butil::File::FLAG_OPEN_ALWAYS);
+    File file(file_path, mutil::File::FLAG_OPEN_ALWAYS);
     EXPECT_TRUE(file.IsValid());
     EXPECT_FALSE(file.async());
   }
 }
 
 TEST(FileTest, DeleteOpenFile) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("create_file_1");
 
   // Create a file.
   File file(file_path,
-            butil::File::FLAG_OPEN_ALWAYS | butil::File::FLAG_READ |
-                butil::File::FLAG_SHARE_DELETE);
+            mutil::File::FLAG_OPEN_ALWAYS | mutil::File::FLAG_READ |
+                mutil::File::FLAG_SHARE_DELETE);
   EXPECT_TRUE(file.IsValid());
   EXPECT_TRUE(file.created());
-  EXPECT_EQ(butil::File::FILE_OK, file.error_details());
+  EXPECT_EQ(mutil::File::FILE_OK, file.error_details());
 
   // Open an existing file and mark it as delete on close.
   File same_file(file_path,
-                 butil::File::FLAG_OPEN | butil::File::FLAG_DELETE_ON_CLOSE |
-                     butil::File::FLAG_READ);
+                 mutil::File::FLAG_OPEN | mutil::File::FLAG_DELETE_ON_CLOSE |
+                     mutil::File::FLAG_READ);
   EXPECT_TRUE(file.IsValid());
   EXPECT_FALSE(same_file.created());
-  EXPECT_EQ(butil::File::FILE_OK, same_file.error_details());
+  EXPECT_EQ(mutil::File::FILE_OK, same_file.error_details());
 
   // Close both handles and check that the file is gone.
   file.Close();
   same_file.Close();
-  EXPECT_FALSE(butil::PathExists(file_path));
+  EXPECT_FALSE(mutil::PathExists(file_path));
 }
 
 TEST(FileTest, ReadWrite) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("read_write_file");
   File file(file_path,
-            butil::File::FLAG_CREATE | butil::File::FLAG_READ |
-                butil::File::FLAG_WRITE);
+            mutil::File::FLAG_CREATE | mutil::File::FLAG_READ |
+                mutil::File::FLAG_WRITE);
   ASSERT_TRUE(file.IsValid());
 
   char data_to_write[] = "test";
@@ -216,10 +216,10 @@ TEST(FileTest, ReadWrite) {
 }
 
 TEST(FileTest, Append) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("append_file");
-  File file(file_path, butil::File::FLAG_CREATE | butil::File::FLAG_APPEND);
+  File file(file_path, mutil::File::FLAG_CREATE | mutil::File::FLAG_APPEND);
   ASSERT_TRUE(file.IsValid());
 
   char data_to_write[] = "test";
@@ -235,8 +235,8 @@ TEST(FileTest, Append) {
 
   file.Close();
   File file2(file_path,
-             butil::File::FLAG_OPEN | butil::File::FLAG_READ |
-                 butil::File::FLAG_APPEND);
+             mutil::File::FLAG_OPEN | mutil::File::FLAG_READ |
+                 mutil::File::FLAG_APPEND);
   ASSERT_TRUE(file2.IsValid());
 
   // Test passing the file around.
@@ -264,12 +264,12 @@ TEST(FileTest, Append) {
 
 
 TEST(FileTest, Length) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("truncate_file");
   File file(file_path,
-            butil::File::FLAG_CREATE | butil::File::FLAG_READ |
-                butil::File::FLAG_WRITE);
+            mutil::File::FLAG_CREATE | mutil::File::FLAG_READ |
+                mutil::File::FLAG_WRITE);
   ASSERT_TRUE(file.IsValid());
   EXPECT_EQ(0, file.GetLength());
 
@@ -316,27 +316,27 @@ TEST(FileTest, TouchGetInfo) {
 #else
 TEST(FileTest, DISABLED_TouchGetInfo) {
 #endif
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   File file(temp_dir.path().AppendASCII("touch_get_info_file"),
-            butil::File::FLAG_CREATE | butil::File::FLAG_WRITE |
-                butil::File::FLAG_WRITE_ATTRIBUTES);
+            mutil::File::FLAG_CREATE | mutil::File::FLAG_WRITE |
+                mutil::File::FLAG_WRITE_ATTRIBUTES);
   ASSERT_TRUE(file.IsValid());
 
   // Get info for a newly created file.
-  butil::File::Info info;
+  mutil::File::Info info;
   EXPECT_TRUE(file.GetInfo(&info));
 
   // Add 2 seconds to account for possible rounding errors on
   // filesystems that use a 1s or 2s timestamp granularity.
-  butil::Time now = butil::Time::Now() + butil::TimeDelta::FromSeconds(2);
+  mutil::Time now = mutil::Time::Now() + mutil::TimeDelta::FromSeconds(2);
   EXPECT_EQ(0, info.size);
   EXPECT_FALSE(info.is_directory);
   EXPECT_FALSE(info.is_symbolic_link);
   EXPECT_LE(info.last_accessed.ToInternalValue(), now.ToInternalValue());
   EXPECT_LE(info.last_modified.ToInternalValue(), now.ToInternalValue());
   EXPECT_LE(info.creation_time.ToInternalValue(), now.ToInternalValue());
-  butil::Time creation_time = info.creation_time;
+  mutil::Time creation_time = info.creation_time;
 
   // Write "test" to the file.
   char data[] = "test";
@@ -348,10 +348,10 @@ TEST(FileTest, DISABLED_TouchGetInfo) {
   // It's best to add values that are multiples of 2 (in seconds)
   // to the current last_accessed and last_modified times, because
   // FATxx uses a 2s timestamp granularity.
-  butil::Time new_last_accessed =
-      info.last_accessed + butil::TimeDelta::FromSeconds(234);
-  butil::Time new_last_modified =
-      info.last_modified + butil::TimeDelta::FromMinutes(567);
+  mutil::Time new_last_accessed =
+      info.last_accessed + mutil::TimeDelta::FromSeconds(234);
+  mutil::Time new_last_modified =
+      info.last_modified + mutil::TimeDelta::FromMinutes(567);
 
   EXPECT_TRUE(file.SetTimes(new_last_accessed, new_last_modified));
 
@@ -379,19 +379,19 @@ TEST(FileTest, DISABLED_TouchGetInfo) {
 }
 
 TEST(FileTest, ReadAtCurrentPosition) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("read_at_current_position");
   File file(file_path,
-            butil::File::FLAG_CREATE | butil::File::FLAG_READ |
-                butil::File::FLAG_WRITE);
+            mutil::File::FLAG_CREATE | mutil::File::FLAG_READ |
+                mutil::File::FLAG_WRITE);
   EXPECT_TRUE(file.IsValid());
 
   const char kData[] = "test";
   const int kDataSize = sizeof(kData) - 1;
   EXPECT_EQ(kDataSize, file.Write(0, kData, kDataSize));
 
-  EXPECT_EQ(0, file.Seek(butil::File::FROM_BEGIN, 0));
+  EXPECT_EQ(0, file.Seek(mutil::File::FROM_BEGIN, 0));
 
   char buffer[kDataSize];
   int first_chunk_size = kDataSize / 2;
@@ -403,12 +403,12 @@ TEST(FileTest, ReadAtCurrentPosition) {
 }
 
 TEST(FileTest, WriteAtCurrentPosition) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("write_at_current_position");
   File file(file_path,
-            butil::File::FLAG_CREATE | butil::File::FLAG_READ |
-                butil::File::FLAG_WRITE);
+            mutil::File::FLAG_CREATE | mutil::File::FLAG_READ |
+                mutil::File::FLAG_WRITE);
   EXPECT_TRUE(file.IsValid());
 
   const char kData[] = "test";
@@ -426,30 +426,30 @@ TEST(FileTest, WriteAtCurrentPosition) {
 }
 
 TEST(FileTest, Seek) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath file_path = temp_dir.path().AppendASCII("seek_file");
   File file(file_path,
-            butil::File::FLAG_CREATE | butil::File::FLAG_READ |
-                butil::File::FLAG_WRITE);
+            mutil::File::FLAG_CREATE | mutil::File::FLAG_READ |
+                mutil::File::FLAG_WRITE);
   ASSERT_TRUE(file.IsValid());
 
   const int64_t kOffset = 10;
-  EXPECT_EQ(kOffset, file.Seek(butil::File::FROM_BEGIN, kOffset));
-  EXPECT_EQ(2 * kOffset, file.Seek(butil::File::FROM_CURRENT, kOffset));
-  EXPECT_EQ(kOffset, file.Seek(butil::File::FROM_CURRENT, -kOffset));
+  EXPECT_EQ(kOffset, file.Seek(mutil::File::FROM_BEGIN, kOffset));
+  EXPECT_EQ(2 * kOffset, file.Seek(mutil::File::FROM_CURRENT, kOffset));
+  EXPECT_EQ(kOffset, file.Seek(mutil::File::FROM_CURRENT, -kOffset));
   EXPECT_TRUE(file.SetLength(kOffset * 2));
-  EXPECT_EQ(kOffset, file.Seek(butil::File::FROM_END, -kOffset));
+  EXPECT_EQ(kOffset, file.Seek(mutil::File::FROM_END, -kOffset));
 }
 
 #if defined(OS_WIN)
 TEST(FileTest, GetInfoForDirectory) {
-  butil::ScopedTempDir temp_dir;
+  mutil::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
   FilePath empty_dir = temp_dir.path().Append(FILE_PATH_LITERAL("gpfi_test"));
   ASSERT_TRUE(CreateDirectory(empty_dir));
 
-  butil::File dir(
+  mutil::File dir(
       ::CreateFile(empty_dir.value().c_str(),
                    FILE_ALL_ACCESS,
                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -459,7 +459,7 @@ TEST(FileTest, GetInfoForDirectory) {
                    NULL));
   ASSERT_TRUE(dir.IsValid());
 
-  butil::File::Info info;
+  mutil::File::Info info;
   EXPECT_TRUE(dir.GetInfo(&info));
   EXPECT_TRUE(info.is_directory);
   EXPECT_FALSE(info.is_symbolic_link);

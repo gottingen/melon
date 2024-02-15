@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_CLI_H_
 #define  MELON_RAFT_CLI_H_
@@ -31,30 +30,30 @@ namespace melon::raft {
 
         // Add a new peer into the replicating group which consists of |conf|.
         // Returns OK on success, error information otherwise.
-        butil::Status add_peer(const GroupId &group_id, const Configuration &conf,
+        mutil::Status add_peer(const GroupId &group_id, const Configuration &conf,
                                const PeerId &peer_id, const CliOptions &options);
 
         // Remove a peer from the replicating group which consists of |conf|.
         // Returns OK on success, error information otherwise.
-        butil::Status remove_peer(const GroupId &group_id, const Configuration &conf,
+        mutil::Status remove_peer(const GroupId &group_id, const Configuration &conf,
                                   const PeerId &peer_id, const CliOptions &options);
 
     // Gracefully change the peers of the replication group.
-        butil::Status change_peers(const GroupId &group_id, const Configuration &conf,
+        mutil::Status change_peers(const GroupId &group_id, const Configuration &conf,
                                    const Configuration &new_peers,
                                    const CliOptions &options);
 
         // Transfer the leader of the replication group to the target peer
-        butil::Status transfer_leader(const GroupId &group_id, const Configuration &conf,
+        mutil::Status transfer_leader(const GroupId &group_id, const Configuration &conf,
                                       const PeerId &peer, const CliOptions &options);
 
         // Reset the peer set of the target peer
-        butil::Status reset_peer(const GroupId &group_id, const PeerId &peer_id,
+        mutil::Status reset_peer(const GroupId &group_id, const PeerId &peer_id,
                                  const Configuration &new_conf,
                                  const CliOptions &options);
 
         // Ask the peer to dump a snapshot immediately.
-        butil::Status snapshot(const GroupId &group_id, const PeerId &peer_id,
+        mutil::Status snapshot(const GroupId &group_id, const PeerId &peer_id,
                                const CliOptions &options);
 
     }  // namespace cli

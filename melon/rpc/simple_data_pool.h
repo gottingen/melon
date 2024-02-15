@@ -19,7 +19,7 @@
 #ifndef BRPC_SIMPLE_DATA_POOL_H
 #define BRPC_SIMPLE_DATA_POOL_H
 
-#include "melon/butil/scoped_lock.h"
+#include "melon/utility/scoped_lock.h"
 #include "melon/rpc/data_factory.h"
 
 
@@ -47,10 +47,10 @@ public:
     Stat stat() const;
     
 private:
-    butil::Mutex _mutex;
+    mutil::Mutex _mutex;
     unsigned _capacity;
     unsigned _size;
-    butil::atomic<unsigned> _ncreated;
+    mutil::atomic<unsigned> _ncreated;
     void** _pool;
     const DataFactory* _factory;
 };

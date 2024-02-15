@@ -26,24 +26,24 @@ namespace melon {
 namespace policy {
 
 // Parse memcache messages.
-ParseResult ParseMemcacheMessage(butil::IOBuf* source, Socket *socket, bool read_eof,
+ParseResult ParseMemcacheMessage(mutil::IOBuf* source, Socket *socket, bool read_eof,
         const void *arg);
 
 // Actions to a memcache response.
 void ProcessMemcacheResponse(InputMessageBase* msg);
 
 // Serialize a memcache request.
-void SerializeMemcacheRequest(butil::IOBuf* buf,
+void SerializeMemcacheRequest(mutil::IOBuf* buf,
                               Controller* cntl,
                               const google::protobuf::Message* request);
 
 // Pack `request' to `method' into `buf'.
-void PackMemcacheRequest(butil::IOBuf* buf,
+void PackMemcacheRequest(mutil::IOBuf* buf,
                          SocketMessage**,
                          uint64_t correlation_id,
                          const google::protobuf::MethodDescriptor* method,
                          Controller* controller,
-                         const butil::IOBuf& request,
+                         const mutil::IOBuf& request,
                          const Authenticator* auth);
 
 const std::string& GetMemcacheMethodName(

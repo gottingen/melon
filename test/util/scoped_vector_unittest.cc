@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/memory/scoped_vector.h"
+#include "melon/utility/memory/scoped_vector.h"
 
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 
 namespace {
@@ -113,7 +113,7 @@ TEST(ScopedVectorTest, LifeCycleWatcher) {
 TEST(ScopedVectorTest, PopBack) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
-  butil::ScopedVector<LifeCycleObject> scoped_vector;
+  mutil::ScopedVector<LifeCycleObject> scoped_vector;
   scoped_vector.push_back(watcher.NewLifeCycleObject());
   EXPECT_EQ(LC_CONSTRUCTED, watcher.life_cycle_state());
   EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
@@ -125,7 +125,7 @@ TEST(ScopedVectorTest, PopBack) {
 TEST(ScopedVectorTest, Clear) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
-  butil::ScopedVector<LifeCycleObject> scoped_vector;
+  mutil::ScopedVector<LifeCycleObject> scoped_vector;
   scoped_vector.push_back(watcher.NewLifeCycleObject());
   EXPECT_EQ(LC_CONSTRUCTED, watcher.life_cycle_state());
   EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
@@ -137,7 +137,7 @@ TEST(ScopedVectorTest, Clear) {
 TEST(ScopedVectorTest, WeakClear) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
-  butil::ScopedVector<LifeCycleObject> scoped_vector;
+  mutil::ScopedVector<LifeCycleObject> scoped_vector;
   scoped_vector.push_back(watcher.NewLifeCycleObject());
   EXPECT_EQ(LC_CONSTRUCTED, watcher.life_cycle_state());
   EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
@@ -151,7 +151,7 @@ TEST(ScopedVectorTest, ResizeShrink) {
   EXPECT_EQ(LC_INITIAL, first_watcher.life_cycle_state());
   LifeCycleWatcher second_watcher;
   EXPECT_EQ(LC_INITIAL, second_watcher.life_cycle_state());
-  butil::ScopedVector<LifeCycleObject> scoped_vector;
+  mutil::ScopedVector<LifeCycleObject> scoped_vector;
 
   scoped_vector.push_back(first_watcher.NewLifeCycleObject());
   EXPECT_EQ(LC_CONSTRUCTED, first_watcher.life_cycle_state());
@@ -176,7 +176,7 @@ TEST(ScopedVectorTest, ResizeShrink) {
 TEST(ScopedVectorTest, ResizeGrow) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
-  butil::ScopedVector<LifeCycleObject> scoped_vector;
+  mutil::ScopedVector<LifeCycleObject> scoped_vector;
   scoped_vector.push_back(watcher.NewLifeCycleObject());
   EXPECT_EQ(LC_CONSTRUCTED, watcher.life_cycle_state());
   EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
@@ -195,7 +195,7 @@ TEST(ScopedVectorTest, Scope) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
   {
-    butil::ScopedVector<LifeCycleObject> scoped_vector;
+    mutil::ScopedVector<LifeCycleObject> scoped_vector;
     scoped_vector.push_back(watcher.NewLifeCycleObject());
     EXPECT_EQ(LC_CONSTRUCTED, watcher.life_cycle_state());
     EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
@@ -207,7 +207,7 @@ TEST(ScopedVectorTest, Scope2) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
   {
-    butil::ScopedVector<LifeCycleObject> scoped_vector{ watcher.NewLifeCycleObject() };
+    mutil::ScopedVector<LifeCycleObject> scoped_vector{ watcher.NewLifeCycleObject() };
     EXPECT_EQ(LC_CONSTRUCTED, watcher.life_cycle_state());
     EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
   }
@@ -218,12 +218,12 @@ TEST(ScopedVectorTest, MoveConstruct) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
   {
-    butil::ScopedVector<LifeCycleObject> scoped_vector;
+    mutil::ScopedVector<LifeCycleObject> scoped_vector;
     scoped_vector.push_back(watcher.NewLifeCycleObject());
     EXPECT_FALSE(scoped_vector.empty());
     EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
 
-    butil::ScopedVector<LifeCycleObject> scoped_vector_copy(scoped_vector.Pass());
+    mutil::ScopedVector<LifeCycleObject> scoped_vector_copy(scoped_vector.Pass());
     EXPECT_TRUE(scoped_vector.empty());
     EXPECT_FALSE(scoped_vector_copy.empty());
     EXPECT_TRUE(watcher.IsWatching(scoped_vector_copy.back()));
@@ -237,9 +237,9 @@ TEST(ScopedVectorTest, MoveAssign) {
   LifeCycleWatcher watcher;
   EXPECT_EQ(LC_INITIAL, watcher.life_cycle_state());
   {
-    butil::ScopedVector<LifeCycleObject> scoped_vector;
+    mutil::ScopedVector<LifeCycleObject> scoped_vector;
     scoped_vector.push_back(watcher.NewLifeCycleObject());
-    butil::ScopedVector<LifeCycleObject> scoped_vector_assign;
+    mutil::ScopedVector<LifeCycleObject> scoped_vector_assign;
     EXPECT_FALSE(scoped_vector.empty());
     EXPECT_TRUE(watcher.IsWatching(scoped_vector.back()));
 
@@ -272,18 +272,18 @@ class DeleteCounter {
 };
 
 template <typename T>
-butil::ScopedVector<T> PassThru(butil::ScopedVector<T> scoper) {
+mutil::ScopedVector<T> PassThru(mutil::ScopedVector<T> scoper) {
   return scoper.Pass();
 }
 
 TEST(ScopedVectorTest, Passed) {
   int deletes = 0;
-  butil::ScopedVector<DeleteCounter> deleter_vector;
+  mutil::ScopedVector<DeleteCounter> deleter_vector;
   deleter_vector.push_back(new DeleteCounter(&deletes));
   EXPECT_EQ(0, deletes);
   
   EXPECT_EQ(0, deletes);
-  butil::ScopedVector<DeleteCounter> result = deleter_vector.Pass();
+  mutil::ScopedVector<DeleteCounter> result = deleter_vector.Pass();
   EXPECT_EQ(0, deletes);
   result.clear();
   EXPECT_EQ(1, deletes);
@@ -301,7 +301,7 @@ TEST(ScopedVectorTest, InsertRange) {
   }
   // Start scope for ScopedVector.
   {
-    butil::ScopedVector<LifeCycleObject> scoped_vector;
+    mutil::ScopedVector<LifeCycleObject> scoped_vector;
     scoped_vector.insert(scoped_vector.end(), vec.begin() + 1, vec.begin() + 3);
     for(LifeCycleWatcher* it = watchers; it != watchers + arraysize(watchers);
         ++it)

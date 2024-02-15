@@ -18,16 +18,16 @@
 // A multi-threaded client getting keys from a redis-server constantly.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/string_printf.h>
+#include <melon/fiber/fiber.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_printf.h>
 #include <melon/var/var.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/redis/redis.h>
 
 DEFINE_int32(thread_num, 50, "Number of threads to send requests");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
 DEFINE_string(server, "0.0.0.0:6379", "IP Address of server");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
@@ -54,9 +54,9 @@ static void* sender(void* void_args) {
     std::vector<std::pair<std::string, std::string> > kvs;
     kvs.resize(FLAGS_batch);
     for (int i = 0; i < FLAGS_batch; ++i) {
-        kvs[i].first = butil::string_printf(
+        kvs[i].first = mutil::string_printf(
             "%s_%04d", FLAGS_key.c_str(), args->base_index + i);
-        kvs[i].second = butil::string_printf(
+        kvs[i].second = mutil::string_printf(
             "%s_%04d", FLAGS_value.c_str(), args->base_index + i);
     }
 
@@ -89,7 +89,7 @@ static void* sender(void* void_args) {
             // is a specific sleeping to prevent this thread from spinning too
             // fast. You should continue the business logic in a production 
             // server rather than sleeping.
-            bthread_usleep(50000);
+            fiber_usleep(50000);
         }
     }
     return NULL;
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
         melon::StartDummyServerAt(FLAGS_dummy_port);
     }
 
-    std::vector<bthread_t> bids;
+    std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
     bids.resize(FLAGS_thread_num);
     pids.resize(FLAGS_thread_num);
@@ -155,15 +155,15 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         args[i].base_index = i * FLAGS_batch;
         args[i].redis_channel = &channel;
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             if (pthread_create(&pids[i], NULL, sender, &args[i]) != 0) {
                 LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         } else {
-            if (bthread_start_background(
+            if (fiber_start_background(
                     &bids[i], NULL, sender, &args[i]) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -178,10 +178,10 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "redis_client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(bids[i], NULL);
+            fiber_join(bids[i], NULL);
         }
     }
     return 0;

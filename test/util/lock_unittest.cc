@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/synchronization/lock.h"
+#include "melon/utility/synchronization/lock.h"
 
 #include <stdlib.h>
 
-#include "melon/butil/compiler_specific.h"
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/compiler_specific.h"
+#include "melon/utility/threading/platform_thread.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 // Basic test to make sure that Acquire()/Release()/Try() don't crash ----------
 
@@ -213,4 +213,4 @@ TEST(LockTest, MutexFourThreads) {
   EXPECT_EQ(4 * 40, value);
 }
 
-}  // namespace butil
+}  // namespace mutil

@@ -12,15 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Zheng,Pengfei(zhengpengfei@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #ifndef  MELON_RAFT_REMOTE_FILE_COPIER_H_
 #define  MELON_RAFT_REMOTE_FILE_COPIER_H_
 
 #include <melon/rpc/channel.h>
-#include <melon/bthread/countdown_event.h>
+#include <melon/fiber/countdown_event.h>
 #include "melon/proto/raft/file_service.pb.h"
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot_throttle.h"
@@ -51,7 +48,7 @@ namespace melon::raft {
     class RemoteFileCopier {
     public:
         // Stands for a copying session
-        class Session : public butil::RefCountedThreadSafe<Session> {
+        class Session : public mutil::RefCountedThreadSafe<Session> {
         public:
             Session();
 
@@ -63,7 +60,7 @@ namespace melon::raft {
             // Wait until this file was copied from the remote reader
             void join();
 
-            const butil::Status &status() const { return _st; }
+            const mutil::Status &status() const { return _st; }
 
         private:
             friend class RemoteFileCopier;
@@ -89,21 +86,21 @@ namespace melon::raft {
             static void *send_next_rpc_on_timedout(void *arg);
 
             raft_mutex_t _mutex;
-            butil::Status _st;
+            mutil::Status _st;
             melon::Channel *_channel;
             std::string _dest_path;
             FileAdaptor *_file;
             int _retry_times;
             bool _finished;
             melon::CallId _rpc_call;
-            butil::IOBuf *_buf;
-            bthread_timer_t _timer;
+            mutil::IOBuf *_buf;
+            fiber_timer_t _timer;
             CopyOptions _options;
             Closure _done;
             melon::Controller _cntl;
             GetFileRequest _request;
             GetFileResponse _response;
-            bthread::CountdownEvent _finish_event;
+            fiber::CountdownEvent _finish_event;
             scoped_refptr<SnapshotThrottle> _throttle;
             int64_t _throttle_token_acquire_time_us;
         };
@@ -119,7 +116,7 @@ namespace melon::raft {
                          const CopyOptions *options);
 
         int copy_to_iobuf(const std::string &source,
-                          butil::IOBuf *dest_buf,
+                          mutil::IOBuf *dest_buf,
                           const CopyOptions *options);
 
         scoped_refptr<Session> start_to_copy_to_file(
@@ -129,11 +126,11 @@ namespace melon::raft {
 
         scoped_refptr<Session> start_to_copy_to_iobuf(
                 const std::string &source,
-                butil::IOBuf *dest_buf,
+                mutil::IOBuf *dest_buf,
                 const CopyOptions *options);
 
     private:
-        int read_piece_of_file(butil::IOBuf *buf, const std::string &source,
+        int read_piece_of_file(mutil::IOBuf *buf, const std::string &source,
                                off_t offset, size_t max_count,
                                long timeout_ms, bool *is_eof);
         DISALLOW_COPY_AND_ASSIGN(RemoteFileCopier);

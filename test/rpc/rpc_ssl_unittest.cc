@@ -22,10 +22,10 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <google/protobuf/descriptor.h>
-#include <melon/butil/time.h>
-#include <melon/butil/macros.h>
-#include <melon/butil/fd_guard.h>
-#include <melon/butil/files/scoped_file.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/files/scoped_file.h>
 #include "melon/rpc/global.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/server.h"
@@ -61,7 +61,7 @@ public:
                       google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         melon::Controller* cntl = (melon::Controller*)cntl_base;
-        count.fetch_add(1, butil::memory_order_relaxed);
+        count.fetch_add(1, mutil::memory_order_relaxed);
         EXPECT_EQ(EXP_REQUEST, request->message());
         EXPECT_TRUE(cntl->is_ssl());
 
@@ -69,11 +69,11 @@ public:
         if (request->sleep_us() > 0) {
             LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
                       << cntl->request_protocol();
-            bthread_usleep(request->sleep_us());
+            fiber_usleep(request->sleep_us());
         }
     }
 
-    butil::atomic<int64_t> count;
+    mutil::atomic<int64_t> count;
 };
 
 class SSLTest : public ::testing::Test{
@@ -248,7 +248,7 @@ void CheckCert(const char* cname, const char* cert) {
 }
 
 std::string GetRawPemString(const char* fname) {
-    butil::ScopedFILE fp(fname, "r");
+    mutil::ScopedFILE fp(fname, "r");
     char buf[4096];
     int size = read(fileno(fp), buf, sizeof(buf));
     std::string raw;
@@ -348,7 +348,7 @@ void* ssl_perf_client(void* arg) {
     EXPECT_EQ(1, SSL_do_handshake(ssl));
 
     char buf[4096];
-    butil::Timer tm;
+    mutil::Timer tm;
     for (size_t i = 0; i < ARRAY_SIZE(BUFSIZE); ++i) {
         int size = BUFSIZE[i];
         tm.start();
@@ -377,8 +377,8 @@ void* ssl_perf_server(void* arg) {
 }
 
 TEST_F(SSLTest, ssl_perf) {
-    const butil::EndPoint ep(butil::IP_ANY, 5961);
-    butil::fd_guard listenfd(butil::tcp_listen(ep));
+    const mutil::EndPoint ep(mutil::IP_ANY, 5961);
+    mutil::fd_guard listenfd(mutil::tcp_listen(ep));
     ASSERT_GT(listenfd, 0);
     int clifd = tcp_connect(ep, NULL);
     ASSERT_GT(clifd, 0);

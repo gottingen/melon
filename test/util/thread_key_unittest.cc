@@ -18,11 +18,11 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 
-#include "melon/butil/thread_key.h"
-#include "melon/butil/fast_rand.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/thread_key.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/fiber/fiber.h"
 
-namespace butil {
+namespace mutil {
 namespace {
 
 //pthread_key_xxx implication without num limit...
@@ -52,15 +52,15 @@ TEST(ThreadLocalTest, sanity) {
         for (int i = 0; i < 5; ++i) {
             std::unique_ptr<int> data(new int(1));
             int *raw_data = data.get();
-            ASSERT_EQ(0, butil::thread_key_create(key, NULL));
+            ASSERT_EQ(0, mutil::thread_key_create(key, NULL));
 
-            ASSERT_EQ(NULL, butil::thread_getspecific(key));
-            ASSERT_EQ(0, butil::thread_setspecific(key, (void *)raw_data));
-            ASSERT_EQ(raw_data, butil::thread_getspecific(key));
+            ASSERT_EQ(NULL, mutil::thread_getspecific(key));
+            ASSERT_EQ(0, mutil::thread_setspecific(key, (void *)raw_data));
+            ASSERT_EQ(raw_data, mutil::thread_getspecific(key));
 
-            ASSERT_EQ(0, butil::thread_key_delete(key));
-            ASSERT_EQ(NULL, butil::thread_getspecific(key));
-            ASSERT_NE(0, butil::thread_setspecific(key, (void *)raw_data));
+            ASSERT_EQ(0, mutil::thread_key_delete(key));
+            ASSERT_EQ(NULL, mutil::thread_getspecific(key));
+            ASSERT_NE(0, mutil::thread_setspecific(key, (void *)raw_data));
         }
     }
 
@@ -84,7 +84,7 @@ TEST(ThreadLocalTest, thread_key_seq) {
         if (keys.empty() || create) {
             for (uint64_t j = 0; j < num; ++j) {
                 keys.emplace_back();
-                ASSERT_EQ(0, butil::thread_key_create(keys.back(), NULL));
+                ASSERT_EQ(0, mutil::thread_key_create(keys.back(), NULL));
                 ASSERT_TRUE(!KEY_UNUSED(keys.back()._seq));
                 if (keys.back()._id >= seqs.size()) {
                     seqs.resize(keys.back()._id + 1);
@@ -97,7 +97,7 @@ TEST(ThreadLocalTest, thread_key_seq) {
             for (uint64_t j = 0; j < num && !keys.empty(); ++j) {
                 uint64_t index = fast_rand_less_than(keys.size());
                 ASSERT_TRUE(!KEY_UNUSED(seqs[keys[index]._id]));
-                ASSERT_EQ(0, butil::thread_key_delete(keys[index]));
+                ASSERT_EQ(0, mutil::thread_key_delete(keys[index]));
                 keys.erase(keys.begin() + index);
             }
         }
@@ -107,9 +107,9 @@ TEST(ThreadLocalTest, thread_key_seq) {
 void* THreadKeyCreateAndDeleteFunc(void* arg) {
     while (!g_stopped) {
         ThreadKey key;
-        EXPECT_EQ(0, butil::thread_key_create(key, NULL));
+        EXPECT_EQ(0, mutil::thread_key_create(key, NULL));
         EXPECT_TRUE(!KEY_UNUSED(key._seq));
-        EXPECT_EQ(0, butil::thread_key_delete(key));
+        EXPECT_EQ(0, mutil::thread_key_delete(key));
     }
     return NULL;
 }
@@ -143,7 +143,7 @@ void* ThreadLocalFunc(void* arg) {
         EXPECT_EQ(*((*thread_locals)[index]->get()), expects[index]);
         ++(*((*thread_locals)[index]->get()));
         ++expects[index];
-        bthread_usleep(10);
+        fiber_usleep(10);
     }
     return NULL;
 }
@@ -172,7 +172,7 @@ TEST(ThreadLocalTest, thread_local_multi_thread) {
     }
 }
 
-struct BAIDU_CACHELINE_ALIGNMENT ThreadKeyArg {
+struct MELON_CACHELINE_ALIGNMENT ThreadKeyArg {
     std::vector<ThreadKey*> thread_keys;
     bool ready_delete = false;
 };
@@ -183,29 +183,29 @@ void* ThreadKeyFunc(void* arg) {
     auto thread_keys = thread_key_arg->thread_keys;
     std::vector<int> expects(thread_keys.size(), 0);
     for (auto key : thread_keys) {
-        EXPECT_TRUE(butil::thread_getspecific(*key) == NULL);
-        EXPECT_EQ(0, butil::thread_setspecific(*key, new int(0)));
-        EXPECT_EQ(*(static_cast<int*>(butil::thread_getspecific(*key))), 0);
+        EXPECT_TRUE(mutil::thread_getspecific(*key) == NULL);
+        EXPECT_EQ(0, mutil::thread_setspecific(*key, new int(0)));
+        EXPECT_EQ(*(static_cast<int*>(mutil::thread_getspecific(*key))), 0);
     }
     while (!g_stopped) {
         uint64_t index =
             fast_rand_less_than(thread_keys.size());
-        auto data = static_cast<int*>(butil::thread_getspecific(*thread_keys[index]));
+        auto data = static_cast<int*>(mutil::thread_getspecific(*thread_keys[index]));
         EXPECT_TRUE(data != NULL);
         EXPECT_EQ(*data, expects[index]);
         ++(*data);
         ++expects[index];
-        bthread_usleep(10);
+        fiber_usleep(10);
     }
 
     thread_key_arg->ready_delete = true;
     while (!g_deleted) {
-        bthread_usleep(10);
+        fiber_usleep(10);
     }
 
     for (auto key : thread_keys) {
-        EXPECT_TRUE(butil::thread_getspecific(*key) == NULL)
-        << butil::thread_getspecific(*key);
+        EXPECT_TRUE(mutil::thread_getspecific(*key) == NULL)
+        << mutil::thread_getspecific(*key);
     }
     return NULL;
 }
@@ -217,12 +217,12 @@ TEST(ThreadLocalTest, thread_key_multi_thread) {
     int key_num = 20480;
     for (int i = 0; i < key_num; ++i) {
         thread_keys.push_back(new ThreadKey());
-        ASSERT_EQ(0, butil::thread_key_create(*thread_keys.back(), [](void* data) {
+        ASSERT_EQ(0, mutil::thread_key_create(*thread_keys.back(), [](void* data) {
             delete static_cast<int*>(data);
         }));
-        ASSERT_TRUE(butil::thread_getspecific(*thread_keys.back()) == NULL);
-        ASSERT_EQ(0, butil::thread_setspecific(*thread_keys.back(), new int(0)));
-        ASSERT_EQ(*(static_cast<int*>(butil::thread_getspecific(*thread_keys.back()))), 0);
+        ASSERT_TRUE(mutil::thread_getspecific(*thread_keys.back()) == NULL);
+        ASSERT_EQ(0, mutil::thread_setspecific(*thread_keys.back(), new int(0)));
+        ASSERT_EQ(*(static_cast<int*>(mutil::thread_getspecific(*thread_keys.back()))), 0);
     }
     const int thread_num = 8;
     std::vector<ThreadKeyArg> args(thread_num);
@@ -248,8 +248,8 @@ TEST(ThreadLocalTest, thread_key_multi_thread) {
         usleep(1000);
     }
     for (auto key : thread_keys) {
-        ASSERT_EQ(0, butil::thread_key_delete(*key));
-        ASSERT_TRUE(butil::thread_getspecific(*key) == NULL);
+        ASSERT_EQ(0, mutil::thread_key_delete(*key));
+        ASSERT_TRUE(mutil::thread_getspecific(*key) == NULL);
     }
     g_deleted = true;
 
@@ -263,7 +263,7 @@ TEST(ThreadLocalTest, thread_key_multi_thread) {
 
 DEFINE_bool(test_pthread_key, true, "test pthread_key");
 
-struct BAIDU_CACHELINE_ALIGNMENT ThreadKeyPerfArgs {
+struct MELON_CACHELINE_ALIGNMENT ThreadKeyPerfArgs {
     pthread_key_t pthread_key;
     ThreadKey* thread_key;
     bool is_pthread_key;
@@ -286,21 +286,21 @@ void* ThreadKeyPerfFunc(void* void_arg) {
     if (args->is_pthread_key) {
         pthread_setspecific(args->pthread_key, (void*)data.get());
     } else {
-        butil::thread_setspecific(*args->thread_key, (void*)data.get());
+        mutil::thread_setspecific(*args->thread_key, (void*)data.get());
     }
-    butil::Timer t;
+    mutil::Timer t;
     while (!g_stopped) {
         if (g_started) {
             break;
         }
-        bthread_usleep(10);
+        fiber_usleep(10);
     }
     t.start();
     while (!g_stopped) {
         if (args->is_pthread_key) {
             pthread_getspecific(args->pthread_key);
         } else {
-            butil::thread_getspecific(*args->thread_key);
+            mutil::thread_getspecific(*args->thread_key);
         }
         ++args->counter;
     }
@@ -314,11 +314,11 @@ void ThreadKeyPerfTest(int thread_num, bool test_pthread_key) {
     g_started = false;
     g_stopped = false;
     pthread_key_t pthread_key;
-    butil::ThreadKey thread_key;
+    mutil::ThreadKey thread_key;
     if (test_pthread_key) {
         ASSERT_EQ(0, pthread_key_create(&pthread_key, NULL));
     } else {
-        ASSERT_EQ(0, butil::thread_key_create(thread_key, NULL));
+        ASSERT_EQ(0, mutil::thread_key_create(thread_key, NULL));
     }
     pthread_t threads[thread_num];
     std::vector<ThreadKeyPerfArgs> args(thread_num);
@@ -359,7 +359,7 @@ void ThreadKeyPerfTest(int thread_num, bool test_pthread_key) {
     if (test_pthread_key) {
         ASSERT_EQ(0, pthread_key_delete(pthread_key));
     } else {
-        ASSERT_EQ(0, butil::thread_key_delete(thread_key));
+        ASSERT_EQ(0, mutil::thread_key_delete(thread_key));
     }
     LOG(INFO) << (test_pthread_key ? "pthread_key" : "thread_key")
               << " thread_num=" << thread_num
@@ -367,7 +367,7 @@ void ThreadKeyPerfTest(int thread_num, bool test_pthread_key) {
               << " average_time=" << wait_time / (double)count;
 }
 
-struct BAIDU_CACHELINE_ALIGNMENT ThreadLocalPerfArgs {
+struct MELON_CACHELINE_ALIGNMENT ThreadLocalPerfArgs {
     ThreadLocal<int>* tl;
     int64_t counter;
     int64_t elapse_ns;
@@ -382,12 +382,12 @@ void* ThreadLocalPerfFunc(void* void_arg) {
     auto args = (ThreadLocalPerfArgs*)void_arg;
     args->ready = true;
     EXPECT_TRUE(args->tl->get() != NULL);
-    butil::Timer t;
+    mutil::Timer t;
     while (!g_stopped) {
         if (g_started) {
             break;
         }
-        bthread_usleep(10);
+        fiber_usleep(10);
     }
     t.start();
     while (!g_stopped) {
@@ -457,4 +457,4 @@ TEST(ThreadLocalTest, thread_key_performance) {
 }
 
 }
-} // namespace butil
+} // namespace mutil

@@ -10,8 +10,6 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  WangYao (fisherman), wangyao02@baidu.com
- *        Company:  Baidu, Inc
  *
  * =====================================================================================
  */

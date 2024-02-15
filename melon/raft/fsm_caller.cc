@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/log_manager.h"
 #include "melon/raft/node.h"
@@ -27,7 +24,7 @@
 #include "melon/raft/node.h"
 
 #include "melon/raft/fsm_caller.h"
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/unstable.h>
 
 namespace melon::raft {
 
@@ -47,7 +44,7 @@ namespace melon::raft {
         CHECK(_after_shutdown == NULL);
     }
 
-    int FSMCaller::run(void *meta, bthread::TaskIterator<ApplyTask> &iter) {
+    int FSMCaller::run(void *meta, fiber::TaskIterator<ApplyTask> &iter) {
         FSMCaller *caller = (FSMCaller *) meta;
         if (iter.is_queue_stopped()) {
             caller->do_shutdown();
@@ -156,17 +153,17 @@ namespace melon::raft {
         _after_shutdown = options.after_shutdown;
         _node = options.node;
         _last_applied_index.store(options.bootstrap_id.index,
-                                  butil::memory_order_relaxed);
+                                  mutil::memory_order_relaxed);
         _last_applied_term = options.bootstrap_id.term;
         if (_node) {
             _node->AddRef();
         }
 
-        bthread::ExecutionQueueOptions execq_opt;
-        execq_opt.bthread_attr = options.usercode_in_pthread
-                                 ? BTHREAD_ATTR_PTHREAD
-                                 : BTHREAD_ATTR_NORMAL;
-        if (bthread::execution_queue_start(&_queue_id,
+        fiber::ExecutionQueueOptions execq_opt;
+        execq_opt.fiber_attr = options.usercode_in_pthread
+                                 ? FIBER_ATTR_PTHREAD
+                                 : FIBER_ATTR_NORMAL;
+        if (fiber::execution_queue_start(&_queue_id,
                                            &execq_opt,
                                            FSMCaller::run,
                                            this) != 0) {
@@ -179,7 +176,7 @@ namespace melon::raft {
 
     int FSMCaller::shutdown() {
         if (_queue_started) {
-            return bthread::execution_queue_stop(_queue_id);
+            return fiber::execution_queue_stop(_queue_id);
         }
         return 0;
     }
@@ -203,7 +200,7 @@ namespace melon::raft {
         ApplyTask t;
         t.type = COMMITTED;
         t.committed_index = committed_index;
-        return bthread::execution_queue_execute(_queue_id, t);
+        return fiber::execution_queue_execute(_queue_id, t);
     }
 
     class OnErrorClousre : public Closure {
@@ -228,8 +225,8 @@ namespace melon::raft {
         ApplyTask t;
         t.type = ERROR;
         t.done = c;
-        if (bthread::execution_queue_execute(_queue_id, t,
-                                             &bthread::TASK_OPTIONS_URGENT) != 0) {
+        if (fiber::execution_queue_execute(_queue_id, t,
+                                             &fiber::TASK_OPTIONS_URGENT) != 0) {
             c->Run();
             return -1;
         }
@@ -260,7 +257,7 @@ namespace melon::raft {
             return;
         }
         int64_t last_applied_index = _last_applied_index.load(
-                butil::memory_order_relaxed);
+                mutil::memory_order_relaxed);
 
         // We can tolerate the disorder of committed_index
         if (last_applied_index >= committed_index) {
@@ -308,7 +305,7 @@ namespace melon::raft {
         const int64_t last_index = iter_impl.index() - 1;
         const int64_t last_term = _log_manager->get_term(last_index);
         LogId last_applied_id(last_index, last_term);
-        _last_applied_index.store(committed_index, butil::memory_order_release);
+        _last_applied_index.store(committed_index, mutil::memory_order_release);
         _last_applied_term = last_term;
         _log_manager->set_applied_id(last_applied_id);
     }
@@ -317,13 +314,13 @@ namespace melon::raft {
         ApplyTask task;
         task.type = SNAPSHOT_SAVE;
         task.done = done;
-        return bthread::execution_queue_execute(_queue_id, task);
+        return fiber::execution_queue_execute(_queue_id, task);
     }
 
     void FSMCaller::do_snapshot_save(SaveSnapshotClosure *done) {
         CHECK(done);
 
-        int64_t last_applied_index = _last_applied_index.load(butil::memory_order_relaxed);
+        int64_t last_applied_index = _last_applied_index.load(mutil::memory_order_relaxed);
 
         SnapshotMeta meta;
         meta.set_last_included_index(last_applied_index);
@@ -356,7 +353,7 @@ namespace melon::raft {
         ApplyTask task;
         task.type = SNAPSHOT_LOAD;
         task.done = done;
-        return bthread::execution_queue_execute(_queue_id, task);
+        return fiber::execution_queue_execute(_queue_id, task);
     }
 
     void FSMCaller::do_snapshot_load(LoadSnapshotClosure *done) {
@@ -383,7 +380,7 @@ namespace melon::raft {
         }
 
         LogId last_applied_id;
-        last_applied_id.index = _last_applied_index.load(butil::memory_order_relaxed);
+        last_applied_id.index = _last_applied_index.load(mutil::memory_order_relaxed);
         last_applied_id.term = _last_applied_term;
         LogId snapshot_id;
         snapshot_id.index = meta.last_included_index();
@@ -418,17 +415,17 @@ namespace melon::raft {
         }
 
         _last_applied_index.store(meta.last_included_index(),
-                                  butil::memory_order_release);
+                                  mutil::memory_order_release);
         _last_applied_term = meta.last_included_term();
         done->Run();
     }
 
-    int FSMCaller::on_leader_stop(const butil::Status &status) {
+    int FSMCaller::on_leader_stop(const mutil::Status &status) {
         ApplyTask task;
         task.type = LEADER_STOP;
-        butil::Status *on_leader_stop_status = new butil::Status(status);
+        mutil::Status *on_leader_stop_status = new mutil::Status(status);
         task.status = on_leader_stop_status;
-        if (bthread::execution_queue_execute(_queue_id, task) != 0) {
+        if (fiber::execution_queue_execute(_queue_id, task) != 0) {
             delete on_leader_stop_status;
             return -1;
         }
@@ -441,14 +438,14 @@ namespace melon::raft {
         LeaderStartContext *on_leader_start_context =
                 new LeaderStartContext(term, lease_epoch);
         task.leader_start_context = on_leader_start_context;
-        if (bthread::execution_queue_execute(_queue_id, task) != 0) {
+        if (fiber::execution_queue_execute(_queue_id, task) != 0) {
             delete on_leader_start_context;
             return -1;
         }
         return 0;
     }
 
-    void FSMCaller::do_leader_stop(const butil::Status &status) {
+    void FSMCaller::do_leader_stop(const mutil::Status &status) {
         _fsm->on_leader_stop(status);
     }
 
@@ -464,7 +461,7 @@ namespace melon::raft {
                                                                start_following_context.term(),
                                                                start_following_context.status());
         task.leader_change_context = context;
-        if (bthread::execution_queue_execute(_queue_id, task) != 0) {
+        if (fiber::execution_queue_execute(_queue_id, task) != 0) {
             delete context;
             return -1;
         }
@@ -478,7 +475,7 @@ namespace melon::raft {
                                                                stop_following_context.term(),
                                                                stop_following_context.status());
         task.leader_change_context = context;
-        if (bthread::execution_queue_execute(_queue_id, task) != 0) {
+        if (fiber::execution_queue_execute(_queue_id, task) != 0) {
             delete context;
             return -1;
         }
@@ -497,7 +494,7 @@ namespace melon::raft {
         const char *newline = (use_html) ? "<br>" : "\n";
         TaskType cur_task = _cur_task;
         const int64_t applying_index = _applying_index.load(
-                butil::memory_order_relaxed);
+                mutil::memory_order_relaxed);
         os << "state_machine: ";
         switch (cur_task) {
             case IDLE:
@@ -536,13 +533,13 @@ namespace melon::raft {
         if (cur_task != COMMITTED) {
             return 0;
         } else {
-            return _applying_index.load(butil::memory_order_relaxed);
+            return _applying_index.load(mutil::memory_order_relaxed);
         }
     }
 
     void FSMCaller::join() {
         if (_queue_started) {
-            bthread::execution_queue_join(_queue_id);
+            fiber::execution_queue_join(_queue_id);
             _queue_started = false;
         }
     }
@@ -552,7 +549,7 @@ namespace melon::raft {
                                int64_t first_closure_index,
                                int64_t last_applied_index,
                                int64_t committed_index,
-                               butil::atomic<int64_t> *applying_index)
+                               mutil::atomic<int64_t> *applying_index)
             : _sm(sm), _lm(lm), _closure(closure), _first_closure_index(first_closure_index),
               _cur_index(last_applied_index), _committed_index(committed_index), _cur_entry(NULL),
               _applying_index(applying_index) { next(); }
@@ -573,7 +570,7 @@ namespace melon::raft {
                                               " while committed_index=%" PRId64,
                                               _cur_index, _committed_index);
                 }
-                _applying_index->store(_cur_index, butil::memory_order_relaxed);
+                _applying_index->store(_cur_index, mutil::memory_order_relaxed);
             }
         }
     }
@@ -586,7 +583,7 @@ namespace melon::raft {
     }
 
     void IteratorImpl::set_error_and_rollback(
-            size_t ntail, const butil::Status *st) {
+            size_t ntail, const mutil::Status *st) {
         if (ntail == 0) {
             CHECK(false) << "Invalid ntail=" << ntail;
             return;
@@ -613,7 +610,7 @@ namespace melon::raft {
             Closure *done = (*_closure)[i - _first_closure_index];
             if (done) {
                 done->status() = _error.status();
-                run_closure_in_bthread(done);
+                run_closure_in_fiber(done);
             }
         }
     }

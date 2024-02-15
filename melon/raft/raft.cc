@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
 
 #include <pthread.h>
 #include <unistd.h>
-#include <melon/butil/string_printf.h>
-#include <melon/butil/class_name.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/class_name.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/node.h"
 #include "melon/raft/storage.h"
@@ -86,19 +84,19 @@ namespace melon::raft {
         }
     }
 
-    int add_service(melon::Server *server, const butil::EndPoint &listen_addr) {
+    int add_service(melon::Server *server, const mutil::EndPoint &listen_addr) {
         global_init_once_or_die();
         return global_node_manager->add_service(server, listen_addr);
     }
 
     int add_service(melon::Server *server, int port) {
-        butil::EndPoint addr(butil::IP_ANY, port);
+        mutil::EndPoint addr(mutil::IP_ANY, port);
         return add_service(server, addr);
     }
 
     int add_service(melon::Server *server, const char *listen_ip_and_port) {
-        butil::EndPoint addr;
-        if (butil::str2endpoint(listen_ip_and_port, &addr) != 0) {
+        mutil::EndPoint addr;
+        if (mutil::str2endpoint(listen_ip_and_port, &addr) != 0) {
             LOG(ERROR) << "Fail to parse `" << listen_ip_and_port << "'";
             return -1;
         }
@@ -113,7 +111,7 @@ namespace melon::raft {
         const std::string snapshot_uri = gc_options.snapshot_uri;
         bool is_success = true;
 
-        butil::Status status = LogStorage::destroy(log_uri);
+        mutil::Status status = LogStorage::destroy(log_uri);
         if (!status.ok()) {
             is_success = false;
             LOG(WARNING) << "Group " << vgid << " failed to gc raft log, uri " << log_uri;
@@ -182,7 +180,7 @@ namespace melon::raft {
         _impl->apply(task);
     }
 
-    butil::Status Node::list_peers(std::vector<PeerId> *peers) {
+    mutil::Status Node::list_peers(std::vector<PeerId> *peers) {
         return _impl->list_peers(peers);
     }
 
@@ -198,7 +196,7 @@ namespace melon::raft {
         _impl->change_peers(new_peers, done);
     }
 
-    butil::Status Node::reset_peers(const Configuration &new_peers) {
+    mutil::Status Node::reset_peers(const Configuration &new_peers) {
         return _impl->reset_peers(new_peers);
     }
 
@@ -206,11 +204,11 @@ namespace melon::raft {
         _impl->snapshot(done);
     }
 
-    butil::Status Node::vote(int election_timeout) {
+    mutil::Status Node::vote(int election_timeout) {
         return _impl->vote(election_timeout);
     }
 
-    butil::Status Node::reset_election_timeout_ms(int election_timeout_ms) {
+    mutil::Status Node::reset_election_timeout_ms(int election_timeout_ms) {
         return _impl->reset_election_timeout_ms(election_timeout_ms);
     }
 
@@ -222,7 +220,7 @@ namespace melon::raft {
         return _impl->transfer_leadership_to(peer);
     }
 
-    butil::Status Node::read_committed_user_log(const int64_t index, UserLog *user_log) {
+    mutil::Status Node::read_committed_user_log(const int64_t index, UserLog *user_log) {
         return _impl->read_committed_user_log(index, user_log);
     }
 
@@ -257,7 +255,7 @@ namespace melon::raft {
 
     int64_t Iterator::term() const { return _impl->entry()->id.term; }
 
-    const butil::IOBuf &Iterator::data() const {
+    const mutil::IOBuf &Iterator::data() const {
         return _impl->entry()->data;
     }
 
@@ -265,7 +263,7 @@ namespace melon::raft {
         return _impl->done();
     }
 
-    void Iterator::set_error_and_rollback(size_t ntail, const butil::Status *st) {
+    void Iterator::set_error_and_rollback(size_t ntail, const mutil::Status *st) {
         return _impl->set_error_and_rollback(ntail, st);
     }
 
@@ -277,16 +275,16 @@ namespace melon::raft {
     void StateMachine::on_snapshot_save(SnapshotWriter *writer, Closure *done) {
         (void) writer;
         CHECK(done);
-        LOG(ERROR) << butil::class_name_str(*this)
+        LOG(ERROR) << mutil::class_name_str(*this)
                    << " didn't implement on_snapshot_save";
         done->status().set_error(-1, "%s didn't implement on_snapshot_save",
-                                 butil::class_name_str(*this).c_str());
+                                 mutil::class_name_str(*this).c_str());
         done->Run();
     }
 
     int StateMachine::on_snapshot_load(SnapshotReader *reader) {
         (void) reader;
-        LOG(ERROR) << butil::class_name_str(*this)
+        LOG(ERROR) << mutil::class_name_str(*this)
                    << " didn't implement on_snapshot_load"
                    << " while a snapshot is saved in " << reader->get_path();
         return -1;
@@ -294,11 +292,11 @@ namespace melon::raft {
 
     void StateMachine::on_leader_start(int64_t) {}
 
-    void StateMachine::on_leader_stop(const butil::Status &) {}
+    void StateMachine::on_leader_stop(const mutil::Status &) {}
 
     void StateMachine::on_error(const Error &e) {
         LOG(ERROR) << "Encountered an error=" << e << " on StateMachine "
-                   << butil::class_name_str(*this)
+                   << mutil::class_name_str(*this)
                    << ", it's highly recommended to implement this interface"
                       " as raft stops working since some error ocurrs,"
                       " you should figure out the cause and repair or remove this node";

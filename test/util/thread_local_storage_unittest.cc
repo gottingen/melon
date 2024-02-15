@@ -7,8 +7,8 @@
 #include <process.h>
 #endif
 
-#include "melon/butil/threading/simple_thread.h"
-#include "melon/butil/threading/thread_local_storage.h"
+#include "melon/utility/threading/simple_thread.h"
+#include "melon/utility/threading/thread_local_storage.h"
 #include <gtest/gtest.h>
 
 #if defined(OS_WIN)
@@ -17,7 +17,7 @@
 #pragma warning(disable : 4311 4312)
 #endif
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -121,4 +121,4 @@ TEST(ThreadLocalStorageTest, MAYBE_TLSDestructors) {
   tls_slot.Free();  // Stop doing callbacks to cleanup threads.
 }
 
-}  // namespace butil
+}  // namespace mutil

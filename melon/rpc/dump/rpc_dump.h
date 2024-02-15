@@ -20,12 +20,12 @@
 #define MELON_RPC_DUMP_RPC_DUMP_H_
 
 #include <gflags/gflags_declare.h>
-#include "melon/butil/iobuf.h"                            // IOBuf
-#include "melon/butil/files/file_path.h"                  // FilePath
+#include "melon/utility/iobuf.h"                            // IOBuf
+#include "melon/utility/files/file_path.h"                  // FilePath
 #include "melon/var/collector.h"
 #include "melon/proto/rpc/rpc_dump.pb.h"                       // RpcDumpMeta
 
-namespace butil {
+namespace mutil {
     class FileEnumerator;
 }
 
@@ -49,7 +49,7 @@ namespace melon {
 
     class SampledRequest : public melon::var::Collected {
     public:
-        butil::IOBuf request;
+        mutil::IOBuf request;
         RpcDumpMeta meta;
 
         // Implement methods of Sampled.
@@ -82,7 +82,7 @@ namespace melon {
     //   }
     class SampleIterator {
     public:
-        explicit SampleIterator(const butil::StringPiece &dir);
+        explicit SampleIterator(const mutil::StringPiece &dir);
 
         ~SampleIterator();
 
@@ -95,12 +95,12 @@ namespace melon {
     private:
         // Parse on request from the buf. Set `format_error' to true when
         // the buf does not match the format.
-        static SampledRequest *Pop(butil::IOBuf &buf, bool *format_error);
+        static SampledRequest *Pop(mutil::IOBuf &buf, bool *format_error);
 
-        butil::IOPortal _cur_buf;
+        mutil::IOPortal _cur_buf;
         int _cur_fd;
-        butil::FileEnumerator *_enum;
-        butil::FilePath _dir;
+        mutil::FileEnumerator *_enum;
+        mutil::FilePath _dir;
     };
 
 } // namespace melon

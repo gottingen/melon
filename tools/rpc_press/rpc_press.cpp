@@ -19,8 +19,8 @@
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <melon/rpc/server.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/string_splitter.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/string_splitter.h>
 #include <string.h>
 #include "rpc_press_impl.h"
 
@@ -33,7 +33,7 @@ DEFINE_string(input, "", "The file containing requests in json format");
 DEFINE_string(output, "", "The file containing responses in json format");
 DEFINE_string(lb_policy, "", "The load balancer algorithm: rr, random, la, c_murmurhash, c_md5");
 DEFINE_int32(thread_num, 0, "Number of threads to send requests. 0: automatically chosen according to -qps");
-DEFINE_string(protocol, "baidu_std", "baidu_std hulu_pbrpc sofa_pbrpc http public_pbrpc nova_pbrpc ubrpc_compack...");
+DEFINE_string(protocol, "melon_std", "melon_std hulu_pbrpc sofa_pbrpc http public_pbrpc nova_pbrpc ubrpc_compack...");
 DEFINE_string(connection_type, "", "Type of connections: single, pooled, short");
 DEFINE_int32(timeout_ms, 1000, "RPC timeout in milliseconds");
 DEFINE_int32(connection_timeout_ms, 500, " connection timeout in milliseconds");

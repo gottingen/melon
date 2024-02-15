@@ -20,14 +20,14 @@
 #include <stdlib.h>
 #include <map>
 #include <vector>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/string_printf.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/containers/hash_tables.h"
-#include "melon/butil/containers/flat_map.h"
-#include "melon/butil/containers/pooled_map.h"
-#include "melon/butil/containers/case_ignored_flat_map.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/containers/hash_tables.h"
+#include "melon/utility/containers/flat_map.h"
+#include "melon/utility/containers/pooled_map.h"
+#include "melon/utility/containers/case_ignored_flat_map.h"
 
 namespace {
 class FlatMapTest : public ::testing::Test{
@@ -54,7 +54,7 @@ struct Bar {
 
 TEST_F(FlatMapTest, initialization_of_values) {
     // Construct non-POD values w/o copy-construction.
-    butil::FlatMap<int, Foo> map;
+    mutil::FlatMap<int, Foo> map;
     ASSERT_EQ(0, map.init(32));
     ASSERT_EQ(0, g_foo_ctor);
     ASSERT_EQ(0, g_foo_copy_ctor);
@@ -65,7 +65,7 @@ TEST_F(FlatMapTest, initialization_of_values) {
     ASSERT_EQ(0, g_foo_assign);
 
     // Zeroize POD values.
-    butil::FlatMap<int, Bar> map2;
+    mutil::FlatMap<int, Bar> map2;
     ASSERT_EQ(0, map2.init(32));
     Bar& g = map2[1];
     ASSERT_EQ(0, g.x);
@@ -78,11 +78,11 @@ TEST_F(FlatMapTest, initialization_of_values) {
 }
 
 TEST_F(FlatMapTest, swap_pooled_allocator) {
-    butil::details::PooledAllocator<int, 128> a1;
+    mutil::details::PooledAllocator<int, 128> a1;
     a1.allocate(1);
     const void* p1 = a1._pool._blocks;
 
-    butil::details::PooledAllocator<int, 128> a2;
+    mutil::details::PooledAllocator<int, 128> a2;
     a2.allocate(1);
     const void* p2 = a2._pool._blocks;
 
@@ -93,7 +93,7 @@ TEST_F(FlatMapTest, swap_pooled_allocator) {
 }
 
 TEST_F(FlatMapTest, copy_flat_map) {
-    typedef butil::FlatMap<std::string, std::string> Map;
+    typedef mutil::FlatMap<std::string, std::string> Map;
     Map uninit_m1;
     ASSERT_FALSE(uninit_m1.initialized());
     ASSERT_TRUE(uninit_m1.empty());
@@ -207,23 +207,23 @@ TEST_F(FlatMapTest, copy_flat_map) {
 }
 
 TEST_F(FlatMapTest, seek_by_string_piece) {
-    butil::FlatMap<std::string, int> m;
+    mutil::FlatMap<std::string, int> m;
     ASSERT_EQ(0, m.init(16));
     m["hello"] = 1;
     m["world"] = 2;
-    butil::StringPiece k1("hello");
+    mutil::StringPiece k1("hello");
     ASSERT_TRUE(m.seek(k1));
     ASSERT_EQ(1, *m.seek(k1));
-    butil::StringPiece k2("world");
+    mutil::StringPiece k2("world");
     ASSERT_TRUE(m.seek(k2));
     ASSERT_EQ(2, *m.seek(k2));
-    butil::StringPiece k3("heheda");
+    mutil::StringPiece k3("heheda");
     ASSERT_TRUE(m.seek(k3) == NULL);
 }
 
 TEST_F(FlatMapTest, to_lower) {
     for (int c = -128; c < 128; ++c) {
-        ASSERT_EQ((char)::tolower(c), butil::ascii_tolower(c)) << "c=" << c;
+        ASSERT_EQ((char)::tolower(c), mutil::ascii_tolower(c)) << "c=" << c;
     }
     
     const size_t input_len = 102;
@@ -241,9 +241,9 @@ TEST_F(FlatMapTest, to_lower) {
     }
     input[input_len] = '\0';
     input2[input_len] = '\0';
-    butil::Timer tm1;
-    butil::Timer tm2;
-    butil::Timer tm3;
+    mutil::Timer tm1;
+    mutil::Timer tm2;
+    mutil::Timer tm3;
     int sum = 0;
     tm1.start();
     sum += strcasecmp(input, input2);
@@ -262,7 +262,7 @@ TEST_F(FlatMapTest, to_lower) {
 TEST_F(FlatMapTest, __builtin_ctzl_perf) {
     int s = 0;
     const size_t N = 10000;
-    butil::Timer tm1;
+    mutil::Timer tm1;
     tm1.start();
     for (size_t i = 1; i <= N; ++i) {
         s += __builtin_ctzl(i);
@@ -272,7 +272,7 @@ TEST_F(FlatMapTest, __builtin_ctzl_perf) {
 }
 
 TEST_F(FlatMapTest, case_ignored_map) {
-    butil::CaseIgnoredFlatMap<int> m1;
+    mutil::CaseIgnoredFlatMap<int> m1;
     ASSERT_EQ(0, m1.init(32));
     m1["Content-Type"] = 1;
     m1["content-Type"] = 10;
@@ -286,7 +286,7 @@ TEST_F(FlatMapTest, case_ignored_map) {
 }
 
 TEST_F(FlatMapTest, case_ignored_set) {
-    butil::CaseIgnoredFlatSet s1;
+    mutil::CaseIgnoredFlatSet s1;
     ASSERT_EQ(0, s1.init(32));
     s1.insert("Content-Type");
     ASSERT_EQ(1ul, s1.size());
@@ -307,7 +307,7 @@ TEST_F(FlatMapTest, case_ignored_set) {
 
 
 TEST_F(FlatMapTest, make_sure_all_methods_compile) {
-    typedef butil::FlatMap<int, long> M1;
+    typedef mutil::FlatMap<int, long> M1;
     M1 m1;
     ASSERT_EQ(0, m1.init(32));
     ASSERT_EQ(0u, m1.size());
@@ -337,7 +337,7 @@ TEST_F(FlatMapTest, make_sure_all_methods_compile) {
     }
     std::cout << std::endl;
 
-    typedef butil::FlatSet<int> S1;
+    typedef mutil::FlatSet<int> S1;
     S1 s1;
     ASSERT_EQ(0, s1.init(32));
     ASSERT_EQ(0u, s1.size());
@@ -367,16 +367,16 @@ TEST_F(FlatMapTest, make_sure_all_methods_compile) {
 
 TEST_F(FlatMapTest, flat_map_of_string) {
     std::vector<std::string> keys;
-    butil::FlatMap<std::string, size_t> m1;
+    mutil::FlatMap<std::string, size_t> m1;
     std::map<std::string, size_t> m2;
-    butil::hash_map<std::string, size_t> m3;
+    mutil::hash_map<std::string, size_t> m3;
     const size_t N = 10000;
     ASSERT_EQ(0, m1.init(N));
-    butil::Timer tm1, tm1_2, tm2, tm3;
+    mutil::Timer tm1, tm1_2, tm2, tm3;
     size_t sum = 0;
     keys.reserve(N);
     for (size_t i = 0; i < N; ++i) {
-        keys.push_back(butil::string_printf("up_latency_as_key_%lu", i));
+        keys.push_back(mutil::string_printf("up_latency_as_key_%lu", i));
     }
     
     tm1.start();
@@ -449,8 +449,8 @@ TEST_F(FlatMapTest, flat_map_of_string) {
 }
 
 TEST_F(FlatMapTest, fast_iterator) {
-    typedef butil::FlatMap<uint64_t, uint64_t> M1;
-    typedef butil::SparseFlatMap<uint64_t, uint64_t> M2;
+    typedef mutil::FlatMap<uint64_t, uint64_t> M1;
+    typedef mutil::SparseFlatMap<uint64_t, uint64_t> M2;
 
     M1 m1;
     M2 m2;
@@ -469,14 +469,14 @@ TEST_F(FlatMapTest, fast_iterator) {
         keys.push_back(rand());
     }
 
-    butil::Timer tm2;
+    mutil::Timer tm2;
     tm2.start();
     for (size_t i = 0; i < N; ++i) {
         m2[keys[i]] = i;
     }
     tm2.stop();
 
-    butil::Timer tm1;
+    mutil::Timer tm1;
     tm1.start();
     for (size_t i = 0; i < N; ++i) {
         m1[keys[i]] = i;
@@ -507,11 +507,11 @@ TEST_F(FlatMapTest, fast_iterator) {
 
 template <typename Key, typename Value, typename OnPause>
 static void list_flat_map(std::vector<Key>* keys,
-                          const butil::FlatMap<Key, Value>& map,
+                          const mutil::FlatMap<Key, Value>& map,
                           size_t max_one_pass,
                           OnPause& on_pause) {
     keys->clear();
-    typedef butil::FlatMap<Key, Value> Map;
+    typedef mutil::FlatMap<Key, Value> Map;
     size_t n = 0;
     for (typename Map::const_iterator it = map.begin(); it != map.end(); ++it) {
         if (++n >= max_one_pass) {
@@ -531,7 +531,7 @@ static void list_flat_map(std::vector<Key>* keys,
     }
 }
 
-typedef butil::FlatMap<uint64_t, uint64_t> PositionHintMap;
+typedef mutil::FlatMap<uint64_t, uint64_t> PositionHintMap;
 
 static void fill_position_hint_map(PositionHintMap* map,
                                    std::vector<uint64_t>* keys) {
@@ -607,8 +607,8 @@ struct RemoveInsertVisitedOnPause {
         inserted_keys.insert(inserted_key);
         ++(*map)[inserted_key];
     }
-    butil::FlatSet<uint64_t> removed_keys;
-    butil::FlatSet<uint64_t> inserted_keys;
+    mutil::FlatSet<uint64_t> removed_keys;
+    mutil::FlatSet<uint64_t> inserted_keys;
     const std::vector<uint64_t>* keys;
     PositionHintMap* map;
 };
@@ -648,7 +648,7 @@ struct RemoveHintedOnPause {
         ASSERT_EQ(1u, map->erase(removed_key));
         removed_keys.insert(removed_key);
     }
-    butil::FlatSet<uint64_t> removed_keys;
+    mutil::FlatSet<uint64_t> removed_keys;
     PositionHintMap* map;
 };
 
@@ -722,8 +722,8 @@ struct RemoveInsertUnvisitedOnPause {
             break;
         }
     }
-    butil::FlatSet<uint64_t> removed_keys;
-    butil::FlatSet<uint64_t> inserted_keys;
+    mutil::FlatSet<uint64_t> removed_keys;
+    mutil::FlatSet<uint64_t> inserted_keys;
     const std::vector<uint64_t>* keys_out;
     std::vector<uint64_t>* all_keys;
     PositionHintMap* map;
@@ -782,12 +782,12 @@ TEST_F(FlatMapTest, perf_cmp_with_map_storing_pointers) {
     }
 
     std::set<int*> m1;
-    butil::FlatSet<int*, PointerHasher<int> > m2;
-    butil::hash_set<int*, PointerHasher<int> > m3;
+    mutil::FlatSet<int*, PointerHasher<int> > m2;
+    mutil::hash_set<int*, PointerHasher<int> > m3;
 
     std::vector<int*> r;
     int sum;
-    butil::Timer tm;
+    mutil::Timer tm;
 
     r.reserve(ARRAY_SIZE(ptr)*REP);
     ASSERT_EQ(0, m2.init(ARRAY_SIZE(ptr)));
@@ -880,7 +880,7 @@ struct KeyEqualTo {
 };
 
 TEST_F(FlatMapTest, key_value_are_not_constructed_before_first_insertion) {
-    butil::FlatMap<Key, Value, KeyHasher, KeyEqualTo> m;
+    mutil::FlatMap<Key, Value, KeyHasher, KeyEqualTo> m;
     ASSERT_EQ(0, m.init(32));
     ASSERT_EQ(0, n_con_key);
     ASSERT_EQ(0, n_cp_con_key);
@@ -898,9 +898,9 @@ TEST_F(FlatMapTest, key_value_are_not_constructed_before_first_insertion) {
 }
 
 TEST_F(FlatMapTest, manipulate_uninitialized_map) {
-    butil::FlatMap<int, int> m;
+    mutil::FlatMap<int, int> m;
     ASSERT_FALSE(m.initialized());
-    for (butil::FlatMap<int,int>::iterator it = m.begin(); it != m.end(); ++it) {
+    for (mutil::FlatMap<int,int>::iterator it = m.begin(); it != m.end(); ++it) {
         LOG(INFO) << "nothing";
     }
     ASSERT_EQ(NULL, m.seek(1));
@@ -912,21 +912,21 @@ TEST_F(FlatMapTest, manipulate_uninitialized_map) {
 }
 
 TEST_F(FlatMapTest, perf_small_string_map) {
-    butil::Timer tm1;
-    butil::Timer tm2;
-    butil::Timer tm3;
-    butil::Timer tm4;
+    mutil::Timer tm1;
+    mutil::Timer tm2;
+    mutil::Timer tm3;
+    mutil::Timer tm4;
 
     for (int i = 0; i < 10; ++i) {
         tm3.start();
-        butil::PooledMap<std::string, std::string> m3;
+        mutil::PooledMap<std::string, std::string> m3;
         m3["Content-type"] = "application/json";
         m3["Request-Id"] = "true";
         m3["Status-Code"] = "200";
         tm3.stop();
 
         tm4.start();
-        butil::CaseIgnoredFlatMap<std::string> m4;
+        mutil::CaseIgnoredFlatMap<std::string> m4;
         m4.init(16);
         m4["Content-type"] = "application/json";
         m4["Request-Id"] = "true";
@@ -934,7 +934,7 @@ TEST_F(FlatMapTest, perf_small_string_map) {
         tm4.stop();
 
         tm1.start();
-        butil::FlatMap<std::string, std::string> m1;
+        mutil::FlatMap<std::string, std::string> m1;
         m1.init(16);
         m1["Content-type"] = "application/json";
         m1["Request-Id"] = "true";
@@ -957,7 +957,7 @@ TEST_F(FlatMapTest, perf_small_string_map) {
 
 
 TEST_F(FlatMapTest, sanity) {
-    typedef butil::FlatMap<uint64_t, long> Map;
+    typedef mutil::FlatMap<uint64_t, long> Map;
     Map m;
 
     ASSERT_FALSE(m.initialized());
@@ -1046,8 +1046,8 @@ TEST_F(FlatMapTest, random_insert_erase) {
     srand (0);
 
     {
-        butil::hash_map<uint64_t, Value> ref[2];
-        typedef butil::FlatMap<uint64_t, Value> Map;
+        mutil::hash_map<uint64_t, Value> ref[2];
+        typedef mutil::FlatMap<uint64_t, Value> Map;
         Map ht[2];
         ht[0].init (40);
         ht[1] = ht[0];
@@ -1077,12 +1077,12 @@ TEST_F(FlatMapTest, random_insert_erase) {
             for (int i=0; i<2; ++i) {
                 for (Map::iterator it = ht[i].begin(); it != ht[i].end(); ++it)
                 {
-                    butil::hash_map<uint64_t, Value>::iterator it2 = ref[i].find(it->first);
+                    mutil::hash_map<uint64_t, Value>::iterator it2 = ref[i].find(it->first);
                     ASSERT_TRUE (it2 != ref[i].end());
                     ASSERT_EQ (it2->second, it->second);
                 }
         
-                for (butil::hash_map<uint64_t, Value>::iterator it = ref[i].begin();
+                for (mutil::hash_map<uint64_t, Value>::iterator it = ref[i].begin();
                      it != ref[i].end(); ++it)
                 {
                     Value* p_value = ht[i].seek(it->first);
@@ -1113,11 +1113,11 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
     const size_t NPASS = ARRAY_SIZE(nkeys);
 
     std::vector<uint64_t> keys;
-    butil::FlatMap<uint64_t, T> id_map;
+    mutil::FlatMap<uint64_t, T> id_map;
     std::map<uint64_t, T> std_map;
-    butil::PooledMap<uint64_t, T> pooled_map;
-    butil::hash_map<uint64_t, T> hash_map;
-    butil::Timer id_tm, std_tm, pooled_tm, hash_tm;
+    mutil::PooledMap<uint64_t, T> pooled_map;
+    mutil::hash_map<uint64_t, T> hash_map;
+    mutil::Timer id_tm, std_tm, pooled_tm, hash_tm;
     
     size_t max_nkeys = 0;
     for (size_t i = 0; i < NPASS; ++i) {
@@ -1179,7 +1179,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
         
         LOG(INFO) << (random ? "Randomly" : "Sequentially")
                   << " inserting " << keys.size()
-                  << " into FlatMap/std::map/butil::PooledMap/butil::hash_map takes "
+                  << " into FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()
                   << "/" << std_tm.n_elapsed() / keys.size()
                   << "/" << pooled_tm.n_elapsed() / keys.size()
@@ -1215,7 +1215,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
         
         LOG(INFO) << (random ? "Randomly" : "Sequentially")
                   << " erasing " << keys.size()
-                  << " from FlatMap/std::map/butil::PooledMap/butil::hash_map takes "
+                  << " from FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()
                   << "/" << std_tm.n_elapsed() / keys.size()
                   << "/" << pooled_tm.n_elapsed() / keys.size()
@@ -1228,12 +1228,12 @@ template <typename T> void perf_seek(const T& value) {
     const size_t NPASS = ARRAY_SIZE(nkeys);
     std::vector<uint64_t> keys;
     std::vector<uint64_t> rkeys;
-    butil::FlatMap<uint64_t, T> id_map;
+    mutil::FlatMap<uint64_t, T> id_map;
     std::map<uint64_t, T> std_map;
-    butil::PooledMap<uint64_t, T> pooled_map;
-    butil::hash_map<uint64_t, T> hash_map;
+    mutil::PooledMap<uint64_t, T> pooled_map;
+    mutil::hash_map<uint64_t, T> hash_map;
     
-    butil::Timer id_tm, std_tm, pooled_tm, hash_tm;
+    mutil::Timer id_tm, std_tm, pooled_tm, hash_tm;
     
     id_map.init((size_t)(nkeys[NPASS-1] * 1.5));
     LOG(INFO) << "[ value = " << sizeof(T) << " bytes ]";
@@ -1292,7 +1292,7 @@ template <typename T> void perf_seek(const T& value) {
         hash_tm.stop();
         
         LOG(INFO) << "Seeking " << keys.size()
-                  << " from FlatMap/std::map/butil::PooledMap/butil::hash_map takes "
+                  << " from FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()
                   << "/" << std_tm.n_elapsed() / keys.size()
                   << "/" << pooled_tm.n_elapsed() / keys.size()
@@ -1324,8 +1324,8 @@ TEST_F(FlatMapTest, perf) {
 }
 
 TEST_F(FlatMapTest, copy) {
-    butil::FlatMap<int, int> m1;
-    butil::FlatMap<int, int> m2;
+    mutil::FlatMap<int, int> m1;
+    mutil::FlatMap<int, int> m2;
     ASSERT_EQ(0, m1.init(32));
     m1[1] = 1;
     m1[2] = 2;

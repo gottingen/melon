@@ -18,11 +18,11 @@
 
 #include <gflags/gflags.h>
 #include <fcntl.h>                    // O_CREAT
-#include "melon/butil/file_util.h"
-#include "melon/butil/raw_pack.h"
-#include "melon/butil/unique_ptr.h"
-#include "melon/butil/fast_rand.h"
-#include "melon/butil/files/file_enumerator.h"
+#include "melon/utility/file_util.h"
+#include "melon/utility/raw_pack.h"
+#include "melon/utility/unique_ptr.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/utility/files/file_enumerator.h"
 #include "melon/var/var.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"
@@ -73,15 +73,15 @@ namespace melon {
 
         void Dump(size_t round, SampledRequest *);
 
-        static bool Serialize(butil::IOBuf &buf, SampledRequest *sample);
+        static bool Serialize(mutil::IOBuf &buf, SampledRequest *sample);
 
         RpcDumpContext()
                 : _cur_req_count(0), _cur_fd(-1), _last_round(0), _max_requests_in_one_file(0), _max_files(0),
-                  _sched_write_time(butil::gettimeofday_us() + FLUSH_TIMEOUT), _last_file_time(0) {
+                  _sched_write_time(mutil::gettimeofday_us() + FLUSH_TIMEOUT), _last_file_time(0) {
             _command_name = melon::var::read_command_name();
             SaveFlags();
             // Clean the directory at fist time.
-            butil::DeleteFile(_dir, true);
+            mutil::DeleteFile(_dir, true);
         }
 
         ~RpcDumpContext() {
@@ -103,11 +103,11 @@ namespace melon {
         int64_t _last_file_time;  // time for the postfix of last file
         // the queue for remembering oldest file to remove.
         std::deque<std::string> _filenames;
-        butil::FilePath _dir;
+        mutil::FilePath _dir;
         // current filename, being here just to reuse memory.
         std::string _cur_filename;
         // buffering output to file so they can be written in batch.
-        butil::IOBuf _unwritten_buf;
+        mutil::IOBuf _unwritten_buf;
     };
 
     melon::var::CollectorSpeedLimit g_rpc_dump_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
@@ -140,7 +140,7 @@ namespace melon {
         if (pos != std::string::npos) {
             dir.replace(pos, 5/*<app>*/, _command_name);
         }
-        _dir = butil::FilePath(dir);
+        _dir = mutil::FilePath(dir);
 
         _max_requests_in_one_file = FLAGS_rpc_dump_max_requests_in_one_file;
         _max_files = FLAGS_rpc_dump_max_files;
@@ -163,7 +163,7 @@ namespace melon {
         } else if (_unwritten_buf.size() >= UNWRITTEN_BUFSIZE) {
             // Too much unwritten data
             RPC_VLOG << "Write because _unwritten_buf=" << _unwritten_buf.size();
-        } else if (butil::gettimeofday_us() >= _sched_write_time) {
+        } else if (mutil::gettimeofday_us() >= _sched_write_time) {
             // Not write for a while.
             RPC_VLOG << "Write because timeout";
         } else {
@@ -173,19 +173,19 @@ namespace melon {
         // Open file if needed.
         if (_cur_fd < 0) {
             // Make sure the dir exists.
-            butil::File::Error error;
-            if (!butil::CreateDirectoryAndGetError(_dir, &error)) {
+            mutil::File::Error error;
+            if (!mutil::CreateDirectoryAndGetError(_dir, &error)) {
                 LOG(ERROR) << "Fail to create directory=`" << _dir.value()
                            << "', " << error;
                 return;
             }
             // Remove oldest files.
             while ((int) _filenames.size() >= _max_files && !_filenames.empty()) {
-                butil::DeleteFile(butil::FilePath(_filenames.front()), false);
+                mutil::DeleteFile(mutil::FilePath(_filenames.front()), false);
                 _filenames.pop_front();
             }
             // Make current time as postfix.
-            int64_t cur_file_time = butil::gettimeofday_us();
+            int64_t cur_file_time = mutil::gettimeofday_us();
             // Make postfix monotonic.
             if (cur_file_time <= _last_file_time) {
                 cur_file_time = _last_file_time + 1;
@@ -194,7 +194,7 @@ namespace melon {
             struct tm *timeinfo = localtime(&rawtime);
             char ts_buf[64];
             strftime(ts_buf, sizeof(ts_buf), "%Y%m%d_%H%M%S", timeinfo);
-            butil::string_printf(&_cur_filename, "%s/" DUMPED_FILE_PREFIX ".%s_%06u",
+            mutil::string_printf(&_cur_filename, "%s/" DUMPED_FILE_PREFIX ".%s_%06u",
                                  _dir.value().c_str(), ts_buf,
                                  (unsigned) (cur_file_time - rawtime * 1000000L));
             _cur_fd = open(_cur_filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0666);
@@ -218,7 +218,7 @@ namespace melon {
             }
         }
         _unwritten_buf.clear();
-        _sched_write_time = butil::gettimeofday_us() + FLUSH_TIMEOUT;
+        _sched_write_time = mutil::gettimeofday_us() + FLUSH_TIMEOUT;
         if (fail_to_write || _cur_req_count >= _max_requests_in_one_file) {
             // clean up
             if (_cur_fd >= 0) {
@@ -229,13 +229,13 @@ namespace melon {
         }
     }
 
-    bool RpcDumpContext::Serialize(butil::IOBuf &buf, SampledRequest *sample) {
-        // Use the header of baidu_std.
+    bool RpcDumpContext::Serialize(mutil::IOBuf &buf, SampledRequest *sample) {
+        // Use the header of melon_std.
         char rpc_header[12];
-        butil::IOBuf::Area header_area = buf.reserve(sizeof(rpc_header));
+        mutil::IOBuf::Area header_area = buf.reserve(sizeof(rpc_header));
 
         const size_t starting_size = buf.size();
-        butil::IOBufAsZeroCopyOutputStream buf_stream(&buf);
+        mutil::IOBufAsZeroCopyOutputStream buf_stream(&buf);
         if (!sample->meta.SerializeToZeroCopyStream(&buf_stream)) {
             LOG(ERROR) << "Fail to serialize";
             return false;
@@ -245,14 +245,14 @@ namespace melon {
 
         uint32_t *dummy = (uint32_t *) rpc_header;  // suppress strict-alias warning
         *dummy = *(uint32_t *) "PRPC";
-        butil::RawPacker(rpc_header + 4)
+        mutil::RawPacker(rpc_header + 4)
                 .pack32(meta_size + sample->request.size())
                 .pack32(meta_size);
         CHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
         return true;
     }
 
-    SampleIterator::SampleIterator(const butil::StringPiece &dir)
+    SampleIterator::SampleIterator(const mutil::StringPiece &dir)
             : _cur_fd(-1), _enum(NULL), _dir(std::string(dir.data(), dir.size())) {
     }
 
@@ -301,10 +301,10 @@ namespace melon {
             }
 
             if (_enum == NULL) {
-                _enum = new butil::FileEnumerator(
-                        _dir, false, butil::FileEnumerator::FILES);
+                _enum = new mutil::FileEnumerator(
+                        _dir, false, mutil::FileEnumerator::FILES);
             }
-            butil::FilePath filename = _enum->Next();
+            mutil::FilePath filename = _enum->Next();
             if (filename.empty()) {
                 return NULL;
             }
@@ -312,7 +312,7 @@ namespace melon {
         }
     }
 
-    SampledRequest *SampleIterator::Pop(butil::IOBuf &buf, bool *format_error) {
+    SampledRequest *SampleIterator::Pop(mutil::IOBuf &buf, bool *format_error) {
         char backing_buf[12];
         const char *p = (const char *) buf.fetch(backing_buf, sizeof(backing_buf));
         if (NULL == p) {  // buf.length() < sizeof(backing_buf)
@@ -325,7 +325,7 @@ namespace melon {
         }
         uint32_t body_size;
         uint32_t meta_size;
-        butil::RawUnpacker(p + 4).unpack32(body_size).unpack32(meta_size);
+        mutil::RawUnpacker(p + 4).unpack32(body_size).unpack32(meta_size);
         if (body_size > FLAGS_max_body_size) {
             LOG(ERROR) << "Too big body=" << body_size;
             *format_error = true;
@@ -340,7 +340,7 @@ namespace melon {
             return NULL;
         }
         buf.pop_front(sizeof(backing_buf));
-        butil::IOBuf meta_buf;
+        mutil::IOBuf meta_buf;
         buf.cutn(&meta_buf, meta_size);
         std::unique_ptr<SampledRequest> req(new SampledRequest);
         if (!ParsePbFromIOBuf(&req->meta, meta_buf)) {

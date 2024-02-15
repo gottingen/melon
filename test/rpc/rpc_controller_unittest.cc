@@ -21,9 +21,9 @@
 
 #include <gtest/gtest.h>
 #include <google/protobuf/stubs/common.h>
-#include "melon/butil/logging.h"
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
@@ -76,13 +76,13 @@ TEST_F(ControllerTest, notify_on_destruction) {
 
 #if ! BRPC_WITH_GLOG
 
-static bool endsWith(const std::string& s1, const butil::StringPiece& s2)  {
+static bool endsWith(const std::string& s1, const mutil::StringPiece& s2)  {
     if (s1.size() < s2.size()) {
         return false;
     }
     return memcmp(s1.data() + s1.size() - s2.size(), s2.data(), s2.size()) == 0;
 }
-static bool startsWith(const std::string& s1, const butil::StringPiece& s2)  {
+static bool startsWith(const std::string& s1, const mutil::StringPiece& s2)  {
     if (s1.size() < s2.size()) {
         return false;
     }

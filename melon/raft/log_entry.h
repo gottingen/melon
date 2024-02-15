@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_LOG_ENTRY_H_
 #define  MELON_RAFT_LOG_ENTRY_H_
 
-#include <melon/butil/iobuf.h>                         // butil::IOBuf
-#include <melon/butil/memory/ref_counted.h>            // butil::RefCountedThreadSafe
-#include <melon/butil/third_party/murmurhash3/murmurhash3.h>  // fmix64
+#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/utility/memory/ref_counted.h>            // mutil::RefCountedThreadSafe
+#include <melon/utility/third_party/murmurhash3/murmurhash3.h>  // fmix64
 #include "melon/raft/configuration.h"
 #include "melon/proto/raft/raft.pb.h"
 #include "melon/raft/util.h"
@@ -35,19 +34,19 @@ struct LogId {
 };
 
 // term start from 1, log index start from 1
-struct LogEntry : public butil::RefCountedThreadSafe<LogEntry> {
+struct LogEntry : public mutil::RefCountedThreadSafe<LogEntry> {
 public:
     EntryType type; // log type
     LogId id;
     std::vector<PeerId>* peers; // peers
     std::vector<PeerId>* old_peers; // peers
-    butil::IOBuf data;
+    mutil::IOBuf data;
 
     LogEntry();
 
 private:
     DISALLOW_COPY_AND_ASSIGN(LogEntry);
-    friend class butil::RefCountedThreadSafe<LogEntry>;
+    friend class mutil::RefCountedThreadSafe<LogEntry>;
     virtual ~LogEntry();
 };
 
@@ -85,7 +84,7 @@ inline bool operator>=(const LogId& lhs, const LogId& rhs) {
 
 struct LogIdHasher {
     size_t operator()(const LogId& id) const {
-        return butil::fmix64(id.index) ^ butil::fmix64(id.term);
+        return mutil::fmix64(id.index) ^ mutil::fmix64(id.term);
     }
 };
 
@@ -94,9 +93,9 @@ inline std::ostream& operator<<(std::ostream& os, const LogId& id) {
     return os;
 }
 
-butil::Status parse_configuration_meta(const butil::IOBuf& data, LogEntry* entry);
+mutil::Status parse_configuration_meta(const mutil::IOBuf& data, LogEntry* entry);
 
-butil::Status serialize_configuration_meta(const LogEntry* entry, butil::IOBuf& data);
+mutil::Status serialize_configuration_meta(const LogEntry* entry, mutil::IOBuf& data);
 
 }  //  namespace melon::raft
 

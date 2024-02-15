@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/atomic_sequence_num.h"
-#include "melon/butil/strings/string_number_conversions.h"
-#include "melon/butil/synchronization/waitable_event.h"
-#include "melon/butil/threading/simple_thread.h"
+#include "melon/utility/atomic_sequence_num.h"
+#include "melon/utility/strings/string_number_conversions.h"
+#include "melon/utility/synchronization/waitable_event.h"
+#include "melon/utility/threading/simple_thread.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -167,4 +167,4 @@ TEST(SimpleThreadTest, ThreadPool) {
   EXPECT_EQ(seq2.GetNext(), 10);
 }
 
-}  // namespace butil
+}  // namespace mutil

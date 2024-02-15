@@ -19,7 +19,7 @@
 #define BRPC_SERVER_NODE_H
 
 #include <string>
-#include "melon/butil/endpoint.h"
+#include "melon/utility/endpoint.h"
 
 namespace melon {
 
@@ -27,17 +27,17 @@ namespace melon {
 struct ServerNode {
     ServerNode() {}
     
-    explicit ServerNode(const butil::EndPoint& pt) : addr(pt) {}
+    explicit ServerNode(const mutil::EndPoint& pt) : addr(pt) {}
 
-    ServerNode(butil::ip_t ip, int port, const std::string& tag2)
+    ServerNode(mutil::ip_t ip, int port, const std::string& tag2)
         : addr(ip, port), tag(tag2) {}
 
-    ServerNode(const butil::EndPoint& pt, const std::string& tag2)
+    ServerNode(const mutil::EndPoint& pt, const std::string& tag2)
         : addr(pt), tag(tag2) {}
 
-    ServerNode(butil::ip_t ip, int port) : addr(ip, port) {}
+    ServerNode(mutil::ip_t ip, int port) : addr(ip, port) {}
 
-    butil::EndPoint addr;
+    mutil::EndPoint addr;
     std::string tag;
 };
 

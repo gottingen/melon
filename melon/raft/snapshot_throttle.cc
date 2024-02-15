@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Xiong,Kai(xiongkai@baidu.com)
 
-#include <melon/butil/time.h>
+#include <melon/utility/time.h>
 #include <gflags/gflags.h>
 #include <melon/rpc/reloadable_flags.h>
 #include "melon/raft/snapshot_throttle.h"
@@ -38,13 +37,13 @@ namespace melon::raft {
             int64_t throttle_throughput_bytes, int64_t check_cycle)
             : _throttle_throughput_bytes(throttle_throughput_bytes), _check_cycle(check_cycle), _snapshot_task_num(0),
               _last_throughput_check_time_us(
-                      caculate_check_time_us(butil::cpuwide_time_us(), check_cycle)), _cur_throughput_bytes(0) {}
+                      caculate_check_time_us(mutil::cpuwide_time_us(), check_cycle)), _cur_throughput_bytes(0) {}
 
     ThroughputSnapshotThrottle::~ThroughputSnapshotThrottle() {}
 
     size_t ThroughputSnapshotThrottle::throttled_by_throughput(int64_t bytes) {
         size_t available_size = bytes;
-        int64_t now = butil::cpuwide_time_us();
+        int64_t now = mutil::cpuwide_time_us();
         int64_t limit_throughput_bytes_s = std::max(_throttle_throughput_bytes,
                                                     FLAGS_raft_minimal_throttle_threshold_mb * 1024 * 1024);
         int64_t limit_per_cycle = limit_throughput_bytes_s / _check_cycle;
@@ -111,7 +110,7 @@ namespace melon::raft {
 
     void ThroughputSnapshotThrottle::return_unused_throughput(
             int64_t acquired, int64_t consumed, int64_t elaspe_time_us) {
-        int64_t now = butil::cpuwide_time_us();
+        int64_t now = mutil::cpuwide_time_us();
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (now - elaspe_time_us < _last_throughput_check_time_us) {
             // Tokens are aqured in last cycle, ignore

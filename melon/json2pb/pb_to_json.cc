@@ -22,7 +22,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/base64.h"
+#include "melon/utility/base64.h"
 #include "zero_copy_stream_writer.h"
 #include "encode_decode.h"
 #include "protobuf_map.h"
@@ -206,7 +206,7 @@ namespace json2pb {
                         if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES
                             && _option.bytes_to_base64) {
                             std::string value_decoded;
-                            butil::Base64Encode(value, &value_decoded);
+                            mutil::Base64Encode(value, &value_decoded);
                             handler.String(value_decoded.data(), value_decoded.size(), false);
                         } else {
                             handler.String(value.data(), value.size(), false);
@@ -219,7 +219,7 @@ namespace json2pb {
                     if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES
                         && _option.bytes_to_base64) {
                         std::string value_decoded;
-                        butil::Base64Encode(value, &value_decoded);
+                        mutil::Base64Encode(value, &value_decoded);
                         handler.String(value_decoded.data(), value_decoded.size(), false);
                     } else {
                         handler.String(value.data(), value.size(), false);
@@ -288,10 +288,10 @@ namespace json2pb {
         PbToJsonConverter converter(options);
         bool succ = false;
         if (options.pretty_json) {
-            BUTIL_RAPIDJSON_NAMESPACE::PrettyWriter<OutputStream> writer(os);
+            MUTIL_RAPIDJSON_NAMESPACE::PrettyWriter<OutputStream> writer(os);
             succ = converter.Convert(message, writer, true);
         } else {
-            BUTIL_RAPIDJSON_NAMESPACE::OptimizedWriter<OutputStream> writer(os);
+            MUTIL_RAPIDJSON_NAMESPACE::OptimizedWriter<OutputStream> writer(os);
             succ = converter.Convert(message, writer, true);
         }
         if (!succ && error) {
@@ -307,7 +307,7 @@ namespace json2pb {
                             std::string *error) {
         // TODO(gejun): We could further wrap a std::string as a buffer to reduce
         // a copying.
-        BUTIL_RAPIDJSON_NAMESPACE::StringBuffer buffer;
+        MUTIL_RAPIDJSON_NAMESPACE::StringBuffer buffer;
         if (json2pb::ProtoMessageToJsonStream(message, options, buffer, error)) {
             json->append(buffer.GetString(), buffer.GetSize());
             return true;

@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/strings/nullable_string16.h"
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/strings/nullable_string16.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(NullableString16Test, DefaultConstructor) {
   NullableString16 s;
@@ -32,4 +32,4 @@ TEST(NullableString16Test, NotEqualsNull) {
   EXPECT_NE(a, b);
 }
 
-}  // namespace butil
+}  // namespace mutil

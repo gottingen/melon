@@ -19,7 +19,7 @@
 #define BRPC_LOG_H
 
 #include <inttypes.h>  // PRId64 PRIu64
-#include "melon/bthread/errno.h"
+#include "melon/fiber/errno.h"
 
 #define RPC_VLOG_LEVEL     99
 #define RPC_VLOG_IS_ON     VLOG_IS_ON(RPC_VLOG_LEVEL)

@@ -30,7 +30,7 @@ namespace policy {
 Server::MethodProperty*
 FindMethodPropertyByURI(const std::string& uri_path, const Server* server,
                         std::string* unknown_method_str);
-bool ParseHttpServerAddress(butil::EndPoint *point, const char *server_addr_and_port);
+bool ParseHttpServerAddress(mutil::EndPoint *point, const char *server_addr_and_port);
 }}
 
 namespace {
@@ -91,7 +91,7 @@ TEST(HttpMessageTest, eof) {
         "X_BD_LOGID64: 16815814797661447369\r\n"
         "X_BD_PRODUCT: map\r\n"
         "X_BD_SUBSYS: apimap\r\n";
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     buf.append(http_request);
     melon::HttpMessage http_message;
     ASSERT_EQ((ssize_t)buf.size(), http_message.ParseFromIOBuf(buf));
@@ -215,7 +215,7 @@ TEST(HttpMessageTest, parse_from_iobuf) {
             content_length);
     std::string content;
     for (size_t i = 0; i < content_length; ++i) content.push_back('2');
-    butil::IOBuf request;
+    mutil::IOBuf request;
     request.append(header);
     request.append(content);
 
@@ -232,7 +232,7 @@ TEST(HttpMessageTest, parse_http_head_response) {
                           "Content-Type: text/plain\r\n"
                           "Content-Length: 1024\r\n"
                           "\r\n";
-    butil::IOBuf request;
+    mutil::IOBuf request;
     request.append(response1);
 
     melon::HttpMessage http_message(false, melon::HTTP_METHOD_HEAD);
@@ -248,7 +248,7 @@ TEST(HttpMessageTest, parse_http_head_response) {
                            "Content-Type: text/plain\r\n"
                            "Transfer-Encoding: chunked\r\n"
                            "\r\n";
-    butil::IOBuf request2;
+    mutil::IOBuf request2;
     request2.append(response2);
     melon::HttpMessage http_message2(false, melon::HTTP_METHOD_HEAD);
     ASSERT_TRUE(http_message2.ParseFromIOBuf(request2) >= 0);
@@ -365,7 +365,7 @@ TEST(HttpMessageTest, http_header) {
 }
 
 TEST(HttpMessageTest, empty_url) {
-    butil::EndPoint host;
+    mutil::EndPoint host;
     ASSERT_FALSE(ParseHttpServerAddress(&host, ""));
 }
 
@@ -375,10 +375,10 @@ TEST(HttpMessageTest, serialize_http_request) {
     header.SetHeader("Foo", "Bar");
     ASSERT_EQ(1u, header.HeaderCount());
     header.set_method(melon::HTTP_METHOD_POST);
-    butil::EndPoint ep;
-    ASSERT_EQ(0, butil::str2endpoint("127.0.0.1:1234", &ep));
-    butil::IOBuf request;
-    butil::IOBuf content;
+    mutil::EndPoint ep;
+    ASSERT_EQ(0, mutil::str2endpoint("127.0.0.1:1234", &ep));
+    mutil::IOBuf request;
+    mutil::IOBuf content;
     content.append("data");
     MakeRawHttpRequest(&request, &header, ep, &content);
     ASSERT_EQ("POST / HTTP/1.1\r\nContent-Length: 4\r\nHost: 127.0.0.1:1234\r\nFoo: Bar\r\nAccept: */*\r\nUser-Agent: brpc/1.0 curl/7.0\r\n\r\ndata", request);
@@ -419,12 +419,12 @@ TEST(HttpMessageTest, serialize_http_response) {
     melon::HttpHeader header;
     header.SetHeader("Foo", "Bar");
     header.set_method(melon::HTTP_METHOD_POST);
-    butil::IOBuf response;
-    butil::IOBuf content;
+    mutil::IOBuf response;
+    mutil::IOBuf content;
     content.append("data");
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 4\r\nFoo: Bar\r\n\r\ndata", response)
-        << butil::ToPrintable(response);
+        << mutil::ToPrintable(response);
     // Content is cleared.
     CHECK(content.empty());
 
@@ -432,13 +432,13 @@ TEST(HttpMessageTest, serialize_http_response) {
     header.SetHeader("Content-Length", "100");
     MakeRawHttpResponse(&response, &header, NULL);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 100\r\nFoo: Bar\r\n\r\n", response)
-        << butil::ToPrintable(response);
+        << mutil::ToPrintable(response);
 
     // User-set content-length is ignored.
     content.append("data2");
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nFoo: Bar\r\n\r\ndata2", response)
-        << butil::ToPrintable(response);
+        << mutil::ToPrintable(response);
 
     // User-set content-length and transfer-encoding is ignored when status code is 204 or 1xx.
     // 204 No Content.
@@ -453,7 +453,7 @@ TEST(HttpMessageTest, serialize_http_response) {
     header.set_status_code(melon::HTTP_STATUS_CONTINUE);
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 100 Continue\r\nFoo: Bar\r\n\r\n", response)
-        << butil::ToPrintable(response);
+        << mutil::ToPrintable(response);
 
     // when request method is HEAD:
     // 1. There isn't user-set content-length, length of content is used.
@@ -461,12 +461,12 @@ TEST(HttpMessageTest, serialize_http_response) {
     header.set_status_code(melon::HTTP_STATUS_OK);content.append("data2");
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nFoo: Bar\r\n\r\n", response)
-        << butil::ToPrintable(response);
+        << mutil::ToPrintable(response);
     // 2. User-set content-length is not ignored .
     header.SetHeader("Content-Length", "100");
     MakeRawHttpResponse(&response, &header, &content);
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 100\r\nFoo: Bar\r\n\r\n", response)
-        << butil::ToPrintable(response);
+        << mutil::ToPrintable(response);
 }
 
 } //namespace

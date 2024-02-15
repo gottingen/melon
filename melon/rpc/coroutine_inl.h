@@ -18,8 +18,8 @@
 #ifndef BRPC_COROUTINE_INL_H
 #define BRPC_COROUTINE_INL_H
 
-#include "melon/bthread/unstable.h"   // bthread_timer_add
-#include "melon/bthread/butex.h"      // butex_wake/butex_wait
+#include "melon/fiber/unstable.h"   // fiber_timer_add
+#include "melon/fiber/butex.h"      // butex_wake/butex_wait
 
 namespace melon {
 namespace experimental {
@@ -225,7 +225,7 @@ inline Coroutine::Coroutine(Awaitable<T>&& aw, bool detach) {
 
     if (!detach) {
         // Create butex for join()
-        _butex = bthread::butex_create_checked<std::atomic<int> >();
+        _butex = fiber::butex_create_checked<std::atomic<int> >();
         _butex->store(0);
 
         // Create AwaitablePromise for awaitable()
@@ -238,7 +238,7 @@ inline Coroutine::Coroutine(Awaitable<T>&& aw, bool detach) {
             }
             // wakeup join()
             _butex->store(1);
-            bthread::butex_wake(_butex);
+            fiber::butex_wake(_butex);
 
             // wakeup co_await on awaitable()
             _promise->on_done();
@@ -255,7 +255,7 @@ inline Coroutine::~Coroutine() {
         join();
     }
     if (_butex) {
-        bthread::butex_destroy(_butex);
+        fiber::butex_destroy(_butex);
         _butex = nullptr;
     }
 }
@@ -265,7 +265,7 @@ inline T Coroutine::join() {
     CHECK(_promise != nullptr) << "join() can not be called to detached coroutine!";
     CHECK(_waited == false) << "awaitable() or join() can only be called once!";
     _waited = true;
-    bthread::butex_wait(_butex, 0, nullptr);
+    fiber::butex_wait(_butex, 0, nullptr);
     if constexpr (!std::is_same<T, void>::value) {
         auto promise = dynamic_cast<detail::AwaitablePromise<T>*>(_promise);
         CHECK(promise != nullptr) << "join type not match";
@@ -287,19 +287,19 @@ inline Awaitable<T> Coroutine::awaitable() {
     return Awaitable<T>(promise);
 }
 
-// NOTE: the caller will be resumed on bthread timer thread,
-// bthread only have one timer thread, this may be performance bottle-neck
+// NOTE: the caller will be resumed on fiber timer thread,
+// fiber only have one timer thread, this may be performance bottle-neck
 inline Awaitable<int> Coroutine::usleep(int sleep_us) {
     auto promise = new detail::AwaitablePromise<int>();
     promise->set_needs_suspend();
-    bthread_timer_t timer;
-    auto abstime = butil::microseconds_from_now(sleep_us);
+    fiber_timer_t timer;
+    auto abstime = mutil::microseconds_from_now(sleep_us);
     auto cb = [](void* p) {
         auto promise = static_cast<detail::AwaitablePromise<int>*>(p);
         promise->set_value(0);
         promise->on_done();
     };
-    if (bthread_timer_add(&timer, abstime, cb, promise) != 0) {
+    if (fiber_timer_add(&timer, abstime, cb, promise) != 0) {
         promise->set_value(-1);
         promise->on_done();
     }

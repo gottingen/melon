@@ -17,14 +17,14 @@
 
 #include <map>
 #include <gtest/gtest.h>
-#include "melon/butil/recordio.h"
-#include "melon/butil/fast_rand.h"
-#include "melon/butil/string_printf.h"
-#include "melon/butil/file_util.h"
+#include "melon/utility/recordio.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/file_util.h"
 
 namespace {
 
-class StringReader : public butil::IReader {
+class StringReader : public mutil::IReader {
 public:
     StringReader(const std::string& str,
                  bool report_eagain_on_end = false)
@@ -58,7 +58,7 @@ private:
     bool _report_eagain_on_end;
 };
 
-class StringWriter : public butil::IWriter {
+class StringWriter : public mutil::IWriter {
 public:
     ssize_t WriteV(const iovec* iov, int iovcnt) override {
         const size_t old_size = _str.size();
@@ -73,7 +73,7 @@ private:
 };
 
 TEST(RecordIOTest, empty_record) {
-    butil::Record r;
+    mutil::Record r;
     ASSERT_EQ((size_t)0, r.MetaCount());
     ASSERT_TRUE(r.Meta("foo") == NULL);
     ASSERT_FALSE(r.RemoveMeta("foo"));
@@ -82,9 +82,9 @@ TEST(RecordIOTest, empty_record) {
 }
 
 TEST(RecordIOTest, manipulate_record) {
-    butil::Record r1;
+    mutil::Record r1;
     ASSERT_EQ((size_t)0, r1.MetaCount());
-    butil::IOBuf* foo_val = r1.MutableMeta("foo");
+    mutil::IOBuf* foo_val = r1.MutableMeta("foo");
     ASSERT_EQ((size_t)1, r1.MetaCount());
     ASSERT_TRUE(foo_val->empty());
     foo_val->append("foo_data");
@@ -93,7 +93,7 @@ TEST(RecordIOTest, manipulate_record) {
     ASSERT_EQ("foo_data", *foo_val);
     ASSERT_EQ(foo_val, r1.Meta("foo"));
 
-    butil::IOBuf* bar_val = r1.MutableMeta("bar");
+    mutil::IOBuf* bar_val = r1.MutableMeta("bar");
     ASSERT_EQ((size_t)2, r1.MetaCount());
     ASSERT_TRUE(bar_val->empty());
     bar_val->append("bar_data");
@@ -102,7 +102,7 @@ TEST(RecordIOTest, manipulate_record) {
     ASSERT_EQ("bar_data", *bar_val);
     ASSERT_EQ(bar_val, r1.Meta("bar"));
 
-    butil::Record r2 = r1;
+    mutil::Record r2 = r1;
 
     ASSERT_TRUE(r1.RemoveMeta("foo"));
     ASSERT_EQ((size_t)1, r1.MetaCount());
@@ -118,22 +118,22 @@ TEST(RecordIOTest, invalid_name) {
         name[i] = 'a';
     }
     name[sizeof(name) - 1] = 0;
-    butil::Record r;
+    mutil::Record r;
     ASSERT_EQ(NULL, r.MutableMeta(name));
 }
 
 TEST(RecordIOTest, write_read_basic) {
     StringWriter sw;
-    butil::RecordWriter rw(&sw);
+    mutil::RecordWriter rw(&sw);
 
-    butil::Record src;
+    mutil::Record src;
     ASSERT_EQ(0, rw.Write(src));
 
-    butil::IOBuf* foo_val = src.MutableMeta("foo");
+    mutil::IOBuf* foo_val = src.MutableMeta("foo");
     foo_val->append("foo_data");
     ASSERT_EQ(0, rw.Write(src));
 
-    butil::IOBuf* bar_val = src.MutableMeta("bar");
+    mutil::IOBuf* bar_val = src.MutableMeta("bar");
     bar_val->append("bar_data");
     ASSERT_EQ(0, rw.Write(src));
 
@@ -142,17 +142,17 @@ TEST(RecordIOTest, write_read_basic) {
 
     ASSERT_EQ(0, rw.Flush());
     std::cout << "len=" << sw.str().size()
-              << " content=" << butil::PrintedAsBinary(sw.str(), 256) << std::endl;
+              << " content=" << mutil::PrintedAsBinary(sw.str(), 256) << std::endl;
 
     StringReader sr(sw.str());
-    butil::RecordReader rr(&sr);
-    butil::Record r1;
+    mutil::RecordReader rr(&sr);
+    mutil::Record r1;
     ASSERT_TRUE(rr.ReadNext(&r1));
     ASSERT_EQ(0, rr.last_error());
     ASSERT_EQ((size_t)0, r1.MetaCount());
     ASSERT_TRUE(r1.Payload().empty());
 
-    butil::Record r2;
+    mutil::Record r2;
     ASSERT_TRUE(rr.ReadNext(&r2));
     ASSERT_EQ(0, rr.last_error());
     ASSERT_EQ((size_t)1, r2.MetaCount());
@@ -160,7 +160,7 @@ TEST(RecordIOTest, write_read_basic) {
     ASSERT_EQ("foo_data", *r2.MetaAt(0).data);
     ASSERT_TRUE(r2.Payload().empty());
 
-    butil::Record r3;
+    mutil::Record r3;
     ASSERT_TRUE(rr.ReadNext(&r3));
     ASSERT_EQ(0, rr.last_error());
     ASSERT_EQ((size_t)2, r3.MetaCount());
@@ -170,7 +170,7 @@ TEST(RecordIOTest, write_read_basic) {
     ASSERT_EQ("bar_data", *r3.MetaAt(1).data);
     ASSERT_TRUE(r3.Payload().empty());
 
-    butil::Record r4;
+    mutil::Record r4;
     ASSERT_TRUE(rr.ReadNext(&r4));
     ASSERT_EQ(0, rr.last_error());
     ASSERT_EQ((size_t)2, r4.MetaCount());
@@ -181,32 +181,32 @@ TEST(RecordIOTest, write_read_basic) {
     ASSERT_EQ("payload_data", r4.Payload());
 
     ASSERT_FALSE(rr.ReadNext(NULL));
-    ASSERT_EQ((int)butil::RecordReader::END_OF_READER, rr.last_error());
+    ASSERT_EQ((int)mutil::RecordReader::END_OF_READER, rr.last_error());
     ASSERT_EQ(sw.str().size(), rr.offset());
 }
 
 TEST(RecordIOTest, incomplete_reader) {
     StringWriter sw;
-    butil::RecordWriter rw(&sw);
+    mutil::RecordWriter rw(&sw);
 
-    butil::Record src;
-    butil::IOBuf* foo_val = src.MutableMeta("foo");
+    mutil::Record src;
+    mutil::IOBuf* foo_val = src.MutableMeta("foo");
     foo_val->append("foo_data");
     ASSERT_EQ(0, rw.Write(src));
 
-    butil::IOBuf* bar_val = src.MutableMeta("bar");
+    mutil::IOBuf* bar_val = src.MutableMeta("bar");
     bar_val->append("bar_data");
     ASSERT_EQ(0, rw.Write(src));
 
     ASSERT_EQ(0, rw.Flush());
     std::string data = sw.str();
     std::cout << "len=" << data.size()
-              << " content=" << butil::PrintedAsBinary(data, 256) << std::endl;
+              << " content=" << mutil::PrintedAsBinary(data, 256) << std::endl;
 
     StringReader sr(data, true);
-    butil::RecordReader rr(&sr);
+    mutil::RecordReader rr(&sr);
 
-    butil::Record r2;
+    mutil::Record r2;
     ASSERT_TRUE(rr.ReadNext(&r2));
     ASSERT_EQ(0, rr.last_error());
     ASSERT_EQ((size_t)1, r2.MetaCount());
@@ -214,7 +214,7 @@ TEST(RecordIOTest, incomplete_reader) {
     ASSERT_EQ("foo_data", *r2.MetaAt(0).data);
     ASSERT_TRUE(r2.Payload().empty());
 
-    butil::Record r3;
+    mutil::Record r3;
     ASSERT_TRUE(rr.ReadNext(&r3));
     ASSERT_EQ(0, rr.last_error());
     ASSERT_EQ((size_t)2, r3.MetaCount());
@@ -230,30 +230,30 @@ TEST(RecordIOTest, incomplete_reader) {
 }
 
 static std::string rand_string(int min_len, int max_len) {
-    const int len = butil::fast_rand_in(min_len, max_len);
+    const int len = mutil::fast_rand_in(min_len, max_len);
     std::string str;
     str.reserve(len);
     for (int i = 0; i < len; ++i) {
-        str.push_back(butil::fast_rand_in('a', 'Z'));
+        str.push_back(mutil::fast_rand_in('a', 'Z'));
     }
     return str;
 }
 
 TEST(RecordIOTest, write_read_random) {
     StringWriter sw;
-    butil::RecordWriter rw(&sw);
+    mutil::RecordWriter rw(&sw);
 
     const int N = 1024;
     std::vector<std::pair<std::string, std::string>> name_value_list;
     size_t nbytes = 0;
     std::map<int, size_t> breaking_offsets;
     for (int i = 0; i < N; ++i) {
-        butil::Record src;
+        mutil::Record src;
         std::string value = rand_string(10, 20);
-        std::string name = butil::string_printf("name_%d_", i) + value;
+        std::string name = mutil::string_printf("name_%d_", i) + value;
         src.MutableMeta(name)->append(value);
         ASSERT_EQ(0, rw.Write(src));
-        if (butil::fast_rand_less_than(70) == 0) {
+        if (mutil::fast_rand_less_than(70) == 0) {
             breaking_offsets[i] = nbytes;
         } else {
             name_value_list.push_back(std::make_pair(name, value));
@@ -306,17 +306,17 @@ TEST(RecordIOTest, write_read_random) {
               << " nbreak=" << breaking_offsets.size() << std::endl;
 
     StringReader sr(str);
-    ASSERT_LT(0, butil::WriteFile(butil::FilePath("recordio_ref.io"), str.data(), str.size()));
-    butil::RecordReader rr(&sr);
+    ASSERT_LT(0, mutil::WriteFile(mutil::FilePath("recordio_ref.io"), str.data(), str.size()));
+    mutil::RecordReader rr(&sr);
     size_t j = 0;
-    butil::Record r;
+    mutil::Record r;
     for (; rr.ReadNext(&r); ++j) {
         ASSERT_LT(j, name_value_list.size());
         ASSERT_EQ((size_t)1, r.MetaCount());
         ASSERT_EQ(name_value_list[j].first, r.MetaAt(0).name) << j;
         ASSERT_EQ(name_value_list[j].second, *r.MetaAt(0).data);
     }
-    ASSERT_EQ((int)butil::RecordReader::END_OF_READER, rr.last_error());
+    ASSERT_EQ((int)mutil::RecordReader::END_OF_READER, rr.last_error());
     ASSERT_EQ(j, name_value_list.size());
     ASSERT_LE(str.size() - rr.offset(), 3u);
 }

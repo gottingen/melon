@@ -22,7 +22,7 @@
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/grpc/grpc.h"
-#include "melon/butil/time.h"
+#include "melon/utility/time.h"
 #include "grpc.pb.h"
 
 int main(int argc, char* argv[]) {
@@ -72,7 +72,7 @@ public:
                 EXPECT_EQ(-1, cntl->deadline_us());
             } else {
                 EXPECT_NEAR(cntl->deadline_us(),
-                    butil::gettimeofday_us() + req->timeout_us(), 5000);
+                    mutil::gettimeofday_us() + req->timeout_us(), 5000);
             }
         }
     }
@@ -82,7 +82,7 @@ public:
               ::test::GrpcResponse* res,
               ::google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
-        bthread_usleep(2000000 /*2s*/);
+        fiber_usleep(2000000 /*2s*/);
         res->set_message(g_prefix + req->message());
         return;
     }
@@ -172,7 +172,7 @@ TEST_F(GrpcTest, return_error) {
     stub.Method(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
     EXPECT_EQ(cntl.ErrorCode(), melon::EINTERNAL);
-    EXPECT_TRUE(butil::StringPiece(cntl.ErrorText()).ends_with(butil::string_printf("%s", g_prefix.c_str())));
+    EXPECT_TRUE(mutil::StringPiece(cntl.ErrorText()).ends_with(mutil::string_printf("%s", g_prefix.c_str())));
 }
 
 TEST_F(GrpcTest, RpcTimedOut) {
@@ -205,7 +205,7 @@ TEST_F(GrpcTest, MethodNotExist) {
     stub.MethodNotExist(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
     EXPECT_EQ(cntl.ErrorCode(), melon::EINTERNAL);
-    ASSERT_TRUE(butil::StringPiece(cntl.ErrorText()).ends_with("Method MethodNotExist() not implemented."));
+    ASSERT_TRUE(mutil::StringPiece(cntl.ErrorText()).ends_with("Method MethodNotExist() not implemented."));
 }
 
 TEST_F(GrpcTest, GrpcTimeOut) {

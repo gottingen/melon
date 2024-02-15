@@ -21,11 +21,11 @@
 #include <stdlib.h>
 #include <vector>
 #include <gflags/gflags.h>
-#include "melon/butil/fast_rand.h"
-#include "melon/butil/iobuf.h"
-#include "melon/butil/object_pool.h"
-#include "melon/butil/thread_local.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/object_pool.h"
+#include "melon/utility/thread_local.h"
+#include "melon/fiber/fiber.h"
 #include "melon/rpc/rdma/block_pool.h"
 
 
@@ -78,22 +78,22 @@ static const int32_t RDMA_MEMORY_POOL_MAX_BUCKETS = 16;
 static size_t g_buckets = 1;
 
 static bool g_dump_enable = false;
-static butil::Mutex* g_dump_mutex = NULL;
+static mutil::Mutex* g_dump_mutex = NULL;
 
 // Only for default block size
 static __thread IdleNode* tls_idle_list = NULL;
 static __thread size_t tls_idle_num = 0;
 static __thread bool tls_inited = false;
-static butil::Mutex* g_tls_info_mutex = NULL;
+static mutil::Mutex* g_tls_info_mutex = NULL;
 static size_t g_tls_info_cnt = 0;
 static size_t* g_tls_info[1024];
 
 // For each block size, there are some buckets of idle list to reduce race.
 struct GlobalInfo {
     std::vector<IdleNode*> idle_list[BLOCK_SIZE_COUNT];
-    std::vector<butil::Mutex*> lock[BLOCK_SIZE_COUNT];
+    std::vector<mutil::Mutex*> lock[BLOCK_SIZE_COUNT];
     std::vector<size_t> idle_size[BLOCK_SIZE_COUNT];
-    butil::Mutex extend_lock;
+    mutil::Mutex extend_lock;
 };
 static GlobalInfo* g_info = NULL;
 
@@ -158,11 +158,11 @@ static void* ExtendBlockPool(size_t region_size, int block_type) {
 
     IdleNode* node[g_buckets];
     for (size_t i = 0; i < g_buckets; ++i) {
-        node[i] = butil::get_object<IdleNode>();
+        node[i] = mutil::get_object<IdleNode>();
         if (!node[i]) {
             PLOG_EVERY_SECOND(ERROR) << "Memory not enough";
             for (size_t j = 0; j < i; ++j) {
-                butil::return_object<IdleNode>(node[j]);
+                mutil::return_object<IdleNode>(node[j]);
             }
             free(region_base);
             return NULL;
@@ -254,15 +254,15 @@ void* InitBlockPool(RegisterCallback cb) {
             return NULL;
         }
         for (size_t j = 0; j < g_buckets; ++j) {
-            g_info->lock[i][j] = new (std::nothrow) butil::Mutex;
+            g_info->lock[i][j] = new (std::nothrow) mutil::Mutex;
             if (!g_info->lock[i][j]) {
                 return NULL;
             }
         }
     }
 
-    g_dump_mutex = new butil::Mutex;
-    g_tls_info_mutex = new butil::Mutex;
+    g_dump_mutex = new mutil::Mutex;
+    g_tls_info_mutex = new mutil::Mutex;
 
     return ExtendBlockPool(FLAGS_rdma_memory_pool_initial_size_mb,
                            BLOCK_DEFAULT);
@@ -270,7 +270,7 @@ void* InitBlockPool(RegisterCallback cb) {
 
 static void* AllocBlockFrom(int block_type) {
     bool locked = false;
-    if (BAIDU_UNLIKELY(g_dump_enable)) {
+    if (MELON_UNLIKELY(g_dump_enable)) {
         g_dump_mutex->lock();
         locked = true;
     }
@@ -280,7 +280,7 @@ static void* AllocBlockFrom(int block_type) {
         IdleNode* n = tls_idle_list;
         tls_idle_list = n->next;
         ptr = n->start;
-        butil::return_object<IdleNode>(n);
+        mutil::return_object<IdleNode>(n);
         tls_idle_num--;
         if (locked) {
             g_dump_mutex->unlock();
@@ -288,7 +288,7 @@ static void* AllocBlockFrom(int block_type) {
         return ptr;
     }
 
-    uint64_t index = butil::fast_rand() % g_buckets;
+    uint64_t index = mutil::fast_rand() % g_buckets;
     MELON_SCOPED_LOCK(*g_info->lock[block_type][index]);
     IdleNode* node = g_info->idle_list[block_type][index];
     if (!node) {
@@ -319,7 +319,7 @@ static void* AllocBlockFrom(int block_type) {
             node->len -= g_block_size[block_type];
         } else {
             g_info->idle_list[block_type][index] = node->next;
-            butil::return_object<IdleNode>(node);
+            mutil::return_object<IdleNode>(node);
         }
         g_info->idle_size[block_type][index] -= g_block_size[block_type];
     } else {
@@ -398,7 +398,7 @@ int DeallocBlock(void* buf) {
         return -1;
     }
 
-    IdleNode* node = butil::get_object<IdleNode>();
+    IdleNode* node = mutil::get_object<IdleNode>();
     if (!node) {
         PLOG_EVERY_SECOND(ERROR) << "Memory not enough";
         // May lead to block leak, but do not return -1
@@ -411,14 +411,14 @@ int DeallocBlock(void* buf) {
     node->len = block_size;
 
     bool locked = false;
-    if (BAIDU_UNLIKELY(g_dump_enable)) {
+    if (MELON_UNLIKELY(g_dump_enable)) {
         g_dump_mutex->lock();
         locked = true;
     }
     if (block_type == 0 && tls_idle_num < (uint32_t)FLAGS_rdma_memory_pool_tls_cache_num) {
         if (!tls_inited) {
             tls_inited = true;
-            butil::thread_atexit(RecycleAll);
+            mutil::thread_atexit(RecycleAll);
             MELON_SCOPED_LOCK(*g_tls_info_mutex);
             if (g_tls_info_cnt < 1024) {
                 g_tls_info[g_tls_info_cnt++] = &tls_idle_num;
@@ -509,7 +509,7 @@ void DestroyBlockPool() {
             IdleNode* node = g_info->idle_list[i][j];
             while (node) {
                 IdleNode* tmp = node->next;
-                butil::return_object<IdleNode>(node);
+                mutil::return_object<IdleNode>(node);
                 node = tmp;
             }
             g_info->idle_list[i][j] = NULL;

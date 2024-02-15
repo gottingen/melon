@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 
 #include "melon/proto/rpc/errno.pb.h"
-#include "melon/butil/time.h"
+#include "melon/utility/time.h"
 
 namespace melon {
 
@@ -81,17 +81,17 @@ bool CircuitBreaker::EmaErrorRecorder::OnCallEnd(int error_code,
         ema_latency = UpdateLatency(latency);
         healthy = UpdateErrorCost(0, ema_latency);
     } else {
-        ema_latency = _ema_latency.load(butil::memory_order_relaxed);
+        ema_latency = _ema_latency.load(mutil::memory_order_relaxed);
         healthy = UpdateErrorCost(latency, ema_latency);
     }
 
     // When the window is initializing, use error_rate to determine
     // if it needs to be isolated.
-    if (_sample_count_when_initializing.load(butil::memory_order_relaxed) < _window_size &&
-        _sample_count_when_initializing.fetch_add(1, butil::memory_order_relaxed) < _window_size) {
+    if (_sample_count_when_initializing.load(mutil::memory_order_relaxed) < _window_size &&
+        _sample_count_when_initializing.fetch_add(1, mutil::memory_order_relaxed) < _window_size) {
         if (error_code != 0) {
             const int32_t error_count =
-                _error_count_when_initializing.fetch_add(1, butil::memory_order_relaxed);
+                _error_count_when_initializing.fetch_add(1, mutil::memory_order_relaxed);
             return error_count < _window_size * _max_error_percent / 100;
         }
         // Because once OnCallEnd returned false, the node will be ioslated soon,
@@ -103,16 +103,16 @@ bool CircuitBreaker::EmaErrorRecorder::OnCallEnd(int error_code,
 }
 
 void CircuitBreaker::EmaErrorRecorder::Reset() {
-    if (_sample_count_when_initializing.load(butil::memory_order_relaxed) < _window_size) {
-        _sample_count_when_initializing.store(0, butil::memory_order_relaxed);
-        _error_count_when_initializing.store(0, butil::memory_order_relaxed);
-        _ema_latency.store(0, butil::memory_order_relaxed);
+    if (_sample_count_when_initializing.load(mutil::memory_order_relaxed) < _window_size) {
+        _sample_count_when_initializing.store(0, mutil::memory_order_relaxed);
+        _error_count_when_initializing.store(0, mutil::memory_order_relaxed);
+        _ema_latency.store(0, mutil::memory_order_relaxed);
     }
-    _ema_error_cost.store(0, butil::memory_order_relaxed);
+    _ema_error_cost.store(0, mutil::memory_order_relaxed);
 }
 
 int64_t CircuitBreaker::EmaErrorRecorder::UpdateLatency(int64_t latency) {
-    int64_t ema_latency = _ema_latency.load(butil::memory_order_relaxed);
+    int64_t ema_latency = _ema_latency.load(mutil::memory_order_relaxed);
     do {
         int64_t next_ema_latency = 0;
         if (0 == ema_latency) {
@@ -135,7 +135,7 @@ bool CircuitBreaker::EmaErrorRecorder::UpdateErrorCost(int64_t error_cost,
     //Errorous response
     if (error_cost != 0) {
         int64_t ema_error_cost =
-            _ema_error_cost.fetch_add(error_cost, butil::memory_order_relaxed);
+            _ema_error_cost.fetch_add(error_cost, mutil::memory_order_relaxed);
         ema_error_cost += error_cost;
         const int64_t max_error_cost =
             ema_latency * _window_size * (_max_error_percent / 100.0) * (1.0 + EPSILON);
@@ -143,13 +143,13 @@ bool CircuitBreaker::EmaErrorRecorder::UpdateErrorCost(int64_t error_cost,
     }
 
     //Ordinary response
-    int64_t ema_error_cost = _ema_error_cost.load(butil::memory_order_relaxed);
+    int64_t ema_error_cost = _ema_error_cost.load(mutil::memory_order_relaxed);
     do {
         if (ema_error_cost == 0) {
             break;
         } else if (ema_error_cost < FLAGS_circuit_breaker_min_error_cost_us) {
             if (_ema_error_cost.compare_exchange_weak(
-                ema_error_cost, 0, butil::memory_order_relaxed)) {
+                ema_error_cost, 0, mutil::memory_order_relaxed)) {
                 break;
             }
         } else {
@@ -185,7 +185,7 @@ bool CircuitBreaker::OnCallEnd(int error_code, int64_t latency) {
     if (error_code == ELIMIT) {
         return true;
     }
-    if (_broken.load(butil::memory_order_relaxed)) {
+    if (_broken.load(mutil::memory_order_relaxed)) {
         return false;
     }
     if (_long_window.OnCallEnd(error_code, latency) &&
@@ -199,20 +199,20 @@ bool CircuitBreaker::OnCallEnd(int error_code, int64_t latency) {
 void CircuitBreaker::Reset() {
     _long_window.Reset();
     _short_window.Reset();
-    _last_reset_time_ms = butil::cpuwide_time_ms();
-    _broken.store(false, butil::memory_order_release);
+    _last_reset_time_ms = mutil::cpuwide_time_ms();
+    _broken.store(false, mutil::memory_order_release);
 }
 
 void CircuitBreaker::MarkAsBroken() {
-    if (!_broken.exchange(true, butil::memory_order_acquire)) {
-        _isolated_times.fetch_add(1, butil::memory_order_relaxed);
+    if (!_broken.exchange(true, mutil::memory_order_acquire)) {
+        _isolated_times.fetch_add(1, mutil::memory_order_relaxed);
         UpdateIsolationDuration();
     }
 }
 
 void CircuitBreaker::UpdateIsolationDuration() {
-    int64_t now_time_ms = butil::cpuwide_time_ms();
-    int isolation_duration_ms = _isolation_duration_ms.load(butil::memory_order_relaxed);
+    int64_t now_time_ms = mutil::cpuwide_time_ms();
+    int isolation_duration_ms = _isolation_duration_ms.load(mutil::memory_order_relaxed);
     const int max_isolation_duration_ms =
         FLAGS_circuit_breaker_max_isolation_duration_ms;
     const int min_isolation_duration_ms =
@@ -223,7 +223,7 @@ void CircuitBreaker::UpdateIsolationDuration() {
     } else {
         isolation_duration_ms = min_isolation_duration_ms;
     }
-    _isolation_duration_ms.store(isolation_duration_ms, butil::memory_order_relaxed);
+    _isolation_duration_ms.store(isolation_duration_ms, mutil::memory_order_relaxed);
 }
 
 

@@ -63,7 +63,7 @@ public:
         // melon::ClosureGuard done_guard(done);
         // response->set_message(request->message());
 
-        // Create a detached coroutine, so the current bthread will return at once.
+        // Create a detached coroutine, so the current fiber will return at once.
         Coroutine(EchoAsync(request, response, done), true);
     }
 
@@ -105,11 +105,11 @@ Awaitable<double> inplace_func2() {
 
 Awaitable<int> sleep_func() {
     Trace t("sleep_func");
-    int64_t s = butil::monotonic_time_us();
+    int64_t s = mutil::monotonic_time_us();
     auto aw = Coroutine::usleep(1000);
     usleep(delay_us);
     co_await aw;
-    int cost = butil::monotonic_time_us() - s;
+    int cost = mutil::monotonic_time_us() - s;
     EXPECT_GE(cost, 1000);
     LOG(INFO) << "after usleep:" << cost;
     co_return 123;
@@ -162,11 +162,11 @@ Awaitable<void> func(melon::Channel& channel, int* out) {
     request.set_sleep_us(2000);
     AwaitableDone done2;
     LOG(INFO) << "start echo2";
-    int64_t s = butil::monotonic_time_us();
+    int64_t s = mutil::monotonic_time_us();
     stub.Echo(&cntl, &request, &response, &done2);
     LOG(INFO) << "after echo2";
     co_await done2.awaitable();
-    int cost = butil::monotonic_time_us() - s;
+    int cost = mutil::monotonic_time_us() - s;
     LOG(INFO) << "after wait2";
     EXPECT_GE(cost, 2000);
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
@@ -176,7 +176,7 @@ Awaitable<void> func(melon::Channel& channel, int* out) {
 }
 
 TEST_F(CoroutineTest, coroutine) {
-    butil::EndPoint ep;
+    mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint("127.0.0.1:8613", &ep));
 
     melon::Server server;

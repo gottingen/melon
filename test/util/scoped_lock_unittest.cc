@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/scoped_lock.h"
+#include "melon/utility/scoped_lock.h"
 #include <errno.h>
 
 namespace {

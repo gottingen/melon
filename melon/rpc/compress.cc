@@ -16,7 +16,7 @@
 // under the License.
 
 
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/compress.h"
 #include "melon/rpc/protocol.h"
 
@@ -76,7 +76,7 @@ namespace melon {
         }
     }
 
-    bool ParseFromCompressedData(const butil::IOBuf &data,
+    bool ParseFromCompressedData(const mutil::IOBuf &data,
                                  google::protobuf::Message *msg,
                                  CompressType compress_type) {
         if (compress_type == COMPRESS_TYPE_NONE) {
@@ -90,9 +90,9 @@ namespace melon {
     }
 
     bool SerializeAsCompressedData(const google::protobuf::Message &msg,
-                                   butil::IOBuf *buf, CompressType compress_type) {
+                                   mutil::IOBuf *buf, CompressType compress_type) {
         if (compress_type == COMPRESS_TYPE_NONE) {
-            butil::IOBufAsZeroCopyOutputStream wrapper(buf);
+            mutil::IOBufAsZeroCopyOutputStream wrapper(buf);
             return msg.SerializeToZeroCopyStream(&wrapper);
         }
         const CompressHandler *handler = FindCompressHandler(compress_type);

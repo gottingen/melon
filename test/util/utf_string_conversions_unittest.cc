@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/strings/string_util.h"
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/strings/string_util.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -208,4 +208,4 @@ TEST(UTFStringConversionsTest, ConvertMultiString) {
   EXPECT_EQ(expected, converted);
 }
 
-}  // namespace butil
+}  // namespace mutil

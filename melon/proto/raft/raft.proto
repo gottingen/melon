@@ -5,7 +5,6 @@ import "melon/proto/raft/enum.proto";
 package melon.raft;
 option cc_generic_services = true;
 
-// data store in baidu-rpc's attachment
 message EntryMeta {
     required int64 term = 1;
     required EntryType type = 2;

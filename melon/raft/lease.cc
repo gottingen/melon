@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Pengfei Zheng (zhengpengfei@baidu.com)
 
 #include <gflags/gflags.h>
 #include <melon/rpc/reloadable_flags.h>
@@ -72,7 +71,7 @@ namespace melon::raft {
             lease_info->state = LeaderLease::NOT_READY;
             return;
         }
-        if (butil::monotonic_time_ms() < _last_active_timestamp + _election_timeout_ms) {
+        if (mutil::monotonic_time_ms() < _last_active_timestamp + _election_timeout_ms) {
             lease_info->term = _term;
             lease_info->lease_epoch = _lease_epoch;
             lease_info->state = LeaderLease::VALID;
@@ -96,12 +95,12 @@ namespace melon::raft {
         _max_clock_drift_ms = max_clock_drift_ms;
         // When the node restart, we are not sure when the lease will be expired actually,
         // so just be conservative.
-        _last_leader_timestamp = butil::monotonic_time_ms();
+        _last_leader_timestamp = mutil::monotonic_time_ms();
     }
 
     void FollowerLease::renew(const PeerId &leader_id) {
         _last_leader = leader_id;
-        _last_leader_timestamp = butil::monotonic_time_ms();
+        _last_leader_timestamp = mutil::monotonic_time_ms();
     }
 
     int64_t FollowerLease::last_leader_timestamp() {
@@ -113,7 +112,7 @@ namespace melon::raft {
             return 0;
         }
 
-        int64_t now = butil::monotonic_time_ms();
+        int64_t now = mutil::monotonic_time_ms();
         int64_t votable_timestamp = _last_leader_timestamp + _election_timeout_ms +
                                     _max_clock_drift_ms;
         if (now >= votable_timestamp) {
@@ -127,7 +126,7 @@ namespace melon::raft {
     }
 
     bool FollowerLease::expired() {
-        return butil::monotonic_time_ms() - _last_leader_timestamp
+        return mutil::monotonic_time_ms() - _last_leader_timestamp
                >= _election_timeout_ms + _max_clock_drift_ms;
     }
 

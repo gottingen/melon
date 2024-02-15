@@ -4,12 +4,12 @@
 
 #include <sstream>
 
-#include "melon/butil/strings/string16.h"
+#include "melon/utility/strings/string16.h"
 
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 #if defined(WCHAR_T_IS_UTF32)
 
@@ -55,4 +55,4 @@ TEST(String16Test, OutputStream) {
 
 #endif
 
-}  // namespace butil
+}  // namespace mutil

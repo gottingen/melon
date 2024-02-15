@@ -24,9 +24,9 @@
 #include <string>
 #include <vector>
 #include <infiniband/verbs.h>
-#include "melon/butil/atomicops.h"
-#include "melon/butil/iobuf.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/atomicops.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/socket.h"
 
 
@@ -61,7 +61,7 @@ struct RdmaResource {
     DISALLOW_COPY_AND_ASSIGN(RdmaResource);
 };
 
-class BAIDU_CACHELINE_ALIGNMENT RdmaEndpoint : public SocketUser {
+class MELON_CACHELINE_ALIGNMENT RdmaEndpoint : public SocketUser {
 friend class RdmaConnect;
 friend class melon::Socket;
 public:
@@ -79,7 +79,7 @@ public:
 
     // Cut data from the given IOBuf list and use RDMA to send
     // Return bytes cut if success, -1 if failed and errno set
-    ssize_t CutFromIOBufList(butil::IOBuf** data, size_t ndata);
+    ssize_t CutFromIOBufList(mutil::IOBuf** data, size_t ndata);
 
     // Whether the endpoint can send more data
     bool IsWritable() const;
@@ -211,8 +211,8 @@ private:
     uint16_t _rq_size;
 
     // Act as sendbuf and recvbuf, but requires no memcpy
-    std::vector<butil::IOBuf> _sbuf;
-    std::vector<butil::IOBuf> _rbuf;
+    std::vector<mutil::IOBuf> _sbuf;
+    std::vector<mutil::IOBuf> _rbuf;
     // Data address of _rbuf
     std::vector<void*> _rbuf_data;
     // Remote block size for receiving
@@ -237,12 +237,12 @@ private:
     // The capacity of remote window: min(local RQ, remote SQ)
     uint16_t _remote_window_capacity;
     // The number of WRs we can post to the local Send Queue
-    butil::atomic<uint16_t> _window_size;
+    mutil::atomic<uint16_t> _window_size;
     // The number of new WRs posted in the local Recv Queue
-    butil::atomic<uint16_t> _new_rq_wrs;
+    mutil::atomic<uint16_t> _new_rq_wrs;
 
     // butex for inform read events on TCP fd during handshake
-    butil::atomic<int> *_read_butex;
+    mutil::atomic<int> *_read_butex;
 
     DISALLOW_COPY_AND_ASSIGN(RdmaEndpoint);
 };

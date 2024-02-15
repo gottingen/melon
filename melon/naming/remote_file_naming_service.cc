@@ -20,8 +20,8 @@
 #include <stdio.h>                                      // getline
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/bthread/bthread.h"                            // bthread_usleep
-#include "melon/butil/iobuf.h"
+#include "melon/fiber/fiber.h"                            // fiber_usleep
+#include "melon/utility/iobuf.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/channel.h"
 #include "melon/naming/remote_file_naming_service.h"
@@ -36,21 +36,21 @@ namespace melon::naming {
                  "Timeout for fetching remote server lists");
 
     // Defined in file_naming_service.cpp
-    bool SplitIntoServerAndTag(const butil::StringPiece &line,
-                               butil::StringPiece *server_addr,
-                               butil::StringPiece *tag);
+    bool SplitIntoServerAndTag(const mutil::StringPiece &line,
+                               mutil::StringPiece *server_addr,
+                               mutil::StringPiece *tag);
 
-    static bool CutLineFromIOBuf(butil::IOBuf *source, std::string *line_out) {
+    static bool CutLineFromIOBuf(mutil::IOBuf *source, std::string *line_out) {
         if (source->empty()) {
             return false;
         }
-        butil::IOBuf line_data;
+        mutil::IOBuf line_data;
         if (source->cut_until(&line_data, "\n") != 0) {
             source->cutn(line_out, source->size());
             return true;
         }
         line_data.copy_to(line_out);
-        if (!line_out->empty() && butil::back_char(*line_out) == '\r') {
+        if (!line_out->empty() && mutil::back_char(*line_out) == '\r') {
             line_out->resize(line_out->size() - 1);
         }
         return true;
@@ -61,10 +61,10 @@ namespace melon::naming {
         servers->clear();
 
         if (_channel == NULL) {
-            butil::StringPiece tmpname(service_name_cstr);
+            mutil::StringPiece tmpname(service_name_cstr);
             size_t pos = tmpname.find("://");
-            butil::StringPiece proto;
-            if (pos != butil::StringPiece::npos) {
+            mutil::StringPiece proto;
+            if (pos != mutil::StringPiece::npos) {
                 proto = tmpname.substr(0, pos);
                 for (pos += 3; tmpname[pos] == '/'; ++pos) {}
                 tmpname.remove_prefix(pos);
@@ -77,8 +77,8 @@ namespace melon::naming {
                 return -1;
             }
             size_t slash_pos = tmpname.find('/');
-            butil::StringPiece server_addr_piece;
-            if (slash_pos == butil::StringPiece::npos) {
+            mutil::StringPiece server_addr_piece;
+            if (slash_pos == mutil::StringPiece::npos) {
                 server_addr_piece = tmpname;
                 _path = "/";
             } else {
@@ -117,13 +117,13 @@ namespace melon::naming {
         std::set<ServerNode> presence;
 
         while (CutLineFromIOBuf(&cntl.response_attachment(), &line)) {
-            butil::StringPiece addr;
-            butil::StringPiece tag;
+            mutil::StringPiece addr;
+            mutil::StringPiece tag;
             if (!SplitIntoServerAndTag(line, &addr, &tag)) {
                 continue;
             }
             const_cast<char *>(addr.data())[addr.size()] = '\0'; // safe
-            butil::EndPoint point;
+            mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
                 LOG(ERROR) << "Invalid address=`" << addr << '\'';

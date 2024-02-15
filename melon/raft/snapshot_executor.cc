@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/snapshot_executor.h"
 #include "melon/raft/util.h"
@@ -86,7 +85,7 @@ namespace melon::raft {
     private:
         SnapshotExecutor *_se;
         SnapshotReader *_reader;
-        bthread::CountdownEvent _event;
+        fiber::CountdownEvent _event;
     };
 
     SnapshotExecutor::SnapshotExecutor()
@@ -101,7 +100,7 @@ namespace melon::raft {
         CHECK(!_saving_snapshot);
         CHECK(!_cur_copier);
         CHECK(!_loading_snapshot);
-        CHECK(!_downloading_snapshot.load(butil::memory_order_relaxed));
+        CHECK(!_downloading_snapshot.load(mutil::memory_order_relaxed));
         if (_snapshot_storage) {
             delete _snapshot_storage;
         }
@@ -115,16 +114,16 @@ namespace melon::raft {
             lck.unlock();
             if (done) {
                 done->status().set_error(EPERM, "Is stopped");
-                run_closure_in_bthread(done, _usercode_in_pthread);
+                run_closure_in_fiber(done, _usercode_in_pthread);
             }
             return;
         }
         // check snapshot install/load
-        if (_downloading_snapshot.load(butil::memory_order_relaxed)) {
+        if (_downloading_snapshot.load(mutil::memory_order_relaxed)) {
             lck.unlock();
             if (done) {
                 done->status().set_error(EBUSY, "Is loading another snapshot");
-                run_closure_in_bthread(done, _usercode_in_pthread);
+                run_closure_in_fiber(done, _usercode_in_pthread);
             }
             return;
         }
@@ -134,7 +133,7 @@ namespace melon::raft {
             lck.unlock();
             if (done) {
                 done->status().set_error(EBUSY, "Is saving another snapshot");
-                run_closure_in_bthread(done, _usercode_in_pthread);
+                run_closure_in_fiber(done, _usercode_in_pthread);
             }
             return;
         }
@@ -154,7 +153,7 @@ namespace melon::raft {
                                         << ", will clear bufferred logs and return success";
 
             if (done) {
-                run_closure_in_bthread(done, _usercode_in_pthread);
+                run_closure_in_fiber(done, _usercode_in_pthread);
             }
             return;
         }
@@ -164,7 +163,7 @@ namespace melon::raft {
             lck.unlock();
             if (done) {
                 done->status().set_error(EIO, "Fail to create writer");
-                run_closure_in_bthread(done, _usercode_in_pthread);
+                run_closure_in_fiber(done, _usercode_in_pthread);
             }
             report_error(EIO, "Fail to create SnapshotWriter");
             return;
@@ -175,7 +174,7 @@ namespace melon::raft {
             lck.unlock();
             if (done) {
                 snapshot_save_done->status().set_error(EHOSTDOWN, "The raft node is down");
-                run_closure_in_bthread(snapshot_save_done, _usercode_in_pthread);
+                run_closure_in_fiber(snapshot_save_done, _usercode_in_pthread);
             }
             return;
         }
@@ -183,7 +182,7 @@ namespace melon::raft {
     }
 
     int SnapshotExecutor::on_snapshot_save_done(
-            const butil::Status &st, const SnapshotMeta &meta, SnapshotWriter *writer) {
+            const mutil::Status &st, const SnapshotMeta &meta, SnapshotWriter *writer) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         int ret = st.error_code();
         // InstallSnapshot can break SaveSnapshot, check InstallSnapshot when SaveSnapshot
@@ -240,11 +239,11 @@ namespace melon::raft {
         return ret;
     }
 
-    void SnapshotExecutor::on_snapshot_load_done(const butil::Status &st) {
+    void SnapshotExecutor::on_snapshot_load_done(const mutil::Status &st) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
 
         CHECK(_loading_snapshot);
-        DownloadingSnapshot *m = _downloading_snapshot.load(butil::memory_order_relaxed);
+        DownloadingSnapshot *m = _downloading_snapshot.load(mutil::memory_order_relaxed);
 
         if (st.ok()) {
             _last_snapshot_index = _loading_snapshot_meta.last_included_index();
@@ -265,7 +264,7 @@ namespace melon::raft {
         }
         lck.lock();
         _loading_snapshot = false;
-        _downloading_snapshot.store(NULL, butil::memory_order_release);
+        _downloading_snapshot.store(NULL, mutil::memory_order_release);
         lck.unlock();
         if (m) {
             // Respond RPC
@@ -315,7 +314,7 @@ namespace melon::raft {
             self->_done->status() = self->status();
         }
         if (self->_done) {
-            run_closure_in_bthread(self->_done, true);
+            run_closure_in_fiber(self->_done, true);
         }
         return NULL;
     }
@@ -325,10 +324,10 @@ namespace melon::raft {
         // This continuation of snapshot saving is likely running inplace where the
         // on_snapshot_save is called (in the FSMCaller thread) and blocks all the
         // following on_apply. As blocking is not necessary and the continuation is
-        // not important, so we start a bthread to do this.
-        bthread_t tid;
-        if (bthread_start_urgent(&tid, NULL, continue_run, this) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+        // not important, so we start a fiber to do this.
+        fiber_t tid;
+        if (fiber_start_urgent(&tid, NULL, continue_run, this) != 0) {
+            PLOG(ERROR) << "Fail to start fiber";
             continue_run(this);
         }
     }
@@ -449,7 +448,7 @@ namespace melon::raft {
                                                      const SnapshotMeta &meta) {
         std::unique_ptr<DownloadingSnapshot> ds_guard(ds);
         std::unique_lock<raft_mutex_t> lck(_mutex);
-        CHECK_EQ(ds, _downloading_snapshot.load(butil::memory_order_relaxed));
+        CHECK_EQ(ds, _downloading_snapshot.load(mutil::memory_order_relaxed));
         melon::ClosureGuard done_guard(ds->done);
         CHECK(_cur_copier);
         SnapshotReader *reader = _cur_copier->get_reader();
@@ -465,7 +464,7 @@ namespace melon::raft {
                                 _cur_copier->error_cstr());
             _snapshot_storage->close(_cur_copier);
             _cur_copier = NULL;
-            _downloading_snapshot.store(NULL, butil::memory_order_relaxed);
+            _downloading_snapshot.store(NULL, mutil::memory_order_relaxed);
             // Release the lock before responding the RPC
             lck.unlock();
             _running_jobs.signal();
@@ -477,7 +476,7 @@ namespace melon::raft {
             if (reader) {
                 _snapshot_storage->close(reader);
             }
-            _downloading_snapshot.store(NULL, butil::memory_order_release);
+            _downloading_snapshot.store(NULL, mutil::memory_order_release);
             lck.unlock();
             ds->cntl->SetFailed(melon::EINTERNAL,
                                 "Fail to copy snapshot from %s",
@@ -528,14 +527,14 @@ namespace melon::raft {
             return -1;
         }
         DownloadingSnapshot *m = _downloading_snapshot.load(
-                butil::memory_order_relaxed);
+                mutil::memory_order_relaxed);
         if (!m) {
-            _downloading_snapshot.store(ds, butil::memory_order_relaxed);
+            _downloading_snapshot.store(ds, mutil::memory_order_relaxed);
             // Now this session has the right to download the snapshot.
             CHECK(!_cur_copier);
             _cur_copier = _snapshot_storage->start_to_copy_from(ds->request->uri());
             if (_cur_copier == NULL) {
-                _downloading_snapshot.store(NULL, butil::memory_order_relaxed);
+                _downloading_snapshot.store(NULL, mutil::memory_order_relaxed);
                 lck.unlock();
                 LOG(WARNING) << "Register failed: fail to copy file.";
                 ds->cntl->SetFailed(EINVAL, "Fail to copy from , %s",
@@ -597,7 +596,7 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         CHECK_GE(new_term, _term);
         _term = new_term;
-        if (!_downloading_snapshot.load(butil::memory_order_relaxed)) {
+        if (!_downloading_snapshot.load(mutil::memory_order_relaxed)) {
             return;
         }
         if (_loading_snapshot) {
@@ -611,7 +610,7 @@ namespace melon::raft {
             ss << "node " << _node->node_id() << ' ';
         }
         ss << "Trying to cancel downloading snapshot : "
-           << _downloading_snapshot.load(butil::memory_order_relaxed)
+           << _downloading_snapshot.load(mutil::memory_order_relaxed)
                    ->request->ShortDebugString();
         LOG(INFO) << ss.str();
     }
@@ -640,7 +639,7 @@ namespace melon::raft {
             //   we think it's fine
         }
         const DownloadingSnapshot *m =
-                _downloading_snapshot.load(butil::memory_order_acquire);
+                _downloading_snapshot.load(mutil::memory_order_acquire);
         if (m) {
             request.CopyFrom(*m->request);
             // ^ It's also a little expansive, but fine

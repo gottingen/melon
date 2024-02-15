@@ -19,12 +19,12 @@
 #include <gflags/gflags.h>
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/butil/string_printf.h"
-#include "melon/butil/third_party/rapidjson/document.h"
-#include "melon/butil/third_party/rapidjson/stringbuffer.h"
-#include "melon/butil/third_party/rapidjson/prettywriter.h"
-#include "melon/butil/time/time.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/third_party/rapidjson/document.h"
+#include "melon/utility/third_party/rapidjson/stringbuffer.h"
+#include "melon/utility/third_party/rapidjson/prettywriter.h"
+#include "melon/utility/time/time.h"
+#include "melon/fiber/fiber.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/channel.h"
 #include "melon/naming/file_naming_service.h"
@@ -54,9 +54,9 @@ namespace melon::naming {
 
     constexpr char kConsulIndex[] = "X-Consul-Index";
 
-    std::string RapidjsonValueToString(const BUTIL_RAPIDJSON_NAMESPACE::Value &value) {
-        BUTIL_RAPIDJSON_NAMESPACE::StringBuffer buffer;
-        BUTIL_RAPIDJSON_NAMESPACE::PrettyWriter<BUTIL_RAPIDJSON_NAMESPACE::StringBuffer> writer(buffer);
+    std::string RapidjsonValueToString(const MUTIL_RAPIDJSON_NAMESPACE::Value &value) {
+        MUTIL_RAPIDJSON_NAMESPACE::StringBuffer buffer;
+        MUTIL_RAPIDJSON_NAMESPACE::PrettyWriter<MUTIL_RAPIDJSON_NAMESPACE::StringBuffer> writer(buffer);
         value.Accept(writer);
         return buffer.GetString();
     }
@@ -79,7 +79,7 @@ namespace melon::naming {
             ChannelOptions opt;
             opt.protocol = PROTOCOL_HTTP;
             opt.connect_timeout_ms = FLAGS_consul_connect_timeout_ms;
-            opt.timeout_ms = (FLAGS_consul_blocking_query_wait_secs + 10) * butil::Time::kMillisecondsPerSecond;
+            opt.timeout_ms = (FLAGS_consul_blocking_query_wait_secs + 10) * mutil::Time::kMillisecondsPerSecond;
             if (_channel.Init(FLAGS_consul_agent_addr.c_str(), "rr", &opt) != 0) {
                 LOG(ERROR) << "Fail to init channel to consul at " << FLAGS_consul_agent_addr;
                 return DegradeToOtherServiceIfNeeded(service_name, servers);
@@ -96,7 +96,7 @@ namespace melon::naming {
         servers->clear();
         std::string consul_url(_consul_url);
         if (!_consul_index.empty()) {
-            butil::string_appendf(&consul_url, "&index=%s&wait=%ds", _consul_index.c_str(),
+            mutil::string_appendf(&consul_url, "&index=%s&wait=%ds", _consul_index.c_str(),
                                   FLAGS_consul_blocking_query_wait_secs);
         }
 
@@ -127,7 +127,7 @@ namespace melon::naming {
         // set to de-duplicate and keep the order.
         std::set<ServerNode> presence;
 
-        BUTIL_RAPIDJSON_NAMESPACE::Document services;
+        MUTIL_RAPIDJSON_NAMESPACE::Document services;
         services.Parse(cntl.response_attachment().to_string().c_str());
         if (!services.IsArray()) {
             LOG(ERROR) << "The consul's response for "
@@ -135,7 +135,7 @@ namespace melon::naming {
             return -1;
         }
 
-        for (BUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < services.Size(); ++i) {
+        for (MUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < services.Size(); ++i) {
             auto itr_service = services[i].FindMember("Service");
             if (itr_service == services[i].MemberEnd()) {
                 LOG(ERROR) << "No service info in node: "
@@ -143,7 +143,7 @@ namespace melon::naming {
                 continue;
             }
 
-            const BUTIL_RAPIDJSON_NAMESPACE::Value &service = itr_service->value;
+            const MUTIL_RAPIDJSON_NAMESPACE::Value &service = itr_service->value;
             auto itr_address = service.FindMember("Address");
             auto itr_port = service.FindMember("Port");
             if (itr_address == service.MemberEnd() ||
@@ -155,7 +155,7 @@ namespace melon::naming {
                 continue;
             }
 
-            butil::EndPoint end_point;
+            mutil::EndPoint end_point;
             if (str2endpoint(service["Address"].GetString(),
                              service["Port"].GetUint(),
                              &end_point) != 0) {
@@ -171,7 +171,7 @@ namespace melon::naming {
                 if (itr_tags->value.IsArray()) {
                     if (itr_tags->value.Size() > 0) {
                         // Tags in consul is an array, here we only use the first one.
-                        const BUTIL_RAPIDJSON_NAMESPACE::Value &tag = itr_tags->value[0];
+                        const MUTIL_RAPIDJSON_NAMESPACE::Value &tag = itr_tags->value[0];
                         if (tag.IsString()) {
                             node.tag = tag.GetString();
                         } else {
@@ -215,14 +215,14 @@ namespace melon::naming {
         for (;;) {
             servers.clear();
             const int rc = GetServers(service_name, &servers);
-            // If `bthread_stop' is called to stop the ns bthread when `melon::Join‘ is called
-            // in `GetServers' to wait for a rpc to complete. The bthread will be woken up,
+            // If `fiber_stop' is called to stop the ns fiber when `melon::Join‘ is called
+            // in `GetServers' to wait for a rpc to complete. The fiber will be woken up,
             // reset `TaskMeta::interrupted' and continue to join the rpc. After the rpc is complete,
-            // `bthread_usleep' will not sense the interrupt signal and sleep successfully.
-            // Finally, the ns bthread will never exit. So need to check the stop status of
-            // the bthread here and exit the bthread in time.
-            if (bthread_stopped(bthread_self())) {
-                RPC_VLOG << "Quit NamingServiceThread=" << bthread_self();
+            // `fiber_usleep' will not sense the interrupt signal and sleep successfully.
+            // Finally, the ns fiber will never exit. So need to check the stop status of
+            // the fiber here and exit the fiber in time.
+            if (fiber_stopped(fiber_self())) {
+                RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                 return 0;
             }
             if (rc == 0) {
@@ -236,10 +236,10 @@ namespace melon::naming {
                     servers.clear();
                     actions->ResetServers(servers);
                 }
-                if (bthread_usleep(
-                        std::max(FLAGS_consul_retry_interval_ms, 1) * butil::Time::kMicrosecondsPerMillisecond) < 0) {
+                if (fiber_usleep(
+                        std::max(FLAGS_consul_retry_interval_ms, 1) * mutil::Time::kMicrosecondsPerMillisecond) < 0) {
                     if (errno == ESTOP) {
-                        RPC_VLOG << "Quit NamingServiceThread=" << bthread_self();
+                        RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                         return 0;
                     }
                     PLOG(FATAL) << "Fail to sleep";

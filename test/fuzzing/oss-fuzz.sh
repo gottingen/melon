@@ -33,7 +33,7 @@ cmake \
 
 # https://github.com/google/oss-fuzz/pull/10898
 make \
-    fuzz_butil fuzz_esp fuzz_hpack fuzz_http fuzz_hulu fuzz_json \
+    fuzz_utility fuzz_esp fuzz_hpack fuzz_http fuzz_hulu fuzz_json \
     fuzz_redis fuzz_shead fuzz_sofa fuzz_uri --ignore-errors -j$(nproc)
 
 cp test/fuzz_* $OUT/
@@ -48,6 +48,6 @@ zip $OUT/fuzz_json_seed_corpus.zip  fuzz_json_seed_corpus/*
 zip $OUT/fuzz_uri_seed_corpus.zip   fuzz_uri_seed_corpus/*
 zip $OUT/fuzz_redis_seed_corpus.zip fuzz_redis_seed_corpus/*
 zip $OUT/fuzz_http_seed_corpus.zip  fuzz_http_seed_corpus/*
-zip $OUT/fuzz_butil_seed_corpus.zip fuzz_butil_seed_corpus/*
+zip $OUT/fuzz_utility_seed_corpus.zip fuzz_utility_seed_corpus/*
 zip $OUT/fuzz_hpack_seed_corpus.zip fuzz_hpack_seed_corpus/*
 popd

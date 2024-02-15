@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
+#include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/raft/raft.h>
@@ -22,7 +22,7 @@
 #include "block.pb.h"
 
 DEFINE_bool(log_each_request, false, "Print log for each request");
-DEFINE_bool(use_bthread, false, "Use bthread to send requests");
+DEFINE_bool(use_fiber, false, "Use fiber to send requests");
 DEFINE_int32(block_size, 64 * 1024 * 1024u, "Size of block");
 DEFINE_int32(request_size, 1024, "Size of each requst");
 DEFINE_int32(thread_num, 1, "Number of threads sending requests");
@@ -40,12 +40,12 @@ static void* sender(void* arg) {
         if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = melon::raft::rtb::refresh_leader(
+            mutil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
                 LOG(WARNING) << "Fail to refresh_leader : " << st;
-                bthread_usleep(FLAGS_timeout_ms * 1000L);
+                fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
         }
@@ -55,7 +55,7 @@ static void* sender(void* arg) {
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         example::BlockService_Stub stub(&channel);
@@ -65,10 +65,10 @@ static void* sender(void* arg) {
         // Randomly select which request we want send;
         example::BlockRequest request;
         example::BlockResponse response;
-        request.set_offset(butil::fast_rand_less_than(
+        request.set_offset(mutil::fast_rand_less_than(
                             FLAGS_block_size - FLAGS_request_size));
         const char* op = NULL;
-        if (butil::fast_rand_less_than(100) < (size_t)FLAGS_write_percentage) {
+        if (mutil::fast_rand_less_than(100) < (size_t)FLAGS_write_percentage) {
             op = "write";
             cntl.request_attachment().resize(FLAGS_request_size, 'a');
             stub.write(&cntl, &request, &response, NULL);
@@ -82,7 +82,7 @@ static void* sender(void* arg) {
                          << " : " << cntl.ErrorText();
             // Clear leadership since this RPC failed.
             melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         if (!response.success()) {
@@ -104,7 +104,7 @@ static void* sender(void* arg) {
                       << " response_attachment="
                       << cntl.response_attachment().size()
                       << " latency=" << cntl.latency_us();
-            bthread_usleep(1000L * 1000L);
+            fiber_usleep(1000L * 1000L);
         }
     }
     return NULL;
@@ -112,7 +112,7 @@ static void* sender(void* arg) {
 
 int main(int argc, char* argv[]) {
     GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
-    butil::AtExitManager exit_manager;
+    mutil::AtExitManager exit_manager;
 
     // Register configuration of target group to RouteTable
     if (melon::raft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
@@ -121,9 +121,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::vector<bthread_t> tids;
+    std::vector<fiber_t> tids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_bthread) {
+    if (!FLAGS_use_fiber) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, NULL) != 0) {
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
     } else {
         tids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
-            if (bthread_start_background(&tids[i], NULL, sender, NULL) != 0) {
-                LOG(ERROR) << "Fail to create bthread";
+            if (fiber_start_background(&tids[i], NULL, sender, NULL) != 0) {
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -152,10 +152,10 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "Block client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_bthread) {
+        if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
         } else {
-            bthread_join(tids[i], NULL);
+            fiber_join(tids[i], NULL);
         }
     }
 

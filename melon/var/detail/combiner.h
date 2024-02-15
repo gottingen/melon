@@ -22,11 +22,11 @@
 
 #include <string>                       // std::string
 #include <vector>                       // std::vector
-#include "melon/butil/atomicops.h"             // butil::atomic
-#include "melon/butil/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/butil/type_traits.h"           // butil::add_cr_non_integral
-#include "melon/butil/synchronization/lock.h"  // butil::Lock
-#include "melon/butil/containers/linked_list.h"// LinkNode
+#include "melon/utility/atomicops.h"             // mutil::atomic
+#include "melon/utility/scoped_lock.h"           // MELON_SCOPED_LOCK
+#include "melon/utility/type_traits.h"           // mutil::add_cr_non_integral
+#include "melon/utility/synchronization/lock.h"  // mutil::Lock
+#include "melon/utility/containers/linked_list.h"// LinkNode
 #include "melon/var/detail/agent_group.h"    // detail::AgentGroup
 #include "melon/var/detail/is_atomical.h"
 #include "melon/var/detail/call_op_returning_void.h"
@@ -77,24 +77,24 @@ namespace melon::var {
 
         public:
             void load(T *out) {
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 *out = _value;
             }
 
             void store(const T &new_value) {
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 _value = new_value;
             }
 
             void exchange(T *prev, const T &new_value) {
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 *prev = _value;
                 _value = new_value;
             }
 
             template<typename Op, typename T1>
             void modify(const Op &op, const T1 &value2) {
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 call_op_returning_void(op, _value, value2);
             }
 
@@ -108,36 +108,36 @@ namespace melon::var {
 
         private:
             T _value;
-            butil::Lock _lock;
+            mutil::Lock _lock;
         };
 
         template<typename T>
         class ElementContainer<
-                T, typename butil::enable_if<is_atomical<T>::value>::type> {
+                T, typename mutil::enable_if<is_atomical<T>::value>::type> {
         public:
             // We don't need any memory fencing here, every op is relaxed.
 
             inline void load(T *out) {
-                *out = _value.load(butil::memory_order_relaxed);
+                *out = _value.load(mutil::memory_order_relaxed);
             }
 
             inline void store(T new_value) {
-                _value.store(new_value, butil::memory_order_relaxed);
+                _value.store(new_value, mutil::memory_order_relaxed);
             }
 
             inline void exchange(T *prev, T new_value) {
-                *prev = _value.exchange(new_value, butil::memory_order_relaxed);
+                *prev = _value.exchange(new_value, mutil::memory_order_relaxed);
             }
 
             // [Unique]
             inline bool compare_exchange_weak(T &expected, T new_value) {
                 return _value.compare_exchange_weak(expected, new_value,
-                                                    butil::memory_order_relaxed);
+                                                    mutil::memory_order_relaxed);
             }
 
             template<typename Op, typename T1>
             void modify(const Op &op, const T1 &value2) {
-                T old_value = _value.load(butil::memory_order_relaxed);
+                T old_value = _value.load(mutil::memory_order_relaxed);
                 T new_value = old_value;
                 call_op_returning_void(op, new_value, value2);
                 // There's a contention with the reset operation of combiner,
@@ -145,14 +145,14 @@ namespace melon::var {
                 // compare_exchange_weak operation will fail and recalculation is
                 // to be processed according to the new version of value
                 while (!_value.compare_exchange_weak(
-                        old_value, new_value, butil::memory_order_relaxed)) {
+                        old_value, new_value, mutil::memory_order_relaxed)) {
                     new_value = old_value;
                     call_op_returning_void(op, new_value, value2);
                 }
             }
 
         private:
-            butil::atomic<T> _value;
+            mutil::atomic<T> _value;
         };
 
         template<typename ResultTp, typename ElementTp, typename BinaryOp>
@@ -164,7 +164,7 @@ namespace melon::var {
 
             friend class GlobalValue<self_type>;
 
-            struct Agent : public butil::LinkNode<Agent> {
+            struct Agent : public mutil::LinkNode<Agent> {
                 Agent() : combiner(NULL) {}
 
                 ~Agent() {
@@ -236,9 +236,9 @@ namespace melon::var {
             // [Threadsafe] May be called from anywhere
             ResultTp combine_agents() const {
                 ElementTp tls_value;
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 ResultTp ret = _global_result;
-                for (butil::LinkNode<Agent> *node = _agents.head();
+                for (mutil::LinkNode<Agent> *node = _agents.head();
                      node != _agents.end(); node = node->next()) {
                     node->value()->element.load(&tls_value);
                     call_op_returning_void(_op, ret, tls_value);
@@ -246,17 +246,17 @@ namespace melon::var {
                 return ret;
             }
 
-            typename butil::add_cr_non_integral<ElementTp>::type element_identity() const { return _element_identity; }
+            typename mutil::add_cr_non_integral<ElementTp>::type element_identity() const { return _element_identity; }
 
-            typename butil::add_cr_non_integral<ResultTp>::type result_identity() const { return _result_identity; }
+            typename mutil::add_cr_non_integral<ResultTp>::type result_identity() const { return _result_identity; }
 
             // [Threadsafe] May be called from anywhere.
             ResultTp reset_all_agents() {
                 ElementTp prev;
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 ResultTp tmp = _global_result;
                 _global_result = _result_identity;
-                for (butil::LinkNode<Agent> *node = _agents.head();
+                for (mutil::LinkNode<Agent> *node = _agents.head();
                      node != _agents.end(); node = node->next()) {
                     node->value()->element.exchange(&prev, _element_identity);
                     call_op_returning_void(_op, tmp, prev);
@@ -270,7 +270,7 @@ namespace melon::var {
                     return;
                 }
                 ElementTp local;
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 // TODO: For non-atomic types, we can pass the reference to op directly.
                 // But atomic types cannot. The code is a little troublesome to write.
                 agent->element.load(&local);
@@ -284,7 +284,7 @@ namespace melon::var {
                     return;
                 }
                 ElementTp prev;
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 agent->element.exchange(&prev, _element_identity);
                 call_op_returning_void(_op, _global_result, prev);
             }
@@ -306,21 +306,21 @@ namespace melon::var {
                 agent->reset(_element_identity, this);
                 // TODO: Is uniqueness-checking necessary here?
                 {
-                    butil::AutoLock guard(_lock);
+                    mutil::AutoLock guard(_lock);
                     _agents.Append(agent);
                 }
                 return agent;
             }
 
             void clear_all_agents() {
-                butil::AutoLock guard(_lock);
+                mutil::AutoLock guard(_lock);
                 // reseting agents is must because the agent object may be reused.
                 // Set element to be default-constructed so that if it's non-pod,
                 // internal allocations should be released.
-                for (butil::LinkNode<Agent> *
+                for (mutil::LinkNode<Agent> *
                         node = _agents.head(); node != _agents.end();) {
                     node->value()->reset(ElementTp(), NULL);
-                    butil::LinkNode<Agent> *const saved_next = node->next();
+                    mutil::LinkNode<Agent> *const saved_next = node->next();
                     node->RemoveFromList();
                     node = saved_next;
                 }
@@ -333,11 +333,11 @@ namespace melon::var {
         private:
             AgentId _id;
             BinaryOp _op;
-            mutable butil::Lock _lock;
+            mutable mutil::Lock _lock;
             ResultTp _global_result;
             ResultTp _result_identity;
             ElementTp _element_identity;
-            butil::LinkedList<Agent> _agents;
+            mutil::LinkedList<Agent> _agents;
         };
 
     }  // namespace detail

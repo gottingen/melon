@@ -211,7 +211,7 @@ namespace melon {
 
         uint8_t continuity_counter;
 
-        butil::IOBuf payload;
+        mutil::IOBuf payload;
     };
 
 // whether the sid indicates the elementary stream audio.
@@ -1028,7 +1028,7 @@ namespace melon {
         return AAC_PROFILE_UNKNOWN;
     }
 
-    TsWriter::TsWriter(butil::IOBuf *outbuf)
+    TsWriter::TsWriter(mutil::IOBuf *outbuf)
             : _outbuf(outbuf), _nalu_format(AVC_NALU_FORMAT_UNKNOWN), _has_avc_seq_header(false),
               _has_aac_seq_header(false), _encoded_pat_pmt(false), _last_video_stream(TS_STREAM_VIDEO_H264),
               _last_video_pid(TS_PID_VIDEO_AVC), _last_audio_stream(TS_STREAM_AUDIO_AAC),
@@ -1038,10 +1038,10 @@ namespace melon {
     TsWriter::~TsWriter() {
     }
 
-    butil::Status TsWriter::Write(const RtmpAudioMessage &msg) {
+    mutil::Status TsWriter::Write(const RtmpAudioMessage &msg) {
         // ts support audio codec: aac/mp3
         if (msg.codec != FLV_AUDIO_AAC && msg.codec != FLV_AUDIO_MP3) {
-            return butil::Status(EINVAL, "Unsupported codec=%s",
+            return mutil::Status(EINVAL, "Unsupported codec=%s",
                                  FlvAudioCodec2Str(msg.codec));
         }
         const int64_t dts = static_cast<int64_t>(msg.timestamp) * 90;
@@ -1053,25 +1053,25 @@ namespace melon {
 
         if (msg.codec == FLV_AUDIO_AAC) {
             RtmpAACMessage aac_msg;
-            butil::Status st = aac_msg.Create(msg);
+            mutil::Status st = aac_msg.Create(msg);
             if (!st.ok()) {
                 return st;
             }
             // ignore sequence header
             if (aac_msg.packet_type == FLV_AAC_PACKET_SEQUENCE_HEADER) {
-                butil::Status st2 = _aac_seq_header.Create(aac_msg.data);
+                mutil::Status st2 = _aac_seq_header.Create(aac_msg.data);
                 if (!st2.ok()) {
                     return st2;
                 }
                 _has_aac_seq_header = true;
                 ++_discontinuity_counter;
-                return butil::Status::OK();
+                return mutil::Status::OK();
             }
             if (!_has_aac_seq_header) {
-                return butil::Status(EINVAL, "Lack of AAC sequence header");
+                return mutil::Status(EINVAL, "Lack of AAC sequence header");
             }
             if (aac_msg.data.size() > 0x1fff) {
-                return butil::Status(EINVAL, "Invalid AAC data_size=%" PRIu64,
+                return mutil::Status(EINVAL, "Invalid AAC data_size=%" PRIu64,
                                      (uint64_t) aac_msg.data.size());
             }
 
@@ -1087,7 +1087,7 @@ namespace melon {
             const AACProfile aac_profile =
                     AACObjectType2Profile(_aac_seq_header.aac_object);
             if (aac_profile == AAC_PROFILE_UNKNOWN) {
-                return butil::Status(EINVAL, "Invalid aac_object=%d",
+                return mutil::Status(EINVAL, "Invalid aac_object=%d",
                                      (int) _aac_seq_header.aac_object);
             }
             adts_header[2] = (aac_profile << 6) & 0xc0;
@@ -1112,7 +1112,7 @@ namespace melon {
         TsPid apid = TS_PID_NULL;
         TsStream as = FlvAudioCodec2TsStream(msg.codec, &apid);
         if (as == TS_STREAM_RESERVED) {
-            return butil::Status(EINVAL, "Unsupported audio codec=%s",
+            return mutil::Status(EINVAL, "Unsupported audio codec=%s",
                                  FlvAudioCodec2Str(msg.codec));
         }
         return Encode(&tsmsg, as, apid);
@@ -1196,33 +1196,33 @@ namespace melon {
     static const uint8_t fresh_nalu_header_and_aud_nalu_7[] =
             {0x00, 0x00, 0x00, 0x01, 0x09, 0xf0};
 
-    butil::Status TsWriter::Write(const RtmpVideoMessage &msg) {
+    mutil::Status TsWriter::Write(const RtmpVideoMessage &msg) {
         if (msg.frame_type == FLV_VIDEO_FRAME_INFOFRAME) {
             // Ignore info frame.
-            return butil::Status::OK();
+            return mutil::Status::OK();
         }
         if (msg.codec != FLV_VIDEO_AVC) {
-            return butil::Status(EINVAL, "video_codec=%s is not AVC",
+            return mutil::Status(EINVAL, "video_codec=%s is not AVC",
                                  FlvVideoCodec2Str(msg.codec));
         }
         RtmpAVCMessage avc_msg;
-        butil::Status st = avc_msg.Create(msg);
+        mutil::Status st = avc_msg.Create(msg);
         if (!st.ok()) {
             return st;
         }
         // ignore sequence header
         if (avc_msg.frame_type == FLV_VIDEO_FRAME_KEYFRAME &&
             avc_msg.packet_type == FLV_AVC_PACKET_SEQUENCE_HEADER) {
-            butil::Status st2 = _avc_seq_header.Create(avc_msg.data);
+            mutil::Status st2 = _avc_seq_header.Create(avc_msg.data);
             if (!st2.ok()) {
                 return st2;
             }
             _has_avc_seq_header = true;
             ++_discontinuity_counter;
-            return butil::Status::OK();
+            return mutil::Status::OK();
         }
         if (!_has_avc_seq_header) {
-            return butil::Status(EINVAL, "Lack of AVC sequence header");
+            return mutil::Status(EINVAL, "Lack of AVC sequence header");
         }
 
         const int64_t dts = static_cast<int64_t>(avc_msg.timestamp) * 90;
@@ -1235,7 +1235,7 @@ namespace melon {
         // always append a aud nalu for each frame.
         tsmsg.payload.append(fresh_nalu_header_and_aud_nalu_7,
                              arraysize(fresh_nalu_header_and_aud_nalu_7));
-        butil::IOBuf nalus;
+        mutil::IOBuf nalus;
         bool has_idr = false;
         for (AVCNaluIterator it(&avc_msg.data, _avc_seq_header.length_size_minus1,
                                 &_nalu_format); it != NULL; ++it) {
@@ -1286,13 +1286,13 @@ namespace melon {
         TsPid vpid = TS_PID_PAT;
         TsStream vs = FlvVideoCodec2TsStream(msg.codec, &vpid);
         if (vs == TS_STREAM_RESERVED) {
-            return butil::Status(EINVAL, "Unsupported video codec=%s",
+            return mutil::Status(EINVAL, "Unsupported video codec=%s",
                                  FlvVideoCodec2Str(msg.codec));
         }
         return Encode(&tsmsg, vs, vpid);
     }
 
-    butil::Status
+    mutil::Status
     TsWriter::EncodePATPMT(TsStream vs, TsPid vpid, TsStream as, TsPid apid) {
         char buf[TS_PACKET_SIZE];
 
@@ -1303,28 +1303,28 @@ namespace melon {
         CHECK_LT(size1, TS_PACKET_SIZE);
         memset(buf, 0xFF, TS_PACKET_SIZE);
         if (pat.Encode(buf) != 0) {
-            return butil::Status(EINVAL, "Fail to encode PAT");
+            return mutil::Status(EINVAL, "Fail to encode PAT");
         }
         _outbuf->append(buf, TS_PACKET_SIZE);
 
         TsPacket pmt(&_tschan_group);
         if (pmt.CreateAsPMT(TS_PMT_NUMBER, TS_PID_PMT, vpid, vs, apid, as) != 0) {
-            return butil::Status(EINVAL, "Fail to CreateAsPMT");
+            return mutil::Status(EINVAL, "Fail to CreateAsPMT");
         }
         // set the left bytes with 0xFF.
         const size_t size2 = pmt.ByteSize();
         CHECK_LT(size2, TS_PACKET_SIZE);
         memset(buf, 0xFF, TS_PACKET_SIZE);
         if (pmt.Encode(buf) != 0) {
-            return butil::Status(EINVAL, "Fail to encode PMT");
+            return mutil::Status(EINVAL, "Fail to encode PMT");
         }
         _outbuf->append(buf, TS_PACKET_SIZE);
-        return butil::Status::OK();
+        return mutil::Status::OK();
     }
 
-    butil::Status TsWriter::Encode(TsMessage *msg, TsStream stream, TsPid pid) {
+    mutil::Status TsWriter::Encode(TsMessage *msg, TsStream stream, TsPid pid) {
         if (stream == TS_STREAM_RESERVED) {
-            return butil::Status(EINVAL, "Invalid stream=%d", (int) stream);
+            return mutil::Status(EINVAL, "Invalid stream=%d", (int) stream);
         }
         // Encode the media frame to PES packets over TS.
         bool add_pat_pmt = false;
@@ -1341,14 +1341,14 @@ namespace melon {
                 add_pat_pmt = true;
             }
         } else {
-            return butil::Status(EINVAL, "Unknown stream_id=%d", (int) msg->sid);
+            return mutil::Status(EINVAL, "Unknown stream_id=%d", (int) msg->sid);
         }
         if (!_encoded_pat_pmt) {
             _encoded_pat_pmt = true;
             add_pat_pmt = true;
         }
         if (add_pat_pmt) {
-            butil::Status st = EncodePATPMT(_last_video_stream, _last_video_pid,
+            mutil::Status st = EncodePATPMT(_last_video_stream, _last_video_pid,
                                             _last_audio_stream, _last_audio_pid);
             if (!st.ok()) {
                 return st;
@@ -1358,21 +1358,21 @@ namespace melon {
                          (_last_video_stream == TS_STREAM_RESERVED));
     }
 
-    butil::Status TsWriter::EncodePES(TsMessage *msg, TsStream sid, TsPid pid,
+    mutil::Status TsWriter::EncodePES(TsMessage *msg, TsStream sid, TsPid pid,
                                       bool pure_audio) {
         if (msg->payload.empty()) {
-            return butil::Status::OK();
+            return mutil::Status::OK();
         }
         if (sid != TS_STREAM_VIDEO_H264 &&
             sid != TS_STREAM_AUDIO_MP3 &&
             sid != TS_STREAM_AUDIO_AAC) {
             LOG(WARNING) << "Ignore unknown stream_id=" << sid;
-            return butil::Status::OK();
+            return mutil::Status::OK();
         }
 
         TsChannel *channel = _tschan_group.get(pid);
         if (channel == NULL) {
-            return butil::Status(EINVAL, "Fail to get channel on pid=%d", (int) pid);
+            return mutil::Status(EINVAL, "Fail to get channel on pid=%d", (int) pid);
         }
 
         bool first_msg = true;
@@ -1424,11 +1424,11 @@ namespace melon {
             }
             msg->payload.cutn(buf + pkt_size, left);
             if (pkt.Encode(buf) != 0) {
-                return butil::Status(EINVAL, "Fail to encode PES");
+                return mutil::Status(EINVAL, "Fail to encode PES");
             }
             _outbuf->append(buf, TS_PACKET_SIZE);
         }
-        return butil::Status::OK();
+        return mutil::Status::OK();
     }
 
 } // namespace melon

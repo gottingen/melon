@@ -49,8 +49,6 @@
 
 namespace melon::raft {
 
-// emulates google3/butil/callback.h
-
 // Abstract interface for a callback.  When calling an RPC, you must provide
 // a Closure to call when the procedure completes.  See the Service interface
 // in service.h.
@@ -114,7 +112,7 @@ namespace melon::raft {
 
         class LIBPROTOBUF_EXPORT FunctionClosure0 : public Closure {
         public:
-            typedef void (*FunctionType)(const butil::Status &status);
+            typedef void (*FunctionType)(const mutil::Status &status);
 
             FunctionClosure0(FunctionType function, bool self_deleting)
                     : function_(function), self_deleting_(self_deleting) {}
@@ -135,7 +133,7 @@ namespace melon::raft {
         template<typename Class>
         class MethodClosure0 : public Closure {
         public:
-            typedef void (Class::*MethodType)(const butil::Status &status);
+            typedef void (Class::*MethodType)(const mutil::Status &status);
 
             MethodClosure0(Class *object, MethodType method, bool self_deleting)
                     : object_(object), method_(method), self_deleting_(self_deleting) {}
@@ -157,7 +155,7 @@ namespace melon::raft {
         template<typename Arg1>
         class FunctionClosure1 : public Closure {
         public:
-            typedef void (*FunctionType)(Arg1 arg1, const butil::Status &status);
+            typedef void (*FunctionType)(Arg1 arg1, const mutil::Status &status);
 
             FunctionClosure1(FunctionType function, bool self_deleting,
                              Arg1 arg1)
@@ -181,7 +179,7 @@ namespace melon::raft {
         template<typename Class, typename Arg1>
         class MethodClosure1 : public Closure {
         public:
-            typedef void (Class::*MethodType)(Arg1 arg1, const butil::Status &status);
+            typedef void (Class::*MethodType)(Arg1 arg1, const mutil::Status &status);
 
             MethodClosure1(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1)
@@ -206,7 +204,7 @@ namespace melon::raft {
         template<typename Arg1, typename Arg2>
         class FunctionClosure2 : public Closure {
         public:
-            typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, const butil::Status &status);
+            typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, const mutil::Status &status);
 
             FunctionClosure2(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2)
@@ -231,7 +229,7 @@ namespace melon::raft {
         template<typename Class, typename Arg1, typename Arg2>
         class MethodClosure2 : public Closure {
         public:
-            typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, const butil::Status &status);
+            typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, const mutil::Status &status);
 
             MethodClosure2(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2)
@@ -257,7 +255,7 @@ namespace melon::raft {
         template<typename Arg1, typename Arg2, typename Arg3>
         class FunctionClosure3 : public Closure {
         public:
-            typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, const butil::Status &status);
+            typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, const mutil::Status &status);
 
             FunctionClosure3(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3)
@@ -283,7 +281,7 @@ namespace melon::raft {
         template<typename Class, typename Arg1, typename Arg2, typename Arg3>
         class MethodClosure3 : public Closure {
         public:
-            typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, const butil::Status &status);
+            typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, const mutil::Status &status);
 
             MethodClosure3(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3)
@@ -310,7 +308,7 @@ namespace melon::raft {
         template<typename Arg1, typename Arg2, typename Arg3, typename Arg4>
         class FunctionClosure4 : public Closure {
         public:
-            typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, const butil::Status &status);
+            typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, const mutil::Status &status);
 
             FunctionClosure4(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4)
@@ -337,7 +335,7 @@ namespace melon::raft {
         template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
         class MethodClosure4 : public Closure {
         public:
-            typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, const butil::Status &status);
+            typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, const mutil::Status &status);
 
             MethodClosure4(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4)
@@ -366,7 +364,7 @@ namespace melon::raft {
         class FunctionClosure5 : public Closure {
         public:
             typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5,
-                                         const butil::Status &status);
+                                         const mutil::Status &status);
 
             FunctionClosure5(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5)
@@ -395,7 +393,7 @@ namespace melon::raft {
         class MethodClosure5 : public Closure {
         public:
             typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5,
-                                              const butil::Status &status);
+                                              const mutil::Status &status);
 
             MethodClosure5(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5)
@@ -425,7 +423,7 @@ namespace melon::raft {
         class FunctionClosure6 : public Closure {
         public:
             typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6,
-                                         const butil::Status &status);
+                                         const mutil::Status &status);
 
             FunctionClosure6(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6)
@@ -455,7 +453,7 @@ namespace melon::raft {
         class MethodClosure6 : public Closure {
         public:
             typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6,
-                                              const butil::Status &status);
+                                              const mutil::Status &status);
 
             MethodClosure6(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6)
@@ -486,7 +484,7 @@ namespace melon::raft {
         class FunctionClosure7 : public Closure {
         public:
             typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7,
-                                         const butil::Status &status);
+                                         const mutil::Status &status);
 
             FunctionClosure7(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7)
@@ -517,7 +515,7 @@ namespace melon::raft {
         class MethodClosure7 : public Closure {
         public:
             typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6,
-                                              Arg7 arg7, const butil::Status &status);
+                                              Arg7 arg7, const mutil::Status &status);
 
             MethodClosure7(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7)
@@ -550,7 +548,7 @@ namespace melon::raft {
         class FunctionClosure8 : public Closure {
         public:
             typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7,
-                                         Arg8 arg8, const butil::Status &status);
+                                         Arg8 arg8, const mutil::Status &status);
 
             FunctionClosure8(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8)
@@ -583,7 +581,7 @@ namespace melon::raft {
         class MethodClosure8 : public Closure {
         public:
             typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6,
-                                              Arg7 arg7, Arg8 arg8, const butil::Status &status);
+                                              Arg7 arg7, Arg8 arg8, const mutil::Status &status);
 
             MethodClosure8(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8)
@@ -618,7 +616,7 @@ namespace melon::raft {
         class FunctionClosure9 : public Closure {
         public:
             typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7,
-                                         Arg8 arg8, Arg9 arg9, const butil::Status &status);
+                                         Arg8 arg8, Arg9 arg9, const mutil::Status &status);
 
             FunctionClosure9(FunctionType function, bool self_deleting,
                              Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8,
@@ -653,7 +651,7 @@ namespace melon::raft {
         class MethodClosure9 : public Closure {
         public:
             typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6,
-                                              Arg7 arg7, Arg8 arg8, Arg9 arg9, const butil::Status &status);
+                                              Arg7 arg7, Arg8 arg8, Arg9 arg9, const mutil::Status &status);
 
             MethodClosure9(Class *object, MethodType method, bool self_deleting,
                            Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8,
@@ -689,7 +687,7 @@ namespace melon::raft {
         class FunctionClosure10 : public Closure {
         public:
             typedef void (*FunctionType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7,
-                                         Arg8 arg8, Arg9 arg9, Arg10 arg10, const butil::Status &status);
+                                         Arg8 arg8, Arg9 arg9, Arg10 arg10, const mutil::Status &status);
 
             FunctionClosure10(FunctionType function, bool self_deleting,
                               Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8,
@@ -726,7 +724,7 @@ namespace melon::raft {
         public:
             typedef void (Class::*MethodType)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6,
                                               Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10,
-                                              const butil::Status &status);
+                                              const mutil::Status &status);
 
             MethodClosure10(Class *object, MethodType method, bool self_deleting,
                             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8,
@@ -763,58 +761,58 @@ namespace melon::raft {
     }  // namespace internal
 
 // See Closure.
-    inline Closure *NewCallback(void (*function)(const butil::Status &)) {
+    inline Closure *NewCallback(void (*function)(const mutil::Status &)) {
         return new internal::FunctionClosure0(function, true);
     }
 
 // See Closure.
-    inline Closure *NewPermanentCallback(void (*function)(const butil::Status &)) {
+    inline Closure *NewPermanentCallback(void (*function)(const mutil::Status &)) {
         return new internal::FunctionClosure0(function, false);
     }
 
 // See Closure.
     template<typename Class>
-    inline Closure *NewCallback(Class *object, void (Class::*method)(const butil::Status &)) {
+    inline Closure *NewCallback(Class *object, void (Class::*method)(const mutil::Status &)) {
         return new internal::MethodClosure0<Class>(object, method, true);
     }
 
 // See Closure.
     template<typename Class>
-    inline Closure *NewPermanentCallback(Class *object, void (Class::*method)(const butil::Status &)) {
+    inline Closure *NewPermanentCallback(Class *object, void (Class::*method)(const mutil::Status &)) {
         return new internal::MethodClosure0<Class>(object, method, false);
     }
 
 // See Closure.
     template<typename Arg1>
-    inline Closure *NewCallback(void (*function)(Arg1, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, const mutil::Status &),
                                 Arg1 arg1) {
         return new internal::FunctionClosure1<Arg1>(function, true, arg1);
     }
 
 // See Closure.
     template<typename Arg1>
-    inline Closure *NewPermanentCallback(void (*function)(Arg1, const butil::Status &),
+    inline Closure *NewPermanentCallback(void (*function)(Arg1, const mutil::Status &),
                                          Arg1 arg1) {
         return new internal::FunctionClosure1<Arg1>(function, false, arg1);
     }
 
 // See Closure.
     template<typename Class, typename Arg1>
-    inline Closure *NewCallback(Class *object, void (Class::*method)(Arg1, const butil::Status &),
+    inline Closure *NewCallback(Class *object, void (Class::*method)(Arg1, const mutil::Status &),
                                 Arg1 arg1) {
         return new internal::MethodClosure1<Class, Arg1>(object, method, true, arg1);
     }
 
 // See Closure.
     template<typename Class, typename Arg1>
-    inline Closure *NewPermanentCallback(Class *object, void (Class::*method)(Arg1, const butil::Status &),
+    inline Closure *NewPermanentCallback(Class *object, void (Class::*method)(Arg1, const mutil::Status &),
                                          Arg1 arg1) {
         return new internal::MethodClosure1<Class, Arg1>(object, method, false, arg1);
     }
 
 // See Closure.
     template<typename Arg1, typename Arg2>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2) {
         return new internal::FunctionClosure2<Arg1, Arg2>(
                 function, true, arg1, arg2);
@@ -822,7 +820,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2>
-    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, const butil::Status &),
+    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, const mutil::Status &),
                                          Arg1 arg1, Arg2 arg2) {
         return new internal::FunctionClosure2<Arg1, Arg2>(
                 function, false, arg1, arg2);
@@ -830,7 +828,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Class, typename Arg1, typename Arg2>
-    inline Closure *NewCallback(Class *object, void (Class::*method)(Arg1, Arg2, const butil::Status &),
+    inline Closure *NewCallback(Class *object, void (Class::*method)(Arg1, Arg2, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2) {
         return new internal::MethodClosure2<Class, Arg1, Arg2>(
                 object, method, true, arg1, arg2);
@@ -839,7 +837,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Class, typename Arg1, typename Arg2>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, const mutil::Status &),
             Arg1 arg1, Arg2 arg2) {
         return new internal::MethodClosure2<Class, Arg1, Arg2>(
                 object, method, false, arg1, arg2);
@@ -847,7 +845,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2, Arg3 arg3) {
         return new internal::FunctionClosure3<Arg1, Arg2, Arg3>(
                 function, true, arg1, arg2, arg3);
@@ -855,7 +853,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3>
-    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, const butil::Status &),
+    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, const mutil::Status &),
                                          Arg1 arg1, Arg2 arg2, Arg3 arg3) {
         return new internal::FunctionClosure3<Arg1, Arg2, Arg3>(
                 function, false, arg1, arg2, arg3);
@@ -864,7 +862,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3>
     inline Closure *NewCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3) {
         return new internal::MethodClosure3<Class, Arg1, Arg2, Arg3>(
                 object, method, true, arg1, arg2, arg3);
@@ -873,7 +871,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3) {
         return new internal::MethodClosure3<Class, Arg1, Arg2, Arg3>(
                 object, method, false, arg1, arg2, arg3);
@@ -881,7 +879,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) {
         return new internal::FunctionClosure4<Arg1, Arg2, Arg3, Arg4>(
                 function, true, arg1, arg2, arg3, arg4);
@@ -889,7 +887,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, const butil::Status &),
+    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, const mutil::Status &),
                                          Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) {
         return new internal::FunctionClosure4<Arg1, Arg2, Arg3, Arg4>(
                 function, false, arg1, arg2, arg3, arg4);
@@ -898,7 +896,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
     inline Closure *NewCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) {
         return new internal::MethodClosure4<Class, Arg1, Arg2, Arg3, Arg4>(
                 object, method, true, arg1, arg2, arg3, arg4);
@@ -907,7 +905,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) {
         return new internal::MethodClosure4<Class, Arg1, Arg2, Arg3, Arg4>(
                 object, method, false, arg1, arg2, arg3, arg4);
@@ -915,7 +913,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) {
         return new internal::FunctionClosure5<Arg1, Arg2, Arg3, Arg4, Arg5>(
                 function, true, arg1, arg2, arg3, arg4, arg5);
@@ -923,7 +921,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
-    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, const butil::Status &),
+    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, const mutil::Status &),
                                          Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) {
         return new internal::FunctionClosure5<Arg1, Arg2, Arg3, Arg4, Arg5>(
                 function, false, arg1, arg2, arg3, arg4, arg5);
@@ -932,7 +930,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
     inline Closure *NewCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) {
         return new internal::MethodClosure5<Class, Arg1, Arg2, Arg3, Arg4, Arg5>(
                 object, method, true, arg1, arg2, arg3, arg4, arg5);
@@ -941,7 +939,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) {
         return new internal::MethodClosure5<Class, Arg1, Arg2, Arg3, Arg4, Arg5>(
                 object, method, false, arg1, arg2, arg3, arg4, arg5);
@@ -949,7 +947,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) {
         return new internal::FunctionClosure6<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
                 function, true, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -957,7 +955,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
-    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const butil::Status &),
+    inline Closure *NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const mutil::Status &),
                                          Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) {
         return new internal::FunctionClosure6<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
                 function, false, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -966,7 +964,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
     inline Closure *NewCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) {
         return new internal::MethodClosure6<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
                 object, method, true, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -975,7 +973,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) {
         return new internal::MethodClosure6<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
                 object, method, false, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -983,7 +981,7 @@ namespace melon::raft {
 
 // See Closure
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) {
         return new internal::FunctionClosure7<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
                 function, true, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -992,7 +990,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
     inline Closure *
-    NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const butil::Status &),
+    NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const mutil::Status &),
                          Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) {
         return new internal::FunctionClosure7<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
                 function, false, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -1001,7 +999,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
     inline Closure *NewCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) {
         return new internal::MethodClosure7<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
                 object, method, true, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -1010,7 +1008,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) {
         return new internal::MethodClosure7<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
                 object, method, false, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -1018,7 +1016,7 @@ namespace melon::raft {
 
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
-    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const butil::Status &),
+    inline Closure *NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const mutil::Status &),
                                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7,
                                 Arg8 arg8) {
         return new internal::FunctionClosure8<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
@@ -1028,7 +1026,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
     inline Closure *
-    NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const butil::Status &),
+    NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const mutil::Status &),
                          Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8) {
         return new internal::FunctionClosure8<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
                 function, false, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
@@ -1037,7 +1035,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
     inline Closure *NewCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8) {
         return new internal::MethodClosure8<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
                 object, method, true, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
@@ -1046,7 +1044,7 @@ namespace melon::raft {
 // See Closure
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
     inline Closure *NewPermanentCallback(
-            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const butil::Status &),
+            Class *object, void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8) {
         return new internal::MethodClosure8<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
                 object, method, false, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
@@ -1055,7 +1053,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
     inline Closure *
-    NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const butil::Status &),
+    NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const mutil::Status &),
                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9) {
         return new internal::FunctionClosure9<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
                 function, true, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
@@ -1064,7 +1062,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
     inline Closure *
-    NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const butil::Status &),
+    NewPermanentCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const mutil::Status &),
                          Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8,
                          Arg9 arg9) {
         return new internal::FunctionClosure9<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
@@ -1075,7 +1073,7 @@ namespace melon::raft {
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
     inline Closure *NewCallback(
             Class *object,
-            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const butil::Status &),
+            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9) {
         return new internal::MethodClosure9<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
                 object, method, true, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
@@ -1085,7 +1083,7 @@ namespace melon::raft {
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
     inline Closure *NewPermanentCallback(
             Class *object,
-            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const butil::Status &),
+            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9) {
         return new internal::MethodClosure9<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
                 object, method, false, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
@@ -1094,7 +1092,7 @@ namespace melon::raft {
 // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10>
     inline Closure *
-    NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const butil::Status &),
+    NewCallback(void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const mutil::Status &),
                 Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9,
                 Arg10 arg10) {
         return new internal::FunctionClosure10<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10>(
@@ -1104,7 +1102,7 @@ namespace melon::raft {
     // See Closure.
     template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10>
     inline Closure *NewPermanentCallback(
-            void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const butil::Status &),
+            void (*function)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9,
             Arg10 arg10) {
         return new internal::FunctionClosure10<Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10>(
@@ -1115,7 +1113,7 @@ namespace melon::raft {
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10>
     inline Closure *NewCallback(
             Class *object,
-            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const butil::Status &),
+            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9,
             Arg10 arg10) {
         return new internal::MethodClosure10<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10>(
@@ -1126,7 +1124,7 @@ namespace melon::raft {
     template<typename Class, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10>
     inline Closure *NewPermanentCallback(
             Class *object,
-            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const butil::Status &),
+            void (Class::*method)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, const mutil::Status &),
             Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9,
             Arg10 arg10) {
         return new internal::MethodClosure10<Class, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10>(

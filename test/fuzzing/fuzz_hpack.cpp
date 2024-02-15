@@ -16,7 +16,7 @@
 // under the License.
 
 #include "melon/rpc/http/hpack.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 
 #define kMinInputLength 5
 #define kMaxInputLength 1024
@@ -30,7 +30,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     std::string input(reinterpret_cast<const char*>(data), size);
 
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     melon::HPacker p2;
     melon::HPacker::Header h2;
 

@@ -40,8 +40,8 @@
 // code breaks in protobuf 3.0, they can simply replace
 // google::protobuf::NewCallback with melon::NewCallback.
 
-#ifndef BRPC_CALLBACK_H
-#define BRPC_CALLBACK_H
+#ifndef MELON_RPC_CALLBACK_H_
+#define MELON_RPC_CALLBACK_H_
 
 #include <google/protobuf/stubs/common.h>  // Closure
 #if GOOGLE_PROTOBUF_VERSION >= 3007000
@@ -1094,4 +1094,4 @@ inline ::google::protobuf::Closure* NewPermanentCallback(
 } // namespace melon
 
 
-#endif  // BRPC_CALLBACK_H
+#endif  // MELON_RPC_CALLBACK_H_

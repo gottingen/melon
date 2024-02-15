@@ -22,14 +22,14 @@
 #include <fstream>                              // std::ifstream
 #include <sstream>                              // std::ostringstream
 #include <gflags/gflags.h>
-#include "melon/butil/macros.h"                        // BAIDU_CASSERT
-#include "melon/butil/containers/flat_map.h"           // butil::FlatMap
-#include "melon/butil/scoped_lock.h"                   // BAIDU_SCOPE_LOCK
-#include "melon/butil/string_splitter.h"               // butil::StringSplitter
-#include "melon/butil/errno.h"                         // berror
-#include "melon/butil/time.h"                          // milliseconds_from_now
-#include "melon/butil/file_util.h"                     // butil::FilePath
-#include "melon/butil/threading/platform_thread.h"
+#include "melon/utility/macros.h"                        // MELON_CASSERT
+#include "melon/utility/containers/flat_map.h"           // mutil::FlatMap
+#include "melon/utility/scoped_lock.h"                   // MELON_SCOPE_LOCK
+#include "melon/utility/string_splitter.h"               // mutil::StringSplitter
+#include "melon/utility/errno.h"                         // berror
+#include "melon/utility/time.h"                          // milliseconds_from_now
+#include "melon/utility/file_util.h"                     // mutil::FilePath
+#include "melon/utility/threading/platform_thread.h"
 #include "melon/var/gflag.h"
 #include "melon/var/variable.h"
 #include "melon/var/mvariable.h"
@@ -62,7 +62,7 @@ namespace melon::var {
                 " into logstream before call Dumpper");
 
     const size_t SUB_MAP_COUNT = 32;  // must be power of 2
-    BAIDU_CASSERT(!(SUB_MAP_COUNT & (SUB_MAP_COUNT - 1)), must_be_power_of_2);
+    MELON_CASSERT(!(SUB_MAP_COUNT & (SUB_MAP_COUNT - 1)), must_be_power_of_2);
 
     class VarEntry {
     public:
@@ -72,7 +72,7 @@ namespace melon::var {
         DisplayFilter display_filter;
     };
 
-    typedef butil::FlatMap<std::string, VarEntry> VarMap;
+    typedef mutil::FlatMap<std::string, VarEntry> VarMap;
 
     struct VarMapWithLock : public VarMap {
         pthread_mutex_t mutex;
@@ -125,8 +125,8 @@ namespace melon::var {
                           " dtors to avoid displaying a variable that is just destructing";
     }
 
-    int Variable::expose_impl(const butil::StringPiece &prefix,
-                              const butil::StringPiece &name,
+    int Variable::expose_impl(const mutil::StringPiece &prefix,
+                              const mutil::StringPiece &name,
                               DisplayFilter display_filter) {
         if (name.empty()) {
             LOG(ERROR) << "Parameter[name] is empty";
@@ -147,7 +147,7 @@ namespace melon::var {
         _name.reserve((prefix.size() + name.size()) * 5 / 4);
         if (!prefix.empty()) {
             to_underscored_name(&_name, prefix);
-            if (!_name.empty() && butil::back_char(_name) != '_') {
+            if (!_name.empty() && mutil::back_char(_name) != '_') {
                 _name.push_back('_');
             }
         }
@@ -307,8 +307,8 @@ namespace melon::var {
 
         void reset();
 
-        butil::StringPiece data() {
-            return butil::StringPiece(pbase(), pptr() - pbase());
+        mutil::StringPiece data() {
+            return mutil::StringPiece(pbase(), pptr() - pbase());
         }
 
     private:
@@ -326,7 +326,7 @@ namespace melon::var {
         }
         size_t new_size = std::max(_size * 3 / 2, (size_t) 64);
         char *new_data = (char *) malloc(new_size);
-        if (BAIDU_UNLIKELY(new_data == NULL)) {
+        if (MELON_UNLIKELY(new_data == NULL)) {
             setp(NULL, NULL);
             return std::streambuf::traits_type::eof();
         }
@@ -398,7 +398,7 @@ namespace melon::var {
             }
             std::string name;
             const char wc_pattern[3] = {'*', question_mark, '\0'};
-            for (butil::StringMultiSplitter sp(wildcards.c_str(), ",;");
+            for (mutil::StringMultiSplitter sp(wildcards.c_str(), ",;");
                  sp != NULL; ++sp) {
                 name.assign(sp.field(), sp.length());
                 if (name.find_first_of(wc_pattern) != std::string::npos) {
@@ -534,10 +534,10 @@ namespace melon::var {
         // safety we normalize the name.
         std::string s;
         if (command_name.size() >= 2UL && command_name[0] == '(' &&
-            butil::back_char(command_name) == ')') {
+            mutil::back_char(command_name) == ')') {
             // remove parenthesis.
             to_underscored_name(&s,
-                                butil::StringPiece(command_name.data() + 1,
+                                mutil::StringPiece(command_name.data() + 1,
                                                    command_name.size() - 2UL));
         } else {
             to_underscored_name(&s, command_name);
@@ -547,7 +547,7 @@ namespace melon::var {
 
     class FileDumper : public Dumper {
     public:
-        FileDumper(const std::string &filename, butil::StringPiece s/*prefix*/)
+        FileDumper(const std::string &filename, mutil::StringPiece s/*prefix*/)
                 : _filename(filename), _fp(NULL) {
             // setting prefix.
             // remove trailing spaces.
@@ -557,7 +557,7 @@ namespace melon::var {
             // normalize it.
             if (!s.empty()) {
                 to_underscored_name(&_prefix, s);
-                if (butil::back_char(_prefix) != '_') {
+                if (mutil::back_char(_prefix) != '_') {
                     _prefix.push_back('_');
                 }
             }
@@ -575,11 +575,11 @@ namespace melon::var {
         }
 
     protected:
-        bool dump_impl(const std::string &name, const butil::StringPiece &desc, const std::string &separator) {
+        bool dump_impl(const std::string &name, const mutil::StringPiece &desc, const std::string &separator) {
             if (_fp == NULL) {
-                butil::File::Error error;
-                butil::FilePath dir = butil::FilePath(_filename).DirName();
-                if (!butil::CreateDirectoryAndGetError(dir, &error)) {
+                mutil::File::Error error;
+                mutil::FilePath dir = mutil::FilePath(_filename).DirName();
+                if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
                     LOG(ERROR) << "Fail to create directory=`" << dir.value()
                                << "', " << error;
                     return false;
@@ -609,10 +609,10 @@ namespace melon::var {
 
     class CommonFileDumper : public FileDumper {
     public:
-        CommonFileDumper(const std::string &filename, butil::StringPiece prefix)
+        CommonFileDumper(const std::string &filename, mutil::StringPiece prefix)
                 : FileDumper(filename, prefix), _separator(":") {}
 
-        bool dump(const std::string &name, const butil::StringPiece &desc) {
+        bool dump(const std::string &name, const mutil::StringPiece &desc) {
             return dump_impl(name, desc, _separator);
         }
 
@@ -622,10 +622,10 @@ namespace melon::var {
 
     class PrometheusFileDumper : public FileDumper {
     public:
-        PrometheusFileDumper(const std::string &filename, butil::StringPiece prefix)
+        PrometheusFileDumper(const std::string &filename, mutil::StringPiece prefix)
                 : FileDumper(filename, prefix), _separator(" ") {}
 
-        bool dump(const std::string &name, const butil::StringPiece &desc) {
+        bool dump(const std::string &name, const mutil::StringPiece &desc) {
             return dump_impl(name, desc, _separator);
         }
 
@@ -636,14 +636,14 @@ namespace melon::var {
     class FileDumperGroup : public Dumper {
     public:
         FileDumperGroup(std::string tabs, std::string filename,
-                        butil::StringPiece s/*prefix*/) {
-            butil::FilePath path(filename);
+                        mutil::StringPiece s/*prefix*/) {
+            mutil::FilePath path(filename);
             if (path.FinalExtension() == ".data") {
                 // .data will be appended later
                 path = path.RemoveFinalExtension();
             }
 
-            for (butil::KeyValuePairsSplitter sp(tabs, ';', '='); sp; ++sp) {
+            for (mutil::KeyValuePairsSplitter sp(tabs, ';', '='); sp; ++sp) {
                 std::string key = sp.key().as_string();
                 std::string value = sp.value().as_string();
                 FileDumper *f = new CommonFileDumper(
@@ -664,7 +664,7 @@ namespace melon::var {
             dumpers.clear();
         }
 
-        bool dump(const std::string &name, const butil::StringPiece &desc) override {
+        bool dump(const std::string &name, const mutil::StringPiece &desc) override {
             for (size_t i = 0; i < dumpers.size() - 1; ++i) {
                 if (dumpers[i].second->match(name)) {
                     return dumpers[i].first->dump(name, desc);
@@ -717,7 +717,7 @@ namespace melon::var {
     static void *dumping_thread(void *) {
         // NOTE: this variable was declared as static <= r34381, which was
         // destructed when program exits and caused coredumps.
-        butil::PlatformThread::SetName("bvar_dumper");
+        mutil::PlatformThread::SetName("bvar_dumper");
         const std::string command_name = read_command_name();
         std::string last_filename;
         std::string mbvar_last_filename;
@@ -838,7 +838,7 @@ namespace melon::var {
                 LOG(ERROR) << "Bad cond_sleep_ms=" << cond_sleep_ms;
                 cond_sleep_ms = 10000;
             }
-            timespec deadline = butil::milliseconds_from_now(cond_sleep_ms);
+            timespec deadline = mutil::milliseconds_from_now(cond_sleep_ms);
             pthread_mutex_lock(&dump_mutex);
             pthread_cond_timedwait(&dump_cond, &dump_mutex, &deadline);
             pthread_mutex_unlock(&dump_mutex);
@@ -936,13 +936,13 @@ namespace melon::var {
     const bool ALLOW_UNUSED dummy_mbvar_dump_format = ::GFLAGS_NS::RegisterFlagValidator(
             &FLAGS_mbvar_dump_format, validate_mbvar_dump_format);
 
-    void to_underscored_name(std::string *name, const butil::StringPiece &src) {
+    void to_underscored_name(std::string *name, const mutil::StringPiece &src) {
         name->reserve(name->size() + src.size() + 8/*just guess*/);
         for (const char *p = src.data(); p != src.data() + src.size(); ++p) {
             if (isalpha(*p)) {
                 if (*p < 'a') { // upper cases
                     if (p != src.data() && !isupper(p[-1]) &&
-                        butil::back_char(*name) != '_') {
+                        mutil::back_char(*name) != '_') {
                         name->push_back('_');
                     }
                     name->push_back(*p - 'A' + 'a');
@@ -951,7 +951,7 @@ namespace melon::var {
                 }
             } else if (isdigit(*p)) {
                 name->push_back(*p);
-            } else if (name->empty() || butil::back_char(*name) != '_') {
+            } else if (name->empty() || mutil::back_char(*name) != '_') {
                 name->push_back('_');
             }
         }

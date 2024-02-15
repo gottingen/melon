@@ -26,8 +26,8 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/acceptor.h"
 #include "melon/rpc/server.h"
@@ -152,7 +152,7 @@ public:
         LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     void OnPlay(const melon::RtmpPlayOptions& opt,
-                butil::Status* status,
+                mutil::Status* status,
                 google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
@@ -167,9 +167,9 @@ public:
         if (_sleep_ms > 0) {
             LOG(INFO) << "Sleep " << _sleep_ms
                       << " ms before responding play request";
-            bthread_usleep(_sleep_ms * 1000L);
+            fiber_usleep(_sleep_ms * 1000L);
         }
-        int rc = bthread_start_background(&_play_thread, NULL,
+        int rc = fiber_start_background(&_play_thread, NULL,
                                           RunSendData, this);
         if (rc) {
             status->set_error(rc, "Fail to create thread");
@@ -178,8 +178,8 @@ public:
         State expected = STATE_UNPLAYING;
         if (!_state.compare_exchange_strong(expected, STATE_PLAYING)) {
             if (expected == STATE_STOPPED) {
-                bthread_stop(_play_thread);
-                bthread_join(_play_thread, NULL);
+                fiber_stop(_play_thread);
+                fiber_join(_play_thread, NULL);
             } else {
                 CHECK(false) << "Impossible";
             }
@@ -189,8 +189,8 @@ public:
     void OnStop() {
         LOG(INFO) << "OnStop of PlayingDummyStream=" << this;
         if (_state.exchange(STATE_STOPPED) == STATE_PLAYING) {
-            bthread_stop(_play_thread);
-            bthread_join(_play_thread, NULL);
+            fiber_stop(_play_thread);
+            fiber_join(_play_thread, NULL);
         }
     }
 
@@ -202,8 +202,8 @@ private:
         return NULL;
     }
 
-    butil::atomic<State> _state;
-    bthread_t _play_thread;
+    mutil::atomic<State> _state;
+    fiber_t _play_thread;
     int64_t _sleep_ms;
 };
 
@@ -215,14 +215,14 @@ void PlayingDummyStream::SendData() {
 
     vmsg.timestamp = 1000;
     amsg.timestamp = 1000;
-    for (int i = 0; !bthread_stopped(bthread_self()); ++i) {
+    for (int i = 0; !fiber_stopped(fiber_self()); ++i) {
         vmsg.timestamp += 20;
         amsg.timestamp += 20;
 
         vmsg.frame_type = melon::FLV_VIDEO_FRAME_KEYFRAME;
         vmsg.codec = melon::FLV_VIDEO_AVC;
         vmsg.data.clear();
-        vmsg.data.append(butil::string_printf("video_%d(ms_id=%u)",
+        vmsg.data.append(mutil::string_printf("video_%d(ms_id=%u)",
                                              i, stream_id()));
         //failing to send is possible
         SendVideoMessage(vmsg);
@@ -232,11 +232,11 @@ void PlayingDummyStream::SendData() {
         amsg.bits = melon::FLV_SOUND_16BIT;
         amsg.type = melon::FLV_SOUND_STEREO;
         amsg.data.clear();
-        amsg.data.append(butil::string_printf("audio_%d(ms_id=%u)",
+        amsg.data.append(mutil::string_printf("audio_%d(ms_id=%u)",
                                              i, stream_id()));
         SendAudioMessage(amsg);
 
-        bthread_usleep(1000000);
+        fiber_usleep(1000000);
     }
 
     LOG(INFO) << "Quit SendData of PlayingDummyStream=" << this;
@@ -274,7 +274,7 @@ public:
     }
     void OnPublish(const std::string& stream_name,
                    melon::RtmpPublishType publish_type,
-                   butil::Status* status,
+                   mutil::Status* status,
                    google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         LOG(INFO) << remote_side() << "|stream=" << stream_id()
@@ -288,7 +288,7 @@ public:
         if (_sleep_ms > 0) {
             LOG(INFO) << "Sleep " << _sleep_ms
                       << " ms before responding play request";
-            bthread_usleep(_sleep_ms * 1000L);
+            fiber_usleep(_sleep_ms * 1000L);
         }
     }
     void OnFirstMessage() {
@@ -327,7 +327,7 @@ public:
         pthread_mutex_destroy(&_mutex);
     }
     void move_created_streams(
-        std::vector<butil::intrusive_ptr<PublishStream> >* out) {
+        std::vector<mutil::intrusive_ptr<PublishStream> >* out) {
         out->clear();
         MELON_SCOPED_LOCK(_mutex);
         out->swap(_created_streams);
@@ -346,7 +346,7 @@ private:
     }
     int64_t _sleep_ms;
     pthread_mutex_t _mutex;
-    std::vector<butil::intrusive_ptr<PublishStream> > _created_streams;
+    std::vector<mutil::intrusive_ptr<PublishStream> > _created_streams;
 };
 
 class RtmpSubStream : public melon::RtmpClientStream {
@@ -354,7 +354,7 @@ public:
     explicit RtmpSubStream(melon::RtmpMessageHandler* mh)
         : _message_handler(mh) {}
     // @RtmpStreamBase
-    void OnMetaData(melon::RtmpMetaData*, const butil::StringPiece&);
+    void OnMetaData(melon::RtmpMetaData*, const mutil::StringPiece&);
     void OnSharedObjectMessage(melon::RtmpSharedObjectMessage* msg);
     void OnAudioMessage(melon::RtmpAudioMessage* msg);
     void OnVideoMessage(melon::RtmpVideoMessage* msg);
@@ -368,7 +368,7 @@ void RtmpSubStream::OnFirstMessage() {
     _message_handler->OnPlayable();
 }
 
-void RtmpSubStream::OnMetaData(melon::RtmpMetaData* obj, const butil::StringPiece& name) {
+void RtmpSubStream::OnMetaData(melon::RtmpMetaData* obj, const mutil::StringPiece& name) {
     _message_handler->OnMetaData(obj, name);
 }
 
@@ -397,7 +397,7 @@ public:
 
     // @SubStreamCreator
     void NewSubStream(melon::RtmpMessageHandler* message_handler,
-                      butil::intrusive_ptr<melon::RtmpStreamBase>* sub_stream);
+                      mutil::intrusive_ptr<melon::RtmpStreamBase>* sub_stream);
     void LaunchSubStream(melon::RtmpStreamBase* sub_stream,
                          melon::RtmpRetryingClientStreamOptions* options);
 
@@ -411,7 +411,7 @@ RtmpSubStreamCreator::RtmpSubStreamCreator(const melon::RtmpClient* client)
 RtmpSubStreamCreator::~RtmpSubStreamCreator() {}
  
 void RtmpSubStreamCreator::NewSubStream(melon::RtmpMessageHandler* message_handler,
-                                        butil::intrusive_ptr<melon::RtmpStreamBase>* sub_stream) {
+                                        mutil::intrusive_ptr<melon::RtmpStreamBase>* sub_stream) {
     if (sub_stream) { 
         (*sub_stream).reset(new RtmpSubStream(message_handler));
     }
@@ -426,11 +426,11 @@ void RtmpSubStreamCreator::LaunchSubStream(
 }
 
 TEST(RtmpTest, parse_rtmp_url) {
-    butil::StringPiece host;
-    butil::StringPiece vhost;
-    butil::StringPiece port;
-    butil::StringPiece app;
-    butil::StringPiece stream_name;
+    mutil::StringPiece host;
+    mutil::StringPiece vhost;
+    mutil::StringPiece port;
+    mutil::StringPiece app;
+    mutil::StringPiece stream_name;
 
     melon::ParseRtmpURL("rtmp://HOST/APP/STREAM",
                              &host, &vhost, &port, &app, &stream_name);
@@ -543,8 +543,8 @@ TEST(RtmpTest, successfully_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = butil::string_printf("play_name_%d", i);
-        //opt.publish_name = butil::string_printf("pub_name_%d", i);
+        opt.play_name = mutil::string_printf("play_name_%d", i);
+        //opt.publish_name = mutil::string_printf("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
@@ -606,7 +606,7 @@ TEST(RtmpTest, successfully_publish_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.publish_name = butil::string_printf("pub_name_%d", i);
+        opt.publish_name = mutil::string_printf("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
@@ -616,7 +616,7 @@ TEST(RtmpTest, successfully_publish_streams) {
         vmsg.timestamp = 1000 + i * 20;
         vmsg.frame_type = melon::FLV_VIDEO_FRAME_KEYFRAME;
         vmsg.codec = melon::FLV_VIDEO_AVC;
-        vmsg.data.append(butil::string_printf("video_%d", i));
+        vmsg.data.append(mutil::string_printf("video_%d", i));
         for (int j = 0; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendVideoMessage(vmsg));
         }
@@ -627,14 +627,14 @@ TEST(RtmpTest, successfully_publish_streams) {
         amsg.rate = melon::FLV_SOUND_RATE_44100HZ;
         amsg.bits = melon::FLV_SOUND_16BIT;
         amsg.type = melon::FLV_SOUND_STEREO;
-        amsg.data.append(butil::string_printf("audio_%d", i));
+        amsg.data.append(mutil::string_printf("audio_%d", i));
         for (int j = 1; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendAudioMessage(amsg));
         }
         
-        bthread_usleep(500000);
+        fiber_usleep(500000);
     }
-    std::vector<butil::intrusive_ptr<PublishStream> > created_streams;
+    std::vector<mutil::intrusive_ptr<PublishStream> > created_streams;
     rtmp_service.move_created_streams(&created_streams);
     ASSERT_EQ(NSTREAM, (int)created_streams.size());
     for (int i = 0; i < NSTREAM; ++i) {
@@ -677,7 +677,7 @@ TEST(RtmpTest, failed_to_publish_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i]->assertions_on_failure();
     }
-    std::vector<butil::intrusive_ptr<PublishStream> > created_streams;
+    std::vector<mutil::intrusive_ptr<PublishStream> > created_streams;
     rtmp_service.move_created_streams(&created_streams);
     ASSERT_EQ(NSTREAM, (int)created_streams.size());
     for (int i = 0; i < NSTREAM; ++i) {
@@ -702,7 +702,7 @@ TEST(RtmpTest, failed_to_connect_client_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = butil::string_printf("play_name_%d", i);
+        opt.play_name = mutil::string_printf("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
@@ -720,14 +720,14 @@ TEST(RtmpTest, destroy_client_streams_before_init) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    butil::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
+    mutil::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
         ASSERT_EQ(melon::RtmpClientStream::STATE_DESTROYING, cstreams[i]->_state);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = butil::string_printf("play_name_%d", i);
+        opt.play_name = mutil::string_printf("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
@@ -745,13 +745,13 @@ TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    butil::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
+    mutil::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
         melon::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = butil::string_printf("play_name_%d", i);
+        opt.play_name = mutil::string_printf("play_name_%d", i);
         melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
@@ -775,11 +775,11 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    butil::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
+    mutil::intrusive_ptr<TestRtmpClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = butil::string_printf("play_name_%d", i);
+        opt.play_name = mutil::string_printf("play_name_%d", i);
         cstreams[i]->Init(&rtmp_client, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
         usleep(500*1000);
@@ -807,11 +807,11 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
 
     // Create multiple streams.
     const int NSTREAM = 2;
-    butil::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
+    mutil::intrusive_ptr<TestRtmpRetryingClientStream> cstreams[NSTREAM];
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         melon::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = butil::string_printf("play_name_%d", i);
+        opt.play_name = mutil::string_printf("play_name_%d", i);
         melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
@@ -845,7 +845,7 @@ TEST(RtmpTest, retrying_stream) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         melon::Controller cntl;
         melon::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = butil::string_printf("name_%d", i);
+        opt.play_name = mutil::string_printf("name_%d", i);
         melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
     }

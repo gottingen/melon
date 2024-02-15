@@ -24,11 +24,11 @@
 #include <string>
 
 #include "melon/rpc/policy/http_rpc_protocol.h"
-#include "melon/butil/unique_ptr.h"                       // std::unique_ptr
-#include "melon/butil/string_splitter.h"                  // StringMultiSplitter
-#include "melon/butil/string_printf.h"
-#include "melon/butil/time.h"
-#include "melon/butil/sys_byteorder.h"
+#include "melon/utility/unique_ptr.h"                       // std::unique_ptr
+#include "melon/utility/string_splitter.h"                  // StringMultiSplitter
+#include "melon/utility/string_printf.h"
+#include "melon/utility/time.h"
+#include "melon/utility/sys_byteorder.h"
 #include "melon/rpc/compress.h"
 #include "melon/proto/rpc/errno.pb.h"                     // ENOSERVICE, ENOMETHOD
 #include "melon/rpc/controller.h"                   // Controller
@@ -46,7 +46,7 @@
 #include "melon/rpc/grpc/grpc.h"
 
 extern "C" {
-void bthread_assign_data(void* data);
+void fiber_assign_data(void* data);
 }
 
 namespace melon {
@@ -83,7 +83,7 @@ DEFINE_bool(use_http_error_code, false, "Whether set the x-bd-error-code header 
 
 // Read user address from the header specified by -http_header_of_user_ip
 static bool GetUserAddressFromHeaderImpl(const HttpHeader& headers,
-                                         butil::EndPoint* user_addr) {
+                                         mutil::EndPoint* user_addr) {
     const std::string* user_addr_str =
         headers.GetHeader(FLAGS_http_header_of_user_ip);
     if (user_addr_str == NULL) {
@@ -91,13 +91,13 @@ static bool GetUserAddressFromHeaderImpl(const HttpHeader& headers,
     }
     //TODO add protocols other than IPv4 supports.
     if (user_addr_str->find(':') == std::string::npos) {
-        if (butil::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
+        if (mutil::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
             LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
             return false;
         }
         user_addr->port = 0;
     } else {
-        if (butil::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
+        if (mutil::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
             LOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
             return false;
         }
@@ -106,7 +106,7 @@ static bool GetUserAddressFromHeaderImpl(const HttpHeader& headers,
 }
 
 inline bool GetUserAddressFromHeader(const HttpHeader& headers,
-                                     butil::EndPoint* user_addr) {
+                                     mutil::EndPoint* user_addr) {
     if (FLAGS_http_header_of_user_ip.empty()) {
         return false;
     }
@@ -170,13 +170,13 @@ int InitCommonStrings() {
 static const int ALLOW_UNUSED force_creation_of_common = InitCommonStrings();
 const CommonStrings* get_common_strings() { return common; }
 
-HttpContentType ParseContentType(butil::StringPiece ct, bool* is_grpc_ct) {
+HttpContentType ParseContentType(mutil::StringPiece ct, bool* is_grpc_ct) {
     // According to http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
     //   media-type  = type "/" subtype *( ";" parameter )
     //   type        = token
     //   subtype     = token
 
-    const butil::StringPiece prefix = "application/";
+    const mutil::StringPiece prefix = "application/";
     if (!ct.starts_with(prefix)) {
         return HTTP_CONTENT_OTHERS;
     }
@@ -218,16 +218,16 @@ HttpContentType ParseContentType(butil::StringPiece ct, bool* is_grpc_ct) {
     return (ct.empty() || ct.front() == ';') ? type : HTTP_CONTENT_OTHERS;
 }
 
-static void PrintMessage(const butil::IOBuf& inbuf,
+static void PrintMessage(const mutil::IOBuf& inbuf,
                          bool request_or_response,
                          bool has_content) {
-    butil::IOBuf buf1 = inbuf;
-    butil::IOBuf buf2;
+    mutil::IOBuf buf1 = inbuf;
+    mutil::IOBuf buf2;
     char str[48];
     if (request_or_response) {
-        snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", butil::my_ip_cstr());
+        snprintf(str, sizeof(str), "[ HTTP REQUEST @%s ]", mutil::my_ip_cstr());
     } else {
-        snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", butil::my_ip_cstr());
+        snprintf(str, sizeof(str), "[ HTTP RESPONSE @%s ]", mutil::my_ip_cstr());
     }
     buf2.append(str);
     size_t last_size;
@@ -241,21 +241,21 @@ static void PrintMessage(const butil::IOBuf& inbuf,
     if (!has_content) {
         LOG(INFO) << '\n' << buf2 << buf1;
     } else {
-        LOG(INFO) << '\n' << buf2 << butil::ToPrintableString(buf1, FLAGS_http_verbose_max_body_length);
+        LOG(INFO) << '\n' << buf2 << mutil::ToPrintableString(buf1, FLAGS_http_verbose_max_body_length);
     }
 }
 
-static void AddGrpcPrefix(butil::IOBuf* body, bool compressed) {
+static void AddGrpcPrefix(mutil::IOBuf* body, bool compressed) {
     char buf[5];
     buf[0] = (compressed ? 1 : 0);
-    *(uint32_t*)(buf + 1) = butil::HostToNet32(body->size());
-    butil::IOBuf tmp_buf;
+    *(uint32_t*)(buf + 1) = mutil::HostToNet32(body->size());
+    mutil::IOBuf tmp_buf;
     tmp_buf.append(buf, sizeof(buf));
-    tmp_buf.append(butil::IOBuf::Movable(*body));
+    tmp_buf.append(mutil::IOBuf::Movable(*body));
     body->swap(tmp_buf);
 }
 
-static bool RemoveGrpcPrefix(butil::IOBuf* body, bool* compressed) {
+static bool RemoveGrpcPrefix(mutil::IOBuf* body, bool* compressed) {
     if (body->empty()) {
         *compressed = false;
         return true;
@@ -267,12 +267,12 @@ static bool RemoveGrpcPrefix(butil::IOBuf* body, bool* compressed) {
     char buf[5];
     body->cutn(buf, sizeof(buf));
     *compressed = buf[0];
-    const size_t message_length = butil::NetToHost32(*(uint32_t*)(buf + 1));
+    const size_t message_length = mutil::NetToHost32(*(uint32_t*)(buf + 1));
     return (message_length + 5 == sz);
 }
 
 void ProcessHttpResponse(InputMessageBase* msg) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<HttpContext> imsg_guard(static_cast<HttpContext*>(msg));
     Socket* socket = imsg_guard->socket();
     uint64_t cid_value;
@@ -287,9 +287,9 @@ void ProcessHttpResponse(InputMessageBase* msg) {
         LOG(WARNING) << "Fail to find correlation_id from " << *socket;
         return;
     }
-    const bthread_id_t cid = { cid_value };
+    const fiber_session_t cid = { cid_value };
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -309,7 +309,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
 
     HttpHeader* res_header = &cntl->http_response();
     res_header->Swap(imsg_guard->header());
-    butil::IOBuf& res_body = imsg_guard->body();
+    mutil::IOBuf& res_body = imsg_guard->body();
     CHECK(cntl->response_attachment().empty());
     const int saved_error = cntl->ErrorCode();
 
@@ -389,7 +389,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
         // ErrorCode of RPC is unified to EHTTP.
         const int sc = res_header->status_code();
         if (sc < 200 || sc >= 300) {
-            std::string err = butil::string_printf(
+            std::string err = mutil::string_printf(
                     "HTTP/%d.%d %d %s",
                     res_header->major_version(),
                     res_header->minor_version(),
@@ -446,7 +446,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
         if (encoding != NULL && *encoding == common->GZIP) {
             TRACEPRINTF("Decompressing response=%lu",
                         (unsigned long)res_body.size());
-            butil::IOBuf uncompressed;
+            mutil::IOBuf uncompressed;
             if (!compress::GzipDecompress(res_body, &uncompressed)) {
                 cntl->SetFailed(ERESPONSE, "Fail to un-gzip response body");
                 break;
@@ -465,7 +465,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
             }
         } else if (content_type == HTTP_CONTENT_JSON) {
             // message body is json
-            butil::IOBufAsZeroCopyInputStream wrapper(res_body);
+            mutil::IOBufAsZeroCopyInputStream wrapper(res_body);
             std::string err;
             json2pb::Json2PbOptions options;
             options.base64_to_bytes = cntl->has_pb_bytes_to_base64();
@@ -488,7 +488,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
     accessor.OnResponse(cid, saved_error);
 }
 
-void SerializeHttpRequest(butil::IOBuf* /*not used*/,
+void SerializeHttpRequest(mutil::IOBuf* /*not used*/,
                           Controller* cntl,
                           const google::protobuf::Message* pbreq) {
     HttpHeader& hreq = cntl->http_request();
@@ -535,7 +535,7 @@ void SerializeHttpRequest(butil::IOBuf* /*not used*/,
             is_grpc = (is_http2 && is_grpc_ct);
         }
 
-        butil::IOBufAsZeroCopyOutputStream wrapper(&cntl->request_attachment());
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&cntl->request_attachment());
         if (content_type == HTTP_CONTENT_PROTO) {
             // Serialize content as protobuf
             if (!pbreq->SerializeToZeroCopyStream(&wrapper)) {
@@ -588,7 +588,7 @@ void SerializeHttpRequest(butil::IOBuf* /*not used*/,
         const size_t request_size = cntl->request_attachment().size();
         if (request_size >= (size_t)FLAGS_http_body_compress_threshold) {
             TRACEPRINTF("Compressing request=%lu", (unsigned long)request_size);
-            butil::IOBuf compressed;
+            mutil::IOBuf compressed;
             if (melon::compress::GzipCompress(cntl->request_attachment(), &compressed, NULL)) {
                 cntl->request_attachment().swap(compressed);
                 if (is_grpc) {
@@ -606,7 +606,7 @@ void SerializeHttpRequest(butil::IOBuf* /*not used*/,
     // Fill log-id if user set it.
     if (cntl->has_log_id()) {
         hreq.SetHeader(common->LOG_ID,
-                       butil::string_printf("%llu", (unsigned long long)cntl->log_id()));
+                       mutil::string_printf("%llu", (unsigned long long)cntl->log_id()));
     }
     if (!cntl->request_id().empty()) {
         hreq.SetHeader(FLAGS_request_id_header, cntl->request_id());
@@ -630,7 +630,7 @@ void SerializeHttpRequest(butil::IOBuf* /*not used*/,
             hreq.SetHeader(common->TE, common->TRAILERS);
             if (cntl->timeout_ms() >= 0) {
                 hreq.SetHeader(common->GRPC_TIMEOUT,
-                        butil::string_printf("%" PRId64 "m", cntl->timeout_ms()));
+                        mutil::string_printf("%" PRId64 "m", cntl->timeout_ms()));
             }
             // Append compressed and length before body
             AddGrpcPrefix(&cntl->request_attachment(), grpc_compressed);
@@ -654,21 +654,21 @@ void SerializeHttpRequest(butil::IOBuf* /*not used*/,
 
     Span* span = accessor.span();
     if (span) {
-        hreq.SetHeader("x-bd-trace-id", butil::string_printf(
+        hreq.SetHeader("x-bd-trace-id", mutil::string_printf(
                            "%llu", (unsigned long long)span->trace_id()));
-        hreq.SetHeader("x-bd-span-id", butil::string_printf(
+        hreq.SetHeader("x-bd-span-id", mutil::string_printf(
                            "%llu", (unsigned long long)span->span_id()));
-        hreq.SetHeader("x-bd-parent-span-id", butil::string_printf(
+        hreq.SetHeader("x-bd-parent-span-id", mutil::string_printf(
                            "%llu", (unsigned long long)span->parent_span_id()));
     }
 }
 
-void PackHttpRequest(butil::IOBuf* buf,
+void PackHttpRequest(mutil::IOBuf* buf,
                      SocketMessage**,
                      uint64_t correlation_id,
                      const google::protobuf::MethodDescriptor*,
                      Controller* cntl,
-                     const butil::IOBuf& /*unused*/,
+                     const mutil::IOBuf& /*unused*/,
                      const Authenticator* auth) {
     if (cntl->connection_type() == CONNECTION_TYPE_SINGLE) {
         return cntl->SetFailed(EREQUEST, "http can't work with CONNECTION_TYPE_SINGLE");
@@ -759,7 +759,7 @@ HttpResponseSender::~HttpResponseSender() {
     ControllerPrivateAccessor accessor(cntl);
     Span* span = accessor.span();
     if (span) {
-        span->set_start_send_us(butil::cpuwide_time_us());
+        span->set_start_send_us(mutil::cpuwide_time_us());
     }
     ConcurrencyRemover concurrency_remover(_method_status, cntl, _received_us);
     Socket* socket = accessor.get_sending_socket();
@@ -800,7 +800,7 @@ HttpResponseSender::~HttpResponseSender() {
         !cntl->Failed()) {
         // ^ pb response in failed RPC is undefined, no need to convert.
         
-        butil::IOBufAsZeroCopyOutputStream wrapper(&cntl->response_attachment());
+        mutil::IOBufAsZeroCopyOutputStream wrapper(&cntl->response_attachment());
         if (content_type == HTTP_CONTENT_PROTO) {
             if (!res->SerializeToZeroCopyStream(&wrapper)) {
                 cntl->SetFailed(ERESPONSE, "Fail to serialize %s", res->GetTypeName().c_str());
@@ -874,7 +874,7 @@ HttpResponseSender::~HttpResponseSender() {
             }
             // Fill ErrorCode into header
             res_header->SetHeader(common->ERROR_CODE,
-                                  butil::string_printf("%d", cntl->ErrorCode()));
+                                  mutil::string_printf("%d", cntl->ErrorCode()));
 
             if (!cntl->does_manage_http_body_on_error()) {
                 // Fill body with ErrorText.
@@ -901,7 +901,7 @@ HttpResponseSender::~HttpResponseSender() {
         if (response_size >= (size_t)FLAGS_http_body_compress_threshold
             && (is_http2 || SupportGzip(cntl))) {
             TRACEPRINTF("Compressing response=%lu", (unsigned long)response_size);
-            butil::IOBuf tmpbuf;
+            mutil::IOBuf tmpbuf;
             if (melon::compress::GzipCompress(cntl->response_attachment(), &tmpbuf, NULL)) {
                 cntl->response_attachment().swap(tmpbuf);
                 if (is_grpc) {
@@ -947,12 +947,12 @@ HttpResponseSender::~HttpResponseSender() {
             rc = socket->Write(h2_response, &wopt);
         }
     } else {
-        butil::IOBuf* content = NULL;
+        mutil::IOBuf* content = NULL;
         if (cntl->Failed() || !cntl->has_progressive_writer()) {
             content = &cntl->response_attachment();
         }
         res_header->set_method(req_header->method());
-        butil::IOBuf res_buf;
+        mutil::IOBuf res_buf;
         MakeRawHttpResponse(&res_buf, res_header, content);
         if (FLAGS_http_verbose) {
             PrintMessage(res_buf, false, !!content);
@@ -972,7 +972,7 @@ HttpResponseSender::~HttpResponseSender() {
     }
     if (span) {
         // TODO: this is not sent
-        span->set_sent_us(butil::cpuwide_time_us());
+        span->set_sent_us(mutil::cpuwide_time_us());
     }
 }
 
@@ -980,7 +980,7 @@ HttpResponseSender::~HttpResponseSender() {
 // put it into `unresolved_path'
 static void FillUnresolvedPath(std::string* unresolved_path,
                                const std::string& uri_path,
-                               butil::StringSplitter& splitter) {
+                               mutil::StringSplitter& splitter) {
     if (unresolved_path == NULL) {
         return;
     }
@@ -993,7 +993,7 @@ static void FillUnresolvedPath(std::string* unresolved_path,
         uri_path.c_str() + uri_path.size() - splitter.field();
     unresolved_path->reserve(path_len);
     unresolved_path->clear();
-    for (butil::StringSplitter slash_sp(
+    for (mutil::StringSplitter slash_sp(
              splitter.field(), splitter.field() + path_len, '/');
          slash_sp != NULL; ++slash_sp) {
         if (!unresolved_path->empty()) {
@@ -1007,15 +1007,15 @@ inline const Server::MethodProperty*
 FindMethodPropertyByURIImpl(const std::string& uri_path, const Server* server,
                             std::string* unresolved_path) {
     ServerPrivateAccessor wrapper(server);
-    butil::StringSplitter splitter(uri_path.c_str(), '/');
+    mutil::StringSplitter splitter(uri_path.c_str(), '/');
     // Show index page for empty URI
     if (NULL == splitter) {
         return wrapper.FindMethodPropertyByFullName(
             IndexService::descriptor()->full_name(), common->DEFAULT_METHOD);
     }
-    butil::StringPiece service_name(splitter.field(), splitter.length());
+    mutil::StringPiece service_name(splitter.field(), splitter.length());
     const bool full_service_name =
-        (service_name.find('.') != butil::StringPiece::npos);
+        (service_name.find('.') != mutil::StringPiece::npos);
     const Server::ServiceProperty* const sp = 
         (full_service_name ?
          wrapper.FindServicePropertyByFullName(service_name) :
@@ -1027,7 +1027,7 @@ FindMethodPropertyByURIImpl(const std::string& uri_path, const Server* server,
     // Find restful methods by uri.
     if (sp->restful_map) {
         ++splitter;
-        butil::StringPiece left_path;
+        mutil::StringPiece left_path;
         if (splitter) {
             // The -1 is for including /, always safe because of ++splitter
             left_path.set(splitter.field() - 1, uri_path.c_str() +
@@ -1042,7 +1042,7 @@ FindMethodPropertyByURIImpl(const std::string& uri_path, const Server* server,
 
     // Regard URI as [service_name]/[method_name]
     const Server::MethodProperty* mp = NULL;
-    butil::StringPiece method_name;
+    mutil::StringPiece method_name;
     if (++splitter != NULL) {
         method_name.set(splitter.field(), splitter.length());
         // Copy splitter rather than modifying it directly since it's used
@@ -1097,7 +1097,7 @@ FindMethodPropertyByURI(const std::string& uri_path, const Server* server,
     return NULL;
 }
 
-ParseResult ParseHttpMessage(butil::IOBuf *source, Socket *socket,
+ParseResult ParseHttpMessage(mutil::IOBuf *source, Socket *socket,
                              bool read_eof, const void* arg) {
     HttpContext* http_imsg = 
         static_cast<HttpContext*>(socket->parsing_context());
@@ -1183,7 +1183,7 @@ ParseResult ParseHttpMessage(butil::IOBuf *source, Socket *socket,
                 const std::string* expect = http_imsg->header().GetHeader(common->EXPECT);
                 if (expect && *expect ==  common->CONTINUE_100) {
                     // Send 100-continue response back.
-                    butil::IOBuf resp;
+                    mutil::IOBuf resp;
                     HttpHeader header;
                     header.set_status_code(HTTP_STATUS_CONTINUE);
                     MakeRawHttpResponse(&resp, &header, NULL);
@@ -1233,7 +1233,7 @@ ParseResult ParseHttpMessage(butil::IOBuf *source, Socket *socket,
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
             // Send 400 back.
-            butil::IOBuf resp;
+            mutil::IOBuf resp;
             HttpHeader header;
             header.set_status_code(HTTP_STATUS_BAD_REQUEST);
             MakeRawHttpResponse(&resp, &header, NULL);
@@ -1279,7 +1279,7 @@ bool VerifyHttpRequest(const InputMessageBase* msg) {
     if (authorization == NULL) {
         return false;
     }
-    butil::EndPoint user_addr;
+    mutil::EndPoint user_addr;
     if (!GetUserAddressFromHeader(http_request->header(), &user_addr)) {
         user_addr = socket->remote_side();
     }
@@ -1288,7 +1288,7 @@ bool VerifyHttpRequest(const InputMessageBase* msg) {
 }
 
 
-// Defined in baidu_rpc_protocol.cpp
+// Defined in melon_rpc_protocol.cpp
 void EndRunningCallMethodInPool(
     ::google::protobuf::Service* service,
     const ::google::protobuf::MethodDescriptor* method,
@@ -1298,7 +1298,7 @@ void EndRunningCallMethodInPool(
     ::google::protobuf::Closure* done);
 
 void ProcessHttpRequest(InputMessageBase *msg) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<HttpContext> imsg_guard(static_cast<HttpContext*>(msg));
     SocketUniquePtr socket_guard(imsg_guard->ReleaseSocket());
     Socket* socket = socket_guard.get();
@@ -1322,8 +1322,8 @@ void ProcessHttpRequest(InputMessageBase *msg) {
     ControllerPrivateAccessor accessor(cntl);
     HttpHeader& req_header = cntl->http_request();
     imsg_guard->header().Swap(req_header);
-    butil::IOBuf& req_body = imsg_guard->body();
-    butil::EndPoint user_addr;
+    mutil::IOBuf& req_body = imsg_guard->body();
+    mutil::EndPoint user_addr;
     if (!GetUserAddressFromHeader(req_header, &user_addr)) {
         user_addr = socket->remote_side();
     }
@@ -1360,10 +1360,10 @@ void ProcessHttpRequest(InputMessageBase *msg) {
         cntl->set_request_id(*request_id);
     }
 
-    // Tag the bthread with this server's key for
+    // Tag the fiber with this server's key for
     // thread_local_data().
     if (server->thread_local_options().thread_local_data_factory) {
-        bthread_assign_data((void*)&server->thread_local_options());
+        fiber_assign_data((void*)&server->thread_local_options());
     }
 
     Span* span = NULL;
@@ -1415,7 +1415,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
         google::protobuf::Closure* done = new HttpResponseSenderAsDone(&resp_sender);
         if (span) {
             span->ResetServerSpanName(md->full_name());
-            span->set_start_callback_us(butil::cpuwide_time_us());
+            span->set_start_callback_us(mutil::cpuwide_time_us());
             span->AsParent();
         }
         // `cntl', `req' and `res' will be deleted inside `done'
@@ -1436,7 +1436,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
     } else if (sp->service->GetDescriptor() == BadMethodService::descriptor()) {
         BadMethodRequest breq;
         BadMethodResponse bres;
-        butil::StringSplitter split(path.c_str(), '/');
+        mutil::StringSplitter split(path.c_str(), '/');
         breq.set_service_name(std::string(split.field(), split.length()));
         sp->service->CallMethod(sp->method, cntl, &breq, &bres, NULL);
         return;
@@ -1462,7 +1462,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
     if (!sp->is_builtin_service && !sp->params.is_tabbed) {
         if (socket->is_overcrowded()) {
             cntl->SetFailed(EOVERCROWDED, "Connection to %s is overcrowded",
-                            butil::endpoint2str(socket->remote_side()).c_str());
+                            mutil::endpoint2str(socket->remote_side()).c_str());
             return;
         }
         if (!server_accessor.AddConcurrency(cntl)) {
@@ -1536,7 +1536,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
                     ConvertGrpcTimeoutToUS(req_header.GetHeader(common->GRPC_TIMEOUT));
                 if (timeout_value_us >= 0) {
                     accessor.set_deadline_us(
-                            butil::gettimeofday_us() + timeout_value_us);
+                            mutil::gettimeofday_us() + timeout_value_us);
                 }
             } else { // http or h2 but not grpc
                 encoding = req_header.GetHeader(common->CONTENT_ENCODING);
@@ -1544,7 +1544,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
             if (encoding != NULL && *encoding == common->GZIP) {
                 TRACEPRINTF("Decompressing request=%lu",
                             (unsigned long)req_body.size());
-                butil::IOBuf uncompressed;
+                mutil::IOBuf uncompressed;
                 if (!compress::GzipDecompress(req_body, &uncompressed)) {
                     cntl->SetFailed(EREQUEST, "Fail to un-gzip request body");
                     return;
@@ -1564,7 +1564,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
                     return;
                 }
             } else {
-                butil::IOBufAsZeroCopyInputStream wrapper(req_body);
+                mutil::IOBufAsZeroCopyInputStream wrapper(req_body);
                 std::string err;
                 json2pb::Json2PbOptions options;
                 options.base64_to_bytes = sp->params.pb_bytes_to_base64;
@@ -1584,7 +1584,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
             sample->meta.set_protocol_type(PROTOCOL_HTTP);
             sample->meta.set_attachment_size(req_body.size());
 
-            butil::EndPoint ep;
+            mutil::EndPoint ep;
             MakeRawHttpRequest(&sample->request, &req_header, ep, &req_body);
             sample->submit(start_parse_us);
         }
@@ -1601,7 +1601,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
     imsg_guard.reset();  // optional, just release resource ASAP
 
     if (span) {
-        span->set_start_callback_us(butil::cpuwide_time_us());
+        span->set_start_callback_us(mutil::cpuwide_time_us());
         span->AsParent();
     }
     if (!FLAGS_usercode_in_pthread) {
@@ -1615,7 +1615,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
     }
 }
 
-bool ParseHttpServerAddress(butil::EndPoint* point, const char* server_addr_and_port) {
+bool ParseHttpServerAddress(mutil::EndPoint* point, const char* server_addr_and_port) {
     std::string scheme;
     std::string host;
     int port = -1;

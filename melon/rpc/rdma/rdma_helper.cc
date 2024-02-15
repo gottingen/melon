@@ -22,17 +22,17 @@
 #include <stdlib.h>
 #include <vector>
 #include <gflags/gflags.h>
-#include "melon/butil/containers/flat_map.h"            // butil::FlatMap
-#include "melon/butil/fd_guard.h"
-#include "melon/butil/fd_utility.h"                     // butil::make_non_blocking
-#include "melon/butil/logging.h"
+#include "melon/utility/containers/flat_map.h"            // mutil::FlatMap
+#include "melon/utility/fd_guard.h"
+#include "melon/utility/fd_utility.h"                     // mutil::make_non_blocking
+#include "melon/utility/logging.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/rdma/block_pool.h"
 #include "melon/rpc/rdma/rdma_endpoint.h"
 #include "melon/rpc/rdma/rdma_helper.h"
 
 
-namespace butil {
+namespace mutil {
 namespace iobuf {
 // declared in iobuf.cpp
 extern void* (*blockmem_allocate)(size_t);
@@ -86,7 +86,7 @@ static uint8_t g_port_num = 1;
 
 static int g_comp_vector_index = 0;
 
-butil::atomic<bool> g_rdma_available(false);
+mutil::atomic<bool> g_rdma_available(false);
 
 DEFINE_int32(rdma_max_sge, 0, "Max SGE num in a WR");
 DEFINE_string(rdma_device, "", "The name of the HCA device used "
@@ -101,8 +101,8 @@ static SocketId g_async_socket;
 static ibv_pd* g_pd = NULL;
 static std::vector<ibv_mr*>* g_mrs = NULL; // mr registered by brpc
 
-static butil::FlatMap<void*, ibv_mr*>* g_user_mrs;  // mr registered by user
-static butil::Mutex* g_user_mrs_lock = NULL;
+static mutil::FlatMap<void*, ibv_mr*>* g_user_mrs;  // mr registered by user
+static mutil::Mutex* g_user_mrs_lock = NULL;
 
 // Store the original IOBuf memalloc and memdealloc functions
 static void* (*g_mem_alloc)(size_t) = NULL;
@@ -123,7 +123,7 @@ struct IbvContextDeleter {
 }  // namespace
 
 static void GlobalRelease() {
-    g_rdma_available.store(false, butil::memory_order_release);
+    g_rdma_available.store(false, mutil::memory_order_release);
     usleep(100000);  // to avoid unload library too early
 
     // We do not set `g_async_socket' to failed explicitly to avoid
@@ -133,7 +133,7 @@ static void GlobalRelease() {
 
     if (g_user_mrs_lock) {
         MELON_SCOPED_LOCK(*g_user_mrs_lock);
-        for (butil::FlatMap<void*, ibv_mr*>::iterator it = g_user_mrs->begin();
+        for (mutil::FlatMap<void*, ibv_mr*>::iterator it = g_user_mrs->begin();
                 it != g_user_mrs->end(); ++it) {
             IbvDeregMr(it->second);
         }
@@ -440,7 +440,7 @@ static ibv_context* OpenDevice(int num_total, int* num_available_devices) {
 }
 
 static void GlobalRdmaInitializeOrDieImpl() {
-    if (BAIDU_UNLIKELY(g_skip_rdma_init)) {
+    if (MELON_UNLIKELY(g_skip_rdma_init)) {
         // Just for UT
         return;
     }
@@ -498,13 +498,13 @@ static void GlobalRdmaInitializeOrDieImpl() {
         ExitWithError();
     }
 
-    g_user_mrs_lock = new (std::nothrow) butil::Mutex;
+    g_user_mrs_lock = new (std::nothrow) mutil::Mutex;
     if (!g_user_mrs_lock) {
         PLOG(WARNING) << "Fail to construct g_user_mrs_lock";
         ExitWithError();
     }
 
-    g_user_mrs = new (std::nothrow) butil::FlatMap<void*, ibv_mr*>();
+    g_user_mrs = new (std::nothrow) mutil::FlatMap<void*, ibv_mr*>();
     if (!g_user_mrs) {
         PLOG(WARNING) << "Fail to construct g_user_mrs";
         ExitWithError();
@@ -550,8 +550,8 @@ static void GlobalRdmaInitializeOrDieImpl() {
 
     SocketOptions opt;
     opt.fd = g_context->async_fd;
-    butil::make_close_on_exec(opt.fd);
-    if (butil::make_non_blocking(opt.fd) < 0) {
+    mutil::make_close_on_exec(opt.fd);
+    if (mutil::make_non_blocking(opt.fd) < 0) {
         PLOG(WARNING) << "Fail to set async_fd to nonblocking";
         ExitWithError();
     }
@@ -561,11 +561,11 @@ static void GlobalRdmaInitializeOrDieImpl() {
         ExitWithError();
     }
 
-    g_mem_alloc = butil::iobuf::blockmem_allocate;
-    g_mem_dealloc = butil::iobuf::blockmem_deallocate;
-    butil::iobuf::blockmem_allocate = BlockAllocate;
-    butil::iobuf::blockmem_deallocate = BlockDeallocate;
-    g_rdma_available.store(true, butil::memory_order_relaxed);
+    g_mem_alloc = mutil::iobuf::blockmem_allocate;
+    g_mem_dealloc = mutil::iobuf::blockmem_deallocate;
+    mutil::iobuf::blockmem_allocate = BlockAllocate;
+    mutil::iobuf::blockmem_deallocate = BlockDeallocate;
+    g_rdma_available.store(true, mutil::memory_order_relaxed);
 }
 
 static pthread_once_t initialize_rdma_once = PTHREAD_ONCE_INIT;
@@ -668,19 +668,19 @@ uint8_t GetRdmaPortNum() {
 }
 
 bool IsRdmaAvailable() {
-    return g_rdma_available.load(butil::memory_order_acquire);
+    return g_rdma_available.load(mutil::memory_order_acquire);
 }
 
 void GlobalDisableRdma() {
-    if (g_rdma_available.exchange(false, butil::memory_order_acquire)) {
+    if (g_rdma_available.exchange(false, mutil::memory_order_acquire)) {
         LOG(FATAL) << "RDMA is disabled due to some unrecoverable problem";
     }
 }
 
 bool SupportedByRdma(std::string protocol) {
-    if (protocol.compare("baidu_std") == 0) {
+    if (protocol.compare("melon_std") == 0) {
         // Since rdma is used for high performance scenario,
-        // we consider baidu_std for the only protocol to support.
+        // we consider melon_std for the only protocol to support.
         return true;
     }
     return false;
@@ -692,7 +692,7 @@ bool SupportedByRdma(std::string protocol) {
 #else
 
 #include <stdlib.h>
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 
 namespace melon {
 namespace rdma {

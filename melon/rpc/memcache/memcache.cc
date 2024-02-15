@@ -19,10 +19,10 @@
 #include <algorithm>
 #include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/wire_format.h>
-#include "melon/butil/string_printf.h"
-#include "melon/butil/macros.h"
-#include "melon/butil/sys_byteorder.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/sys_byteorder.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/memcache/memcache.h"
 #include "melon/rpc/policy/memcache_binary_header.h"
 
@@ -79,14 +79,14 @@ bool MemcacheRequest::MergePartialFromCodedStream(
     LOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
     
     // simple approach just making it work.
-    butil::IOBuf tmp;
+    mutil::IOBuf tmp;
     const void* data = NULL;
     int size = 0;
     while (input->GetDirectBufferPointer(&data, &size)) {
         tmp.append(data, size);
         input->Skip(size);
     }
-    const butil::IOBuf saved = tmp;
+    const mutil::IOBuf saved = tmp;
     int count = 0;
     for (; !tmp.empty(); ++count) {
         char aux_buf[sizeof(policy::MemcacheRequestHeader)];
@@ -98,7 +98,7 @@ bool MemcacheRequest::MergePartialFromCodedStream(
         if (header->magic != (uint8_t)policy::MC_MAGIC_REQUEST) {
             return false;
         }
-        uint32_t total_body_length = butil::NetToHost32(header->total_body_length);
+        uint32_t total_body_length = mutil::NetToHost32(header->total_body_length);
         if (tmp.size() < sizeof(*header) + total_body_length) {
             return false;
         }
@@ -114,7 +114,7 @@ void MemcacheRequest::SerializeWithCachedSizes(
     LOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
 
     // simple approach just making it work.
-    butil::IOBufAsZeroCopyInputStream wrapper(_buf);
+    mutil::IOBufAsZeroCopyInputStream wrapper(_buf);
     const void* data = NULL;
     int size = 0;
     while (wrapper.Next(&data, &size)) {
@@ -242,7 +242,7 @@ void MemcacheResponse::SerializeWithCachedSizes(
     LOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
     
     // simple approach just making it work.
-    butil::IOBufAsZeroCopyInputStream wrapper(_buf);
+    mutil::IOBufAsZeroCopyInputStream wrapper(_buf);
     const void* data = NULL;
     int size = 0;
     while (wrapper.Next(&data, &size)) {
@@ -342,15 +342,15 @@ const char* MemcacheResponse::status_str(Status st) {
 // MUST NOT have extras.
 // MUST have key.
 // MUST NOT have value.
-bool MemcacheRequest::GetOrDelete(uint8_t command, const butil::StringPiece& key) {
+bool MemcacheRequest::GetOrDelete(uint8_t command, const mutil::StringPiece& key) {
     const policy::MemcacheRequestHeader header = {
         policy::MC_MAGIC_REQUEST,
         command,
-        butil::HostToNet16(key.size()),
+        mutil::HostToNet16(key.size()),
         0,
         policy::MC_BINARY_RAW_BYTES,
         0,
-        butil::HostToNet32(key.size()),
+        mutil::HostToNet32(key.size()),
         0,
         0
     };
@@ -364,11 +364,11 @@ bool MemcacheRequest::GetOrDelete(uint8_t command, const butil::StringPiece& key
     return true;
 }
 
-bool MemcacheRequest::Get(const butil::StringPiece& key) {
+bool MemcacheRequest::Get(const mutil::StringPiece& key) {
     return GetOrDelete(policy::MC_BINARY_GET, key);
 }
 
-bool MemcacheRequest::Delete(const butil::StringPiece& key) {
+bool MemcacheRequest::Delete(const mutil::StringPiece& key) {
     return GetOrDelete(policy::MC_BINARY_DELETE, key);
 }
 
@@ -376,7 +376,7 @@ struct FlushHeaderWithExtras {
     policy::MemcacheRequestHeader header;
     uint32_t exptime;
 } __attribute__((packed));
-BAIDU_CASSERT(sizeof(FlushHeaderWithExtras) == 28, must_match);
+MELON_CASSERT(sizeof(FlushHeaderWithExtras) == 28, must_match);
 
 // MAY have extras.
 // MUST NOT have key.
@@ -398,9 +398,9 @@ bool MemcacheRequest::Flush(uint32_t timeout) {
             FLUSH_EXTRAS,
             policy::MC_BINARY_RAW_BYTES,
             0,
-            butil::HostToNet32(FLUSH_EXTRAS),
+            mutil::HostToNet32(FLUSH_EXTRAS),
             0,
-            0 }, butil::HostToNet32(timeout) };
+            0 }, mutil::HostToNet32(timeout) };
     if (FLUSH_EXTRAS == 0) {
         if (_buf.append(&header_with_extras.header,
                        sizeof(policy::MemcacheRequestHeader))) {
@@ -428,20 +428,20 @@ bool MemcacheRequest::Flush(uint32_t timeout) {
 //   +---------------+---------------+---------------+---------------+
 //   Total 4 bytes
 bool MemcacheResponse::PopGet(
-    butil::IOBuf* value, uint32_t* flags, uint64_t* cas_value) {
+    mutil::IOBuf* value, uint32_t* flags, uint64_t* cas_value) {
     const size_t n = _buf.size();
     policy::MemcacheResponseHeader header;
     if (n < sizeof(header)) {
-        butil::string_printf(&_err, "buffer is too small to contain a header");
+        mutil::string_printf(&_err, "buffer is too small to contain a header");
         return false;
     }
     _buf.copy_to(&header, sizeof(header));
     if (header.command != (uint8_t)policy::MC_BINARY_GET) {
-        butil::string_printf(&_err, "not a GET response");
+        mutil::string_printf(&_err, "not a GET response");
         return false;
     }
     if (n < sizeof(header) + header.total_body_length) {
-        butil::string_printf(&_err, "response=%u < header=%u + body=%u",
+        mutil::string_printf(&_err, "response=%u < header=%u + body=%u",
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
@@ -451,7 +451,7 @@ bool MemcacheResponse::PopGet(
         const int value_size = (int)header.total_body_length - (int)header.extras_length
             - (int)header.key_length;
         if (value_size < 0) {
-            butil::string_printf(&_err, "value_size=%d is non-negative", value_size);
+            mutil::string_printf(&_err, "value_size=%d is non-negative", value_size);
             return false;
         }
         _buf.pop_front(sizeof(header) + header.extras_length +
@@ -461,25 +461,25 @@ bool MemcacheResponse::PopGet(
         return false;
     }
     if (header.extras_length != 4u) {
-        butil::string_printf(&_err, "GET response must have flags as extras, actual length=%u",
+        mutil::string_printf(&_err, "GET response must have flags as extras, actual length=%u",
                   header.extras_length);
         return false;
     }
     if (header.key_length != 0) {
-        butil::string_printf(&_err, "GET response must not have key");
+        mutil::string_printf(&_err, "GET response must not have key");
         return false;
     }
     const int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     if (value_size < 0) {
-        butil::string_printf(&_err, "value_size=%d is non-negative", value_size);
+        mutil::string_printf(&_err, "value_size=%d is non-negative", value_size);
         return false;
     }
     _buf.pop_front(sizeof(header));
     uint32_t raw_flags = 0;
     _buf.cutn(&raw_flags, sizeof(raw_flags));
     if (flags) {
-        *flags = butil::NetToHost32(raw_flags);
+        *flags = mutil::NetToHost32(raw_flags);
     }
     if (value) {
         value->clear();
@@ -494,7 +494,7 @@ bool MemcacheResponse::PopGet(
 
 bool MemcacheResponse::PopGet(
     std::string* value, uint32_t* flags, uint64_t* cas_value) {
-    butil::IOBuf tmp;
+    mutil::IOBuf tmp;
     if (PopGet(&tmp, flags, cas_value)) {
         tmp.copy_to(value);
         return true;
@@ -517,7 +517,7 @@ struct StoreHeaderWithExtras {
     uint32_t flags;
     uint32_t exptime;
 } __attribute__((packed));
-BAIDU_CASSERT(sizeof(StoreHeaderWithExtras) == 32, must_match);
+MELON_CASSERT(sizeof(StoreHeaderWithExtras) == 32, must_match);
 const size_t STORE_EXTRAS = sizeof(StoreHeaderWithExtras) -
                                                     sizeof(policy::MemcacheRequestHeader);
 // MUST have extras.
@@ -534,19 +534,19 @@ const size_t STORE_EXTRAS = sizeof(StoreHeaderWithExtras) -
 //   +---------------+---------------+---------------+---------------+
 //   Total 8 bytes
 bool MemcacheRequest::Store(
-    uint8_t command, const butil::StringPiece& key, const butil::StringPiece& value,
+    uint8_t command, const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     StoreHeaderWithExtras header_with_extras = {{
             policy::MC_MAGIC_REQUEST,
             command,
-            butil::HostToNet16(key.size()),
+            mutil::HostToNet16(key.size()),
             STORE_EXTRAS,
             policy::MC_BINARY_RAW_BYTES,
             0,
-            butil::HostToNet32(STORE_EXTRAS + key.size() + value.size()),
+            mutil::HostToNet32(STORE_EXTRAS + key.size() + value.size()),
             0,
-            butil::HostToNet64(cas_value)
-        }, butil::HostToNet32(flags), butil::HostToNet32(exptime)};
+            mutil::HostToNet64(cas_value)
+        }, mutil::HostToNet32(flags), mutil::HostToNet32(exptime)};
     if (_buf.append(&header_with_extras, sizeof(header_with_extras))) {
         return false;
     }
@@ -568,16 +568,16 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
     const size_t n = _buf.size();
     policy::MemcacheResponseHeader header;
     if (n < sizeof(header)) {
-        butil::string_printf(&_err, "buffer is too small to contain a header");
+        mutil::string_printf(&_err, "buffer is too small to contain a header");
         return false;
     }
     _buf.copy_to(&header, sizeof(header));
     if (header.command != command) {
-        butil::string_printf(&_err, "Not a STORE response");
+        mutil::string_printf(&_err, "Not a STORE response");
         return false;
     }
     if (n < sizeof(header) + header.total_body_length) {
-        butil::string_printf(&_err, "Not enough data");
+        mutil::string_printf(&_err, "Not enough data");
         return false;
     }
     LOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
@@ -602,25 +602,25 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
 }
 
 bool MemcacheRequest::Set(
-    const butil::StringPiece& key, const butil::StringPiece& value,
+    const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     return Store(policy::MC_BINARY_SET, key, value, flags, exptime, cas_value);
 }
 
 bool MemcacheRequest::Add(
-    const butil::StringPiece& key, const butil::StringPiece& value,
+    const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     return Store(policy::MC_BINARY_ADD, key, value, flags, exptime, cas_value);
 }
 
 bool MemcacheRequest::Replace(
-    const butil::StringPiece& key, const butil::StringPiece& value,
+    const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     return Store(policy::MC_BINARY_REPLACE, key, value, flags, exptime, cas_value);
 }
     
 bool MemcacheRequest::Append(
-    const butil::StringPiece& key, const butil::StringPiece& value,
+    const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     if (value.empty()) {
         LOG(ERROR) << "value to append must be non-empty";
@@ -630,7 +630,7 @@ bool MemcacheRequest::Append(
 }
 
 bool MemcacheRequest::Prepend(
-    const butil::StringPiece& key, const butil::StringPiece& value,
+    const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     if (value.empty()) {
         LOG(ERROR) << "value to prepend must be non-empty";
@@ -661,7 +661,7 @@ struct IncrHeaderWithExtras {
     uint64_t initial_value;
     uint32_t exptime;
 } __attribute__((packed));
-BAIDU_CASSERT(sizeof(IncrHeaderWithExtras) == 44, must_match);
+MELON_CASSERT(sizeof(IncrHeaderWithExtras) == 44, must_match);
 
 const size_t INCR_EXTRAS = sizeof(IncrHeaderWithExtras) -
     sizeof(policy::MemcacheRequestHeader);
@@ -684,18 +684,18 @@ const size_t INCR_EXTRAS = sizeof(IncrHeaderWithExtras) -
 //   +---------------+---------------+---------------+---------------+
 //   Total 20 bytes
 bool MemcacheRequest::Counter(
-    uint8_t command, const butil::StringPiece& key, uint64_t delta,
+    uint8_t command, const mutil::StringPiece& key, uint64_t delta,
     uint64_t initial_value, uint32_t exptime) {
     IncrHeaderWithExtras header_with_extras = {{
             policy::MC_MAGIC_REQUEST,
             command,
-            butil::HostToNet16(key.size()),
+            mutil::HostToNet16(key.size()),
             INCR_EXTRAS,
             policy::MC_BINARY_RAW_BYTES,
             0,
-            butil::HostToNet32(INCR_EXTRAS + key.size()),
+            mutil::HostToNet32(INCR_EXTRAS + key.size()),
             0,
-            0 }, butil::HostToNet64(delta), butil::HostToNet64(initial_value), butil::HostToNet32(exptime) };
+            0 }, mutil::HostToNet64(delta), mutil::HostToNet64(initial_value), mutil::HostToNet32(exptime) };
     if (_buf.append(&header_with_extras, sizeof(header_with_extras))) {
         return false;
     }
@@ -706,12 +706,12 @@ bool MemcacheRequest::Counter(
     return true;
 }
 
-bool MemcacheRequest::Increment(const butil::StringPiece& key, uint64_t delta,
+bool MemcacheRequest::Increment(const mutil::StringPiece& key, uint64_t delta,
                                 uint64_t initial_value, uint32_t exptime) {
     return Counter(policy::MC_BINARY_INCREMENT, key, delta, initial_value, exptime);
 }
 
-bool MemcacheRequest::Decrement(const butil::StringPiece& key, uint64_t delta,
+bool MemcacheRequest::Decrement(const mutil::StringPiece& key, uint64_t delta,
                                 uint64_t initial_value, uint32_t exptime) {
     return Counter(policy::MC_BINARY_DECREMENT, key, delta, initial_value, exptime);
 }
@@ -732,16 +732,16 @@ bool MemcacheResponse::PopCounter(
     const size_t n = _buf.size();
     policy::MemcacheResponseHeader header;
     if (n < sizeof(header)) {
-        butil::string_printf(&_err, "buffer is too small to contain a header");
+        mutil::string_printf(&_err, "buffer is too small to contain a header");
         return false;
     }
     _buf.copy_to(&header, sizeof(header));
     if (header.command != command) {
-        butil::string_printf(&_err, "not a INCR/DECR response");
+        mutil::string_printf(&_err, "not a INCR/DECR response");
         return false;
     }
     if (n < sizeof(header) + header.total_body_length) {
-        butil::string_printf(&_err, "response=%u < header=%u + body=%u",
+        mutil::string_printf(&_err, "response=%u < header=%u + body=%u",
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
@@ -753,7 +753,7 @@ bool MemcacheResponse::PopCounter(
 
     if (header.status != (uint16_t)STATUS_SUCCESS) {
         if (value_size < 0) {
-            butil::string_printf(&_err, "value_size=%d is negative", value_size);
+            mutil::string_printf(&_err, "value_size=%d is negative", value_size);
         } else {
             _err.clear();
             _buf.cutn(&_err, value_size);
@@ -761,12 +761,12 @@ bool MemcacheResponse::PopCounter(
         return false;
     }
     if (value_size != 8) {
-        butil::string_printf(&_err, "value_size=%d is not 8", value_size);
+        mutil::string_printf(&_err, "value_size=%d is not 8", value_size);
         return false;
     }
     uint64_t raw_value = 0;
     _buf.cutn(&raw_value, sizeof(raw_value));
-    *new_value = butil::NetToHost64(raw_value);
+    *new_value = mutil::NetToHost64(raw_value);
     if (cas_value) {
         *cas_value = header.cas_value;
     }
@@ -788,7 +788,7 @@ struct TouchHeaderWithExtras {
     policy::MemcacheRequestHeader header;
     uint32_t exptime;
 } __attribute__((packed));
-BAIDU_CASSERT(sizeof(TouchHeaderWithExtras) == 28, must_match);
+MELON_CASSERT(sizeof(TouchHeaderWithExtras) == 28, must_match);
 const size_t TOUCH_EXTRAS = sizeof(TouchHeaderWithExtras) - sizeof(policy::MemcacheRequestHeader);
 
 // MAY have extras.
@@ -802,17 +802,17 @@ const size_t TOUCH_EXTRAS = sizeof(TouchHeaderWithExtras) - sizeof(policy::Memca
 //     0| Expiration                                                    |
 //      +---------------+---------------+---------------+---------------+
 //    Total 4 bytes
-bool MemcacheRequest::Touch(const butil::StringPiece& key, uint32_t exptime) {
+bool MemcacheRequest::Touch(const mutil::StringPiece& key, uint32_t exptime) {
     TouchHeaderWithExtras header_with_extras = {{
             policy::MC_MAGIC_REQUEST,
             policy::MC_BINARY_TOUCH,
-            butil::HostToNet16(key.size()),
+            mutil::HostToNet16(key.size()),
             TOUCH_EXTRAS,
             policy::MC_BINARY_RAW_BYTES,
             0,
-            butil::HostToNet32(TOUCH_EXTRAS + key.size()),
+            mutil::HostToNet32(TOUCH_EXTRAS + key.size()),
             0,
-            0 }, butil::HostToNet32(exptime) };
+            0 }, mutil::HostToNet32(exptime) };
     if (_buf.append(&header_with_extras, sizeof(header_with_extras))) {
         return false;
     }
@@ -852,16 +852,16 @@ bool MemcacheResponse::PopVersion(std::string* version) {
     const size_t n = _buf.size();
     policy::MemcacheResponseHeader header;
     if (n < sizeof(header)) {
-        butil::string_printf(&_err, "buffer is too small to contain a header");
+        mutil::string_printf(&_err, "buffer is too small to contain a header");
         return false;
     }
     _buf.copy_to(&header, sizeof(header));
     if (header.command != policy::MC_BINARY_VERSION) {
-        butil::string_printf(&_err, "not a VERSION response");
+        mutil::string_printf(&_err, "not a VERSION response");
         return false;
     }
     if (n < sizeof(header) + header.total_body_length) {
-        butil::string_printf(&_err, "response=%u < header=%u + body=%u",
+        mutil::string_printf(&_err, "response=%u < header=%u + body=%u",
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
@@ -871,7 +871,7 @@ bool MemcacheResponse::PopVersion(std::string* version) {
         - (int)header.key_length;
     _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);
     if (value_size < 0) {
-        butil::string_printf(&_err, "value_size=%d is negative", value_size);
+        mutil::string_printf(&_err, "value_size=%d is negative", value_size);
         return false;
     }
     if (header.status != (uint16_t)STATUS_SUCCESS) {

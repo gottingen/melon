@@ -19,7 +19,7 @@
 #ifndef BRPC_LOAD_BALANCER_WITH_NAMING_H
 #define BRPC_LOAD_BALANCER_WITH_NAMING_H
 
-#include "melon/butil/intrusive_ptr.hpp"
+#include "melon/utility/intrusive_ptr.hpp"
 #include "melon/rpc/load_balancer.h"
 #include "melon/naming/naming_service_thread.h"         // NamingServiceWatcher
 
@@ -42,7 +42,7 @@ public:
     void Describe(std::ostream& os, const DescribeOptions& options);
 
 private:
-    butil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
+    mutil::intrusive_ptr<NamingServiceThread> _nsthread_ptr;
 };
 
 } // namespace melon

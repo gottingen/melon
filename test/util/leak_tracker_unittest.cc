@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/debug/leak_tracker.h"
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/debug/leak_tracker.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace debug {
 
 namespace {
@@ -110,4 +110,4 @@ TEST(LeakTrackerTest, NoOpCheckForLeaks) {
 }  // namespace
 
 }  // namespace debug
-}  // namespace butil
+}  // namespace mutil

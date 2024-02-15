@@ -51,7 +51,7 @@ struct Pb2JsonOptions {
 
     // Encode the field of type bytes to string in json using base64
     // encoding when this option is turned on.
-    // Default: false for baidu-internal, true otherwise.
+    // Default: false for melon-internal, true otherwise.
     bool bytes_to_base64;
 
     // Convert the repeated field that has no entry

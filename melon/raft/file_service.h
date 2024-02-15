@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #ifndef  MELON_RAFT_FILE_SERVICE_H_
 #define  MELON_RAFT_FILE_SERVICE_H_
 
-#include <melon/butil/memory/singleton.h>
+#include <melon/utility/memory/singleton.h>
 #include "melon/proto/raft/file_service.pb.h"
 #include "melon/raft/file_reader.h"
 #include "melon/raft/util.h"
 
 namespace melon::raft {
 
-    class BAIDU_CACHELINE_ALIGNMENT FileServiceImpl : public FileService {
+    class MELON_CACHELINE_ALIGNMENT FileServiceImpl : public FileService {
     public:
         static FileServiceImpl *GetInstance() {
             return Singleton<FileServiceImpl>::get();

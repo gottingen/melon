@@ -23,9 +23,9 @@
 
 #include "melon/rpc/http/http_status_code.h"
 #include "melon/rpc/log.h"
-#include "melon/butil/iobuf.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/third_party/rapidjson/document.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/third_party/rapidjson/document.h"
 
 namespace melon::naming {
 
@@ -73,7 +73,7 @@ namespace melon::naming {
             return -1;
         }
 
-        BUTIL_RAPIDJSON_NAMESPACE::Document doc;
+        MUTIL_RAPIDJSON_NAMESPACE::Document doc;
         if (doc.Parse(cntl.response_attachment().to_string().c_str())
                 .HasParseError()) {
             LOG(ERROR) << "Failed to parse nacos auth response";
@@ -131,7 +131,7 @@ namespace melon::naming {
             return -1;
         }
 
-        BUTIL_RAPIDJSON_NAMESPACE::Document doc;
+        MUTIL_RAPIDJSON_NAMESPACE::Document doc;
         if (doc.Parse(cntl.response_attachment().to_string().c_str())
                 .HasParseError()) {
             LOG(ERROR) << "Failed to parse nacos response";
@@ -193,7 +193,7 @@ namespace melon::naming {
                 continue;
             }
 
-            butil::EndPoint end_point;
+            mutil::EndPoint end_point;
             if (str2endpoint(ip.GetString(), port.GetUint(), &end_point) != 0) {
                 LOG(ERROR) << "ncos service with illegal address or port: "
                            << ip.GetString() << ":" << port.GetUint();

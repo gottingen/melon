@@ -1,7 +1,5 @@
 // Copyright (c) 2016 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2016/03/29 10:35:06
 
 #include <gtest/gtest.h>
 #include "melon/raft/storage.h"

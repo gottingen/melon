@@ -139,7 +139,7 @@ TEST_F(InterceptorTest, sanity) {
     ::test::EchoResponse res;
     req.set_message(EXP_REQUEST);
 
-    // PROTOCOL_BAIDU_STD
+    // PROTOCOL_MELON_STD
     {
         melon::Channel channel;
         melon::ChannelOptions options;

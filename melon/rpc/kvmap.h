@@ -18,14 +18,14 @@
 #ifndef BRPC_KVMAP_H
 #define BRPC_KVMAP_H
 
-#include "melon/butil/containers/flat_map.h"
+#include "melon/utility/containers/flat_map.h"
 
 namespace melon {
     
 // Remember Key/Values in string
 class KVMap {
 public:
-    typedef butil::FlatMap<std::string, std::string> Map;
+    typedef mutil::FlatMap<std::string, std::string> Map;
     typedef Map::const_iterator Iterator;
 
     KVMap() {}

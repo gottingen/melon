@@ -115,7 +115,7 @@ private:
 //  co_await Coroutine::usleep(100);
 // 
 // NOTE: Inside coroutine function, DO NOT call pthread-blocking or 
-// bthread-blocking functions (eg. bthread_join(), bthread_usleep(), syncronized RPC),
+// fiber-blocking functions (eg. fiber_join(), fiber_usleep(), syncronized RPC),
 // otherwise may cause dead lock or long latency.
 class Coroutine {
 public:

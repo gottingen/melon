@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Qin,Duohao(qinduohao@baidu.com)
 
 #ifndef MELON_RAFT_MEMORY_LOG_H_
 #define MELON_RAFT_MEMORY_LOG_H_
 
 #include <vector>
 #include <deque>
-#include <melon/butil/atomicops.h>
-#include <melon/butil/iobuf.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/atomicops.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/logging.h>
 #include "melon/raft/log_entry.h"
 #include "melon/raft/storage.h"
 #include "melon/raft/util.h"
 
 namespace melon::raft {
 
-    class BAIDU_CACHELINE_ALIGNMENT MemoryLogStorage : public LogStorage {
+    class MELON_CACHELINE_ALIGNMENT MemoryLogStorage : public LogStorage {
     public:
         typedef std::deque<LogEntry *> MemoryData;
 
@@ -47,12 +46,12 @@ namespace melon::raft {
 
         // first log index in log
         virtual int64_t first_log_index() {
-            return _first_log_index.load(butil::memory_order_acquire);
+            return _first_log_index.load(mutil::memory_order_acquire);
         }
 
         // last log index in log
         virtual int64_t last_log_index() {
-            return _last_log_index.load(butil::memory_order_acquire);
+            return _last_log_index.load(mutil::memory_order_acquire);
         }
 
         // get logentry by index
@@ -84,12 +83,12 @@ namespace melon::raft {
 
         // GC an instance of this kind of LogStorage with the parameters encoded
         // in |uri|
-        virtual butil::Status gc_instance(const std::string &uri) const;
+        virtual mutil::Status gc_instance(const std::string &uri) const;
 
     private:
         std::string _path;
-        butil::atomic<int64_t> _first_log_index;
-        butil::atomic<int64_t> _last_log_index;
+        mutil::atomic<int64_t> _first_log_index;
+        mutil::atomic<int64_t> _last_log_index;
         MemoryData _log_entry_data;
         raft_mutex_t _mutex;
     };

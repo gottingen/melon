@@ -45,8 +45,8 @@ message ListResponse {
 }
 message VarsRequest {}
 message VarsResponse {}
-message BthreadsRequest {}
-message BthreadsResponse {}
+message FibersRequest {}
+message FibersResponse {}
 message IdsRequest {}
 message IdsResponse{}
 message SocketsRequest {}
@@ -104,8 +104,8 @@ service vlog {
     rpc default_method(VLogRequest) returns (VLogResponse);
 }
 
-service bthreads {
-    rpc default_method(BthreadsRequest) returns (BthreadsResponse);
+service fibers {
+    rpc default_method(FibersRequest) returns (FibersResponse);
 }
 
 service ids {

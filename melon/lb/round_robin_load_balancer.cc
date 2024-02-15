@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/butil/macros.h"
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/lb/round_robin_load_balancer.h"
 
@@ -25,11 +25,11 @@
 namespace melon::lb {
 
     const uint32_t prime_offset[] = {
-#include "melon/bthread/offset_inl.list"
+#include "melon/fiber/offset_inl.list"
     };
 
     inline uint32_t GenRandomStride() {
-        return prime_offset[butil::fast_rand_less_than(ARRAY_SIZE(prime_offset))];
+        return prime_offset[mutil::fast_rand_less_than(ARRAY_SIZE(prime_offset))];
     }
 
     bool RoundRobinLoadBalancer::Add(Servers &bg, const ServerId &id) {
@@ -103,7 +103,7 @@ namespace melon::lb {
     }
 
     int RoundRobinLoadBalancer::SelectServer(const SelectIn &in, SelectOut *out) {
-        butil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             return ENOMEM;
         }
@@ -121,7 +121,7 @@ namespace melon::lb {
             tls.stride = GenRandomStride();
             // use random at first time, for the case of
             // use rr lb every time in new thread
-            tls.offset = butil::fast_rand_less_than(n);
+            tls.offset = mutil::fast_rand_less_than(n);
         }
 
         for (size_t i = 0; i < n; ++i) {
@@ -143,7 +143,7 @@ namespace melon::lb {
     }
 
     RoundRobinLoadBalancer *RoundRobinLoadBalancer::New(
-            const butil::StringPiece &params) const {
+            const mutil::StringPiece &params) const {
         RoundRobinLoadBalancer *lb = new(std::nothrow) RoundRobinLoadBalancer;
         if (lb && !lb->SetParameters(params)) {
             delete lb;
@@ -163,7 +163,7 @@ namespace melon::lb {
             return;
         }
         os << "RoundRobin{";
-        butil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
+        mutil::DoublyBufferedData<Servers, TLS>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             os << "fail to read _db_servers";
         } else {
@@ -175,7 +175,7 @@ namespace melon::lb {
         os << '}';
     }
 
-    bool RoundRobinLoadBalancer::SetParameters(const butil::StringPiece &params) {
+    bool RoundRobinLoadBalancer::SetParameters(const mutil::StringPiece &params) {
         return GetRecoverPolicyByParams(params, &_cluster_recover_policy);
     }
 

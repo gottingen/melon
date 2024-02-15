@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/butil/macros.h"
-#include "melon/butil/logging.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/logging.h"
 #include <pthread.h>
 #include <algorithm>
 #include "melon/rpc/http/http_method.h"

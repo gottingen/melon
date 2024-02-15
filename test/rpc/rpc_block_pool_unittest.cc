@@ -20,8 +20,8 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #if BRPC_WITH_RDMA
-#include "melon/bthread/bthread.h"
-#include "melon/butil/time.h"
+#include "melon/fiber/fiber.h"
+#include "melon/utility/time.h"
 #include "melon/rpc/rdma/block_pool.h"
 
 class BlockPoolTest : public ::testing::Test {
@@ -111,16 +111,16 @@ TEST_F(BlockPoolTest, multiple_thread) {
     EXPECT_TRUE(InitBlockPool(DummyCallback) != NULL);
 
     uintptr_t thread_num = 32;
-    bthread_t tid[thread_num];
-    bthread_attr_t attr = BTHREAD_ATTR_NORMAL;
-    uint64_t start_time = butil::cpuwide_time_us();
+    fiber_t tid[thread_num];
+    fiber_attr_t attr = FIBER_ATTR_NORMAL;
+    uint64_t start_time = mutil::cpuwide_time_us();
     for (uintptr_t i = 0; i < thread_num; ++i) {
-        ASSERT_EQ(0, bthread_start_background(&tid[i], &attr, AllocAndDealloc, (void*)i));
+        ASSERT_EQ(0, fiber_start_background(&tid[i], &attr, AllocAndDealloc, (void*)i));
     }
     for (uintptr_t i = 0; i < thread_num; ++i) {
-        ASSERT_EQ(0, bthread_join(tid[i], 0));
+        ASSERT_EQ(0, fiber_join(tid[i], 0));
     }
-    LOG(INFO) << "Total time = " << butil::cpuwide_time_us() - start_time << "us";
+    LOG(INFO) << "Total time = " << mutil::cpuwide_time_us() - start_time << "us";
 
     DestroyBlockPool();
 }

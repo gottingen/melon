@@ -1,12 +1,10 @@
 // Copyright (c) 2015 Baidu.com, Inc. All Rights Reserved
 
-// Author: Zhangyi Chen (chenzhangyi01@baidu.com)
-// Date: 2015/11/06 15:40:45
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/file_util.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/file_util.h>
 
 #include <melon/rpc/server.h>
 #include "melon/raft/file_service.h"
@@ -45,19 +43,19 @@ TEST_F(FileServiceTest, sanity) {
     int64_t reader_id = 0;
     ASSERT_EQ(0, melon::raft::file_service_add(reader.get(), &reader_id));
     std::string uri;
-    butil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
+    mutil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
     melon::raft::RemoteFileCopier copier;
     {
 	std::string bad_uri;
-    	butil::string_printf(&bad_uri, "local://127.0.0.1:%d/123456", g_port);
+    	mutil::string_printf(&bad_uri, "local://127.0.0.1:%d/123456", g_port);
     	ASSERT_NE(0, copier.init(bad_uri, fs, NULL));
 
 	bad_uri.clear();
-    	butil::string_printf(&bad_uri, "remote://127.0.0.1:%d//123456", g_port);
+    	mutil::string_printf(&bad_uri, "remote://127.0.0.1:%d//123456", g_port);
     	ASSERT_NE(0, copier.init(bad_uri, fs, NULL));
 
 	bad_uri.clear();
-    	butil::string_printf(&bad_uri, "remote://127.0.1:%d//123456", g_port);
+    	mutil::string_printf(&bad_uri, "remote://127.0.1:%d//123456", g_port);
     	ASSERT_NE(0, copier.init(bad_uri, fs, NULL));
 
     	ASSERT_NE(0, copier.init("remote://127.0.0.1//123456", fs, NULL));
@@ -67,9 +65,9 @@ TEST_F(FileServiceTest, sanity) {
     // normal copy dir
     system("chmod -R 755 ./a; chmod -R 755 ./b");
     ASSERT_EQ(0, system("rm -rf a; rm -rf b; mkdir a; mkdir a/b; echo '123' > a/c"));
-    ASSERT_TRUE(butil::CreateDirectory(butil::FilePath("./b")));
+    ASSERT_TRUE(mutil::CreateDirectory(mutil::FilePath("./b")));
     ASSERT_EQ(0, copier.copy_to_file("c", "./b/c", NULL));
-    butil::IOBuf c_data;
+    mutil::IOBuf c_data;
     ASSERT_EQ(0, copier.copy_to_iobuf("c", &c_data, NULL));
     ASSERT_TRUE(c_data.equals("123\n")) << c_data.to_string();
     // Copy Directory is not allowed
@@ -111,17 +109,17 @@ TEST_F(FileServiceTest, hole_file) {
 
     melon::raft::RemoteFileCopier copier;
     std::string uri;
-    butil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
+    mutil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
     // normal init
     melon::raft::FLAGS_raft_file_check_hole = false;
     ASSERT_EQ(0, copier.init(uri, fs, NULL));
-    ASSERT_TRUE(butil::CreateDirectory(butil::FilePath("./b")));
+    ASSERT_TRUE(mutil::CreateDirectory(mutil::FilePath("./b")));
     ASSERT_EQ(0, copier.copy_to_file("hole.data", "./b/hole.data", NULL));
     ret = system("diff ./a/hole.data ./b/hole.data");
     ASSERT_EQ(0, ret);
 
     melon::raft::FLAGS_raft_file_check_hole = true;
-    ASSERT_TRUE(butil::CreateDirectory(butil::FilePath("./c")));
+    ASSERT_TRUE(mutil::CreateDirectory(mutil::FilePath("./c")));
     ASSERT_EQ(0, copier.copy_to_file("hole.data", "./c/hole.data", NULL));
     ret = system("diff ./a/hole.data ./c/hole.data");
     ASSERT_EQ(0, ret);

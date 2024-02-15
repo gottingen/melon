@@ -7,10 +7,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "melon/butil/files/file_path.h"
-#include "melon/butil/files/scoped_file.h"
+#include "melon/utility/files/file_path.h"
+#include "melon/utility/files/scoped_file.h"
 
-namespace butil {
+namespace mutil {
 
 bool EvictFileFromSystemCache(const FilePath& file) {
   ScopedFD fd(open(file.value().c_str(), O_RDONLY));
@@ -23,4 +23,4 @@ bool EvictFileFromSystemCache(const FilePath& file) {
   return true;
 }
 
-}  // namespace butil
+}  // namespace mutil

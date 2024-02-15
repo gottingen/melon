@@ -22,7 +22,7 @@
 #include <condition_variable>
 #endif
 #include <gtest/gtest.h>
-#include "melon/butil/gperftools_profiler.h"
+#include "melon/utility/gperftools_profiler.h"
 #include "melon/var/utils/lock_timer.h"
 
 namespace {
@@ -109,7 +109,7 @@ TEST_F(LockTimerTest, pthread_mutex_and_cond) {
     {
         std::unique_lock<MutexWithLatencyRecorder<pthread_mutex_t> > lck(mutex);
         ASSERT_EQ(1u, recorder.count());
-        timespec due_time = butil::milliseconds_from_now(10);
+        timespec due_time = mutil::milliseconds_from_now(10);
         pthread_cond_t cond;
         ASSERT_EQ(0, pthread_cond_init(&cond, NULL));
         pthread_cond_timedwait(&cond, &(pthread_mutex_t&)mutex, &due_time);
@@ -171,7 +171,7 @@ void *double_lock_thread(void *arg) {
     for (size_t i = 0; i < OPS_PER_THREAD; ++i) {
         std::unique_lock<M0> lck0(dla->m0, std::defer_lock);
         std::unique_lock<M1> lck1(dla->m1, std::defer_lock);
-        butil::double_lock(lck0, lck1);
+        mutil::double_lock(lck0, lck1);
         usleep(10);
     }
     return NULL;
@@ -218,7 +218,7 @@ TEST_F(LockTimerTest, double_lock_time) {
 TEST_F(LockTimerTest, overhead) {
     LatencyRecorder r0;
     MutexWithLatencyRecorder<DummyMutex> m0(r0);
-    butil::Timer timer;
+    mutil::Timer timer;
     const size_t N = 1000 * 1000 * 10;
     
     ProfilerStart("mutex_with_latency_recorder.prof");

@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/memory/ref_counted.h"
+#include "melon/utility/memory/ref_counted.h"
 #include <gtest/gtest.h>
 
 namespace {
 
-class SelfAssign : public butil::RefCounted<SelfAssign> {
-  friend class butil::RefCounted<SelfAssign>;
+class SelfAssign : public mutil::RefCounted<SelfAssign> {
+  friend class mutil::RefCounted<SelfAssign>;
 
   ~SelfAssign() {}
 };
@@ -22,7 +22,7 @@ class CheckDerivedMemberAccess : public scoped_refptr<SelfAssign> {
   }
 };
 
-class ScopedRefPtrToSelf : public butil::RefCounted<ScopedRefPtrToSelf> {
+class ScopedRefPtrToSelf : public mutil::RefCounted<ScopedRefPtrToSelf> {
  public:
   ScopedRefPtrToSelf() : self_ptr_(this) {}
 
@@ -31,7 +31,7 @@ class ScopedRefPtrToSelf : public butil::RefCounted<ScopedRefPtrToSelf> {
   void SelfDestruct() { self_ptr_ = NULL; }
 
  private:
-  friend class butil::RefCounted<ScopedRefPtrToSelf>;
+  friend class mutil::RefCounted<ScopedRefPtrToSelf>;
   ~ScopedRefPtrToSelf() { was_destroyed_ = true; }
 
   static bool was_destroyed_;

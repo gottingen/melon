@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include <melon/bthread/bthread.h>
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/unstable.h>
 #include "melon/rpc/periodic_task.h"
 
 namespace melon {
@@ -37,9 +37,9 @@ static void* PeriodicTaskThread(void* arg) {
 }
 
 static void RunPeriodicTaskThread(void* arg) {
-    bthread_t th = 0;
-    int rc = bthread_start_background(
-        &th, &BTHREAD_ATTR_NORMAL, PeriodicTaskThread, arg);
+    fiber_t th = 0;
+    int rc = fiber_start_background(
+        &th, &FIBER_ATTR_NORMAL, PeriodicTaskThread, arg);
     if (rc != 0) {
         LOG(ERROR) << "Fail to start PeriodicTaskThread";
         static_cast<PeriodicTask*>(arg)->OnDestroyingTask();
@@ -52,8 +52,8 @@ void PeriodicTaskManager::StartTaskAt(PeriodicTask* task, const timespec& abstim
         LOG(ERROR) << "Param[task] is NULL";
         return;
     }
-    bthread_timer_t timer_id;
-    const int rc = bthread_timer_add(
+    fiber_timer_t timer_id;
+    const int rc = fiber_timer_add(
         &timer_id, abstime, RunPeriodicTaskThread, task);
     if (rc != 0) {
         LOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";

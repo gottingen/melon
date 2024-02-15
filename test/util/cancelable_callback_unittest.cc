@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/cancelable_callback.h"
+#include "melon/utility/cancelable_callback.h"
 
-#include "melon/butil/bind.h"
-#include "melon/butil/bind_helpers.h"
-#include "melon/butil/memory/ref_counted.h"
+#include "melon/utility/bind.h"
+#include "melon/utility/bind_helpers.h"
+#include "melon/utility/memory/ref_counted.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace {
 
 class TestRefCounted : public RefCountedThreadSafe<TestRefCounted> {
@@ -28,9 +28,9 @@ void RefCountedParam(const scoped_refptr<TestRefCounted>& ref_counted) {}
 TEST(CancelableCallbackTest, Cancel) {
   int count = 0;
   CancelableClosure cancelable(
-      butil::Bind(&Increment, butil::Unretained(&count)));
+      mutil::Bind(&Increment, mutil::Unretained(&count)));
 
-  butil::Closure callback = cancelable.callback();
+  mutil::Closure callback = cancelable.callback();
   callback.Run();
   EXPECT_EQ(1, count);
 
@@ -49,10 +49,10 @@ TEST(CancelableCallbackTest, Cancel) {
 TEST(CancelableCallbackTest, MultipleCancel) {
   int count = 0;
   CancelableClosure cancelable(
-      butil::Bind(&Increment, butil::Unretained(&count)));
+      mutil::Bind(&Increment, mutil::Unretained(&count)));
 
-  butil::Closure callback1 = cancelable.callback();
-  butil::Closure callback2 = cancelable.callback();
+  mutil::Closure callback1 = cancelable.callback();
+  mutil::Closure callback2 = cancelable.callback();
   cancelable.Cancel();
 
   callback1.Run();
@@ -65,7 +65,7 @@ TEST(CancelableCallbackTest, MultipleCancel) {
   cancelable.Cancel();
 
   // callback() of a cancelled callback is null.
-  butil::Closure callback3 = cancelable.callback();
+  mutil::Closure callback3 = cancelable.callback();
   EXPECT_TRUE(callback3.is_null());
 }
 
@@ -73,11 +73,11 @@ TEST(CancelableCallbackTest, MultipleCancel) {
 //  - Destruction of CancelableCallback cancels outstanding callbacks.
 TEST(CancelableCallbackTest, CallbackCanceledOnDestruction) {
   int count = 0;
-  butil::Closure callback;
+  mutil::Closure callback;
 
   {
     CancelableClosure cancelable(
-        butil::Bind(&Increment, butil::Unretained(&count)));
+        mutil::Bind(&Increment, mutil::Unretained(&count)));
 
     callback = cancelable.callback();
     callback.Run();
@@ -94,7 +94,7 @@ TEST(CancelableCallbackTest, CancelDropsCallback) {
   scoped_refptr<TestRefCounted> ref_counted = new TestRefCounted;
   EXPECT_TRUE(ref_counted->HasOneRef());
 
-  CancelableClosure cancelable(butil::Bind(RefCountedParam, ref_counted));
+  CancelableClosure cancelable(mutil::Bind(RefCountedParam, ref_counted));
   EXPECT_FALSE(cancelable.IsCancelled());
   EXPECT_TRUE(ref_counted.get());
   EXPECT_FALSE(ref_counted->HasOneRef());
@@ -112,9 +112,9 @@ TEST(CancelableCallbackTest, CancelDropsCallback) {
 TEST(CancelableCallbackTest, Reset) {
   int count = 0;
   CancelableClosure cancelable(
-      butil::Bind(&Increment, butil::Unretained(&count)));
+      mutil::Bind(&Increment, mutil::Unretained(&count)));
 
-  butil::Closure callback = cancelable.callback();
+  mutil::Closure callback = cancelable.callback();
   callback.Run();
   EXPECT_EQ(1, count);
 
@@ -122,7 +122,7 @@ TEST(CancelableCallbackTest, Reset) {
   EXPECT_EQ(2, count);
 
   cancelable.Reset(
-      butil::Bind(&IncrementBy, butil::Unretained(&count), 3));
+      mutil::Bind(&IncrementBy, mutil::Unretained(&count), 3));
   EXPECT_FALSE(cancelable.IsCancelled());
 
   // The stale copy of the cancelable callback is non-null.
@@ -132,7 +132,7 @@ TEST(CancelableCallbackTest, Reset) {
   callback.Run();
   EXPECT_EQ(2, count);
 
-  butil::Closure callback2 = cancelable.callback();
+  mutil::Closure callback2 = cancelable.callback();
   ASSERT_FALSE(callback2.is_null());
 
   callback2.Run();
@@ -146,8 +146,8 @@ TEST(CancelableCallbackTest, IsNull) {
   EXPECT_TRUE(cancelable.IsCancelled());
 
   int count = 0;
-  cancelable.Reset(butil::Bind(&Increment,
-                              butil::Unretained(&count)));
+  cancelable.Reset(mutil::Bind(&Increment,
+                              mutil::Unretained(&count)));
   EXPECT_FALSE(cancelable.IsCancelled());
 
   cancelable.Cancel();
@@ -155,4 +155,4 @@ TEST(CancelableCallbackTest, IsNull) {
 }
 
 }  // namespace
-}  // namespace butil
+}  // namespace mutil

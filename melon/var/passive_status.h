@@ -49,13 +49,13 @@ namespace melon::var {
             void operator()(Tp &, const Tp &) const {}
         };
 
-        static const bool ADDITIVE = (butil::is_integral<Tp>::value ||
-                                      butil::is_floating_point<Tp>::value ||
+        static const bool ADDITIVE = (mutil::is_integral<Tp>::value ||
+                                      mutil::is_floating_point<Tp>::value ||
                                       is_vector<Tp>::value);
 
         class SeriesSampler : public detail::Sampler {
         public:
-            typedef typename butil::conditional<
+            typedef typename mutil::conditional<
                     ADDITIVE, detail::AddTo<Tp>, PlaceHolderOp>::type Op;
 
             explicit SeriesSampler(PassiveStatus *owner)
@@ -85,14 +85,14 @@ namespace melon::var {
     public:
         // NOTE: You must be very careful about lifetime of `arg' which should be
         // valid during lifetime of PassiveStatus.
-        PassiveStatus(const butil::StringPiece &name,
+        PassiveStatus(const mutil::StringPiece &name,
                       Tp (*getfn)(void *), void *arg)
                 : _getfn(getfn), _arg(arg), _sampler(NULL), _series_sampler(NULL) {
             expose(name);
         }
 
-        PassiveStatus(const butil::StringPiece &prefix,
-                      const butil::StringPiece &name,
+        PassiveStatus(const mutil::StringPiece &prefix,
+                      const mutil::StringPiece &name,
                       Tp (*getfn)(void *), void *arg)
                 : _getfn(getfn), _arg(arg), _sampler(NULL), _series_sampler(NULL) {
             expose_as(prefix, name);
@@ -159,8 +159,8 @@ namespace melon::var {
         }
 
     protected:
-        int expose_impl(const butil::StringPiece &prefix,
-                        const butil::StringPiece &name,
+        int expose_impl(const mutil::StringPiece &prefix,
+                        const mutil::StringPiece &name,
                         DisplayFilter display_filter) override {
             const int rc = Variable::expose_impl(prefix, name, display_filter);
             if (ADDITIVE &&
@@ -192,14 +192,14 @@ namespace melon::var {
     public:
         // NOTE: You must be very careful about lifetime of `arg' which should be
         // valid during lifetime of PassiveStatus.
-        PassiveStatus(const butil::StringPiece &name,
+        PassiveStatus(const mutil::StringPiece &name,
                       void (*print)(std::ostream &, void *), void *arg)
                 : _print(print), _arg(arg) {
             expose(name);
         }
 
-        PassiveStatus(const butil::StringPiece &prefix,
-                      const butil::StringPiece &name,
+        PassiveStatus(const mutil::StringPiece &prefix,
+                      const mutil::StringPiece &name,
                       void (*print)(std::ostream &, void *), void *arg)
                 : _print(print), _arg(arg) {
             expose_as(prefix, name);
@@ -239,12 +239,12 @@ namespace melon::var {
     template<typename Tp>
     class BasicPassiveStatus : public PassiveStatus<Tp> {
     public:
-        BasicPassiveStatus(const butil::StringPiece &name,
+        BasicPassiveStatus(const mutil::StringPiece &name,
                            Tp (*getfn)(void *), void *arg)
                 : PassiveStatus<Tp>(name, getfn, arg) {}
 
-        BasicPassiveStatus(const butil::StringPiece &prefix,
-                           const butil::StringPiece &name,
+        BasicPassiveStatus(const mutil::StringPiece &prefix,
+                           const mutil::StringPiece &name,
                            Tp (*getfn)(void *), void *arg)
                 : PassiveStatus<Tp>(prefix, name, getfn, arg) {}
 
@@ -255,12 +255,12 @@ namespace melon::var {
     template<>
     class BasicPassiveStatus<std::string> : public PassiveStatus<std::string> {
     public:
-        BasicPassiveStatus(const butil::StringPiece &name,
+        BasicPassiveStatus(const mutil::StringPiece &name,
                            void (*print)(std::ostream &, void *), void *arg)
                 : PassiveStatus<std::string>(name, print, arg) {}
 
-        BasicPassiveStatus(const butil::StringPiece &prefix,
-                           const butil::StringPiece &name,
+        BasicPassiveStatus(const mutil::StringPiece &prefix,
+                           const mutil::StringPiece &name,
                            void (*print)(std::ostream &, void *), void *arg)
                 : PassiveStatus<std::string>(prefix, name, print, arg) {}
 

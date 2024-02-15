@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
 #include "melon/raft/fsync.h"
 #include <melon/rpc/reloadable_flags.h>  //BRPC_VALIDATE_GFLAG

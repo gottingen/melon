@@ -18,7 +18,7 @@
 #ifndef BRPC_CIRCUIT_BREAKER_H
 #define BRPC_CIRCUIT_BREAKER_H
 
-#include "melon/butil/atomicops.h"
+#include "melon/utility/atomicops.h"
 
 namespace melon {
 
@@ -49,13 +49,13 @@ public:
 
     // Number of times marked as broken
     int isolated_times() const {
-        return _isolated_times.load(butil::memory_order_relaxed);
+        return _isolated_times.load(mutil::memory_order_relaxed);
     }
 
     // The duration that should be isolated when the socket fails in milliseconds.
     // The higher the frequency of socket errors, the longer the duration.
     int isolation_duration_ms() const {
-        return _isolation_duration_ms.load(butil::memory_order_relaxed);
+        return _isolation_duration_ms.load(mutil::memory_order_relaxed);
     }
 
 private:
@@ -75,18 +75,18 @@ private:
         const int _max_error_percent;
         const double _smooth;
 
-        butil::atomic<int32_t> _sample_count_when_initializing;
-        butil::atomic<int32_t> _error_count_when_initializing;
-        butil::atomic<int64_t> _ema_error_cost;
-        butil::atomic<int64_t> _ema_latency;
+        mutil::atomic<int32_t> _sample_count_when_initializing;
+        mutil::atomic<int32_t> _error_count_when_initializing;
+        mutil::atomic<int64_t> _ema_error_cost;
+        mutil::atomic<int64_t> _ema_latency;
     };
 
     EmaErrorRecorder _long_window;
     EmaErrorRecorder _short_window;
     int64_t _last_reset_time_ms;
-    butil::atomic<int> _isolation_duration_ms;
-    butil::atomic<int> _isolated_times;
-    butil::atomic<bool> _broken;
+    mutil::atomic<int> _isolation_duration_ms;
+    mutil::atomic<int> _isolated_times;
+    mutil::atomic<bool> _broken;
 };
 
 }  // namespace melon

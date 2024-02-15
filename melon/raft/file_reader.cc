@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Zheng,Pengfei(zhengpengfei@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
-//          Yang,Guodong(yangguodong01@baidu.com)
 
 #include "melon/raft/file_reader.h"
 #include "melon/raft/util.h"
@@ -35,7 +31,7 @@ namespace melon::raft {
         return _fs->open_snapshot(_path);
     }
 
-    int LocalDirReader::read_file(butil::IOBuf *out,
+    int LocalDirReader::read_file(mutil::IOBuf *out,
                                   const std::string &filename,
                                   off_t offset,
                                   size_t max_count,
@@ -46,7 +42,7 @@ namespace melon::raft {
                                    max_count, read_count, is_eof);
     }
 
-    int LocalDirReader::read_file_with_meta(butil::IOBuf *out,
+    int LocalDirReader::read_file_with_meta(mutil::IOBuf *out,
                                             const std::string &filename,
                                             google::protobuf::Message *file_meta,
                                             off_t offset,
@@ -76,7 +72,7 @@ namespace melon::raft {
                 _current_filename.clear();
             }
             std::string file_path(_path + "/" + filename);
-            butil::File::Error e;
+            mutil::File::Error e;
             FileAdaptor *file = _fs->open(file_path, O_RDONLY | O_CLOEXEC, file_meta, &e);
             if (!file) {
                 return file_error_to_os_error(e);
@@ -89,7 +85,7 @@ namespace melon::raft {
         lck.unlock();
 
         do {
-            butil::IOPortal buf;
+            mutil::IOPortal buf;
             ssize_t nread = _current_file->read(&buf, offset, max_count);
             if (nread < 0) {
                 ret = EIO;

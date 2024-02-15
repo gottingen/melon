@@ -19,11 +19,10 @@
 #ifndef BRPC_SOCKET_ID_H
 #define BRPC_SOCKET_ID_H
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 #include <stdint.h>               // uint64_t
-#include "melon/butil/unique_ptr.h"      // std::unique_ptr
+#include "melon/utility/unique_ptr.h"      // std::unique_ptr
 
 
 namespace melon {

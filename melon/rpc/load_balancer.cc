@@ -32,7 +32,7 @@ namespace melon {
     BRPC_VALIDATE_GFLAG(show_lb_in_vars, PassValidate);
 
     // For assigning unique names for lb.
-    static butil::static_atomic<int> g_lb_counter = BUTIL_STATIC_ATOMIC_INIT(0);
+    static mutil::static_atomic<int> g_lb_counter = MUTIL_STATIC_ATOMIC_INIT(0);
 
     void SharedLoadBalancer::DescribeLB(std::ostream &os, void *arg) {
         (static_cast<SharedLoadBalancer *>(arg))->Describe(os, DescribeOptions());
@@ -49,7 +49,7 @@ namespace melon {
         if (changed) {
             char name[32];
             snprintf(name, sizeof(name), "_load_balancer_%d", g_lb_counter.fetch_add(
-                    1, butil::memory_order_relaxed));
+                    1, mutil::memory_order_relaxed));
             _st.expose(name);
         }
     }
@@ -68,7 +68,7 @@ namespace melon {
 
     int SharedLoadBalancer::Init(const char *lb_protocol) {
         std::string lb_name;
-        butil::StringPiece lb_params;
+        mutil::StringPiece lb_params;
         if (!ParseParameters(lb_protocol, &lb_name, &lb_params)) {
             LOG(FATAL) << "Fail to parse this load balancer protocol '" << lb_protocol << '\'';
             return -1;
@@ -98,9 +98,9 @@ namespace melon {
         }
     }
 
-    bool SharedLoadBalancer::ParseParameters(const butil::StringPiece &lb_protocol,
+    bool SharedLoadBalancer::ParseParameters(const mutil::StringPiece &lb_protocol,
                                              std::string *lb_name,
-                                             butil::StringPiece *lb_params) {
+                                             mutil::StringPiece *lb_params) {
         lb_name->clear();
         lb_params->clear();
         if (lb_protocol.empty()) {

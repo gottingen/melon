@@ -20,8 +20,8 @@
 #define MELON_RPC_DESCRIBABLE_H_
 
 #include <ostream>
-#include "melon/butil/macros.h"
-#include "melon/butil/class_name.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/class_name.h"
 
 namespace melon {
 
@@ -38,7 +38,7 @@ namespace melon {
         virtual ~Describable() {}
 
         virtual void Describe(std::ostream &os, const DescribeOptions &) const {
-            os << butil::class_name_str(*this);
+            os << mutil::class_name_str(*this);
         }
     };
 
@@ -47,7 +47,7 @@ namespace melon {
         virtual ~NonConstDescribable() {}
 
         virtual void Describe(std::ostream &os, const DescribeOptions &) {
-            os << butil::class_name_str(*this);
+            os << mutil::class_name_str(*this);
         }
     };
 

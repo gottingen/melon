@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Zheng,Pengfei(zhengpengfei@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
-#include <melon/butil/time.h>
-#include <melon/butil/string_printf.h>                     // butil::string_appendf
+#include <melon/utility/time.h>
+#include <melon/utility/string_printf.h>                     // mutil::string_appendf
 #include <melon/rpc/uri.h>
 #include "melon/raft/util.h"
 #include "melon/raft/protobuf_file.h"
@@ -95,7 +91,7 @@ namespace melon::raft {
         return 0;
     }
 
-    int LocalSnapshotMetaTable::save_to_iobuf_as_remote(butil::IOBuf *buf) const {
+    int LocalSnapshotMetaTable::save_to_iobuf_as_remote(mutil::IOBuf *buf) const {
         LocalSnapshotPbMeta pb_meta;
         if (_meta.IsInitialized()) {
             *pb_meta.mutable_meta() = _meta;
@@ -108,13 +104,13 @@ namespace melon::raft {
             f->mutable_meta()->clear_source();
         }
         buf->clear();
-        butil::IOBufAsZeroCopyOutputStream wrapper(buf);
+        mutil::IOBufAsZeroCopyOutputStream wrapper(buf);
         return pb_meta.SerializeToZeroCopyStream(&wrapper) ? 0 : -1;
     }
 
-    int LocalSnapshotMetaTable::load_from_iobuf_as_remote(const butil::IOBuf &buf) {
+    int LocalSnapshotMetaTable::load_from_iobuf_as_remote(const mutil::IOBuf &buf) {
         LocalSnapshotPbMeta pb_meta;
-        butil::IOBufAsZeroCopyInputStream wrapper(buf);
+        mutil::IOBufAsZeroCopyInputStream wrapper(buf);
         if (!pb_meta.ParseFromZeroCopyStream(&wrapper)) {
             LOG(ERROR) << "Fail to parse LocalSnapshotPbMeta";
             return -1;
@@ -183,7 +179,7 @@ namespace melon::raft {
     }
 
     int LocalSnapshotWriter::init() {
-        butil::File::Error e;
+        mutil::File::Error e;
         if (!_fs->create_directory(_path, &e, false)) {
             LOG(ERROR) << "Fail to create directory " << _path << ", " << e;
             set_error(EIO, "CreateDirectory failed with path: %s", _path.c_str());
@@ -280,7 +276,7 @@ namespace melon::raft {
     }
 
     LocalSnapshotReader::LocalSnapshotReader(const std::string &path,
-                                             butil::EndPoint server_addr,
+                                             mutil::EndPoint server_addr,
                                              FileSystemAdaptor *fs,
                                              SnapshotThrottle *snapshot_throttle)
             : _path(path), _addr(server_addr), _reader_id(0), _fs(fs), _snapshot_throttle(snapshot_throttle) {}
@@ -311,7 +307,7 @@ namespace melon::raft {
     }
 
     int64_t LocalSnapshotReader::snapshot_index() {
-        butil::FilePath path(_path);
+        mutil::FilePath path(_path);
         int64_t index = 0;
         int ret = sscanf(path.BaseName().value().c_str(), MELON_RAFT_SNAPSHOT_PATTERN, &index);
         CHECK_EQ(ret, 1);
@@ -345,7 +341,7 @@ namespace melon::raft {
             _meta_table = meta_table;
         }
 
-        int read_file(butil::IOBuf *out,
+        int read_file(mutil::IOBuf *out,
                       const std::string &filename,
                       off_t offset,
                       size_t max_count,
@@ -368,7 +364,7 @@ namespace melon::raft {
             size_t new_max_count = max_count;
             if (_snapshot_throttle && FLAGS_raft_enable_throttle_when_install_snapshot) {
                 int ret = 0;
-                int64_t start = butil::cpuwide_time_us();
+                int64_t start = mutil::cpuwide_time_us();
                 int64_t used_count = 0;
                 new_max_count = _snapshot_throttle->throttled_by_throughput(max_count);
                 if (new_max_count < max_count) {
@@ -386,7 +382,7 @@ namespace melon::raft {
                 }
                 if ((ret == 0 || ret == EAGAIN) && used_count < (int64_t) new_max_count) {
                     _snapshot_throttle->return_unused_throughput(
-                            new_max_count, used_count, butil::cpuwide_time_us() - start);
+                            new_max_count, used_count, mutil::cpuwide_time_us() - start);
                 }
                 return ret;
             }
@@ -400,7 +396,7 @@ namespace melon::raft {
     };
 
     std::string LocalSnapshotReader::generate_uri_for_copy() {
-        if (_addr == butil::EndPoint()) {
+        if (_addr == mutil::EndPoint()) {
             LOG(ERROR) << "Address is not specified, path:" << _path;
             return std::string();
         }
@@ -437,7 +433,7 @@ namespace melon::raft {
     }
 
     int LocalSnapshotStorage::init() {
-        butil::File::Error e;
+        mutil::File::Error e;
         if (_fs == NULL) {
             _fs = default_file_system();
         }
@@ -485,7 +481,7 @@ namespace melon::raft {
                 snapshots.erase(index);
 
                 std::string snapshot_path(_path);
-                butil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
+                mutil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
                 LOG(INFO) << "Deleting snapshot `" << snapshot_path << "'";
                 // TODO: Notify Watcher before delete directories.
                 if (!_fs->delete_file(snapshot_path, true)) {
@@ -525,7 +521,7 @@ namespace melon::raft {
                 _ref_map.erase(it);
                 lck.unlock();
                 std::string old_path(_path);
-                butil::string_appendf(&old_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
+                mutil::string_appendf(&old_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
                 destroy_snapshot(old_path);
             }
         }
@@ -629,7 +625,7 @@ namespace melon::raft {
             temp_path.append("/");
             temp_path.append(_s_temp_path);
             std::string new_path(_path);
-            butil::string_appendf(&new_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, new_index);
+            mutil::string_appendf(&new_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, new_index);
             LOG(INFO) << "Deleting " << new_path;
             if (!_fs->delete_file(new_path, true)) {
                 LOG(WARNING) << "delete new snapshot path failed, path " << new_path;
@@ -668,7 +664,7 @@ namespace melon::raft {
             ++_ref_map[last_snapshot_index];
             lck.unlock();
             std::string snapshot_path(_path);
-            butil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, last_snapshot_index);
+            mutil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, last_snapshot_index);
             LocalSnapshotReader *reader = new LocalSnapshotReader(snapshot_path, _addr,
                                                                   _fs.get(), _snapshot_throttle.get());
             if (reader->init() != 0) {
@@ -714,8 +710,8 @@ namespace melon::raft {
         return new LocalSnapshotStorage(uri);
     }
 
-    butil::Status LocalSnapshotStorage::gc_instance(const std::string &uri) const {
-        butil::Status status;
+    mutil::Status LocalSnapshotStorage::gc_instance(const std::string &uri) const {
+        mutil::Status status;
         if (gc_dir(uri) != 0) {
             LOG(WARNING) << "Failed to gc snapshot storage from path " << _path;
             status.set_error(EINVAL, "Failed to gc snapshot storage from path %s",
@@ -732,7 +728,7 @@ namespace melon::raft {
             : LocalSnapshotCopier(true) {}
 
     LocalSnapshotCopier::LocalSnapshotCopier(bool copy_file) :
-            _tid(INVALID_BTHREAD), _cancelled(false), _filter_before_copy_remote(false), _copy_file(copy_file),
+            _tid(INVALID_FIBER), _cancelled(false), _filter_before_copy_remote(false), _copy_file(copy_file),
             _fs(NULL), _throttle(NULL), _writer(NULL), _storage(NULL), _reader(NULL), _cur_session(NULL) {}
 
     LocalSnapshotCopier::~LocalSnapshotCopier() {
@@ -784,7 +780,7 @@ namespace melon::raft {
     }
 
     void LocalSnapshotCopier::load_meta_table() {
-        butil::IOBuf meta_buf;
+        mutil::IOBuf meta_buf;
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_cancelled) {
             set_error(ECANCELED, "%s", berror(ECANCELED));
@@ -939,13 +935,13 @@ namespace melon::raft {
             return;
         }
         std::string file_path = _writer->get_path() + '/' + filename;
-        butil::FilePath sub_path(filename);
+        mutil::FilePath sub_path(filename);
         if (sub_path != sub_path.DirName() && sub_path.DirName().value() != ".") {
-            butil::File::Error e;
+            mutil::File::Error e;
             bool rc = false;
             if (FLAGS_raft_create_parent_directories) {
-                butil::FilePath sub_dir =
-                        butil::FilePath(_writer->get_path()).Append(sub_path.DirName());
+                mutil::FilePath sub_dir =
+                        mutil::FilePath(_writer->get_path()).Append(sub_path.DirName());
                 rc = _fs->create_directory(sub_dir.value(), &e, true);
             } else {
                 rc = create_sub_directory(
@@ -953,7 +949,7 @@ namespace melon::raft {
             }
             if (!rc) {
                 LOG(ERROR) << "Fail to create directory for " << file_path
-                           << " : " << butil::File::ErrorToString(e);
+                           << " : " << mutil::File::ErrorToString(e);
                 set_error(file_error_to_os_error(e),
                           "Fail to create directory");
             }
@@ -994,15 +990,15 @@ namespace melon::raft {
     }
 
     void LocalSnapshotCopier::start() {
-        if (bthread_start_background(
+        if (fiber_start_background(
                 &_tid, NULL, start_copy, this) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             copy();
         }
     }
 
     void LocalSnapshotCopier::join() {
-        bthread_join(_tid, NULL);
+        fiber_join(_tid, NULL);
     }
 
     void LocalSnapshotCopier::cancel() {

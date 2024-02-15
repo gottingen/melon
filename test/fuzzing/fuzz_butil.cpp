@@ -15,10 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "melon/butil/base64.h"
-#include "melon/butil/crc32c.h"
-#include "melon/butil/hash.h"
-#include "melon/butil/sha1.h"
+#include "melon/utility/base64.h"
+#include "melon/utility/crc32c.h"
+#include "melon/utility/hash.h"
+#include "melon/utility/sha1.h"
 
 #define kMinInputLength 5
 #define kMaxInputLength 1024
@@ -35,17 +35,17 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     {
         std::string encoded;
         std::string decoded;
-        butil::Base64Encode(input, &encoded);
-        butil::Base64Decode(input, &decoded);
+        mutil::Base64Encode(input, &encoded);
+        mutil::Base64Decode(input, &decoded);
     }
     {
-        butil::crc32c::Value(reinterpret_cast<const char*>(data), size);
+        mutil::crc32c::Value(reinterpret_cast<const char*>(data), size);
     }
     {
-        butil::Hash(input);
+        mutil::Hash(input);
     }
     {
-        butil::SHA1HashString(input);
+        mutil::SHA1HashString(input);
     }
 
     return 0;

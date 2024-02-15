@@ -20,13 +20,13 @@
 #include <openssl/md5.h>
 #include <google/protobuf/descriptor.h>
 #include <gflags/gflags.h>
-#include "melon/bthread/bthread.h"
-#include "melon/butil/build_config.h"    // OS_MACOSX
-#include "melon/butil/string_printf.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/time.h"
-#include "melon/bthread/bthread.h"
-#include "melon/bthread/unstable.h"
+#include "melon/fiber/fiber.h"
+#include "melon/utility/build_config.h"    // OS_MACOSX
+#include "melon/utility/string_printf.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/time.h"
+#include "melon/fiber/fiber.h"
+#include "melon/fiber/unstable.h"
 #include "melon/var/var.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/socket_map.h"
@@ -48,42 +48,42 @@
 // Force linking the .o in UT (which analysis deps by inclusions)
 #include "melon/rpc/parallel_channel.h"
 #include "melon/rpc/selective_channel.h"
-#include "melon/bthread/task_group.h"
+#include "melon/fiber/task_group.h"
 
-namespace bthread {
-extern BAIDU_THREAD_LOCAL TaskGroup* tls_task_group;
+namespace fiber {
+extern MELON_THREAD_LOCAL TaskGroup* tls_task_group;
 }
 
 // This is the only place that both client/server must link, so we put
 // registrations of errno here.
-BAIDU_REGISTER_ERRNO(melon::ENOSERVICE, "No such service");
-BAIDU_REGISTER_ERRNO(melon::ENOMETHOD, "No such method");
-BAIDU_REGISTER_ERRNO(melon::EREQUEST, "Bad request");
-BAIDU_REGISTER_ERRNO(melon::ERPCAUTH, "Authentication failed");
-BAIDU_REGISTER_ERRNO(melon::ETOOMANYFAILS, "Too many sub channels failed");
-BAIDU_REGISTER_ERRNO(melon::EPCHANFINISH, "ParallelChannel finished");
-BAIDU_REGISTER_ERRNO(melon::EBACKUPREQUEST, "Sending backup request");
-BAIDU_REGISTER_ERRNO(melon::ERPCTIMEDOUT, "RPC call is timed out");
-BAIDU_REGISTER_ERRNO(melon::EFAILEDSOCKET, "Broken socket");
-BAIDU_REGISTER_ERRNO(melon::EHTTP, "Bad http call");
-BAIDU_REGISTER_ERRNO(melon::EOVERCROWDED, "The server is overcrowded");
-BAIDU_REGISTER_ERRNO(melon::ERTMPPUBLISHABLE, "RtmpRetryingClientStream is publishable");
-BAIDU_REGISTER_ERRNO(melon::ERTMPCREATESTREAM, "createStream was rejected by the RTMP server");
-BAIDU_REGISTER_ERRNO(melon::EEOF, "Got EOF");
-BAIDU_REGISTER_ERRNO(melon::EUNUSED, "The socket was not needed");
-BAIDU_REGISTER_ERRNO(melon::ESSL, "SSL related operation failed");
-BAIDU_REGISTER_ERRNO(melon::EH2RUNOUTSTREAMS, "The H2 socket was run out of streams");
+MELON_REGISTER_ERRNO(melon::ENOSERVICE, "No such service");
+MELON_REGISTER_ERRNO(melon::ENOMETHOD, "No such method");
+MELON_REGISTER_ERRNO(melon::EREQUEST, "Bad request");
+MELON_REGISTER_ERRNO(melon::ERPCAUTH, "Authentication failed");
+MELON_REGISTER_ERRNO(melon::ETOOMANYFAILS, "Too many sub channels failed");
+MELON_REGISTER_ERRNO(melon::EPCHANFINISH, "ParallelChannel finished");
+MELON_REGISTER_ERRNO(melon::EBACKUPREQUEST, "Sending backup request");
+MELON_REGISTER_ERRNO(melon::ERPCTIMEDOUT, "RPC call is timed out");
+MELON_REGISTER_ERRNO(melon::EFAILEDSOCKET, "Broken socket");
+MELON_REGISTER_ERRNO(melon::EHTTP, "Bad http call");
+MELON_REGISTER_ERRNO(melon::EOVERCROWDED, "The server is overcrowded");
+MELON_REGISTER_ERRNO(melon::ERTMPPUBLISHABLE, "RtmpRetryingClientStream is publishable");
+MELON_REGISTER_ERRNO(melon::ERTMPCREATESTREAM, "createStream was rejected by the RTMP server");
+MELON_REGISTER_ERRNO(melon::EEOF, "Got EOF");
+MELON_REGISTER_ERRNO(melon::EUNUSED, "The socket was not needed");
+MELON_REGISTER_ERRNO(melon::ESSL, "SSL related operation failed");
+MELON_REGISTER_ERRNO(melon::EH2RUNOUTSTREAMS, "The H2 socket was run out of streams");
 
-BAIDU_REGISTER_ERRNO(melon::EINTERNAL, "General internal error");
-BAIDU_REGISTER_ERRNO(melon::ERESPONSE, "Bad response");
-BAIDU_REGISTER_ERRNO(melon::ELOGOFF, "Server is stopping");
-BAIDU_REGISTER_ERRNO(melon::ELIMIT, "Reached server's max_concurrency");
-BAIDU_REGISTER_ERRNO(melon::ECLOSE, "Close socket initiatively");
-BAIDU_REGISTER_ERRNO(melon::EITP, "Bad Itp response");
+MELON_REGISTER_ERRNO(melon::EINTERNAL, "General internal error");
+MELON_REGISTER_ERRNO(melon::ERESPONSE, "Bad response");
+MELON_REGISTER_ERRNO(melon::ELOGOFF, "Server is stopping");
+MELON_REGISTER_ERRNO(melon::ELIMIT, "Reached server's max_concurrency");
+MELON_REGISTER_ERRNO(melon::ECLOSE, "Close socket initiatively");
+MELON_REGISTER_ERRNO(melon::EITP, "Bad Itp response");
 
 #if BRPC_WITH_RDMA
-BAIDU_REGISTER_ERRNO(melon::ERDMA, "RDMA verbs error");
-BAIDU_REGISTER_ERRNO(melon::ERDMAMEM, "Memory not registered for RDMA");
+MELON_REGISTER_ERRNO(melon::ERDMA, "RDMA verbs error");
+MELON_REGISTER_ERRNO(melon::ERDMAMEM, "Memory not registered for RDMA");
 #endif
 
 DECLARE_bool(log_as_json);
@@ -167,10 +167,10 @@ Controller::~Controller() {
 class IgnoreAllRead : public ProgressiveReader {
 public:
     // @ProgressiveReader
-    butil::Status OnReadOnePart(const void* /*data*/, size_t /*length*/) {
-        return butil::Status::OK();
+    mutil::Status OnReadOnePart(const void* /*data*/, size_t /*length*/) {
+        return mutil::Status::OK();
     }
-    void OnEndOfMessage(const butil::Status&) {}
+    void OnEndOfMessage(const mutil::Status&) {}
 };
 
 static IgnoreAllRead* s_ignore_all_read = NULL;
@@ -183,22 +183,22 @@ static void CreateIgnoreAllRead() { s_ignore_all_read = new IgnoreAllRead; }
 // they'll be set uniformly after this method is called.
 void Controller::ResetNonPods() {
     if (_span) {
-        Span::Submit(_span, butil::cpuwide_time_us());
+        Span::Submit(_span, mutil::cpuwide_time_us());
     }
     _error_text.clear();
-    _remote_side = butil::EndPoint();
-    _local_side = butil::EndPoint();
+    _remote_side = mutil::EndPoint();
+    _local_side = mutil::EndPoint();
     if (_session_local_data) {
         _server->_session_local_data_pool->Return(_session_local_data);
     }
     _mongo_session_data.reset();
     delete _sampled_request;
 
-    if (!is_used_by_rpc() && _correlation_id != INVALID_BTHREAD_ID) {
-        CHECK_NE(EPERM, bthread_id_cancel(_correlation_id));
+    if (!is_used_by_rpc() && _correlation_id != INVALID_FIBER_ID) {
+        CHECK_NE(EPERM, fiber_session_cancel(_correlation_id));
     }
-    if (_oncancel_id != INVALID_BTHREAD_ID) {
-        bthread_id_error(_oncancel_id, 0);
+    if (_oncancel_id != INVALID_FIBER_ID) {
+        fiber_session_error(_oncancel_id, 0);
     }
     if (_pchan_sub_count > 0) {
         DestroyParallelChannelDone(_done);
@@ -245,13 +245,13 @@ void Controller::ResetPods() {
     _error_code = 0;
     _session_local_data = NULL;
     _server = NULL;
-    _oncancel_id = INVALID_BTHREAD_ID;
+    _oncancel_id = INVALID_FIBER_ID;
     _auth_context = NULL;
     _sampled_request = NULL;
     _request_protocol = PROTOCOL_UNKNOWN;
     _max_retry = UNSET_MAGIC_NUM;
     _retry_policy = NULL;
-    _correlation_id = INVALID_BTHREAD_ID;
+    _correlation_id = INVALID_FIBER_ID;
     _connection_type = CONNECTION_TYPE_UNKNOWN;
     _timeout_ms = UNSET_MAGIC_NUM;
     _backup_request_ms = UNSET_MAGIC_NUM;
@@ -367,7 +367,7 @@ std::string Controller::ErrorText() const {
 }
 
 void StartCancel(CallId id) {
-    bthread_id_error(id, ECANCELED);
+    fiber_session_error(id, ECANCELED);
 }
 
 void Controller::StartCancel() {
@@ -386,7 +386,7 @@ void Controller::AppendServerIdentiy() {
         _error_text.push_back('[');
         char ipbuf[64];
         int len = snprintf(ipbuf, sizeof(ipbuf), "%s:%d",
-                           butil::my_ip_cstr(), _server->listen_address().port);
+                           mutil::my_ip_cstr(), _server->listen_address().port);
         unsigned char digest[MD5_DIGEST_LENGTH];
         MD5((const unsigned char*)ipbuf, len, digest);
         for (size_t i = 0; i < sizeof(digest); ++i) {
@@ -395,8 +395,8 @@ void Controller::AppendServerIdentiy() {
         }
         _error_text.push_back(']');
     } else {
-        butil::string_appendf(&_error_text, "[%s:%d]",
-                             butil::my_ip_cstr(), _server->listen_address().port);
+        mutil::string_appendf(&_error_text, "[%s:%d]",
+                             mutil::my_ip_cstr(), _server->listen_address().port);
     }
 }
 
@@ -426,7 +426,7 @@ void Controller::SetFailed(const std::string& reason) {
         _error_text.push_back(' ');
     }
     if (_current_call.nretry != 0) {
-        butil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
+        mutil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
     } else {
         AppendServerIdentiy();
     }
@@ -448,17 +448,17 @@ void Controller::SetFailed(int error_code, const char* reason_fmt, ...) {
         _error_text.push_back(' ');
     }
     if (_current_call.nretry != 0) {
-        butil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
+        mutil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
     } else {
         AppendServerIdentiy();
     }
     const size_t old_size = _error_text.size();
     if (_error_code != -1) {
-        butil::string_appendf(&_error_text, "[E%d]", _error_code);
+        mutil::string_appendf(&_error_text, "[E%d]", _error_code);
     }
     va_list ap;
     va_start(ap, reason_fmt);
-    butil::string_vappendf(&_error_text, reason_fmt, ap);
+    mutil::string_vappendf(&_error_text, reason_fmt, ap);
     va_end(ap);
     if (_span) {
         _span->set_error_code(_error_code);
@@ -476,17 +476,17 @@ void Controller::CloseConnection(const char* reason_fmt, ...) {
         _error_text.push_back(' ');
     }
     if (_current_call.nretry != 0) {
-        butil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
+        mutil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
     } else {
         AppendServerIdentiy();
     }
     const size_t old_size = _error_text.size();
     if (_error_code != -1) {
-        butil::string_appendf(&_error_text, "[E%d]", _error_code);
+        mutil::string_appendf(&_error_text, "[E%d]", _error_code);
     }
     va_list ap;
     va_start(ap, reason_fmt);
-    butil::string_vappendf(&_error_text, reason_fmt, ap);
+    mutil::string_vappendf(&_error_text, reason_fmt, ap);
     va_end(ap);
     if (_span) {
         _span->set_error_code(_error_code);
@@ -502,7 +502,7 @@ bool Controller::IsCanceled() const {
 
 class RunOnCancelThread {
 public:
-    RunOnCancelThread(google::protobuf::Closure* cb, bthread_id_t id)
+    RunOnCancelThread(google::protobuf::Closure* cb, fiber_session_t id)
         : _cb(cb), _id(id) {}
 
     static void* RunThis(void* arg) {
@@ -512,21 +512,21 @@ public:
 
     void Run() {
         _cb->Run();
-        CHECK_EQ(0, bthread_id_unlock_and_destroy(_id));
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(_id));
         delete this;
     }
 
 private:
     google::protobuf::Closure* _cb;
-    bthread_id_t _id;
+    fiber_session_t _id;
 };
 
-int Controller::RunOnCancel(bthread_id_t id, void* data, int error_code) {
+int Controller::RunOnCancel(fiber_session_t id, void* data, int error_code) {
     if (error_code == 0) {
         // Called from Controller::ResetNonPods upon Controller's Reset or
         // destruction, we just call the callback in-place.
         static_cast<google::protobuf::Closure*>(data)->Run();
-        CHECK_EQ(0, bthread_id_unlock_and_destroy(id));
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(id));
         return 0;
     }
     // Called from Socket::SetFailed, should be infrequent.
@@ -534,8 +534,8 @@ int Controller::RunOnCancel(bthread_id_t id, void* data, int error_code) {
     // in a new thread.
     RunOnCancelThread* arg = new RunOnCancelThread(
         static_cast<google::protobuf::Closure*>(data), id);
-    bthread_t th;
-    CHECK_EQ(0, bthread_start_urgent(&th, NULL, RunOnCancelThread::RunThis, arg));
+    fiber_t th;
+    CHECK_EQ(0, fiber_start_urgent(&th, NULL, RunOnCancelThread::RunThis, arg));
     return 0;
 }
 
@@ -546,12 +546,12 @@ void Controller::NotifyOnCancel(google::protobuf::Closure* callback) {
     }
 
     ClosureGuard guard(callback);
-    if (_oncancel_id != INVALID_BTHREAD_ID) {
+    if (_oncancel_id != INVALID_FIBER_ID) {
         LOG(FATAL) << "NotifyCancel a single call more than once!";
         return;
     }
-    if (bthread_id_create(&_oncancel_id, callback, RunOnCancel) != 0) {
-        PLOG(FATAL) << "Fail to create bthread_id";
+    if (fiber_session_create(&_oncancel_id, callback, RunOnCancel) != 0) {
+        PLOG(FATAL) << "Fail to create fiber_session";
         return;
     }
     SocketUniquePtr sock;
@@ -564,20 +564,20 @@ void Controller::NotifyOnCancel(google::protobuf::Closure* callback) {
 }
 
 void Join(CallId id) {
-    bthread_id_join(id);
+    fiber_session_join(id);
 }
 
 void JoinResponse(CallId id) {
-    bthread_id_join(id);
+    fiber_session_join(id);
 }
 
 static void HandleTimeout(void* arg) {
-    bthread_id_t correlation_id = { (uint64_t)arg };
-    bthread_id_error(correlation_id, ERPCTIMEDOUT);
+    fiber_session_t correlation_id = { (uint64_t)arg };
+    fiber_session_error(correlation_id, ERPCTIMEDOUT);
 }
 
 void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
-                                        bool new_bthread, int saved_error) {
+                                        bool new_fiber, int saved_error) {
     // TODO(gejun): Simplify call-ending code.
     // Intercept previous calls
     while (info.id != _correlation_id && info.id != current_id()) {
@@ -594,7 +594,7 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
         // Ignore all non-backup requests and failed backup requests.
         _error_code = saved_error;
         response_attachment().clear();
-        CHECK_EQ(0, bthread_id_unlock(info.id));
+        CHECK_EQ(0, fiber_session_unlock(info.id));
         return;
     }
 
@@ -606,9 +606,9 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
         // Reset timeout if needed
         int rc = 0;
         if (timeout_ms() >= 0) {
-            rc = bthread_timer_add(
+            rc = fiber_timer_add(
                     &_timeout_id,
-                    butil::microseconds_to_timespec(_deadline_us),
+                    mutil::microseconds_to_timespec(_deadline_us),
                     HandleTimeout, (void*)_correlation_id.value);
         }
         if (rc != 0) {
@@ -635,7 +635,7 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
         }
         ++_current_call.nretry;
         add_flag(FLAGS_BACKUP_REQUEST);
-        return IssueRPC(butil::gettimeofday_us());
+        return IssueRPC(mutil::gettimeofday_us());
     } else {
         auto retry_policy = _retry_policy ? _retry_policy : DefaultRetryPolicy();
         if (retry_policy->DoRetry(this)) {
@@ -665,35 +665,35 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
             response_attachment().clear();
 
             // Retry backoff.
-            bthread::TaskGroup* g = bthread::tls_task_group;
+            fiber::TaskGroup* g = fiber::tls_task_group;
             int64_t backoff_time_us = retry_policy->GetBackoffTimeMs(this) * 1000L;
             if (backoff_time_us > 0 &&
-                backoff_time_us < _deadline_us - butil::gettimeofday_us()) {
+                backoff_time_us < _deadline_us - mutil::gettimeofday_us()) {
                 // No need to do retry backoff when the backoff time is longer than the remaining rpc time.
                 if (retry_policy->CanRetryBackoffInPthread() ||
                     (g && !g->is_current_pthread_task())) {
-                    bthread_usleep(backoff_time_us);
+                    fiber_usleep(backoff_time_us);
                 } else {
                     LOG(WARNING) << "`CanRetryBackoffInPthread()' returns false, "
                                     "skip retry backoff in pthread.";
                 }
             }
-            return IssueRPC(butil::gettimeofday_us());
+            return IssueRPC(mutil::gettimeofday_us());
         }
     }
 
 END_OF_RPC:
-    if (new_bthread && !FLAGS_usercode_in_coroutine) {
+    if (new_fiber && !FLAGS_usercode_in_coroutine) {
         // [ Essential for -usercode_in_pthread=true ]
         // When -usercode_in_pthread is on, the reserved threads (set by
-        // -usercode_backup_threads) may all block on bthread_id_lock in
+        // -usercode_backup_threads) may all block on fiber_session_lock in
         // ProcessXXXResponse(), until the id is unlocked or destroyed which
-        // is run in a new thread when new_bthread is true. However since all
-        // workers are blocked, the created bthread will never be scheduled
+        // is run in a new thread when new_fiber is true. However since all
+        // workers are blocked, the created fiber will never be scheduled
         // and result in deadlock.
-        // Make the id unlockable before creating the bthread fixes the issue.
+        // Make the id unlockable before creating the fiber fixes the issue.
         // When -usercode_in_pthread is false, this also removes some useless
-        // waiting of the bthreads processing responses.
+        // waiting of the fibers processing responses.
 
         // Note[_done]: callid is destroyed after _done which possibly takes
         // a lot of time, stop useless locking
@@ -703,29 +703,29 @@ END_OF_RPC:
         // conversely the callid may still be locked/unlocked for many times
         // before destroying. E.g. in slective channel, the callid is referenced
         // by multiple sub-done and only destroyed by the last one. Calling
-        // bthread_id_about_to_destroy right here which makes the id unlockable
+        // fiber_session_about_to_destroy right here which makes the id unlockable
         // anymore, is wrong. On the other hand, the combo channles setting
         // FLAGS_DESTROY_CID_IN_DONE to true must be aware of
         // -usercode_in_pthread and avoid deadlock by their own (TBR)
 
         if ((FLAGS_usercode_in_pthread || _done != NULL/*Note[_done]*/) &&
             !has_flag(FLAGS_DESTROY_CID_IN_DONE)/*Note[cid]*/) {
-            bthread_id_about_to_destroy(info.id);
+            fiber_session_about_to_destroy(info.id);
         }
-        // No need to join this bthread since RPC caller won't wake up
-        // (or user's done won't be called) until this bthread finishes
-        bthread_t bt;
-        bthread_attr_t attr = (FLAGS_usercode_in_pthread ?
-                               BTHREAD_ATTR_PTHREAD : BTHREAD_ATTR_NORMAL);
+        // No need to join this fiber since RPC caller won't wake up
+        // (or user's done won't be called) until this fiber finishes
+        fiber_t bt;
+        fiber_attr_t attr = (FLAGS_usercode_in_pthread ?
+                               FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
         _tmp_completion_info = info;
-        if (bthread_start_background(&bt, &attr, RunEndRPC, this) != 0) {
-            LOG(FATAL) << "Fail to start bthread";
+        if (fiber_start_background(&bt, &attr, RunEndRPC, this) != 0) {
+            LOG(FATAL) << "Fail to start fiber";
             EndRPC(info);
         }
     } else {
         if (_done != NULL/*Note[_done]*/ &&
             !has_flag(FLAGS_DESTROY_CID_IN_DONE)/*Note[cid]*/) {
-            bthread_id_about_to_destroy(info.id);
+            fiber_session_about_to_destroy(info.id);
         }
         EndRPC(info);
     }
@@ -765,7 +765,7 @@ void Controller::Call::OnComplete(
 
         if (enable_circuit_breaker) {
             sending_sock->FeedbackCircuitBreaker(error_code,
-                butil::gettimeofday_us() - begin_time_us);
+                mutil::gettimeofday_us() - begin_time_us);
         }
     }
 
@@ -847,7 +847,7 @@ void Controller::Call::OnComplete(
 
 void Controller::EndRPC(const CompletionInfo& info) {
     if (_timeout_id != 0) {
-        bthread_timer_del(_timeout_id);
+        fiber_timer_del(_timeout_id);
         _timeout_id = 0;
     }
 
@@ -942,17 +942,17 @@ void Controller::EndRPC(const CompletionInfo& info) {
             // Join is not signalled when the done does not Run() and the done
             // can't Run() because all backup threads are blocked by Join().
 
-            OnRPCEnd(butil::gettimeofday_us());
+            OnRPCEnd(mutil::gettimeofday_us());
             const bool destroy_cid_in_done = has_flag(FLAGS_DESTROY_CID_IN_DONE);
             _done->Run();
             // NOTE: Don't touch this Controller anymore, because it's likely to be
             // deleted by done.
             if (!destroy_cid_in_done) {
                 // Make this thread not scheduling itself when launching new
-                // bthreads, saving signalings.
+                // fibers, saving signalings.
                 // FIXME: We're assuming the calling thread is about to quit.
-                bthread_about_to_quit();
-                CHECK_EQ(0, bthread_id_unlock_and_destroy(saved_cid));
+                fiber_about_to_quit();
+                CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
             }
         } else {
             RunUserCode(RunDoneInBackupThread, this);
@@ -961,9 +961,9 @@ void Controller::EndRPC(const CompletionInfo& info) {
         // OnRPCEnd for sync RPC is called in Channel::CallMethod to count in
         // latency of the context-switch.
 
-        // Check comments in above branch on bthread_about_to_quit.
-        bthread_about_to_quit();
-        CHECK_EQ(0, bthread_id_unlock_and_destroy(saved_cid));
+        // Check comments in above branch on fiber_about_to_quit.
+        fiber_about_to_quit();
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 }
 void Controller::RunDoneInBackupThread(void* arg) {
@@ -973,18 +973,18 @@ void Controller::RunDoneInBackupThread(void* arg) {
 void Controller::DoneInBackupThread() {
     // OnRPCEnd for sync RPC is called in Channel::CallMethod to count in
     // latency of the context-switch.
-    OnRPCEnd(butil::gettimeofday_us());
+    OnRPCEnd(mutil::gettimeofday_us());
     const CallId saved_cid = _correlation_id;
     const bool destroy_cid_in_done = has_flag(FLAGS_DESTROY_CID_IN_DONE);
     _done->Run();
     // NOTE: Don't touch fields of controller anymore, it may be deleted.
     if (!destroy_cid_in_done) {
-        CHECK_EQ(0, bthread_id_unlock_and_destroy(saved_cid));
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 }
 
 void Controller::SubmitSpan() {
-    const int64_t now = butil::cpuwide_time_us();
+    const int64_t now = mutil::cpuwide_time_us();
     _span->set_start_callback_us(now);
     if (_span->local_parent()) {
         _span->local_parent()->AsParent();
@@ -1006,8 +1006,8 @@ void Controller::HandleSendFailed() {
     // same stack of CallMethod, the code is deadlocked.
     // We don't need to run the callback in new thread in a sync call since
     // the created thread needs to be joined anyway before end of CallMethod.
-    const bool new_bthread = (_done != NULL && !is_done_allowed_to_run_in_place());
-    OnVersionedRPCReturned(info, new_bthread, _error_code);
+    const bool new_fiber = (_done != NULL && !is_done_allowed_to_run_in_place());
+    OnVersionedRPCReturned(info, new_fiber, _error_code);
 }
 
 void Controller::IssueRPC(int64_t start_realtime_us) {
@@ -1037,7 +1037,7 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
         if (_sender->IssueRPC(start_realtime_us) != 0) {
             return HandleSendFailed();
         }
-        CHECK_EQ(0, bthread_id_unlock(cid));
+        CHECK_EQ(0, fiber_session_unlock(cid));
         return;
     }
 
@@ -1163,7 +1163,7 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
         }
     }
     // Make request
-    butil::IOBuf packet;
+    mutil::IOBuf packet;
     SocketMessage* user_packet = NULL;
     _pack_request(&packet, &user_packet, cid.value, _method, this,
                   _request_buf, using_auth);
@@ -1182,11 +1182,11 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
     timespec* pabstime = NULL;
     if (_connect_timeout_ms > 0) {
         if (_deadline_us >= 0) {
-            connect_abstime = butil::microseconds_to_timespec(
+            connect_abstime = mutil::microseconds_to_timespec(
                 std::min(_connect_timeout_ms * 1000L + start_realtime_us,
                          _deadline_us));
         } else {
-            connect_abstime = butil::microseconds_to_timespec(
+            connect_abstime = mutil::microseconds_to_timespec(
                 _connect_timeout_ms * 1000L + start_realtime_us);
         }
         pabstime = &connect_abstime;
@@ -1211,7 +1211,7 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
     }
     if (span) {
         if (_current_call.nretry == 0) {
-            span->set_sent_us(butil::cpuwide_time_us());
+            span->set_sent_us(mutil::cpuwide_time_us());
             span->set_request_size(packet_size);
         } else {
             span->Annotate("Requested(%lld) [%d]",
@@ -1224,7 +1224,7 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
         // to confirm the credential data
         _current_call.sending_sock->SetAuthentication(rc);
     }
-    CHECK_EQ(0, bthread_id_unlock(cid));
+    CHECK_EQ(0, fiber_session_unlock(cid));
 }
 
 void Controller::set_auth_context(const AuthContext* ctx) {
@@ -1237,37 +1237,37 @@ void Controller::set_auth_context(const AuthContext* ctx) {
     _auth_context = ctx;
 }
 
-int Controller::HandleSocketFailed(bthread_id_t id, void* data, int error_code,
+int Controller::HandleSocketFailed(fiber_session_t id, void* data, int error_code,
                                    const std::string& error_text) {
     Controller* cntl = static_cast<Controller*>(data);
     if (!cntl->is_used_by_rpc()) {
         // Cannot destroy the call_id before RPC otherwise an async RPC
         // using the controller cannot be joined and related resources may be
-        // destroyed before done->Run() running in another bthread.
+        // destroyed before done->Run() running in another fiber.
         // The error set will be detected in Channel::CallMethod and fail
         // the RPC.
         cntl->SetFailed(error_code, "Cancel call_id=%" PRId64
                         " before CallMethod()", id.value);
-        return bthread_id_unlock(id);
+        return fiber_session_unlock(id);
     }
     const int saved_error = cntl->ErrorCode();
     if (error_code == ERPCTIMEDOUT) {
         cntl->SetFailed(error_code, "Reached timeout=%" PRId64 "ms @%s",
                         cntl->timeout_ms(),
-                        butil::endpoint2str(cntl->remote_side()).c_str());
+                        mutil::endpoint2str(cntl->remote_side()).c_str());
     } else if (error_code == EBACKUPREQUEST) {
         cntl->SetFailed(error_code, "Reached backup timeout=%" PRId64 "ms @%s",
                         cntl->backup_request_ms(),
-                        butil::endpoint2str(cntl->remote_side()).c_str());
+                        mutil::endpoint2str(cntl->remote_side()).c_str());
     } else if (!error_text.empty()) {
         cntl->SetFailed(error_code, "%s", error_text.c_str());
     } else {
         cntl->SetFailed(error_code, "%s @%s", berror(error_code),
-                        butil::endpoint2str(cntl->remote_side()).c_str());
+                        mutil::endpoint2str(cntl->remote_side()).c_str());
     }
 
     struct OnVersionedRPCReturnedArgs {
-        bthread_id_t id;
+        fiber_session_t id;
         Controller* cntl;
         int error;
     };
@@ -1279,18 +1279,18 @@ int Controller::HandleSocketFailed(bthread_id_t id, void* data, int error_code,
     };
 
     auto* args = new OnVersionedRPCReturnedArgs{ id, cntl, saved_error };
-    bthread_t tid;
-    // RetryPolicy may block current bthread, so start a new bthread to run OnVersionedRPCReturned
-    if (!cntl->_retry_policy || bthread_start_background(&tid, NULL, func, args) != 0) {
+    fiber_t tid;
+    // RetryPolicy may block current fiber, so start a new fiber to run OnVersionedRPCReturned
+    if (!cntl->_retry_policy || fiber_start_background(&tid, NULL, func, args) != 0) {
         func(args);
     }
     return 0;
 }
 
 CallId Controller::call_id() {
-    butil::atomic<uint64_t>* target =
-        (butil::atomic<uint64_t>*)&_correlation_id.value;
-    uint64_t loaded = target->load(butil::memory_order_relaxed);
+    mutil::atomic<uint64_t>* target =
+        (mutil::atomic<uint64_t>*)&_correlation_id.value;
+    uint64_t loaded = target->load(mutil::memory_order_relaxed);
     if (loaded) {
         const CallId id = { loaded };
         return id;
@@ -1298,10 +1298,10 @@ CallId Controller::call_id() {
     // Optimistic locking.
     CallId cid = { 0 };
     // The range of this id will be reset in Channel::CallMethod
-    CHECK_EQ(0, bthread_id_create2(&cid, this, HandleSocketFailed));
+    CHECK_EQ(0, fiber_session_create2(&cid, this, HandleSocketFailed));
     if (!target->compare_exchange_strong(loaded, cid.value,
-                                         butil::memory_order_relaxed)) {
-        bthread_id_cancel(cid);
+                                         mutil::memory_order_relaxed)) {
+        fiber_session_cancel(cid);
         cid.value = loaded;
     }
     return cid;
@@ -1431,7 +1431,7 @@ void Controller::set_stream_creator(StreamCreator* sc) {
     _stream_creator = sc;
 }
 
-butil::intrusive_ptr<ProgressiveAttachment>
+mutil::intrusive_ptr<ProgressiveAttachment>
 Controller::CreateProgressiveAttachment(StopStyle stop_style) {
     if (has_progressive_writer()) {
         LOG(ERROR) << "One controller can only have one ProgressiveAttachment";
@@ -1463,17 +1463,17 @@ void Controller::ReadProgressiveAttachmentBy(ProgressiveReader* r) {
     }
     if (!is_response_read_progressively()) {
         return r->OnEndOfMessage(
-            butil::Status(EINVAL, "Can't read progressive attachment from a "
+            mutil::Status(EINVAL, "Can't read progressive attachment from a "
                          "controller without calling "
                          "response_will_be_read_progressively() before"));
     }
     if (_rpa == NULL) {
         return r->OnEndOfMessage(
-            butil::Status(EINVAL, "ReadableProgressiveAttachment is NULL"));
+            mutil::Status(EINVAL, "ReadableProgressiveAttachment is NULL"));
     }
     if (has_progressive_reader()) {
         return r->OnEndOfMessage(
-            butil::Status(EPERM, "%s can't be called more than once",
+            mutil::Status(EPERM, "%s can't be called more than once",
                          __FUNCTION__));
     }
     add_flag(FLAGS_PROGRESSIVE_READER);
@@ -1584,7 +1584,7 @@ class DoNothingClosure : public google::protobuf::Closure {
     void Run() { }
 };
 google::protobuf::Closure* DoNothing() {
-    return butil::get_leaky_singleton<DoNothingClosure>();
+    return mutil::get_leaky_singleton<DoNothingClosure>();
 }
 
 KVMap& Controller::SessionKV() {

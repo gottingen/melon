@@ -20,9 +20,9 @@
 
 #include <limits>                                       // std::numeric_limits
 #include <vector>
-#include "melon/butil/containers/bounded_queue.h"              // butil::BoundedQueue
-#include "melon/butil/containers/flat_map.h"                   // butil::FlatMap
-#include "melon/butil/containers/case_ignored_flat_map.h"      // butil::FlatMap
+#include "melon/utility/containers/bounded_queue.h"              // mutil::BoundedQueue
+#include "melon/utility/containers/flat_map.h"                   // mutil::FlatMap
+#include "melon/utility/containers/case_ignored_flat_map.h"      // mutil::FlatMap
 #include "melon/rpc/http/hpack-static-table.h"       // s_static_headers
 
 
@@ -47,8 +47,8 @@ namespace melon {
 
     struct HeaderHasher {
         size_t operator()(const HPacker::Header &h) const {
-            return butil::CaseIgnoredHasher()(h.name)
-                   * 101 + butil::DefaultHasher<std::string>()(h.value);
+            return mutil::CaseIgnoredHasher()(h.name)
+                   * 101 + mutil::DefaultHasher<std::string>()(h.value);
         }
 
         size_t operator()(const HeaderAndHashCode &h) const {
@@ -58,8 +58,8 @@ namespace melon {
 
     struct HeaderEqualTo {
         bool operator()(const HPacker::Header &h1, const HPacker::Header &h2) const {
-            return butil::CaseIgnoredEqual()(h1.name, h2.name)
-                   && butil::DefaultEqualTo<std::string>()(h1.value, h2.value);
+            return mutil::CaseIgnoredEqual()(h1.name, h2.name)
+                   && mutil::DefaultEqualTo<std::string>()(h1.value, h2.value);
         }
 
         bool operator()(const HPacker::Header &h1, const HeaderAndHashCode &h2) const {
@@ -67,7 +67,7 @@ namespace melon {
         }
     };
 
-    class BAIDU_CACHELINE_ALIGNMENT IndexTable {
+    class MELON_CACHELINE_ALIGNMENT IndexTable {
         DISALLOW_COPY_AND_ASSIGN(IndexTable);
 
         typedef HPacker::Header Header;
@@ -80,7 +80,7 @@ namespace melon {
         int Init(const IndexTableOptions &options);
 
         const Header *HeaderAt(int index) const {
-            if (BAIDU_UNLIKELY(index < _start_index)) {
+            if (MELON_UNLIKELY(index < _start_index)) {
                 return NULL;
             }
             return _header_queue.bottom(index - _start_index);
@@ -203,7 +203,7 @@ namespace melon {
         uint64_t _add_times;  // Increase when adding a new entry.
         size_t _max_size;
         size_t _size;
-        butil::BoundedQueue<Header> _header_queue;
+        mutil::BoundedQueue<Header> _header_queue;
 
         // -----------------------  Encoder only ----------------------------
         // Indexes that map entry to the latest time it was added.
@@ -213,8 +213,8 @@ namespace melon {
         // Since the encoder just cares whether this header is in the index table
         // rather than which the index number is, only the latest entry of the same
         // header is indexed here, which is definitely the last one to be removed.
-        butil::FlatMap<Header, uint64_t, HeaderHasher, HeaderEqualTo> _header_index;
-        butil::CaseIgnoredFlatMap<uint64_t> _name_index;
+        mutil::FlatMap<Header, uint64_t, HeaderHasher, HeaderEqualTo> _header_index;
+        mutil::CaseIgnoredFlatMap<uint64_t> _name_index;
     };
 
     int IndexTable::Init(const IndexTableOptions &options) {
@@ -233,9 +233,9 @@ namespace melon {
             LOG(ERROR) << "Fail to malloc space for " << num_headers << " headers";
             return -1;
         }
-        butil::BoundedQueue<Header> tmp(
+        mutil::BoundedQueue<Header> tmp(
                 header_queue_storage, num_headers * sizeof(Header),
-                butil::OWNS_STORAGE);
+                mutil::OWNS_STORAGE);
         _header_queue.swap(tmp);
         _start_index = options.start_index;
         _need_indexes = options.need_indexes;
@@ -279,7 +279,7 @@ namespace melon {
         int32_t value;
     };
 
-    class BAIDU_CACHELINE_ALIGNMENT HuffmanTree {
+    class MELON_CACHELINE_ALIGNMENT HuffmanTree {
         DISALLOW_COPY_AND_ASSIGN(HuffmanTree);
 
     public:
@@ -351,7 +351,7 @@ namespace melon {
         DISALLOW_COPY_AND_ASSIGN(HuffmanEncoder);
 
     public:
-        HuffmanEncoder(butil::IOBufAppender *out, const HuffmanCode *table)
+        HuffmanEncoder(mutil::IOBufAppender *out, const HuffmanCode *table)
                 : _out(out), _table(table), _partial_byte(0), _remain_bit(8), _out_bytes(0) {}
 
         void Encode(unsigned char byte) {
@@ -393,7 +393,7 @@ namespace melon {
         uint32_t out_bytes() const { return _out_bytes; }
 
     private:
-        butil::IOBufAppender *_out;
+        mutil::IOBufAppender *_out;
         const HuffmanCode *_table;
         uint8_t _partial_byte;
         uint16_t _remain_bit;
@@ -414,12 +414,12 @@ namespace melon {
             for (int i = 7; i >= 0; --i) {
                 if (byte & (1u << i)) {
                     _cur_node = _tree->node(_cur_node->right_child);
-                    if (BAIDU_UNLIKELY(!_cur_node)) {
+                    if (MELON_UNLIKELY(!_cur_node)) {
                         LOG(ERROR) << "Decoder stream reaches NULL_NODE";
                         return -1;
                     }
                     if (_cur_node->value != HuffmanTree::INVALID_VALUE) {
-                        if (BAIDU_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
+                        if (MELON_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
                             LOG(ERROR) << "Decoder stream reaches EOS";
                             return -1;
                         }
@@ -432,12 +432,12 @@ namespace melon {
                     _padding &= 1;
                 } else {
                     _cur_node = _tree->node(_cur_node->left_child);
-                    if (BAIDU_UNLIKELY(!_cur_node)) {
+                    if (MELON_UNLIKELY(!_cur_node)) {
                         LOG(ERROR) << "Decoder stream reaches NULL_NODE";
                         return -1;
                     }
                     if (_cur_node->value != HuffmanTree::INVALID_VALUE) {
-                        if (BAIDU_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
+                        if (MELON_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
                             LOG(ERROR) << "Decoder stream reaches EOS";
                             return -1;
                         }
@@ -477,7 +477,7 @@ namespace melon {
 // Primitive Type Representations
 
 // Encode variant intger and return the size
-    inline void EncodeInteger(butil::IOBufAppender *out, uint8_t msb,
+    inline void EncodeInteger(mutil::IOBufAppender *out, uint8_t msb,
                               uint8_t prefix_size, uint32_t value) {
         uint8_t max_prefix_value = (1 << prefix_size) - 1;
         if (value < max_prefix_value) {
@@ -529,7 +529,7 @@ namespace melon {
 // Assume that no header would be larger than 10MB
     static const size_t MAX_HPACK_INTEGER = 10 * 1024 * 1024ul;
 
-    inline ssize_t DecodeInteger(butil::IOBufBytesIterator &iter,
+    inline ssize_t DecodeInteger(mutil::IOBufBytesIterator &iter,
                                  uint8_t prefix_size, uint32_t *value) {
         if (iter == NULL) {
             return 0; // No enough data
@@ -567,13 +567,13 @@ namespace melon {
 
     template<bool LOWERCASE>
     // use template to remove dead branches.
-    inline void EncodeString(butil::IOBufAppender *out, const std::string &s,
+    inline void EncodeString(mutil::IOBufAppender *out, const std::string &s,
                              bool huffman_encoding) {
         if (!huffman_encoding) {
             EncodeInteger(out, 0x00, 7, s.size());
             if (LOWERCASE) {
                 for (size_t i = 0; i < s.size(); ++i) {
-                    out->push_back(butil::ascii_tolower(s[i]));
+                    out->push_back(mutil::ascii_tolower(s[i]));
                 }
             } else {
                 out->append(s);
@@ -584,7 +584,7 @@ namespace melon {
         uint32_t bit_len = 0;
         if (LOWERCASE) {
             for (size_t i = 0; i < s.size(); ++i) {
-                bit_len += s_huffman_table[(uint8_t) butil::ascii_tolower(s[i])].bit_len;
+                bit_len += s_huffman_table[(uint8_t) mutil::ascii_tolower(s[i])].bit_len;
             }
         } else {
             for (size_t i = 0; i < s.size(); ++i) {
@@ -595,7 +595,7 @@ namespace melon {
         HuffmanEncoder e(out, s_huffman_table);
         if (LOWERCASE) {
             for (size_t i = 0; i < s.size(); ++i) {
-                e.Encode(butil::ascii_tolower(s[i]));
+                e.Encode(mutil::ascii_tolower(s[i]));
             }
         } else {
             for (size_t i = 0; i < s.size(); ++i) {
@@ -605,7 +605,7 @@ namespace melon {
         e.EndStream();
     }
 
-    inline ssize_t DecodeString(butil::IOBufBytesIterator &iter, std::string *out) {
+    inline ssize_t DecodeString(mutil::IOBufBytesIterator &iter, std::string *out) {
         if (iter == NULL) {
             return 0;
         }
@@ -694,7 +694,7 @@ namespace melon {
         return _encode_table->GetIndexOfName(name);
     }
 
-    void HPacker::Encode(butil::IOBufAppender *out, const Header &header,
+    void HPacker::Encode(mutil::IOBufAppender *out, const Header &header,
                          const HPackOptions &options) {
         if (options.index_policy != HPACK_NEVER_INDEX_HEADER) {
             const int index = FindHeaderFromIndexTable(header);
@@ -732,7 +732,7 @@ namespace melon {
     }
 
     inline ssize_t HPacker::DecodeWithKnownPrefix(
-            butil::IOBufBytesIterator &iter, Header *h, uint8_t prefix_size) const {
+            mutil::IOBufBytesIterator &iter, Header *h, uint8_t prefix_size) const {
         int index = 0;
         ssize_t index_bytes = DecodeInteger(iter, prefix_size, (uint32_t *) &index);
         ssize_t name_bytes = 0;
@@ -763,7 +763,7 @@ namespace melon {
         return index_bytes + name_bytes + value_bytes;
     }
 
-    ssize_t HPacker::Decode(butil::IOBufBytesIterator &iter, Header *h) {
+    ssize_t HPacker::Decode(mutil::IOBufBytesIterator &iter, Header *h) {
         if (iter == NULL) {
             return 0;
         }
@@ -869,7 +869,7 @@ namespace melon {
         const char *d = s->c_str();
         for (size_t i = 0; i < s->size(); ++i) {
             const char c = d[i];
-            const char c2 = butil::ascii_tolower(c);
+            const char c2 = mutil::ascii_tolower(c);
             if (c2 != c) {
                 (*s)[i] = c2;
             }

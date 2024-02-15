@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/base64url.h"
+#include "melon/utility/base64url.h"
 
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(Base64UrlTest, EncodeIncludePaddingPolicy) {
   std::string output;
@@ -107,4 +107,4 @@ TEST(Base64UrlTest, DecodeDisallowsPaddingOnly) {
       "====", Base64UrlDecodePolicy::IGNORE_PADDING, &output));
 }
 
-}  // namespace butil
+}  // namespace mutil

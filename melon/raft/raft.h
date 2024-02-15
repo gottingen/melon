@@ -12,19 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authros: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Wang,Yao(wangyao02@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
-//          Ge,Jun(gejun@baidu.com)
-
 #ifndef MELON_RAFT_RAFT_H_
 #define MELON_RAFT_RAFT_H_
 
 #include <string>
 
-#include <melon/butil/logging.h>
-#include <melon/butil/iobuf.h>
-#include <melon/butil/status.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/status.h>
 #include <melon/rpc/callback.h>
 #include "melon/raft/configuration.h"
 #include "melon/proto/raft/enum.pb.h"
@@ -53,18 +48,18 @@ namespace melon::raft {
 
     class LogStorage;
 
-    const PeerId ANY_PEER(butil::EndPoint(butil::IP_ANY, 0), 0);
+    const PeerId ANY_PEER(mutil::EndPoint(mutil::IP_ANY, 0), 0);
 
-// Raft-specific closure which encloses a butil::Status to report if the
+// Raft-specific closure which encloses a mutil::Status to report if the
 // operation was successful.
     class Closure : public google::protobuf::Closure {
     public:
-        butil::Status &status() { return _st; }
+        mutil::Status &status() { return _st; }
 
-        const butil::Status &status() const { return _st; }
+        const mutil::Status &status() const { return _st; }
 
     private:
-        butil::Status _st;
+        mutil::Status _st;
     };
 
 // Describe a specific error
@@ -76,9 +71,9 @@ namespace melon::raft {
 
         ErrorType type() const { return _type; }
 
-        const butil::Status &status() const { return _st; }
+        const mutil::Status &status() const { return _st; }
 
-        butil::Status &status() { return _st; }
+        mutil::Status &status() { return _st; }
 
         void set_type(ErrorType type) { _type = type; }
 
@@ -91,7 +86,7 @@ namespace melon::raft {
     private:
         // Intentionally copyable
         ErrorType _type;
-        butil::Status _st;
+        mutil::Status _st;
     };
 
     inline const char *errortype2str(ErrorType t) {
@@ -123,7 +118,7 @@ namespace melon::raft {
         Task() : data(NULL), done(NULL), expected_term(-1) {}
 
         // The data applied to StateMachine
-        butil::IOBuf *data;
+        mutil::IOBuf *data;
 
         // Continuation when the data is applied to StateMachine or error occurs.
         Closure *done;
@@ -166,7 +161,7 @@ namespace melon::raft {
 
         // Return the data whose content is the same as what was passed to
         // Node::apply in the leader node.
-        const butil::IOBuf &data() const;
+        const mutil::IOBuf &data() const;
 
         // If done() is non-NULL, you must call done()->Run() after applying this
         // task no matter this operation succeeds or fails, otherwise the
@@ -191,7 +186,7 @@ namespace melon::raft {
         // it.
         //
         // If |st| is not NULL, it should describe the detail of the error.
-        void set_error_and_rollback(size_t ntail = 1, const butil::Status *st = NULL);
+        void set_error_and_rollback(size_t ntail = 1, const mutil::Status *st = NULL);
 
     private:
         friend class FSMCaller;
@@ -251,7 +246,7 @@ namespace melon::raft {
 
         // Invoked when this node steps down from the leader of the replication
         // group and |status| describes detailed information
-        virtual void on_leader_stop(const butil::Status &status);
+        virtual void on_leader_stop(const mutil::Status &status);
 
         // on_error is called when a critical error was encountered, after this
         // point, no any further modification is allowed to applied to this node
@@ -319,7 +314,7 @@ namespace melon::raft {
         DISALLOW_COPY_AND_ASSIGN(LeaderChangeContext);
 
     public:
-        LeaderChangeContext(const PeerId &leader_id, int64_t term, const butil::Status &status)
+        LeaderChangeContext(const PeerId &leader_id, int64_t term, const mutil::Status &status)
                 : _leader_id(leader_id), _term(term), _st(status) {};
 
         // for on_start_following, the leader_id and term are of the new leader;
@@ -329,12 +324,12 @@ namespace melon::raft {
         int64_t term() const { return _term; }
 
         // return the information about why on_start_following or on_stop_following is called.
-        const butil::Status &status() const { return _st; }
+        const mutil::Status &status() const { return _st; }
 
     private:
         PeerId _leader_id;
         int64_t _term;
-        butil::Status _st;
+        mutil::Status _st;
     };
 
     inline std::ostream &operator<<(std::ostream &os, const LeaderChangeContext &ctx) {
@@ -351,16 +346,16 @@ namespace melon::raft {
     public:
         UserLog() {};
 
-        UserLog(int64_t log_index, const butil::IOBuf &log_data)
+        UserLog(int64_t log_index, const mutil::IOBuf &log_data)
                 : _index(log_index), _data(log_data) {};
 
         int64_t log_index() const { return _index; }
 
-        const butil::IOBuf &log_data() const { return _data; }
+        const mutil::IOBuf &log_data() const { return _data; }
 
         void set_log_index(const int64_t log_index) { _index = log_index; }
 
-        void set_log_data(const butil::IOBuf &log_data) { _data = log_data; }
+        void set_log_data(const mutil::IOBuf &log_data) { _data = log_data; }
 
         void reset() {
             _index = 0;
@@ -369,7 +364,7 @@ namespace melon::raft {
 
     private:
         int64_t _index;
-        butil::IOBuf _data;
+        mutil::IOBuf _data;
     };
 
     inline std::ostream &operator<<(std::ostream &os, const UserLog &user_log) {
@@ -532,7 +527,7 @@ namespace melon::raft {
         // Default: A empty group
         Configuration initial_conf;
 
-        // Run the user callbacks and user closures in pthread rather than bthread
+        // Run the user callbacks and user closures in pthread rather than fiber
         //
         // Default: false
         bool usercode_in_pthread;
@@ -696,7 +691,7 @@ namespace melon::raft {
         // list peers of this raft group, only leader retruns ok
         // [NOTE] when list_peers concurrency with add_peer/remove_peer, maybe return peers is staled.
         // because add_peer/remove_peer immediately modify configuration in memory
-        butil::Status list_peers(std::vector<PeerId> *peers);
+        mutil::Status list_peers(std::vector<PeerId> *peers);
 
         // Add a new peer to the raft group. done->Run() would be invoked after this
         // operation finishes, describing the detailed result.
@@ -718,7 +713,7 @@ namespace melon::raft {
         // availability.
         // Notice that neither consistency nor consensus are guaranteed in this
         // case, BE CAREFULE when dealing with this method.
-        butil::Status reset_peers(const Configuration &new_peers);
+        mutil::Status reset_peers(const Configuration &new_peers);
 
         // Start a snapshot immediately if possible. done->Run() would be invoked
         // when the snapshot finishes, describing the detailed result.
@@ -727,12 +722,12 @@ namespace melon::raft {
         // user trigger vote
         // reset election_timeout, suggest some peer to become the leader in a
         // higher probability
-        butil::Status vote(int election_timeout);
+        mutil::Status vote(int election_timeout);
 
         // Reset the |election_timeout_ms| for the very node, the |max_clock_drift_ms|
         // is also adjusted to keep the sum of |election_timeout_ms| and |the max_clock_drift_ms|
         // unchanged.
-        butil::Status reset_election_timeout_ms(int election_timeout_ms);
+        mutil::Status reset_election_timeout_ms(int election_timeout_ms);
 
         // Forcely reset |election_timeout_ms| and |max_clock_drift_ms|. It may break
         // leader lease safety, should be careful.
@@ -768,7 +763,7 @@ namespace melon::raft {
         //     - return ENOMOREUSERLOG when we can't get a user log even reaching last_committed_index.
         // [NOTE] in consideration of safety, we use last_applied_index instead of last_committed_index
         // in code implementation.
-        butil::Status read_committed_user_log(const int64_t index, UserLog *user_log);
+        mutil::Status read_committed_user_log(const int64_t index, UserLog *user_log);
 
         // Get the internal status of this node, the information is mostly the same as we
         // see from the website.
@@ -826,7 +821,7 @@ namespace melon::raft {
         // Default: false
         bool node_owns_fsm;
 
-        // Run the user callbacks and user closures in pthread rather than bthread
+        // Run the user callbacks and user closures in pthread rather than fiber
         //
         // Default: false
         bool usercode_in_pthread;
@@ -855,7 +850,7 @@ namespace melon::raft {
 // listen address, if the Server is going to be started from a range of ports, 
 // the behavior is undefined.
 // Returns 0 on success, -1 otherwise.
-    int add_service(melon::Server *server, const butil::EndPoint &listen_addr);
+    int add_service(melon::Server *server, const mutil::EndPoint &listen_addr);
 
     int add_service(melon::Server *server, int port);
 

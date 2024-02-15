@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#include <melon/butil/scoped_lock.h>
+#include <melon/utility/scoped_lock.h>
 #include <melon/var/latency_recorder.h>
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/unstable.h>
 #include "melon/raft/ballot_box.h"
 #include "melon/raft/util.h"
 #include "melon/raft/fsm_caller.h"
@@ -84,7 +83,7 @@ namespace melon::raft {
         }
 
         _pending_index = last_committed_index + 1;
-        _last_committed_index.store(last_committed_index, butil::memory_order_relaxed);
+        _last_committed_index.store(last_committed_index, mutil::memory_order_relaxed);
         lck.unlock();
         // The order doesn't matter
         _waiter->on_committed(last_committed_index);
@@ -108,7 +107,7 @@ namespace melon::raft {
         << "pending_index " << _pending_index << " pending_meta_queue "
         << _pending_meta_queue.size();
         CHECK_GT(new_pending_index, _last_committed_index.load(
-                butil::memory_order_relaxed));
+                mutil::memory_order_relaxed));
         _pending_index = new_pending_index;
         _closure_queue->reset_first_index(new_pending_index);
         return 0;
@@ -140,11 +139,11 @@ namespace melon::raft {
             return -1;
         }
         if (last_committed_index <
-            _last_committed_index.load(butil::memory_order_relaxed)) {
+            _last_committed_index.load(mutil::memory_order_relaxed)) {
             return EINVAL;
         }
-        if (last_committed_index > _last_committed_index.load(butil::memory_order_relaxed)) {
-            _last_committed_index.store(last_committed_index, butil::memory_order_relaxed);
+        if (last_committed_index > _last_committed_index.load(mutil::memory_order_relaxed)) {
+            _last_committed_index.store(last_committed_index, mutil::memory_order_relaxed);
             lck.unlock();
             _waiter->on_committed(last_committed_index);
         }

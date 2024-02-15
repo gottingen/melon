@@ -21,7 +21,7 @@
 
 #include <google/protobuf/message.h>
 #include "melon/rpc/nshead.h"                     // nshead_t
-#include "melon/butil/iobuf.h"                     // IOBuf
+#include "melon/utility/iobuf.h"                     // IOBuf
 #include "melon/proto/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
@@ -31,7 +31,7 @@ namespace melon {
 class NsheadMessage : public ::google::protobuf::Message {
 public:
     nshead_t head;
-    butil::IOBuf body;
+    mutil::IOBuf body;
     
 public:
     NsheadMessage();

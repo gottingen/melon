@@ -23,9 +23,9 @@
 #include <unordered_map>
 #include <memory>
 #include <list>
-#include "melon/butil/iobuf.h"
-#include "melon/butil/strings/string_piece.h"
-#include "melon/butil/arena.h"
+#include "melon/utility/iobuf.h"
+#include "melon/utility/strings/string_piece.h"
+#include "melon/utility/arena.h"
 #include "melon/proto/rpc/proto_base.pb.h"
 #include "melon/rpc/redis/redis_reply.h"
 #include "melon/rpc/parse_result.h"
@@ -69,14 +69,14 @@ namespace melon {
         // Concatenate components into a redis command, similarly with
         // redisCommandArgv() in hiredis.
         // Example:
-        //   butil::StringPiece components[] = { "set", "key", "value" };
+        //   mutil::StringPiece components[] = { "set", "key", "value" };
         //   request.AddCommandByComponents(components, arraysize(components));
-        bool AddCommandByComponents(const butil::StringPiece *components, size_t n);
+        bool AddCommandByComponents(const mutil::StringPiece *components, size_t n);
 
         // Add a command with variadic args to this request.
         // The reason that adding so many overloads rather than using ... is that
         // it's the only way to dispatch the AddCommand w/o args differently.
-        bool AddCommand(const butil::StringPiece &command);
+        bool AddCommand(const mutil::StringPiece &command);
 
         template<typename A1>
         bool AddCommand(const char *format, A1 a1) { return AddCommandWithArgs(format, a1); }
@@ -109,7 +109,7 @@ namespace melon {
         bool has_error() const { return _has_error; }
 
         // Serialize the request into `buf'. Return true on success.
-        bool SerializeTo(butil::IOBuf *buf) const;
+        bool SerializeTo(mutil::IOBuf *buf) const;
 
         // Protobuf methods.
         RedisRequest *New() const PB_319_OVERRIDE;
@@ -163,7 +163,7 @@ namespace melon {
 
         int _ncommand;    // # of valid commands
         bool _has_error;  // previous AddCommand had error
-        butil::IOBuf _buf;  // the serialized request.
+        mutil::IOBuf _buf;  // the serialized request.
         mutable int _cached_size_;  // ByteSize
     };
 
@@ -202,7 +202,7 @@ namespace melon {
         // Returns PARSE_OK on success.
         // Returns PARSE_ERROR_NOT_ENOUGH_DATA if data in `buf' is not enough to parse.
         // Returns PARSE_ERROR_ABSOLUTELY_WRONG if the parsing failed.
-        ParseError ConsumePartialIOBuf(butil::IOBuf &buf, int reply_count);
+        ParseError ConsumePartialIOBuf(mutil::IOBuf &buf, int reply_count);
 
         // implements Message ----------------------------------------------
 
@@ -253,7 +253,7 @@ namespace melon {
 
         RedisReply _first_reply;
         RedisReply *_other_replies;
-        butil::Arena _arena;
+        mutil::Arena _arena;
         int _nreply;
         mutable int _cached_size_;
     };
@@ -274,7 +274,7 @@ namespace melon {
         bool AddCommandHandler(const std::string &name, RedisCommandHandler *handler);
 
         // This function should not be touched by user and used by brpc deverloper only.
-        RedisCommandHandler *FindCommandHandler(const butil::StringPiece &name) const;
+        RedisCommandHandler *FindCommandHandler(const mutil::StringPiece &name) const;
 
     private:
         typedef std::unordered_map<std::string, RedisCommandHandler *> CommandMap;
@@ -310,7 +310,7 @@ namespace melon {
         // an start marker and brpc will call MultiTransactionHandler() to new a transaction
         // handler that all the following commands are sent to this tranction handler until
         // it returns REDIS_CMD_HANDLED. Read the comment below.
-        virtual RedisCommandHandlerResult Run(const std::vector<butil::StringPiece> &args,
+        virtual RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece> &args,
                                               melon::RedisReply *output,
                                               bool flush_batched) = 0;
 

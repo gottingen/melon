@@ -24,9 +24,9 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/gperftools_profiler.h"
-#include "melon/butil/time.h"
-#include "melon/butil/macros.h"
+#include "melon/utility/gperftools_profiler.h"
+#include "melon/utility/time.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/server.h"
 #include "melon/rpc/channel.h"
@@ -46,7 +46,7 @@
 #include "melon/builtin/rpcz_service.h"         // RpczService
 #include "melon/builtin/dir_service.h"          // DirService
 #include "melon/builtin/pprof_service.h"        // PProfService
-#include "melon/builtin/bthreads_service.h"     // BthreadsService
+#include "melon/builtin/fibers_service.h"     // FibersService
 #include "melon/builtin/ids_service.h"          // IdsService
 #include "melon/builtin/sockets_service.h"      // SocketsService
 #include "melon/builtin/memory_service.h"
@@ -84,7 +84,7 @@ public:
         melon::ClosureGuard done_guard(done);
         TRACEPRINTF("MyAnnotation: %ld", cntl->log_id());
         if (req->sleep_us() > 0) {
-            bthread_usleep(req->sleep_us());
+            fiber_usleep(req->sleep_us());
         }
         char buf[32];
         snprintf(buf, sizeof(buf), "%" PRIu64, cntl->trace_id());
@@ -134,7 +134,7 @@ void CheckFieldInContent(const melon::Controller& cntl,
 void CheckAnnotation(const melon::Controller& cntl, int64_t expect) {
     const std::string& content = cntl.response_attachment().to_string();
     std::string expect_str;
-    butil::string_printf(&expect_str, "MyAnnotation: %" PRId64, expect);
+    mutil::string_printf(&expect_str, "MyAnnotation: %" PRId64, expect);
     std::size_t pos = content.find(expect_str);
     ASSERT_TRUE(pos != std::string::npos) << expect;
 }
@@ -223,7 +223,7 @@ protected:
         melon::Controller cntl;
         ClosureChecker done;
         SetUpController(&cntl, use_html);
-        butil::EndPoint ep;
+        mutil::EndPoint ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9798", &ep));
         ASSERT_EQ(0, _server.Start(ep, nullptr));
         int self_port = -1;
@@ -273,7 +273,7 @@ protected:
             service.default_method(&cntl, &req, &res, &done);
             EXPECT_FALSE(cntl.Failed());
             EXPECT_EQ(expect_type, cntl.http_response().content_type());
-            CheckContent(cntl, "bthread_concurrency");
+            CheckContent(cntl, "fiber_concurrency");
         }
         {
             ClosureChecker done;
@@ -375,7 +375,7 @@ protected:
         
         ASSERT_EQ(0, _server.AddService(new EchoServiceImpl(),
                                         melon::SERVER_OWNS_SERVICE));
-        butil::EndPoint ep;
+        mutil::EndPoint ep;
         ASSERT_EQ(0, str2endpoint("127.0.0.1:9748", &ep));
         ASSERT_EQ(0, _server.Start(ep, nullptr));
         melon::Channel channel;
@@ -815,15 +815,15 @@ TEST_F(BuiltinServiceTest, ids) {
         cntl.http_request()._unresolved_path = "not_valid";
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_TRUE(cntl.Failed());
-        CheckErrorText(cntl, "is not a bthread_id");
+        CheckErrorText(cntl, "is not a fiber_session");
     }    
     {
-        bthread_id_t id;
-        EXPECT_EQ(0, bthread_id_create(&id, nullptr, nullptr));
+        fiber_session_t id;
+        EXPECT_EQ(0, fiber_session_create(&id, nullptr, nullptr));
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
-        butil::string_printf(&id_string, "%llu", (unsigned long long)id.value);
+        mutil::string_printf(&id_string, "%llu", (unsigned long long)id.value);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
@@ -831,21 +831,21 @@ TEST_F(BuiltinServiceTest, ids) {
     }    
 }
 
-void* dummy_bthread(void*) {
-    bthread_usleep(1000000);
+void* dummy_fiber(void*) {
+    fiber_usleep(1000000);
     return nullptr;
 }
 
-TEST_F(BuiltinServiceTest, bthreads) {
-    melon::BthreadsService service;
-    melon::BthreadsRequest req;
-    melon::BthreadsResponse res;
+TEST_F(BuiltinServiceTest, fibers) {
+    melon::FibersService service;
+    melon::FibersRequest req;
+    melon::FibersResponse res;
     {
         ClosureChecker done;
         melon::Controller cntl;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
-        CheckContent(cntl, "Use /bthreads/<bthread_id>");
+        CheckContent(cntl, "Use /fibers/<fiber_session>");
     }    
     {
         ClosureChecker done;
@@ -853,15 +853,15 @@ TEST_F(BuiltinServiceTest, bthreads) {
         cntl.http_request()._unresolved_path = "not_valid";
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_TRUE(cntl.Failed());
-        CheckErrorText(cntl, "is not a bthread id");
+        CheckErrorText(cntl, "is not a fiber id");
     }    
     {
-        bthread_t th;
-        EXPECT_EQ(0, bthread_start_background(&th, nullptr, dummy_bthread, nullptr));
+        fiber_t th;
+        EXPECT_EQ(0, fiber_start_background(&th, nullptr, dummy_fiber, nullptr));
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
-        butil::string_printf(&id_string, "%llu", (unsigned long long)th);
+        mutil::string_printf(&id_string, "%llu", (unsigned long long)th);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
@@ -895,7 +895,7 @@ TEST_F(BuiltinServiceTest, sockets) {
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
-        butil::string_printf(&id_string, "%llu", (unsigned long long)id);
+        mutil::string_printf(&id_string, "%llu", (unsigned long long)id);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());

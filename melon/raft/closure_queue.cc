@@ -14,7 +14,7 @@
 
 // Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
 
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/unstable.h>
 #include "melon/raft/closure_queue.h"
 #include "melon/raft/raft.h"
 
@@ -34,17 +34,17 @@ namespace melon::raft {
             saved_queue.swap(_queue);
             _first_index = 0;
         }
-        bool run_bthread = false;
+        bool run_fiber = false;
         for (std::deque<Closure *>::iterator
                      it = saved_queue.begin(); it != saved_queue.end(); ++it) {
             if (*it) {
                 (*it)->status().set_error(EPERM, "leader stepped down");
-                run_closure_in_bthread_nosig(*it, _usercode_in_pthread);
-                run_bthread = true;
+                run_closure_in_fiber_nosig(*it, _usercode_in_pthread);
+                run_fiber = true;
             }
         }
-        if (run_bthread) {
-            bthread_flush();
+        if (run_fiber) {
+            fiber_flush();
         }
     }
 

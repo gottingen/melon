@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/strings/string_tokenizer.h"
+#include "melon/utility/strings/string_tokenizer.h"
 
 #include <gtest/gtest.h>
 
 using std::string;
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -231,4 +231,4 @@ TEST(StringTokenizerTest, ParseQuotedString_EscapedQuotes2) {
 
 }  // namespace
 
-}  // namespace butil
+}  // namespace mutil

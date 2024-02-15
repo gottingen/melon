@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-
 #ifndef MELON_RAFT_RAFT_UTIL_H_
 #define MELON_RAFT_RAFT_UTIL_H_
 
@@ -25,21 +22,21 @@
 #include <stdlib.h>
 #include <string>
 #include <set>
-#include <melon/butil/third_party/murmurhash3/murmurhash3.h>
-#include <melon/butil/endpoint.h>
-#include <melon/butil/scoped_lock.h>
-#include <melon/butil/fast_rand.h>
-#include <melon/butil/time.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/iobuf.h>
-#include <melon/butil/unique_ptr.h>
-#include <melon/butil/memory/singleton.h>
-#include <melon/butil/containers/doubly_buffered_data.h>
-#include <melon/butil/crc32c.h>
-#include <melon/butil/file_util.h>
-#include <melon/bthread/bthread.h>
-#include <melon/bthread/unstable.h>
-#include <melon/bthread/countdown_event.h>
+#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/utility/endpoint.h>
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/fast_rand.h>
+#include <melon/utility/time.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/unique_ptr.h>
+#include <melon/utility/memory/singleton.h>
+#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/utility/crc32c.h>
+#include <melon/utility/file_util.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/unstable.h>
+#include <melon/fiber/countdown_event.h>
 #include <melon/var/var.h>
 #include "melon/raft/macros.h"
 #include "melon/raft/raft.h"
@@ -89,22 +86,22 @@ namespace melon::var {
 
         explicit CounterRecorder(time_t window_size) : Base(window_size) {}
 
-        explicit CounterRecorder(const butil::StringPiece &prefix) : Base(-1) {
+        explicit CounterRecorder(const mutil::StringPiece &prefix) : Base(-1) {
             expose(prefix);
         }
 
-        CounterRecorder(const butil::StringPiece &prefix,
+        CounterRecorder(const mutil::StringPiece &prefix,
                         time_t window_size) : Base(window_size) {
             expose(prefix);
         }
 
-        CounterRecorder(const butil::StringPiece &prefix1,
-                        const butil::StringPiece &prefix2) : Base(-1) {
+        CounterRecorder(const mutil::StringPiece &prefix1,
+                        const mutil::StringPiece &prefix2) : Base(-1) {
             expose(prefix1, prefix2);
         }
 
-        CounterRecorder(const butil::StringPiece &prefix1,
-                        const butil::StringPiece &prefix2,
+        CounterRecorder(const mutil::StringPiece &prefix1,
+                        const mutil::StringPiece &prefix2,
                         time_t window_size) : Base(window_size) {
             expose(prefix1, prefix2);
         }
@@ -126,12 +123,12 @@ namespace melon::var {
         //                                    // foo_bar_apply_max_counter
         //                                    // foo_bar_apply_total_times
         //                                    // foo_bar_apply_qps
-        int expose(const butil::StringPiece &prefix) {
-            return expose(butil::StringPiece(), prefix);
+        int expose(const mutil::StringPiece &prefix) {
+            return expose(mutil::StringPiece(), prefix);
         }
 
-        int expose(const butil::StringPiece &prefix1,
-                   const butil::StringPiece &prefix2);
+        int expose(const mutil::StringPiece &prefix1,
+                   const mutil::StringPiece &prefix2);
 
         // Hide all internal variables, called in dtor as well.
         void hide();
@@ -200,102 +197,102 @@ namespace melon::raft {
 
     inline uint32_t murmurhash32(const void *key, int len) {
         uint32_t hash = 0;
-        butil::MurmurHash3_x86_32(key, len, 0, &hash);
+        mutil::MurmurHash3_x86_32(key, len, 0, &hash);
         return hash;
     }
 
-    inline uint32_t murmurhash32(const butil::IOBuf &buf) {
-        butil::MurmurHash3_x86_32_Context ctx;
-        butil::MurmurHash3_x86_32_Init(&ctx, 0);
+    inline uint32_t murmurhash32(const mutil::IOBuf &buf) {
+        mutil::MurmurHash3_x86_32_Context ctx;
+        mutil::MurmurHash3_x86_32_Init(&ctx, 0);
         const size_t block_num = buf.backing_block_num();
         for (size_t i = 0; i < block_num; ++i) {
-            butil::StringPiece sp = buf.backing_block(i);
+            mutil::StringPiece sp = buf.backing_block(i);
             if (!sp.empty()) {
-                butil::MurmurHash3_x86_32_Update(&ctx, sp.data(), sp.size());
+                mutil::MurmurHash3_x86_32_Update(&ctx, sp.data(), sp.size());
             }
         }
         uint32_t hash = 0;
-        butil::MurmurHash3_x86_32_Final(&hash, &ctx);
+        mutil::MurmurHash3_x86_32_Final(&hash, &ctx);
         return hash;
     }
 
     inline uint32_t crc32(const void *key, int len) {
-        return butil::crc32c::Value((const char *) key, len);
+        return mutil::crc32c::Value((const char *) key, len);
     }
 
-    inline uint32_t crc32(const butil::IOBuf &buf) {
+    inline uint32_t crc32(const mutil::IOBuf &buf) {
         uint32_t hash = 0;
         const size_t block_num = buf.backing_block_num();
         for (size_t i = 0; i < block_num; ++i) {
-            butil::StringPiece sp = buf.backing_block(i);
+            mutil::StringPiece sp = buf.backing_block(i);
             if (!sp.empty()) {
-                hash = butil::crc32c::Extend(hash, sp.data(), sp.size());
+                hash = mutil::crc32c::Extend(hash, sp.data(), sp.size());
             }
         }
         return hash;
     }
 
-// Start a bthread to run closure
-    void run_closure_in_bthread(::google::protobuf::Closure *closure,
+// Start a fiber to run closure
+    void run_closure_in_fiber(::google::protobuf::Closure *closure,
                                 bool in_pthread = false);
 
-    struct RunClosureInBthread {
+    struct RunClosureInFiber {
         void operator()(google::protobuf::Closure *done) {
-            return run_closure_in_bthread(done);
+            return run_closure_in_fiber(done);
         }
     };
 
-    typedef std::unique_ptr<google::protobuf::Closure, RunClosureInBthread>
+    typedef std::unique_ptr<google::protobuf::Closure, RunClosureInFiber>
             AsyncClosureGuard;
 
-// Start a bthread to run closure without signal other worker thread to steal
-// it. You should call bthread_flush() at last.
-    void run_closure_in_bthread_nosig(::google::protobuf::Closure *closure,
+// Start a fiber to run closure without signal other worker thread to steal
+// it. You should call fiber_flush() at last.
+    void run_closure_in_fiber_nosig(::google::protobuf::Closure *closure,
                                       bool in_pthread = false);
 
-    struct RunClosureInBthreadNoSig {
+    struct RunClosureInFiberNoSig {
         void operator()(google::protobuf::Closure *done) {
-            return run_closure_in_bthread_nosig(done);
+            return run_closure_in_fiber_nosig(done);
         }
     };
 
-    ssize_t file_pread(butil::IOPortal *portal, int fd, off_t offset, size_t size);
+    ssize_t file_pread(mutil::IOPortal *portal, int fd, off_t offset, size_t size);
 
-    ssize_t file_pwrite(const butil::IOBuf &data, int fd, off_t offset);
+    ssize_t file_pwrite(const mutil::IOBuf &data, int fd, off_t offset);
 
 // unsequence file data, reduce the overhead of copy some files have hole.
     class FileSegData {
     public:
         // for reader
-        FileSegData(const butil::IOBuf &data)
-                : _data(data), _seg_header(butil::IOBuf::INVALID_AREA), _seg_offset(0), _seg_len(0) {}
+        FileSegData(const mutil::IOBuf &data)
+                : _data(data), _seg_header(mutil::IOBuf::INVALID_AREA), _seg_offset(0), _seg_len(0) {}
 
         // for writer
-        FileSegData() : _seg_header(butil::IOBuf::INVALID_AREA), _seg_offset(0), _seg_len(0) {}
+        FileSegData() : _seg_header(mutil::IOBuf::INVALID_AREA), _seg_offset(0), _seg_len(0) {}
 
         ~FileSegData() {
             close();
         }
 
         // writer append
-        void append(const butil::IOBuf &data, uint64_t offset);
+        void append(const mutil::IOBuf &data, uint64_t offset);
 
         void append(void *data, uint64_t offset, uint32_t len);
 
         // writer get
-        butil::IOBuf &data() {
+        mutil::IOBuf &data() {
             close();
             return _data;
         }
 
         // read next, NEED clear data when call next in loop
-        size_t next(uint64_t *offset, butil::IOBuf *data);
+        size_t next(uint64_t *offset, mutil::IOBuf *data);
 
     private:
         void close();
 
-        butil::IOBuf _data;
-        butil::IOBuf::Area _seg_header;
+        mutil::IOBuf _data;
+        mutil::IOBuf::Area _seg_header;
         uint64_t _seg_offset;
         uint32_t _seg_len;
     };
@@ -322,7 +319,7 @@ namespace melon::raft {
         }
 
     private:
-        bthread::CountdownEvent _event;
+        fiber::CountdownEvent _event;
     };
 
 }  //  namespace melon::raft

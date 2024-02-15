@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-
 #include "melon/raft/cli_service.h"
 
 #include <melon/rpc/controller.h>       // melon::Controller
@@ -28,7 +26,7 @@ namespace melon::raft {
                                   std::vector<PeerId> old_peers,
                                   scoped_refptr<NodeImpl> /*node*/,
                                   ::google::protobuf::Closure *done,
-                                  const butil::Status &st) {
+                                  const mutil::Status &st) {
         melon::ClosureGuard done_guard(done);
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
@@ -54,7 +52,7 @@ namespace melon::raft {
         melon::Controller *cntl = (melon::Controller *) controller;
         melon::ClosureGuard done_guard(done);
         scoped_refptr<NodeImpl> node;
-        butil::Status st = get_node(&node, request->group_id(), request->leader_id());
+        mutil::Status st = get_node(&node, request->group_id(), request->leader_id());
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
             return;
@@ -86,7 +84,7 @@ namespace melon::raft {
                                      std::vector<PeerId> old_peers,
                                      scoped_refptr<NodeImpl> /*node*/,
                                      ::google::protobuf::Closure *done,
-                                     const butil::Status &st) {
+                                     const mutil::Status &st) {
         melon::ClosureGuard done_guard(done);
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
@@ -107,7 +105,7 @@ namespace melon::raft {
         melon::Controller *cntl = (melon::Controller *) controller;
         melon::ClosureGuard done_guard(done);
         scoped_refptr<NodeImpl> node;
-        butil::Status st = get_node(&node, request->group_id(), request->leader_id());
+        mutil::Status st = get_node(&node, request->group_id(), request->leader_id());
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
             return;
@@ -140,7 +138,7 @@ namespace melon::raft {
         melon::Controller *cntl = (melon::Controller *) controller;
         melon::ClosureGuard done_guard(done);
         scoped_refptr<NodeImpl> node;
-        butil::Status st = get_node(&node, request->group_id(), request->peer_id());
+        mutil::Status st = get_node(&node, request->group_id(), request->peer_id());
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
             return;
@@ -166,7 +164,7 @@ namespace melon::raft {
     static void snapshot_returned(melon::Controller *cntl,
                                   scoped_refptr<NodeImpl> node,
                                   ::google::protobuf::Closure *done,
-                                  const butil::Status &st) {
+                                  const mutil::Status &st) {
         melon::ClosureGuard done_guard(done);
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
@@ -181,7 +179,7 @@ namespace melon::raft {
         melon::Controller *cntl = (melon::Controller *) controller;
         melon::ClosureGuard done_guard(done);
         scoped_refptr<NodeImpl> node;
-        butil::Status st = get_node(&node, request->group_id(), request->peer_id());
+        mutil::Status st = get_node(&node, request->group_id(), request->peer_id());
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
             return;
@@ -229,13 +227,13 @@ namespace melon::raft {
         cntl->SetFailed(EAGAIN, "Unknown leader");
     }
 
-    butil::Status CliServiceImpl::get_node(scoped_refptr<NodeImpl> *node,
+    mutil::Status CliServiceImpl::get_node(scoped_refptr<NodeImpl> *node,
                                            const GroupId &group_id,
                                            const std::string &peer_id) {
         if (!peer_id.empty()) {
             *node = global_node_manager->get(group_id, peer_id);
             if (!(*node)) {
-                return butil::Status(ENOENT, "Fail to find node %s in group %s",
+                return mutil::Status(ENOENT, "Fail to find node %s in group %s",
                                      peer_id.c_str(),
                                      group_id.c_str());
             }
@@ -243,11 +241,11 @@ namespace melon::raft {
             std::vector<scoped_refptr<NodeImpl> > nodes;
             global_node_manager->get_nodes_by_group_id(group_id, &nodes);
             if (nodes.empty()) {
-                return butil::Status(ENOENT, "Fail to find node in group %s",
+                return mutil::Status(ENOENT, "Fail to find node in group %s",
                                      group_id.c_str());
             }
             if (nodes.size() > 1) {
-                return butil::Status(EINVAL, "peer must be specified "
+                return mutil::Status(EINVAL, "peer must be specified "
                                              "since there're %lu nodes in group %s",
                                      nodes.size(), group_id.c_str());
             }
@@ -255,11 +253,11 @@ namespace melon::raft {
         }
 
         if ((*node)->disable_cli()) {
-            return butil::Status(EACCES, "CliService is not allowed to access node "
+            return mutil::Status(EACCES, "CliService is not allowed to access node "
                                          "%s", (*node)->node_id().to_string().c_str());
         }
 
-        return butil::Status::OK();
+        return mutil::Status::OK();
     }
 
     static void change_peers_returned(melon::Controller *cntl,
@@ -269,7 +267,7 @@ namespace melon::raft {
                                       Configuration new_peers,
                                       scoped_refptr<NodeImpl> /*node*/,
                                       ::google::protobuf::Closure *done,
-                                      const butil::Status &st) {
+                                      const mutil::Status &st) {
         melon::ClosureGuard done_guard(done);
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
@@ -291,7 +289,7 @@ namespace melon::raft {
         melon::Controller *cntl = (melon::Controller *) controller;
         melon::ClosureGuard done_guard(done);
         scoped_refptr<NodeImpl> node;
-        butil::Status st = get_node(&node, request->group_id(), request->leader_id());
+        mutil::Status st = get_node(&node, request->group_id(), request->leader_id());
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
             return;
@@ -327,7 +325,7 @@ namespace melon::raft {
         melon::Controller *cntl = (melon::Controller *) controller;
         melon::ClosureGuard done_guard(done);
         scoped_refptr<NodeImpl> node;
-        butil::Status st = get_node(&node, request->group_id(), request->leader_id());
+        mutil::Status st = get_node(&node, request->group_id(), request->leader_id());
         if (!st.ok()) {
             cntl->SetFailed(st.error_code(), "%s", st.error_cstr());
             return;

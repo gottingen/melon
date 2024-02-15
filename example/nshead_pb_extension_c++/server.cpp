@@ -19,7 +19,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/nshead_pb_service_adaptor.h>
 #include "echo.pb.h"

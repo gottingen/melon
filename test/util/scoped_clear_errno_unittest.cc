@@ -4,10 +4,10 @@
 
 #include <errno.h>
 
-#include "melon/butil/scoped_clear_errno.h"
+#include "melon/utility/scoped_clear_errno.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 TEST(ScopedClearErrno, TestNoError) {
   errno = 1;
@@ -27,4 +27,4 @@ TEST(ScopedClearErrno, TestError) {
   EXPECT_EQ(2, errno);
 }
 
-}  // namespace butil
+}  // namespace mutil

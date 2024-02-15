@@ -18,7 +18,7 @@
 
 #include <gflags/gflags.h>                  // DECLARE_xxx
 #include <google/protobuf/descriptor.h>
-#include "melon/butil/time.h"                      // gettimeofday_us
+#include "melon/utility/time.h"                      // gettimeofday_us
 #include "melon/rpc/server.h"                    // Server
 #include "melon/builtin/index_service.h"
 #include "melon/builtin/status_service.h"
@@ -62,11 +62,11 @@ namespace melon {
         }
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
-        const butil::EndPoint *const html_addr = (use_html ? Path::LOCAL : NULL);
+        const mutil::EndPoint *const html_addr = (use_html ? Path::LOCAL : NULL);
         const char *const NL = (use_html ? "<br>\n" : "\n");
         const char *const SP = (use_html ? "&nbsp;" : "  ");
 
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         if (use_html) {
             os << "<!DOCTYPE html><html>";
             if (as_more) {
@@ -115,7 +115,7 @@ namespace melon {
                << SP << Path("/rpcz/stats", html_addr) << " : Statistics of rpcz" << NL;
 
             std::ostringstream tmp_oss;
-            const int64_t seconds_before = butil::gettimeofday_us() - 30 * 1000000L;
+            const int64_t seconds_before = mutil::gettimeofday_us() - 30 * 1000000L;
             tmp_oss << "/rpcz?" << TIME_STR << '=';
             PrintRealDateTime(tmp_oss, seconds_before, true);
             os << SP << Path(tmp_oss.str().c_str(), html_addr)
@@ -145,10 +145,10 @@ namespace melon {
                << " : Profiling contention of lock" << NL;
         }
         os << "curl -H 'Content-Type: application/json' -d 'JSON' ";
-        if (butil::is_endpoint_extended(server->listen_address())) {
+        if (mutil::is_endpoint_extended(server->listen_address())) {
             os << "<listen_address>";
         } else {
-            const butil::EndPoint my_addr(butil::my_ip(), server->listen_address().port);
+            const mutil::EndPoint my_addr(mutil::my_ip(), server->listen_address().port);
             os << my_addr;
         }
         os << "/ServiceName/MethodName : Call method by http+json" << NL
@@ -158,8 +158,8 @@ namespace melon {
            << Path("/health", html_addr) << " : Test healthy" << NL
            << Path("/vlog", html_addr) << " : List all VLOG callsites" << NL
            << Path("/sockets", html_addr) << " : Check status of a Socket" << NL
-           << Path("/bthreads", html_addr) << " : Check status of a bthread" << NL
-           << Path("/ids", html_addr) << " : Check status of a bthread_id" << NL
+           << Path("/fibers", html_addr) << " : Check status of a fiber" << NL
+           << Path("/ids", html_addr) << " : Check status of a fiber_session" << NL
            << Path("/protobufs", html_addr) << " : List all protobuf services and messages" << NL
            << Path("/list", html_addr) << " : json signature of methods" << NL
            << Path("/threads", html_addr) << " : Check pstack"

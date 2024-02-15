@@ -16,7 +16,7 @@
 // under the License.
 
 #include <gtest/gtest.h>
-#include "melon/butil/unique_ptr.h"
+#include "melon/utility/unique_ptr.h"
 
 namespace {
 

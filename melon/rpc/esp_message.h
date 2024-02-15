@@ -25,7 +25,7 @@
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
 
 #include "melon/rpc/esp_head.h"
-#include "melon/butil/iobuf.h"
+#include "melon/utility/iobuf.h"
 #include "melon/proto/rpc/proto_base.pb.h"
 #include "melon/rpc/pb_compat.h"
 
@@ -34,7 +34,7 @@ namespace melon {
 class EspMessage : public ::google::protobuf::Message {
 public:
     EspHead head;
-    butil::IOBuf body;
+    mutil::IOBuf body;
 
 public:
     EspMessage();

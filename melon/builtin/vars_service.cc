@@ -18,7 +18,7 @@
 
 #include <ostream>
 #include <vector>                           // std::vector
-#include "melon/butil/string_splitter.h"
+#include "melon/utility/string_splitter.h"
 #include "melon/var/var.h"
 
 #include "melon/rpc/closure_guard.h"        // ClosureGuard
@@ -260,10 +260,10 @@ namespace melon {
 
     class VarsDumper : public melon::var::Dumper {
     public:
-        explicit VarsDumper(butil::IOBufBuilder &os, bool use_html)
+        explicit VarsDumper(mutil::IOBufBuilder &os, bool use_html)
                 : _os(os), _use_html(use_html) {}
 
-        bool dump(const std::string &name, const butil::StringPiece &desc) {
+        bool dump(const std::string &name, const mutil::StringPiece &desc) {
             bool plot = false;
             if (_use_html) {
                 melon::var::SeriesOptions series_options;
@@ -294,14 +294,14 @@ namespace melon {
             return true;
         }
 
-        void move_to(butil::IOBuf &buf) {
+        void move_to(mutil::IOBuf &buf) {
             _os.move_to(buf);
         }
 
     private:
         DISALLOW_COPY_AND_ASSIGN(VarsDumper);
 
-        butil::IOBufBuilder &_os;
+        mutil::IOBufBuilder &_os;
         bool _use_html;
     };
 
@@ -312,7 +312,7 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         if (cntl->http_request().uri().GetQuery("series") != NULL) {
-            butil::IOBufBuilder os;
+            mutil::IOBufBuilder os;
             melon::var::SeriesOptions series_options;
             const int rc = melon::var::Variable::describe_series_exposed(
                     cntl->http_request().unresolved_path(), os, series_options);
@@ -336,7 +336,7 @@ namespace melon {
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
 
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         if (with_tabs) {
             os << "<!DOCTYPE html><html><head>\n"
                   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n";
@@ -350,10 +350,10 @@ namespace melon {
                   "  }\n"
                   // Normalize ;,\s\* to space, trim beginning/ending spaces and
                   // replace all spaces with *;* and add beginning/ending *
-                  //   iobuf,bthread         -> *iobuf*;*bthread*
+                  //   iobuf,fiber         -> *iobuf*;*fiber*
                   //   iobuf,                -> *iobuf*
                   //   ;,iobuf               -> *iobuf*
-                  //   ,;*iobuf*, bthread;,; -> *iobuf*;*bthread*
+                  //   ,;*iobuf*, fiber;,; -> *iobuf*;*fiber*
                   "  text = text.replace(/(;|,|\\s|\\*)+/g, ' ').trim()"
                   "             .replace(/ /g, '*;*');\n"
                   "  if (text == '') {\n"

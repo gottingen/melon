@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/environment.h"
-#include "melon/butil/memory/scoped_ptr.h"
+#include "melon/utility/environment.h"
+#include "melon/utility/memory/scoped_ptr.h"
 #include <gtest/gtest.h>
 #include <gtest/gtest.h>
 
 typedef testing::Test EnvironmentTest;
 
-namespace butil {
+namespace mutil {
 
 TEST_F(EnvironmentTest, GetVar) {
   // Every setup should have non-empty PATH...
@@ -161,4 +161,4 @@ TEST_F(EnvironmentTest, AlterEnvironment) {
 
 #endif
 
-}  // namespace butil
+}  // namespace mutil

@@ -24,8 +24,8 @@
 #include <sstream>                      // std::ostringstream
 #include <list>                         // std::list
 #include <string>                       // std::string
-#include "melon/butil/macros.h"               // DISALLOW_COPY_AND_ASSIGN
-#include "melon/butil/strings/string_piece.h" // butil::StringPiece
+#include "melon/utility/macros.h"               // DISALLOW_COPY_AND_ASSIGN
+#include "melon/utility/strings/string_piece.h" // mutil::StringPiece
 
 namespace melon::var {
 
@@ -59,14 +59,14 @@ namespace melon::var {
         //      list_exposed
         //      count_exposed
         // Return 0 on success, -1 otherwise.
-        int expose(const butil::StringPiece &name) {
-            return expose_impl(butil::StringPiece(), name);
+        int expose(const mutil::StringPiece &name) {
+            return expose_impl(mutil::StringPiece(), name);
         }
 
         // Expose this mvariable globally with a prefix
         // Return 0 on success, -1 otherwise.
-        int expose_as(const butil::StringPiece &prefix,
-                      const butil::StringPiece &name) {
+        int expose_as(const mutil::StringPiece &prefix,
+                      const mutil::StringPiece &name) {
             return expose_impl(prefix, name);
         }
 
@@ -109,8 +109,8 @@ namespace melon::var {
 #endif
 
     protected:
-        int expose_impl(const butil::StringPiece &prefix,
-                        const butil::StringPiece &name);
+        int expose_impl(const mutil::StringPiece &prefix,
+                        const mutil::StringPiece &name);
 
     protected:
         std::string _name;

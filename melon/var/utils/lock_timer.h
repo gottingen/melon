@@ -20,9 +20,9 @@
 #ifndef  MELON_UTILS_VAR_LOCK_TIMER_H_
 #define  MELON_UTILS_VAR_LOCK_TIMER_H_
 
-#include "melon/butil/time.h"             // butil::Timer
-#include "melon/butil/scoped_lock.h"      // std::lock_guard std::unique_lock
-#include "melon/butil/macros.h"           // DISALLOW_COPY_AND_ASSIGN
+#include "melon/utility/time.h"             // mutil::Timer
+#include "melon/utility/scoped_lock.h"      // std::lock_guard std::unique_lock
+#include "melon/utility/macros.h"           // DISALLOW_COPY_AND_ASSIGN
 
 #include "melon/var/recorder.h"         // IntRecorder
 #include "melon/var/latency_recorder.h" // LatencyRecorder
@@ -60,7 +60,7 @@
 // typedef ::melon::var::MutexWithLatencyRecorder<pthread_mutex_t> my_mutex_t;
 //                                       // ^^^
 //                                       // you can use std::mutex (since c++11)
-//                                       // or bthread_mutex_t (in bthread)
+//                                       // or fiber_mutex_t (in fiber)
 //
 // // Define the mutex
 // my_mutex_t mutex(g_mutex_contention);
@@ -204,13 +204,13 @@ namespace melon::var {
             // This trick makes the recoding happens after the destructor of _lock_guard
             struct TimerAndMutex {
                 TimerAndMutex(Mutex &m)
-                        : timer(butil::Timer::STARTED), mutex(&m) {}
+                        : timer(mutil::Timer::STARTED), mutex(&m) {}
 
                 ~TimerAndMutex() {
                     *mutex << timer.u_elapsed();
                 }
 
-                butil::Timer timer;
+                mutil::Timer timer;
                 Mutex *mutex;
             };
 
@@ -228,7 +228,7 @@ namespace melon::var {
             typedef Mutex mutex_type;
 
             explicit UniqueLockBase(mutex_type &mutex)
-                    : _timer(butil::Timer::STARTED), _lock(mutex.mutex()),
+                    : _timer(mutil::Timer::STARTED), _lock(mutex.mutex()),
                       _mutex(&mutex) {
                 _timer.stop();
             }
@@ -238,7 +238,7 @@ namespace melon::var {
             }
 
             UniqueLockBase(mutex_type &mutex, std::try_to_lock_t try_to_lock)
-                    : _timer(butil::Timer::STARTED), _lock(mutex.mutex(), try_to_lock), _mutex(&mutex) {
+                    : _timer(mutil::Timer::STARTED), _lock(mutex.mutex(), try_to_lock), _mutex(&mutex) {
 
                 _timer.stop();
                 if (!owns_lock()) {
@@ -326,7 +326,7 @@ namespace melon::var {
 
         private:
             // Don't change the order or timer and _lck;
-            butil::Timer _timer;
+            mutil::Timer _timer;
             std::unique_lock<typename Mutex::mutex_type> _lock;
             mutex_type *_mutex;
         };

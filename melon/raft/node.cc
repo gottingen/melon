@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/unstable.h>
 #include <melon/proto/rpc/errno.pb.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
@@ -85,7 +82,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return timeout_ms;
         }
         if (timeout_ms > 0) {
-            timeout_ms = butil::fast_rand_less_than(timeout_ms) + 1;
+            timeout_ms = mutil::fast_rand_less_than(timeout_ms) + 1;
         }
         _first_schedule = false;
         return timeout_ms;
@@ -126,7 +123,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     inline int random_timeout(int timeout_ms) {
         int32_t delta = std::min(timeout_ms, FLAGS_raft_max_election_delay_ms);
-        return butil::fast_rand_in(timeout_ms, timeout_ms + delta);
+        return mutil::fast_rand_in(timeout_ms, timeout_ms + delta);
     }
 
     DEFINE_int32(raft_election_heartbeat_factor, 10, "raft election:heartbeat timeout factor");
@@ -147,7 +144,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
               _fsm_caller(nullptr), _ballot_box(nullptr), _snapshot_executor(nullptr), _stop_transfer_arg(nullptr),
               _vote_triggered(false), _waking_candidate(0), _append_entries_cache(nullptr),
               _append_entries_cache_version(0), _node_readonly(false), _majority_nodes_readonly(false) {
-        butil::string_printf(&_v_group_id, "%s_%d", _group_id.c_str(), _server_id.idx);
+        mutil::string_printf(&_v_group_id, "%s_%d", _group_id.c_str(), _server_id.idx);
         AddRef();
         g_num_nodes << 1;
     }
@@ -158,7 +155,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
               _fsm_caller(nullptr), _ballot_box(nullptr), _snapshot_executor(nullptr), _stop_transfer_arg(nullptr),
               _vote_triggered(false), _waking_candidate(0), _append_entries_cache(nullptr),
               _append_entries_cache_version(0), _node_readonly(false), _majority_nodes_readonly(false) {
-        butil::string_printf(&_v_group_id, "%s_%d", _group_id.c_str(), _server_id.idx);
+        mutil::string_printf(&_v_group_id, "%s_%d", _group_id.c_str(), _server_id.idx);
         AddRef();
         g_num_nodes << 1;
     }
@@ -168,7 +165,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             // Wait until no flying task
             _apply_queue->stop();
             _apply_queue.reset();
-            bthread::execution_queue_join(_apply_queue_id);
+            fiber::execution_queue_join(_apply_queue_id);
         }
 
         if (_config_manager) {
@@ -272,7 +269,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
 
         // check init
-        butil::Status status = _meta_storage->init();
+        mutil::Status status = _meta_storage->init();
         if (!status.ok()) {
             LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " failed to init meta storage, uri "
@@ -304,7 +301,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             // Leader to stepdown
             _current_term = last_log_id.term + 1;
             _voted_id.reset();
-            butil::Status status = _meta_storage->
+            mutil::Status status = _meta_storage->
                     set_term_and_votedfor(_current_term, PeerId(), _v_group_id);
             if (!status.ok()) {
                 LOG(ERROR) << "node " << _group_id << ":" << _server_id
@@ -408,7 +405,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         if (_current_term == 0) {
             _current_term = 1;
-            butil::Status status = _meta_storage->
+            mutil::Status status = _meta_storage->
                     set_term_and_votedfor(1, PeerId(), _v_group_id);
             if (!status.ok()) {
                 // TODO add group_id
@@ -466,7 +463,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _options = options;
 
         // check _server_id
-        if (butil::IP_ANY == _server_id.addr.ip) {
+        if (mutil::IP_ANY == _server_id.addr.ip) {
             LOG(ERROR) << "Group " << _group_id
                        << " Node can't started from IP_ANY";
             return -1;
@@ -495,7 +492,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         _config_manager = new ConfigurationManager();
 
-        if (bthread::execution_queue_start(&_apply_queue_id, nullptr,
+        if (fiber::execution_queue_start(&_apply_queue_id, nullptr,
                                            execute_applying_tasks, this) != 0) {
             LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " fail to start execution_queue";
@@ -552,7 +549,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return -1;
         }
 
-        butil::Status st = _log_manager->check_consistency();
+        mutil::Status st = _log_manager->check_consistency();
         if (!st.ok()) {
             LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " is initialized with inconsitency log: "
@@ -612,7 +609,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
 
         if (!_conf.empty()) {
-            step_down(_current_term, false, butil::Status::OK());
+            step_down(_current_term, false, mutil::Status::OK());
         }
 
         // add node to NodeManager
@@ -640,7 +637,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     BRPC_VALIDATE_GFLAG(raft_apply_batch, ::melon::PositiveInteger);
 
     int NodeImpl::execute_applying_tasks(
-            void *meta, bthread::TaskIterator<LogEntryAndClosure> &iter) {
+            void *meta, fiber::TaskIterator<LogEntryAndClosure> &iter) {
         if (iter.is_queue_stopped()) {
             return 0;
         }
@@ -671,10 +668,10 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         m.entry = entry;
         m.done = task.done;
         m.expected_term = task.expected_term;
-        if (_apply_queue->execute(m, &bthread::TASK_OPTIONS_INPLACE, nullptr) != 0) {
+        if (_apply_queue->execute(m, &fiber::TASK_OPTIONS_INPLACE, nullptr) != 0) {
             task.done->status().set_error(EPERM, "Node is down");
             entry->Release();
-            return run_closure_in_bthread(task.done);
+            return run_closure_in_fiber(task.done);
         }
     }
 
@@ -718,7 +715,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     };
 
     void NodeImpl::on_caughtup(const PeerId &peer, int64_t term,
-                               int64_t version, const butil::Status &st) {
+                               int64_t version, const mutil::Status &st) {
         MELON_SCOPED_LOCK(_mutex);
         // CHECK _state and _current_term to avoid ABA problem
         if (_state != STATE_LEADER || term != _current_term) {
@@ -738,7 +735,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // Retry if this peer is still alive
         if (st.error_code() == ETIMEDOUT
-            && (butil::monotonic_time_ms()
+            && (mutil::monotonic_time_ms()
                 - _replicator_group.last_rpc_send_timestamp(peer))
                <= _options.election_timeout_ms) {
 
@@ -746,7 +743,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                       << " waits peer " << peer << " to catch up";
 
             OnCaughtUp *caught_up = new OnCaughtUp(this, _current_term, peer, version);
-            timespec due_time = butil::milliseconds_from_now(
+            timespec due_time = mutil::milliseconds_from_now(
                     _options.get_catchup_timeout_ms());
 
             if (0 == _replicator_group.wait_caughtup(
@@ -788,7 +785,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                      << " steps down when alive nodes don't satisfy quorum"
                         " dead_nodes: " << dead_nodes
                      << " conf: " << conf;
-        butil::Status status;
+        mutil::Status status;
         status.set_error(ERAFTTIMEDOUT, "Majority of the group dies");
         step_down(_current_term, false, status);
     }
@@ -804,7 +801,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return;
         }
         check_witness(_conf.conf);
-        int64_t now = butil::monotonic_time_ms();
+        int64_t now = mutil::monotonic_time_ms();
         check_dead_nodes(_conf.conf, now);
         if (!_conf.old_conf.empty()) {
             check_dead_nodes(_conf.old_conf, now);
@@ -817,7 +814,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                          << " term " << _current_term
                          << " steps down as it's a witness but become leader temporarily"
                          << " conf: " << conf;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ETRANSFERLEADERSHIP, "Witness becomes leader temporarily");
             step_down(_current_term, true, status);
         }
@@ -836,7 +833,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 } else {
                     done->status().set_error(EPERM, "Not leader");
                 }
-                run_closure_in_bthread(done);
+                run_closure_in_fiber(done);
             }
             return;
         }
@@ -847,27 +844,27 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                          << " ] Refusing concurrent configuration changing";
             if (done) {
                 done->status().set_error(EBUSY, "Doing another configuration change");
-                run_closure_in_bthread(done);
+                run_closure_in_fiber(done);
             }
             return;
         }
 
         // Return immediately when the new peers equals to current configuration
         if (_conf.conf.equals(new_conf)) {
-            run_closure_in_bthread(done);
+            run_closure_in_fiber(done);
             return;
         }
 
         return _conf_ctx.start(old_conf, new_conf, done);
     }
 
-    butil::Status NodeImpl::list_peers(std::vector<PeerId> *peers) {
+    mutil::Status NodeImpl::list_peers(std::vector<PeerId> *peers) {
         MELON_SCOPED_LOCK(_mutex);
         if (_state != STATE_LEADER) {
-            return butil::Status(EPERM, "Not leader");
+            return mutil::Status(EPERM, "Not leader");
         }
         _conf.conf.list_peers(peers);
-        return butil::Status::OK();
+        return mutil::Status::OK();
     }
 
     void NodeImpl::add_peer(const PeerId &peer, Closure *done) {
@@ -889,40 +886,40 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         return unsafe_register_conf_change(_conf.conf, new_peers, done);
     }
 
-    butil::Status NodeImpl::reset_peers(const Configuration &new_peers) {
+    mutil::Status NodeImpl::reset_peers(const Configuration &new_peers) {
         MELON_SCOPED_LOCK(_mutex);
 
         if (new_peers.empty()) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id << " set empty peers";
-            return butil::Status(EINVAL, "new_peers is empty");
+            return mutil::Status(EINVAL, "new_peers is empty");
         }
         // check state
         if (!is_active_state(_state)) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is in state " << state2str(_state) << ", can't reset_peer";
-            return butil::Status(EPERM, "Bad state %s", state2str(_state));
+            return mutil::Status(EPERM, "Bad state %s", state2str(_state));
         }
         // check bootstrap
         if (_conf.conf.empty()) {
             LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " reset_peers to " << new_peers << " from empty";
             _conf.conf = new_peers;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ESETPEER, "Set peer from empty configuration");
             step_down(_current_term + 1, false, status);
-            return butil::Status::OK();
+            return mutil::Status::OK();
         }
 
         // check concurrent conf change
         if (_state == STATE_LEADER && _conf_ctx.is_busy()) {
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " reset_peer need wait current conf change";
-            return butil::Status(EBUSY, "Changing to another configuration");
+            return mutil::Status(EBUSY, "Changing to another configuration");
         }
 
         // check equal, maybe retry direct return
         if (_conf.conf.equals(new_peers)) {
-            return butil::Status::OK();
+            return mutil::Status::OK();
         }
 
         Configuration new_conf(new_peers);
@@ -932,10 +929,10 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // change conf and step_down
         _conf.conf = new_conf;
         _conf.old_conf.reset();
-        butil::Status status;
+        mutil::Status status;
         status.set_error(ESETPEER, "Raft node set peer normally");
         step_down(_current_term + 1, false, status);
-        return butil::Status::OK();
+        return mutil::Status::OK();
     }
 
     void NodeImpl::snapshot(Closure *done) {
@@ -950,7 +947,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         } else {
             if (done) {
                 done->status().set_error(EINVAL, "Snapshot is not supported");
-                run_closure_in_bthread(done);
+                run_closure_in_fiber(done);
             }
         }
     }
@@ -972,7 +969,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 // if it is leader, set the wakeup_a_candidate with true,
                 // if it is follower, call on_stop_following in step_down
                 if (_state <= STATE_FOLLOWER) {
-                    butil::Status status;
+                    mutil::Status status;
                     status.set_error(ESHUTDOWN, "Raft node is going to quit.");
                     step_down(_current_term, _state == STATE_LEADER, status);
                 }
@@ -1017,7 +1014,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // inplace to avoid the dead lock issue when done->Run() is going to acquire
         // a mutex which is already held by the caller
         if (done) {
-            run_closure_in_bthread(done);
+            run_closure_in_fiber(done);
         }
     }
 
@@ -1052,7 +1049,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // Reset leader as the leader is uncerntain on election timeout.
         PeerId empty_id;
-        butil::Status status;
+        mutil::Status status;
         status.set_error(ERAFTTIMEDOUT, "Lost connection from leader %s",
                          _leader_id.to_string().c_str());
         reset_leader_id(empty_id, status);
@@ -1070,7 +1067,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (request->term() != _current_term) {
             const int64_t saved_current_term = _current_term;
             if (request->term() > _current_term) {
-                butil::Status status;
+                mutil::Status status;
                 status.set_error(EHIGHERTERMREQUEST, "Raft node receives higher term request.");
                 step_down(request->term(), false, status);
             }
@@ -1094,7 +1091,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                       << state2str(saved_state) << " at term=" << saved_term;
             return;
         }
-        const butil::EndPoint remote_side = controller->remote_side();
+        const mutil::EndPoint remote_side = controller->remote_side();
         const int64_t saved_term = _current_term;
         if (FLAGS_raft_enable_leader_lease) {
             // We will disrupt the leader, don't let the old leader
@@ -1106,7 +1103,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         response->set_success(true);
         // Parallelize Response and election
-        run_closure_in_bthread(done_guard.release());
+        run_closure_in_fiber(done_guard.release());
         elect_self(&lck, request->old_leader_stepped_down());
         // Don't touch any mutable field after this point, it's likely out of the
         // critical section
@@ -1226,7 +1223,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return rc;
         }
         _state = STATE_TRANSFERRING;
-        butil::Status status;
+        mutil::Status status;
         status.set_error(ETRANSFERLEADERSHIP, "Raft leader is transferring "
                                               "leadership to %s", peer_id.to_string().c_str());
         _leader_lease.on_leader_stop();
@@ -1234,8 +1231,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " starts to transfer leadership to " << peer_id;
         _stop_transfer_arg = new StopTransferArg(this, _current_term, peer_id);
-        if (bthread_timer_add(&_transfer_timer,
-                              butil::milliseconds_from_now(_options.election_timeout_ms),
+        if (fiber_timer_add(&_transfer_timer,
+                              mutil::milliseconds_from_now(_options.election_timeout_ms),
                               on_transfer_timeout, _stop_transfer_arg) != 0) {
             lck.unlock();
             LOG(ERROR) << "Fail to add timer";
@@ -1245,14 +1242,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         return 0;
     }
 
-    butil::Status NodeImpl::vote(int election_timeout_ms) {
+    mutil::Status NodeImpl::vote(int election_timeout_ms) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_state != STATE_FOLLOWER) {
-            return butil::Status(EPERM, "is not follower");
+            return mutil::Status(EPERM, "is not follower");
         }
         int max_election_timeout_ms = _options.max_clock_drift_ms + _options.election_timeout_ms;
         if (election_timeout_ms > max_election_timeout_ms) {
-            return butil::Status(EINVAL, "election_timeout_ms larger than safety threshold");
+            return mutil::Status(EINVAL, "election_timeout_ms larger than safety threshold");
         }
         election_timeout_ms = std::min(election_timeout_ms, max_election_timeout_ms);
         int max_clock_drift_ms = max_election_timeout_ms - election_timeout_ms;
@@ -1266,14 +1263,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                                                                   " current_term " << saved_current_term << " state "
                   << state2str(saved_state) <<
                   " election_timeout " << election_timeout_ms;
-        return butil::Status();
+        return mutil::Status();
     }
 
-    butil::Status NodeImpl::reset_election_timeout_ms(int election_timeout_ms) {
+    mutil::Status NodeImpl::reset_election_timeout_ms(int election_timeout_ms) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         int max_election_timeout_ms = _options.max_clock_drift_ms + _options.election_timeout_ms;
         if (election_timeout_ms > max_election_timeout_ms) {
-            return butil::Status(EINVAL, "election_timeout_ms larger than safety threshold");
+            return mutil::Status(EINVAL, "election_timeout_ms larger than safety threshold");
         }
         election_timeout_ms = std::min(election_timeout_ms, max_election_timeout_ms);
         int max_clock_drift_ms = max_election_timeout_ms - election_timeout_ms;
@@ -1287,7 +1284,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                   << state2str(saved_state) <<
                   " new election_timeout " << election_timeout_ms << " new clock_drift_ms " <<
                   max_clock_drift_ms;
-        return butil::Status();
+        return mutil::Status();
     }
 
     void NodeImpl::reset_election_timeout_ms(int election_timeout_ms,
@@ -1333,7 +1330,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // if it is leader, need to wake up a new one.
         // if it is follower, also step down to call on_stop_following
         if (_state <= STATE_FOLLOWER) {
-            butil::Status status;
+            mutil::Status status;
             status.set_error(EBADNODE, "Raft node(leader or candidate) is in error.");
             step_down(_current_term, _state == STATE_LEADER, status);
         }
@@ -1356,7 +1353,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                          << " term " << _current_term
                          << " steps down when reaching vote timeout:"
                             " fail to get quorum vote-granted";
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ERAFTTIMEDOUT, "Fail to get quorum vote-granted");
             step_down(_current_term, false, status);
             pre_vote(&lck, false);
@@ -1400,7 +1397,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid RequestVoteResponse from " << peer_id
                          << " term " << response.term() << " expect " << _current_term;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(EHIGHERTERMRESPONSE, "Raft node receives higher term "
                                                   "request_vote_response.");
             step_down(response.term(), false, status);
@@ -1510,7 +1507,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid PreVoteResponse from " << peer_id
                          << " term " << response.term() << " expect " << _current_term;
-            butil::Status status;
+            mutil::Status status;
             status.set_error(EHIGHERTERMRESPONSE, "Raft node receives higher term "
                                                   "pre_vote_response.");
             step_down(response.term(), false, status);
@@ -1676,7 +1673,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         const PeerId old_leader = _leader_id;
         const int64_t leader_term = _current_term;
         PeerId empty_id;
-        butil::Status status;
+        mutil::Status status;
         status.set_error(ERAFTTIMEDOUT, "A follower's leader_id is reset to nullptr "
                                         "as it begins to request_vote.");
         reset_leader_id(empty_id, status);
@@ -1770,7 +1767,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
 // in lock
     void NodeImpl::step_down(const int64_t term, bool wakeup_a_candidate,
-                             const butil::Status &status) {
+                             const mutil::Status &status) {
         BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                    << " term " << _current_term
                    << " stepdown from " << state2str(_state)
@@ -1818,7 +1815,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             _current_term = term;
             _voted_id.reset();
             //TODO: outof lock
-            butil::Status status = _meta_storage->
+            mutil::Status status = _meta_storage->
                     set_term_and_votedfor(term, _voted_id, _v_group_id);
             if (!status.ok()) {
                 LOG(ERROR) << "node " << _group_id << ":" << _server_id
@@ -1840,7 +1837,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             _replicator_group.stop_all();
         }
         if (_stop_transfer_arg != nullptr) {
-            const int rc = bthread_timer_del(_transfer_timer);
+            const int rc = fiber_timer_del(_transfer_timer);
             if (rc == 0) {
                 // Get the right to delete _stop_transfer_arg.
                 delete _stop_transfer_arg;
@@ -1855,7 +1852,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
 // in lock
     void NodeImpl::reset_leader_id(const PeerId &new_leader_id,
-                                   const butil::Status &status) {
+                                   const mutil::Status &status) {
         if (new_leader_id.is_empty()) {
             if (!_leader_id.is_empty() && _state > STATE_TRANSFERRING) {
                 LeaderChangeContext stop_following_context(_leader_id,
@@ -1876,7 +1873,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
 // in lock
     void NodeImpl::check_step_down(const int64_t request_term, const PeerId &server_id) {
-        butil::Status status;
+        mutil::Status status;
         if (request_term > _current_term) {
             status.set_error(ENEWLEADER, "Raft node receives message from "
                                          "new leader with higher term.");
@@ -1988,7 +1985,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 _ballot_box->commit_at(
                         _first_log_index, _first_log_index + _nentries - 1, _node_id.peer_id);
             }
-            int64_t now = butil::cpuwide_time_us();
+            int64_t now = mutil::cpuwide_time_us();
             if (FLAGS_raft_trace_append_entry_latency &&
                 now - metric.start_time_us > (int64_t) FLAGS_raft_append_entry_high_lat_us) {
                 LOG(WARNING) << "leader append entry latency us " << (now - metric.start_time_us)
@@ -2015,7 +2012,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         std::unique_lock<raft_mutex_t> lck(_mutex);
         bool reject_new_user_logs = (_node_readonly || _majority_nodes_readonly);
         if (_state != STATE_LEADER || reject_new_user_logs) {
-            butil::Status st;
+            mutil::Status st;
             if (_state == STATE_LEADER && reject_new_user_logs) {
                 st.set_error(EREADONLY, "readonly mode reject new user logs");
             } else if (_state != STATE_TRANSFERRING) {
@@ -2029,7 +2026,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 tasks[i].entry->Release();
                 if (tasks[i].done) {
                     tasks[i].done->status() = st;
-                    run_closure_in_bthread(tasks[i].done);
+                    run_closure_in_fiber(tasks[i].done);
                 }
             }
             return;
@@ -2043,7 +2040,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                     tasks[i].done->status().set_error(
                             EPERM, "expected_term=%" PRId64 " doesn't match current_term=%" PRId64,
                             tasks[i].expected_term, _current_term);
-                    run_closure_in_bthread(tasks[i].done);
+                    run_closure_in_fiber(tasks[i].done);
                 }
                 tasks[i].entry->Release();
                 continue;
@@ -2238,7 +2235,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
             // increase current term, change state to follower
             if (request->term() > _current_term) {
-                butil::Status status;
+                mutil::Status status;
                 status.set_error(EHIGHERTERMREQUEST, "Raft node receives higher term "
                                                      "request_vote_request.");
                 disrupted = (_state <= STATE_TRANSFERRING);
@@ -2247,7 +2244,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
             // save
             if (log_is_ok && _voted_id.is_empty()) {
-                butil::Status status;
+                mutil::Status status;
                 status.set_error(EVOTEFORCANDIDATE, "Raft node votes for some candidate, "
                                                     "step down to restart election_timer.");
                 step_down(request->term(), false, status);
@@ -2345,7 +2342,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                     );
             //_ballot_box is thread safe and tolerates disorder.
             _node->_ballot_box->set_last_committed_index(committed_index);
-            int64_t now = butil::cpuwide_time_us();
+            int64_t now = mutil::cpuwide_time_us();
             if (FLAGS_raft_trace_append_entry_latency && now - metric.start_time_us >
                                                          (int64_t) FLAGS_raft_append_entry_high_lat_us) {
                 LOG(WARNING) << "follower append entry latency us " << (now - metric.start_time_us)
@@ -2426,7 +2423,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                        << " which was occupied by leader=" << _leader_id;
             // Increase the term by 1 and make both leaders step down to minimize the
             // loss of split brain
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ELEADERCONFLICT, "More than one leader in the same term.");
             step_down(request->term() + 1, false, status);
             response->set_success(false);
@@ -2508,7 +2505,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
 
         // Parse request
-        butil::IOBuf data_buf;
+        mutil::IOBuf data_buf;
         data_buf.swap(cntl->request_attachment());
         int64_t index = prev_log_index;
         for (int i = 0; i < request->entries_size(); i++) {
@@ -2555,7 +2552,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _log_manager->check_and_set_configuration(&_conf);
     }
 
-    int NodeImpl::increase_term_to(int64_t new_term, const butil::Status &status) {
+    int NodeImpl::increase_term_to(int64_t new_term, const mutil::Status &status) {
         MELON_SCOPED_LOCK(_mutex);
         if (new_term <= _current_term) {
             return EINVAL;
@@ -2581,7 +2578,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             if (nullptr == saved_done[i]) {
                 continue;
             }
-            run_closure_in_bthread(saved_done[i]);
+            run_closure_in_fiber(saved_done[i]);
         }
     }
 
@@ -2633,7 +2630,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                        << " which was occupied by leader=" << _leader_id;
             // Increase the term by 1 and make both leaders step down to minimize the
             // loss of split brain
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ELEADERCONFLICT, "More than one leader in the same term.");
             step_down(request->term() + 1, false, status);
             response->set_success(false);
@@ -2659,32 +2656,32 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _log_manager->check_and_set_configuration(&_conf);
     }
 
-    butil::Status NodeImpl::read_committed_user_log(const int64_t index, UserLog *user_log) {
+    mutil::Status NodeImpl::read_committed_user_log(const int64_t index, UserLog *user_log) {
         if (index <= 0) {
-            return butil::Status(EINVAL, "request index:%" PRId64 " is invalid.", index);
+            return mutil::Status(EINVAL, "request index:%" PRId64 " is invalid.", index);
         }
         const int64_t saved_last_applied_index = _fsm_caller->last_applied_index();
         if (index > saved_last_applied_index) {
-            return butil::Status(ENOMOREUSERLOG, "request index:%" PRId64 " is greater"
+            return mutil::Status(ENOMOREUSERLOG, "request index:%" PRId64 " is greater"
                                                  " than last_applied_index:%" PRId64, index, saved_last_applied_index);
         }
         int64_t cur_index = index;
         LogEntry *entry = _log_manager->get_entry(cur_index);
         if (entry == nullptr) {
-            return butil::Status(ELOGDELETED, "user log is deleted at index:%" PRId64, index);
+            return mutil::Status(ELOGDELETED, "user log is deleted at index:%" PRId64, index);
         }
         do {
             if (entry->type == ENTRY_TYPE_DATA) {
                 user_log->set_log_index(cur_index);
                 user_log->set_log_data(entry->data);
                 entry->Release();
-                return butil::Status();
+                return mutil::Status();
             } else {
                 entry->Release();
                 ++cur_index;
             }
             if (cur_index > saved_last_applied_index) {
-                return butil::Status(ENOMOREUSERLOG, "no user log between index:%" PRId64
+                return mutil::Status(ENOMOREUSERLOG, "no user log between index:%" PRId64
                                                      " and last_applied_index:%" PRId64, index,
                                      saved_last_applied_index);
             }
@@ -2692,7 +2689,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         } while (entry != nullptr);
         // entry is likely to be nullptr because snapshot is done after
         // getting saved_last_applied_index.
-        return butil::Status(ELOGDELETED, "user log is deleted at index:%" PRId64, cur_index);
+        return mutil::Status(ELOGDELETED, "user log is deleted at index:%" PRId64, cur_index);
     }
 
     void NodeImpl::describe(std::ostream &os, bool use_html) {
@@ -2789,7 +2786,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 os << leader;
             }
             os << newline;
-            os << "last_msg_to_now: " << butil::monotonic_time_ms() - leader_timestamp
+            os << "last_msg_to_now: " << mutil::monotonic_time_ms() - leader_timestamp
                << newline;
         }
 
@@ -2907,7 +2904,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         rpc->request = request;
         rpc->response = response;
         rpc->done = done;
-        rpc->receive_time_ms = butil::gettimeofday_ms();
+        rpc->receive_time_ms = mutil::gettimeofday_ms();
         bool rc = _append_entries_cache->store(rpc);
         if (!rc && _append_entries_cache->empty()) {
             delete _append_entries_cache;
@@ -2939,7 +2936,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void *NodeImpl::handle_append_entries_from_cache(void *arg) {
         HandleAppendEntriesFromCacheArg *handle_arg = (HandleAppendEntriesFromCacheArg *) arg;
         NodeImpl *node = handle_arg->node;
-        butil::LinkedList<AppendEntriesRpc> &rpcs = handle_arg->rpcs;
+        mutil::LinkedList<AppendEntriesRpc> &rpcs = handle_arg->rpcs;
         while (!rpcs.empty()) {
             AppendEntriesRpc *rpc = rpcs.head()->value();
             rpc->RemoveFromList();
@@ -2953,11 +2950,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::on_append_entries_cache_timedout(void *arg) {
-        bthread_t tid;
-        if (bthread_start_background(
+        fiber_t tid;
+        if (fiber_start_background(
                 &tid, nullptr, NodeImpl::handle_append_entries_cache_timedout,
                 arg) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             NodeImpl::handle_append_entries_cache_timedout(arg);
         }
     }
@@ -3112,16 +3109,16 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     void NodeImpl::AppendEntriesCache::start_to_handle(HandleAppendEntriesFromCacheArg *arg) {
         _node->AddRef();
-        bthread_t tid;
+        fiber_t tid;
         // Sequence if not important
-        if (bthread_start_background(
+        if (fiber_start_background(
                 &tid, nullptr, NodeImpl::handle_append_entries_from_cache,
                 arg) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             // We cant't call NodeImpl::handle_append_entries_from_cache
             // here since we are in the mutex, which will cause dead lock, just
             // set the rpc fail, and let leader block for a while.
-            butil::LinkedList<AppendEntriesRpc> &rpcs = arg->rpcs;
+            mutil::LinkedList<AppendEntriesRpc> &rpcs = arg->rpcs;
             while (!rpcs.empty()) {
                 AppendEntriesRpc *rpc = rpcs.head()->value();
                 rpc->RemoveFromList();
@@ -3139,11 +3136,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         timer_arg->timer_version = _timer_version;
         timer_arg->cache_version = _cache_version;
         timer_arg->timer_start_ms = _rpc_queue.head()->value()->receive_time_ms;
-        timespec duetime = butil::milliseconds_from(
-                butil::milliseconds_to_timespec(timer_arg->timer_start_ms),
+        timespec duetime = mutil::milliseconds_from(
+                mutil::milliseconds_to_timespec(timer_arg->timer_start_ms),
                 std::max(_node->_options.election_timeout_ms >> 2, 1));
         _node->AddRef();
-        if (bthread_timer_add(
+        if (fiber_timer_add(
                 &_timer, duetime, NodeImpl::on_append_entries_cache_timedout,
                 timer_arg) != 0) {
             LOG(ERROR) << "Fail to add timer";
@@ -3155,13 +3152,13 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::AppendEntriesCache::stop_timer() {
-        if (_timer == bthread_timer_t()) {
+        if (_timer == fiber_timer_t()) {
             return;
         }
         ++_timer_version;
-        if (bthread_timer_del(_timer) == 0) {
+        if (fiber_timer_del(_timer) == 0) {
             _node->Release();
-            _timer = bthread_timer_t();
+            _timer = fiber_timer_t();
         }
     }
 
@@ -3218,7 +3215,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             }
             OnCaughtUp *caught_up = new OnCaughtUp(
                     _node, _node->_current_term, *iter, _version);
-            timespec due_time = butil::milliseconds_from_now(
+            timespec due_time = mutil::milliseconds_from_now(
                     _node->_options.get_catchup_timeout_ms());
             if (_node->_replicator_group.wait_caughtup(
                     *iter, _node->_options.catchup_margin, &due_time, caught_up) != 0) {
@@ -3268,7 +3265,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                      << " when trying to change peers from "
                      << Configuration(_old_peers) << " to "
                      << Configuration(_new_peers);
-        butil::Status err(ECATCHUP, "Peer %s failed to catch up",
+        mutil::Status err(ECATCHUP, "Peer %s failed to catch up",
                           peer_id.to_string().c_str());
         reset(&err);
     }
@@ -3293,11 +3290,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             case STAGE_STABLE: {
                 bool should_step_down =
                         _new_peers.find(_node->_server_id) == _new_peers.end();
-                butil::Status st = butil::Status::OK();
+                mutil::Status st = mutil::Status::OK();
                 reset(&st);
                 if (should_step_down) {
                     _node->step_down(_node->_current_term, true,
-                                     butil::Status(ELEADERREMOVED, "This node was removed"));
+                                     mutil::Status(ELEADERREMOVED, "This node was removed"));
                 }
                 return;
             }
@@ -3307,7 +3304,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
     }
 
-    void NodeImpl::ConfigurationCtx::reset(butil::Status *st) {
+    void NodeImpl::ConfigurationCtx::reset(mutil::Status *st) {
         // reset() should be called only once
         if (_stage == STAGE_NONE) {
             BRAFT_VLOG << "node " << _node->node_id()
@@ -3338,7 +3335,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             } else {
                 _done->status() = *st;
             }
-            run_closure_in_bthread(_done);
+            run_closure_in_fiber(_done);
             _done = nullptr;
         }
     }
@@ -3445,7 +3442,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _leader_lease.renew(last_active_timestamp);
         _leader_lease.get_lease_info(&internal_info);
         if (internal_info.state != LeaderLease::VALID && internal_info.state != LeaderLease::DISABLED) {
-            butil::Status status;
+            mutil::Status status;
             status.set_error(ERAFTTIMEDOUT, "Leader lease expired");
             step_down(_current_term, false, status);
             lease_status->state = LEASE_EXPIRED;
@@ -3465,14 +3462,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::VoteBallotCtx::start_grant_self_timer(int64_t wait_ms, NodeImpl *node) {
-        timespec duetime = butil::milliseconds_from_now(wait_ms);
+        timespec duetime = mutil::milliseconds_from_now(wait_ms);
         GrantSelfArg *timer_arg = new GrantSelfArg;
         timer_arg->node = node;
         timer_arg->vote_ctx_version = _version;
         timer_arg->vote_ctx = this;
         node->AddRef();
         _grant_self_arg = timer_arg;
-        if (bthread_timer_add(
+        if (fiber_timer_add(
                 &_timer, duetime, NodeImpl::on_grant_self_timedout,
                 timer_arg) != 0) {
             LOG(ERROR) << "Fail to add timer";
@@ -3483,14 +3480,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::VoteBallotCtx::stop_grant_self_timer(NodeImpl *node) {
-        if (_timer == bthread_timer_t()) {
+        if (_timer == fiber_timer_t()) {
             return;
         }
-        if (bthread_timer_del(_timer) == 0) {
+        if (fiber_timer_del(_timer) == 0) {
             node->Release();
             delete _grant_self_arg;
             _grant_self_arg = nullptr;
-            _timer = bthread_timer_t();
+            _timer = fiber_timer_t();
         }
     }
 
@@ -3552,11 +3549,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::on_grant_self_timedout(void *arg) {
-        bthread_t tid;
-        if (bthread_start_background(
+        fiber_t tid;
+        if (fiber_start_background(
                 &tid, nullptr, NodeImpl::handle_grant_self_timedout,
                 arg) != 0) {
-            PLOG(ERROR) << "Fail to start bthread";
+            PLOG(ERROR) << "Fail to start fiber";
             NodeImpl::handle_grant_self_timedout(arg);
         }
     }
@@ -3624,7 +3621,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         // Only one peer in the group.
         if (last_rpc_send_timestamps.empty()) {
-            return butil::monotonic_time_ms();
+            return mutil::monotonic_time_ms();
         }
         std::pop_heap(last_rpc_send_timestamps.begin(), last_rpc_send_timestamps.end(), compare);
         return last_rpc_send_timestamps.back();

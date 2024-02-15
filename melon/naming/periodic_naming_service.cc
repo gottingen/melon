@@ -17,8 +17,8 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/butil/logging.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/logging.h"
+#include "melon/fiber/fiber.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/reloadable_flags.h"
 #include "melon/naming/periodic_naming_service.h"
@@ -51,19 +51,19 @@ namespace melon {
                 actions->ResetServers(servers);
             }
 
-            // If `bthread_stop' is called to stop the ns bthread when `melon::Join‘ is called
-            // in `GetServers' to wait for a rpc to complete. The bthread will be woken up,
+            // If `fiber_stop' is called to stop the ns fiber when `melon::Join‘ is called
+            // in `GetServers' to wait for a rpc to complete. The fiber will be woken up,
             // reset `TaskMeta::interrupted' and continue to join the rpc. After the rpc is complete,
-            // `bthread_usleep' will not sense the interrupt signal and sleep successfully.
-            // Finally, the ns bthread will never exit. So need to check the stop status of
-            // the bthread here and exit the bthread in time.
-            if (bthread_stopped(bthread_self())) {
-                RPC_VLOG << "Quit NamingServiceThread=" << bthread_self();
+            // `fiber_usleep' will not sense the interrupt signal and sleep successfully.
+            // Finally, the ns fiber will never exit. So need to check the stop status of
+            // the fiber here and exit the fiber in time.
+            if (fiber_stopped(fiber_self())) {
+                RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                 return 0;
             }
-            if (bthread_usleep(GetNamingServiceAccessIntervalMs() * 1000UL) < 0) {
+            if (fiber_usleep(GetNamingServiceAccessIntervalMs() * 1000UL) < 0) {
                 if (errno == ESTOP) {
-                    RPC_VLOG << "Quit NamingServiceThread=" << bthread_self();
+                    RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                     return 0;
                 }
                 PLOG(FATAL) << "Fail to sleep";

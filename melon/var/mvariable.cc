@@ -19,11 +19,11 @@
 
 #include <gflags/gflags.h>
 #include <gflags/gflags_declare.h>
-#include "melon/butil/logging.h"                       // LOG
-#include "melon/butil/errno.h"                         // berror
-#include "melon/butil/containers/flat_map.h"           // butil::FlatMap
-#include "melon/butil/scoped_lock.h"                   // BAIDU_SCOPE_LOCK
-#include "melon/butil/file_util.h"                     // butil::FilePath
+#include "melon/utility/logging.h"                       // LOG
+#include "melon/utility/errno.h"                         // berror
+#include "melon/utility/containers/flat_map.h"           // mutil::FlatMap
+#include "melon/utility/scoped_lock.h"                   // MELON_SCOPE_LOCK
+#include "melon/utility/file_util.h"                     // mutil::FilePath
 #include "melon/var/variable.h"
 #include "melon/var/mvariable.h"
 
@@ -69,7 +69,7 @@ namespace melon::var {
         MVariable *var;
     };
 
-    typedef butil::FlatMap<std::string, MVarEntry> MVarMap;
+    typedef mutil::FlatMap<std::string, MVarEntry> MVarMap;
 
     struct MVarMapWithLock : public MVarMap {
         pthread_mutex_t mutex;
@@ -137,8 +137,8 @@ namespace melon::var {
         return std::string();
     }
 
-    int MVariable::expose_impl(const butil::StringPiece &prefix,
-                               const butil::StringPiece &name) {
+    int MVariable::expose_impl(const mutil::StringPiece &prefix,
+                               const mutil::StringPiece &name) {
         if (name.empty()) {
             LOG(ERROR) << "Parameter[name] is empty";
             return -1;
@@ -158,7 +158,7 @@ namespace melon::var {
         _name.reserve((prefix.size() + name.size()) * 5 / 4);
         if (!prefix.empty()) {
             to_underscored_name(&_name, prefix);
-            if (!_name.empty() && butil::back_char(_name) != '_') {
+            if (!_name.empty() && mutil::back_char(_name) != '_') {
                 _name.push_back('_');
             }
         }

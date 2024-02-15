@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/basictypes.h"
-#include "melon/butil/logging.h"
-#include "melon/butil/memory/scoped_ptr.h"
-#include "melon/butil/threading/thread_checker.h"
-#include "melon/butil/threading/simple_thread.h"
+#include "melon/utility/basictypes.h"
+#include "melon/utility/logging.h"
+#include "melon/utility/memory/scoped_ptr.h"
+#include "melon/utility/threading/thread_checker.h"
+#include "melon/utility/threading/simple_thread.h"
 #include <gtest/gtest.h>
 
-// Duplicated from butil/threading/thread_checker.h so that we can be
+// Duplicated from threading/thread_checker.h so that we can be
 // good citizens there and undef the macro.
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #define ENABLE_THREAD_CHECKER 1
@@ -17,7 +17,7 @@
 #define ENABLE_THREAD_CHECKER 0
 #endif
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -45,7 +45,7 @@ class ThreadCheckerClass : public ThreadChecker {
 };
 
 // Calls ThreadCheckerClass::DoStuff on another thread.
-class CallDoStuffOnThread : public butil::SimpleThread {
+class CallDoStuffOnThread : public mutil::SimpleThread {
  public:
   explicit CallDoStuffOnThread(ThreadCheckerClass* thread_checker_class)
       : SimpleThread("call_do_stuff_on_thread"),
@@ -63,7 +63,7 @@ class CallDoStuffOnThread : public butil::SimpleThread {
 };
 
 // Deletes ThreadCheckerClass on a different thread.
-class DeleteThreadCheckerClassOnThread : public butil::SimpleThread {
+class DeleteThreadCheckerClassOnThread : public mutil::SimpleThread {
  public:
   explicit DeleteThreadCheckerClassOnThread(
       ThreadCheckerClass* thread_checker_class)
@@ -180,4 +180,4 @@ TEST(ThreadCheckerTest, DetachFromThreadInRelease) {
 // Just in case we ever get lumped together with other compilation units.
 #undef ENABLE_THREAD_CHECKER
 
-}  // namespace butil
+}  // namespace mutil

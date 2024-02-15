@@ -19,10 +19,9 @@
 #ifndef BRPC_TRACEPRINTF_H
 #define BRPC_TRACEPRINTF_H
 
-#include "melon/butil/macros.h"
+#include "melon/utility/macros.h"
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 
 namespace melon {
@@ -39,7 +38,7 @@ void AnnotateSpan(const char* fmt, ...);
 #define TRACEPRINTF(fmt, args...)                                       \
     do {                                                                \
         if (::melon::CanAnnotateSpan()) {                          \
-            ::melon::AnnotateSpan("[" __FILE__ ":" BAIDU_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
+            ::melon::AnnotateSpan("[" __FILE__ ":" MELON_SYMBOLSTR(__LINE__) "] " fmt, ##args);           \
         }                                                               \
     } while (0)
 

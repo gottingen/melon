@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/strings/string_split.h"
+#include "melon/utility/strings/string_split.h"
 
-#include "melon/butil/strings/utf_string_conversions.h"
+#include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 
 namespace {
 
@@ -240,55 +240,55 @@ TEST(StringUtilTest, SplitString) {
 }
 
 TEST(StringUtilTest, SplitStringStringPiece) {
-  std::vector<butil::StringPiece> r;
+  std::vector<mutil::StringPiece> r;
 
-  SplitString(butil::StringPiece(), ',', &r);
+  SplitString(mutil::StringPiece(), ',', &r);
   EXPECT_EQ(0U, r.size());
   r.clear();
 
-  SplitString(butil::StringPiece("a,b,c"), ',', &r);
+  SplitString(mutil::StringPiece("a,b,c"), ',', &r);
   ASSERT_EQ(3U, r.size());
   EXPECT_EQ(r[0], "a");
   EXPECT_EQ(r[1], "b");
   EXPECT_EQ(r[2], "c");
   r.clear();
 
-  SplitString(butil::StringPiece("a, b, c"), ',', &r);
+  SplitString(mutil::StringPiece("a, b, c"), ',', &r);
   ASSERT_EQ(3U, r.size());
   EXPECT_EQ(r[0], "a");
   EXPECT_EQ(r[1], "b");
   EXPECT_EQ(r[2], "c");
   r.clear();
 
-  SplitString(butil::StringPiece("a,,c"), ',', &r);
+  SplitString(mutil::StringPiece("a,,c"), ',', &r);
   ASSERT_EQ(3U, r.size());
   EXPECT_EQ(r[0], "a");
   EXPECT_EQ(r[1], "");
   EXPECT_EQ(r[2], "c");
   r.clear();
 
-  SplitString(butil::StringPiece("   "), '*', &r);
+  SplitString(mutil::StringPiece("   "), '*', &r);
   EXPECT_EQ(0U, r.size());
   r.clear();
 
-  SplitString(butil::StringPiece("foo"), '*', &r);
+  SplitString(mutil::StringPiece("foo"), '*', &r);
   ASSERT_EQ(1U, r.size());
   EXPECT_EQ(r[0], "foo");
   r.clear();
 
-  SplitString(butil::StringPiece("foo ,"), ',', &r);
+  SplitString(mutil::StringPiece("foo ,"), ',', &r);
   ASSERT_EQ(2U, r.size());
   EXPECT_EQ(r[0], "foo");
   EXPECT_EQ(r[1], "");
   r.clear();
 
-  SplitString(butil::StringPiece(","), ',', &r);
+  SplitString(mutil::StringPiece(","), ',', &r);
   ASSERT_EQ(2U, r.size());
   EXPECT_EQ(r[0], "");
   EXPECT_EQ(r[1], "");
   r.clear();
 
-  SplitString(butil::StringPiece("\t\ta\t"), '\t', &r);
+  SplitString(mutil::StringPiece("\t\ta\t"), '\t', &r);
   ASSERT_EQ(4U, r.size());
   EXPECT_EQ(r[0], "");
   EXPECT_EQ(r[1], "");
@@ -296,7 +296,7 @@ TEST(StringUtilTest, SplitStringStringPiece) {
   EXPECT_EQ(r[3], "");
   r.clear();
 
-  SplitString(butil::StringPiece("\ta\t\nb\tcc"), '\n', &r);
+  SplitString(mutil::StringPiece("\ta\t\nb\tcc"), '\n', &r);
   ASSERT_EQ(2U, r.size());
   EXPECT_EQ(r[0], "a");
   EXPECT_EQ(r[1], "b\tcc");
@@ -395,4 +395,4 @@ TEST(StringSplitTest, SplitStringAlongWhitespace) {
   }
 }
 
-}  // namespace butil
+}  // namespace mutil

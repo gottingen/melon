@@ -54,11 +54,11 @@ TEST(AdaptiveProtocolTypeTest, ShouldConvertCorrectly) {
 
     apt = kHttp;
     EXPECT_EQ(apt, melon::ProtocolType::PROTOCOL_HTTP);
-    EXPECT_NE(apt, melon::ProtocolType::PROTOCOL_BAIDU_STD);
+    EXPECT_NE(apt, melon::ProtocolType::PROTOCOL_MELON_STD);
 
     apt = melon::ProtocolType::PROTOCOL_HTTP;
     EXPECT_EQ(apt, melon::ProtocolType::PROTOCOL_HTTP);
-    EXPECT_NE(apt, melon::ProtocolType::PROTOCOL_BAIDU_STD);
+    EXPECT_NE(apt, melon::ProtocolType::PROTOCOL_MELON_STD);
 }
 
 TEST(AdaptiveConnectionTypeTest, ShouldConvertCorrectly) {

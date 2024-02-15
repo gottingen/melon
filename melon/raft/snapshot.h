@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-//          Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Zheng,Pengfei(zhengpengfei@baidu.com)
-//          Xiong,Kai(xiongkai@baidu.com)
 
 #ifndef MELON_RAFT_RAFT_SNAPSHOT_H_
 #define MELON_RAFT_RAFT_SNAPSHOT_H_
@@ -56,9 +52,9 @@ namespace melon::raft {
 
         void set_meta(const SnapshotMeta &meta) { _meta = meta; }
 
-        int save_to_iobuf_as_remote(butil::IOBuf *buf) const;
+        int save_to_iobuf_as_remote(mutil::IOBuf *buf) const;
 
-        int load_from_iobuf_as_remote(const butil::IOBuf &buf);
+        int load_from_iobuf_as_remote(const mutil::IOBuf &buf);
 
         void swap(LocalSnapshotMetaTable &rhs) {
             _file_map.swap(rhs._file_map);
@@ -145,7 +141,7 @@ namespace melon::raft {
     private:
         // Users shouldn't create LocalSnapshotReader Directly
         LocalSnapshotReader(const std::string &path,
-                            butil::EndPoint server_addr,
+                            mutil::EndPoint server_addr,
                             FileSystemAdaptor *fs,
                             SnapshotThrottle *snapshot_throttle);
 
@@ -155,7 +151,7 @@ namespace melon::raft {
 
         std::string _path;
         LocalSnapshotMetaTable _meta_table;
-        butil::EndPoint _addr;
+        mutil::EndPoint _addr;
         int64_t _reader_id;
         scoped_refptr<FileSystemAdaptor> _fs;
         scoped_refptr<SnapshotThrottle> _snapshot_throttle;
@@ -217,7 +213,7 @@ namespace melon::raft {
         void copy_file(const std::string &filename);
 
         raft_mutex_t _mutex;
-        bthread_t _tid;
+        fiber_t _tid;
         bool _cancelled;
         bool _filter_before_copy_remote;
         bool _copy_file = true;
@@ -267,11 +263,11 @@ namespace melon::raft {
 
         SnapshotStorage *new_instance(const std::string &uri) const;
 
-        butil::Status gc_instance(const std::string &uri) const;
+        mutil::Status gc_instance(const std::string &uri) const;
 
-        void set_server_addr(butil::EndPoint server_addr) { _addr = server_addr; }
+        void set_server_addr(mutil::EndPoint server_addr) { _addr = server_addr; }
 
-        bool has_server_addr() { return _addr != butil::EndPoint(); }
+        bool has_server_addr() { return _addr != mutil::EndPoint(); }
 
         void set_copy_file(bool copy_file) { _copy_file = copy_file; }
 
@@ -291,7 +287,7 @@ namespace melon::raft {
         bool _filter_before_copy_remote;
         int64_t _last_snapshot_index;
         std::map<int64_t, int> _ref_map;
-        butil::EndPoint _addr;
+        mutil::EndPoint _addr;
         bool _copy_file = true;
         scoped_refptr<FileSystemAdaptor> _fs;
         scoped_refptr<SnapshotThrottle> _snapshot_throttle;

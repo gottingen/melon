@@ -16,8 +16,8 @@
 // under the License.
 
 
-#include "melon/butil/macros.h"
-#include "melon/butil/fast_rand.h"
+#include "melon/utility/macros.h"
+#include "melon/utility/fast_rand.h"
 #include "melon/rpc/socket.h"
 #include "melon/rpc/policy/dynpart_load_balancer.h"
 
@@ -102,7 +102,7 @@ size_t DynPartLoadBalancer::RemoveServersInBatch(
 }
 
 int DynPartLoadBalancer::SelectServer(const SelectIn& in, SelectOut* out) {
-    butil::DoublyBufferedData<Servers>::ScopedPtr s;
+    mutil::DoublyBufferedData<Servers>::ScopedPtr s;
     if (_db_servers.Read(&s) != 0) {
         return ENOMEM;
     }
@@ -147,7 +147,7 @@ int DynPartLoadBalancer::SelectServer(const SelectIn& in, SelectOut* out) {
         out->ptr->reset(ptrs[0].first.release());
         return 0;
     }
-    uint32_t r = butil::fast_rand_less_than(total_weight);
+    uint32_t r = mutil::fast_rand_less_than(total_weight);
     for (int i = 0; i < nptr; ++i) {
         if (ptrs[i].second > r) {
             out->ptr->reset(ptrs[i].first.release());
@@ -157,7 +157,7 @@ int DynPartLoadBalancer::SelectServer(const SelectIn& in, SelectOut* out) {
     return EHOSTDOWN;
 }
 
-DynPartLoadBalancer* DynPartLoadBalancer::New(const butil::StringPiece&) const {
+DynPartLoadBalancer* DynPartLoadBalancer::New(const mutil::StringPiece&) const {
     return new (std::nothrow) DynPartLoadBalancer;
 }
 
@@ -172,7 +172,7 @@ void DynPartLoadBalancer::Describe(
         return;
     }
     os << "DynPart{";
-    butil::DoublyBufferedData<Servers>::ScopedPtr s;
+    mutil::DoublyBufferedData<Servers>::ScopedPtr s;
     if (_db_servers.Read(&s) != 0) {
         os << "fail to read _db_servers";
     } else {

@@ -4,10 +4,10 @@
 
 // This file contains the unit tests for the bit utilities.
 
-#include "melon/butil/bits.h"
+#include "melon/utility/bits.h"
 #include <gtest/gtest.h>
 
-namespace butil {
+namespace mutil {
 namespace bits {
 
 TEST(BitsTest, Log2Floor) {
@@ -45,4 +45,4 @@ TEST(BitsTest, Log2Ceiling) {
 }
 
 }  // namespace bits
-}  // namespace butil
+}  // namespace mutil

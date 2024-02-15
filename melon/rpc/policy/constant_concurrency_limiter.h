@@ -36,7 +36,7 @@ public:
     ConstantConcurrencyLimiter* New(const AdaptiveMaxConcurrency&) const override;
 
 private:
-    butil::atomic<int> _max_concurrency;
+    mutil::atomic<int> _max_concurrency;
 };
 
 }  // namespace policy

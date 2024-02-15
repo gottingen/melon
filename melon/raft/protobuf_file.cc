@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Wang,Yao(wangyao02@baidu.com)
-
-#include <melon/butil/iobuf.h>
-#include <melon/butil/sys_byteorder.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/sys_byteorder.h>
 
 #include "melon/raft/protobuf_file.h"
 
@@ -39,23 +37,23 @@ namespace melon::raft {
         std::string tmp_path(_path);
         tmp_path.append(".tmp");
 
-        butil::File::Error e;
+        mutil::File::Error e;
         FileAdaptor *file = _fs->open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, NULL, &e);
         if (!file) {
             LOG(WARNING) << "open file failed, path: " << _path
-                         << ": " << butil::File::ErrorToString(e);
+                         << ": " << mutil::File::ErrorToString(e);
             return -1;
         }
         std::unique_ptr<FileAdaptor, DestroyObj<FileAdaptor> > guard(file);
 
         // serialize msg
-        butil::IOBuf header_buf;
-        butil::IOBuf msg_buf;
-        butil::IOBufAsZeroCopyOutputStream msg_wrapper(&msg_buf);
+        mutil::IOBuf header_buf;
+        mutil::IOBuf msg_buf;
+        mutil::IOBufAsZeroCopyOutputStream msg_wrapper(&msg_buf);
         message->SerializeToZeroCopyStream(&msg_wrapper);
 
         // write len
-        int32_t header_len = butil::HostToNet32(msg_buf.length());
+        int32_t header_len = mutil::HostToNet32(msg_buf.length());
         header_buf.append(&header_len, sizeof(int32_t));
         if (sizeof(int32_t) != file->write(header_buf, 0)) {
             LOG(WARNING) << "write len failed, path: " << tmp_path;
@@ -85,35 +83,35 @@ namespace melon::raft {
     }
 
     int ProtoBufFile::load(google::protobuf::Message *message) {
-        butil::File::Error e;
+        mutil::File::Error e;
         FileAdaptor *file = _fs->open(_path, O_RDONLY, NULL, &e);
         if (!file) {
             LOG(WARNING) << "open file failed, path: " << _path
-                         << ": " << butil::File::ErrorToString(e);
+                         << ": " << mutil::File::ErrorToString(e);
             return -1;
         }
 
         std::unique_ptr<FileAdaptor, DestroyObj<FileAdaptor> > guard(file);
 
         // len
-        butil::IOPortal header_buf;
+        mutil::IOPortal header_buf;
         if (sizeof(int32_t) != file->read(&header_buf, 0, sizeof(int32_t))) {
             LOG(WARNING) << "read len failed, path: " << _path;
             return -1;
         }
         int32_t len = 0;
         header_buf.copy_to(&len, sizeof(int32_t));
-        int32_t left_len = butil::NetToHost32(len);
+        int32_t left_len = mutil::NetToHost32(len);
 
         // read protobuf data
-        butil::IOPortal msg_buf;
+        mutil::IOPortal msg_buf;
         if (left_len != file->read(&msg_buf, sizeof(int32_t), left_len)) {
             LOG(WARNING) << "read body failed, path: " << _path;
             return -1;
         }
 
         // parse msg
-        butil::IOBufAsZeroCopyInputStream msg_wrapper(msg_buf);
+        mutil::IOBufAsZeroCopyInputStream msg_wrapper(msg_buf);
         message->ParseFromZeroCopyStream(&msg_wrapper);
 
         return 0;

@@ -18,10 +18,10 @@
 
 #include <gflags/gflags.h>
 #include <map>
-#include "melon/bthread/bthread.h"
-#include "melon/butil/time.h"
-#include "melon/butil/scoped_lock.h"
-#include "melon/butil/logging.h"
+#include "melon/fiber/fiber.h"
+#include "melon/utility/time.h"
+#include "melon/utility/scoped_lock.h"
+#include "melon/utility/logging.h"
 #include "melon/rpc/log.h"
 #include "melon/rpc/protocol.h"
 #include "melon/rpc/input_messenger.h"
@@ -54,7 +54,7 @@ DEFINE_bool(reserve_one_idle_socket, false,
             "Reserve one idle socket for pooled connections when idle_timeout_second > 0");
 
 static pthread_once_t g_socket_map_init = PTHREAD_ONCE_INIT;
-static butil::static_atomic<SocketMap*> g_socket_map = BUTIL_STATIC_ATOMIC_INIT(NULL);
+static mutil::static_atomic<SocketMap*> g_socket_map = MUTIL_STATIC_ATOMIC_INIT(NULL);
 
 class GlobalSocketCreator : public SocketCreator {
 public:
@@ -75,18 +75,18 @@ static void CreateClientSideSocketMap() {
         LOG(FATAL) << "Fail to init SocketMap";
         exit(1);
     }
-    g_socket_map.store(socket_map, butil::memory_order_release);
+    g_socket_map.store(socket_map, mutil::memory_order_release);
 }
 
 SocketMap* get_client_side_socket_map() {
     // The consume fence makes sure that we see a NULL or a fully initialized
     // SocketMap.
-    return g_socket_map.load(butil::memory_order_consume);
+    return g_socket_map.load(mutil::memory_order_consume);
 }
 SocketMap* get_or_new_client_side_socket_map() {
     get_or_new_client_side_messenger();
     pthread_once(&g_socket_map_init, CreateClientSideSocketMap);
-    return g_socket_map.load(butil::memory_order_consume);
+    return g_socket_map.load(mutil::memory_order_consume);
 }
 
 int SocketMapInsert(const SocketMapKey& key, SocketId* id,
@@ -143,8 +143,8 @@ SocketMap::SocketMap()
 SocketMap::~SocketMap() {
     RPC_VLOG << "Destroying SocketMap=" << this;
     if (_has_close_idle_thread) {
-        bthread_stop(_close_idle_thread);
-        bthread_join(_close_idle_thread, NULL);
+        fiber_stop(_close_idle_thread);
+        fiber_join(_close_idle_thread, NULL);
     }
     if (!_map.empty()) {
         std::ostringstream err;
@@ -189,9 +189,9 @@ int SocketMap::Init(const SocketMapOptions& options) {
     }
     if (_options.idle_timeout_second_dynamic != NULL ||
         _options.idle_timeout_second > 0) {
-        if (bthread_start_background(&_close_idle_thread, NULL,
+        if (fiber_start_background(&_close_idle_thread, NULL,
                                      RunWatchConnections, this) != 0) {
-            LOG(FATAL) << "Fail to start bthread";
+            LOG(FATAL) << "Fail to start fiber";
             return -1;
         }
         _has_close_idle_thread = true;
@@ -203,7 +203,7 @@ void SocketMap::Print(std::ostream& os) {
     // TODO: Elaborate.
     size_t count = 0;
     {
-        std::unique_lock<butil::Mutex> mu(_mutex);
+        std::unique_lock<mutil::Mutex> mu(_mutex);
         count = _map.size();
     }
     os << "count=" << count;
@@ -215,11 +215,11 @@ void SocketMap::PrintSocketMap(std::ostream& os, void* arg) {
 
 void SocketMap::ShowSocketMapInBvarIfNeed() {
     if (FLAGS_show_socketmap_in_vars &&
-        !_exposed_in_bvar.exchange(true, butil::memory_order_release)) {
+        !_exposed_in_bvar.exchange(true, mutil::memory_order_release)) {
         char namebuf[32];
         int len = snprintf(namebuf, sizeof(namebuf), "rpc_socketmap_%p", this);
         _this_map_bvar = new melon::var::PassiveStatus<std::string>(
-            butil::StringPiece(namebuf, len), PrintSocketMap, this);
+            mutil::StringPiece(namebuf, len), PrintSocketMap, this);
     }
 }
 
@@ -228,7 +228,7 @@ int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
                       bool use_rdma) {
     ShowSocketMapInBvarIfNeed();
 
-    std::unique_lock<butil::Mutex> mu(_mutex);
+    std::unique_lock<mutil::Mutex> mu(_mutex);
     SingleConnection* sc = _map.seek(key);
     if (sc) {
         if (!sc->socket->Failed() || sc->socket->HCEnabled()) {
@@ -279,7 +279,7 @@ void SocketMap::RemoveInternal(const SocketMapKey& key,
                                bool remove_orphan) {
     ShowSocketMapInBvarIfNeed();
 
-    std::unique_lock<butil::Mutex> mu(_mutex);
+    std::unique_lock<mutil::Mutex> mu(_mutex);
     SingleConnection* sc = _map.seek(key);
     if (!sc) {
         return;
@@ -295,7 +295,7 @@ void SocketMap::RemoveInternal(const SocketMapKey& key,
             : _options.defer_close_second;
         if (!remove_orphan && defer_close_second > 0) {
             // Start count down on this Socket 
-            sc->no_ref_us = butil::cpuwide_time_us();
+            sc->no_ref_us = mutil::cpuwide_time_us();
         } else {
             Socket* const s = sc->socket;
             _map.erase(key);
@@ -325,7 +325,7 @@ void SocketMap::List(std::vector<SocketId>* ids) {
     }
 }
 
-void SocketMap::List(std::vector<butil::EndPoint>* pts) {
+void SocketMap::List(std::vector<mutil::EndPoint>* pts) {
     pts->clear();
     MELON_SCOPED_LOCK(_mutex);
     for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
@@ -335,7 +335,7 @@ void SocketMap::List(std::vector<butil::EndPoint>* pts) {
 
 void SocketMap::ListOrphans(int64_t defer_us, std::vector<SocketMapKey>* out) {
     out->clear();
-    const int64_t now = butil::cpuwide_time_us();
+    const int64_t now = mutil::cpuwide_time_us();
     MELON_SCOPED_LOCK(_mutex);
     for (Map::iterator it = _map.begin(); it != _map.end(); ++it) {
         SingleConnection& sc = it->second;
@@ -355,7 +355,7 @@ void SocketMap::WatchConnections() {
     std::vector<SocketId> pooled_sockets;
     std::vector<SocketMapKey> orphan_sockets;
     const uint64_t CHECK_INTERVAL_US = 1000000UL;
-    while (bthread_usleep(CHECK_INTERVAL_US) == 0) {
+    while (fiber_usleep(CHECK_INTERVAL_US) == 0) {
         // NOTE: save the gflag which may be reloaded at any time.
         const int idle_seconds = _options.idle_timeout_second_dynamic ?
             *_options.idle_timeout_second_dynamic

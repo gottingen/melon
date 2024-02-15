@@ -21,9 +21,9 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 #include "melon/rpc/policy/redis_authenticator.h"
-#include "melon/butil/logging.h"                       // LOG()
-#include "melon/butil/time.h"
-#include "melon/butil/iobuf.h"                         // butil::IOBuf
+#include "melon/utility/logging.h"                       // LOG()
+#include "melon/utility/time.h"
+#include "melon/utility/iobuf.h"                         // mutil::IOBuf
 #include "melon/rpc/controller.h"               // Controller
 #include "melon/rpc/details/controller_private_accessor.h"
 #include "melon/rpc/socket.h"                   // Socket
@@ -45,7 +45,7 @@ DEFINE_bool(redis_verbose, false,
             "[DEBUG] Print EVERY redis request/response");
 
 struct InputResponse : public InputMessageBase {
-    bthread_id_t id_wait;
+    fiber_session_t id_wait;
     RedisResponse response;
 
     // @InputMessageBase
@@ -73,13 +73,13 @@ public:
     int batched_size;
 
     RedisCommandParser parser;
-    butil::Arena arena;
+    mutil::Arena arena;
 };
 
 int ConsumeCommand(RedisConnContext* ctx,
-                   const std::vector<butil::StringPiece>& args,
+                   const std::vector<mutil::StringPiece>& args,
                    bool flush_batched,
-                   butil::IOBufAppender* appender) {
+                   mutil::IOBufAppender* appender) {
     RedisReply output(&ctx->arena);
     RedisCommandHandlerResult result = REDIS_CMD_HANDLED;
     if (ctx->transaction_handler) {
@@ -144,7 +144,7 @@ void RedisConnContext::Destroy() {
 
 // ========== impl of RedisConnContext ==========
 
-ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
+ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket* socket,
                               bool read_eof, const void* arg) {
     if (read_eof || source->empty()) {
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
@@ -160,8 +160,8 @@ ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
             ctx = new RedisConnContext(rs);
             socket->reset_parsing_context(ctx);
         }
-        std::vector<butil::StringPiece> current_args;
-        butil::IOBufAppender appender;
+        std::vector<mutil::StringPiece> current_args;
+        mutil::IOBufAppender appender;
         ParseError err = PARSE_OK;
 
         err = ctx->parser.Consume(*source, &current_args, &ctx->arena);
@@ -169,7 +169,7 @@ ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
             return MakeParseError(err);
         }
         while (true) {
-            std::vector<butil::StringPiece> next_args;
+            std::vector<mutil::StringPiece> next_args;
             err = ctx->parser.Consume(*source, &next_args, &ctx->arena);
             if (err != PARSE_OK) {
                 break;
@@ -183,7 +183,7 @@ ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
                     true /*must be the last message*/, &appender) != 0) {
             return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
         }
-        butil::IOBuf sendbuf;
+        mutil::IOBuf sendbuf;
         appender.move_to(sendbuf);
         CHECK(!sendbuf.empty());
         Socket::WriteOptions wopt;
@@ -199,7 +199,7 @@ ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
         // I thought before. The Socket._pipeline_q is a SPSC queue pushed before
         // sending and popped when response comes back, being protected by a
         // mutex. Previously the mutex is shared with Socket._id_wait_list. When
-        // 200 bthreads access one redis-server, ~1.5s in total is spent on
+        // 200 fibers access one redis-server, ~1.5s in total is spent on
         // contention in 10-second duration. If the mutex is separated, the time
         // drops to ~0.25s. I further replaced PeekPipelinedInfo() with
         // GivebackPipelinedInfo() to lock only once(when receiving response)
@@ -254,12 +254,12 @@ ParseResult ParseRedisMessage(butil::IOBuf* source, Socket* socket,
 }
 
 void ProcessRedisResponse(InputMessageBase* msg_base) {
-    const int64_t start_parse_us = butil::cpuwide_time_us();
+    const int64_t start_parse_us = mutil::cpuwide_time_us();
     DestroyingPtr<InputResponse> msg(static_cast<InputResponse*>(msg_base));
 
-    const bthread_id_t cid = msg->id_wait;
+    const fiber_session_t cid = msg->id_wait;
     Controller* cntl = NULL;
-    const int rc = bthread_id_lock(cid, (void**)&cntl);
+    const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
         LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
@@ -301,7 +301,7 @@ void ProcessRedisResponse(InputMessageBase* msg_base) {
 
 void ProcessRedisRequest(InputMessageBase* msg_base) { }
 
-void SerializeRedisRequest(butil::IOBuf* buf,
+void SerializeRedisRequest(mutil::IOBuf* buf,
                            Controller* cntl,
                            const google::protobuf::Message* request) {
     if (request == NULL) {
@@ -326,12 +326,12 @@ void SerializeRedisRequest(butil::IOBuf* buf,
     }
 }
 
-void PackRedisRequest(butil::IOBuf* buf,
+void PackRedisRequest(mutil::IOBuf* buf,
                       SocketMessage**,
                       uint64_t /*correlation_id*/,
                       const google::protobuf::MethodDescriptor*,
                       Controller* cntl,
-                      const butil::IOBuf& request,
+                      const mutil::IOBuf& request,
                       const Authenticator* auth) {
     if (auth) {
         std::string auth_str;

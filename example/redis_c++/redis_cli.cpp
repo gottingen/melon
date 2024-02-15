@@ -22,7 +22,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/redis/redis.h>
 

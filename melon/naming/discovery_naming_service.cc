@@ -17,13 +17,13 @@
 
 
 #include <gflags/gflags.h>
-#include "melon/butil/third_party/rapidjson/document.h"
-#include "melon/butil/third_party/rapidjson/memorybuffer.h"
-#include "melon/butil/third_party/rapidjson/writer.h"
-#include "melon/butil/string_printf.h"
-#include "melon/butil/strings/string_split.h"
-#include "melon/butil/fast_rand.h"
-#include "melon/bthread/bthread.h"
+#include "melon/utility/third_party/rapidjson/document.h"
+#include "melon/utility/third_party/rapidjson/memorybuffer.h"
+#include "melon/utility/third_party/rapidjson/writer.h"
+#include "melon/utility/string_printf.h"
+#include "melon/utility/strings/string_split.h"
+#include "melon/utility/fast_rand.h"
+#include "melon/fiber/fiber.h"
 #include "melon/rpc/channel.h"
 #include "melon/rpc/controller.h"
 #include "melon/naming/discovery_naming_service.h"
@@ -70,7 +70,7 @@ namespace melon::naming {
         servers->assign("list://");
 
         const std::string response = cntl.response_attachment().to_string();
-        BUTIL_RAPIDJSON_NAMESPACE::Document d;
+        MUTIL_RAPIDJSON_NAMESPACE::Document d;
         d.Parse(response.c_str());
         if (!d.IsObject()) {
             LOG(ERROR) << "Fail to parse " << response << " as json object";
@@ -81,13 +81,13 @@ namespace melon::naming {
             LOG(ERROR) << "No data field in discovery nodes response";
             return -1;
         }
-        const BUTIL_RAPIDJSON_NAMESPACE::Value &data = itr->value;
+        const MUTIL_RAPIDJSON_NAMESPACE::Value &data = itr->value;
         if (!data.IsArray()) {
             LOG(ERROR) << "data field is not an array";
             return -1;
         }
-        for (BUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < data.Size(); ++i) {
-            const BUTIL_RAPIDJSON_NAMESPACE::Value &addr_item = data[i];
+        for (MUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < data.Size(); ++i) {
+            const MUTIL_RAPIDJSON_NAMESPACE::Value &addr_item = data[i];
             auto itr_addr = addr_item.FindMember("addr");
             auto itr_status = addr_item.FindMember("status");
             if (itr_addr == addr_item.MemberEnd() ||
@@ -136,19 +136,19 @@ namespace melon::naming {
     }
 
     DiscoveryClient::DiscoveryClient()
-            : _th(INVALID_BTHREAD), _registered(false) {}
+            : _th(INVALID_FIBER), _registered(false) {}
 
     DiscoveryClient::~DiscoveryClient() {
-        if (_registered.load(butil::memory_order_acquire)) {
-            bthread_stop(_th);
-            bthread_join(_th, NULL);
+        if (_registered.load(mutil::memory_order_acquire)) {
+            fiber_stop(_th);
+            fiber_join(_th, NULL);
             DoCancel();
         }
     }
 
-    static int ParseCommonResult(const butil::IOBuf &buf, std::string *error_text) {
+    static int ParseCommonResult(const mutil::IOBuf &buf, std::string *error_text) {
         const std::string s = buf.to_string();
-        BUTIL_RAPIDJSON_NAMESPACE::Document d;
+        MUTIL_RAPIDJSON_NAMESPACE::Document d;
         d.Parse(s.c_str());
         if (!d.IsObject()) {
             LOG(ERROR) << "Fail to parse " << buf << " as json object";
@@ -184,7 +184,7 @@ namespace melon::naming {
         cntl.http_request().set_method(HTTP_METHOD_POST);
         cntl.http_request().uri() = "/discovery/renew";
         cntl.http_request().set_content_type("application/x-www-form-urlencoded");
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         os << "appid=" << _params.appid
            << "&hostname=" << _params.hostname
            << "&env=" << _params.env
@@ -209,22 +209,22 @@ namespace melon::naming {
         DiscoveryClient *d = static_cast<DiscoveryClient *>(arg);
         int consecutive_renew_error = 0;
         int64_t init_sleep_s = FLAGS_discovery_renew_interval_s / 2 +
-                               butil::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
-        if (bthread_usleep(init_sleep_s * 1000000) != 0) {
+                               mutil::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
+        if (fiber_usleep(init_sleep_s * 1000000) != 0) {
             if (errno == ESTOP) {
                 return NULL;
             }
         }
 
-        while (!bthread_stopped(bthread_self())) {
+        while (!fiber_stopped(fiber_self())) {
             if (consecutive_renew_error == FLAGS_discovery_reregister_threshold) {
                 LOG(WARNING) << "Re-register since discovery renew error threshold reached";
                 // Do register until succeed or Cancel is called
-                while (!bthread_stopped(bthread_self())) {
+                while (!fiber_stopped(fiber_self())) {
                     if (d->DoRegister() == 0) {
                         break;
                     }
-                    bthread_usleep(FLAGS_discovery_renew_interval_s * 1000000);
+                    fiber_usleep(FLAGS_discovery_renew_interval_s * 1000000);
                 }
                 consecutive_renew_error = 0;
             }
@@ -233,14 +233,14 @@ namespace melon::naming {
                 continue;
             }
             consecutive_renew_error = 0;
-            bthread_usleep(FLAGS_discovery_renew_interval_s * 1000000);
+            fiber_usleep(FLAGS_discovery_renew_interval_s * 1000000);
         }
         return NULL;
     }
 
     int DiscoveryClient::Register(const DiscoveryRegisterParam &params) {
-        if (_registered.load(butil::memory_order_relaxed) ||
-            _registered.exchange(true, butil::memory_order_release)) {
+        if (_registered.load(mutil::memory_order_relaxed) ||
+            _registered.exchange(true, mutil::memory_order_release)) {
             return 0;
         }
         if (!params.IsValid()) {
@@ -251,7 +251,7 @@ namespace melon::naming {
         if (DoRegister() != 0) {
             return -1;
         }
-        if (bthread_start_background(&_th, NULL, PeriodicRenew, this) != 0) {
+        if (fiber_start_background(&_th, NULL, PeriodicRenew, this) != 0) {
             LOG(ERROR) << "Fail to start background PeriodicRenew";
             return -1;
         }
@@ -268,12 +268,12 @@ namespace melon::naming {
         cntl.http_request().set_method(HTTP_METHOD_POST);
         cntl.http_request().uri() = "/discovery/register";
         cntl.http_request().set_content_type("application/x-www-form-urlencoded");
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         os << "appid=" << _params.appid
            << "&hostname=" << _params.hostname;
 
-        std::vector<butil::StringPiece> addrs;
-        butil::SplitString(_params.addrs, ',', &addrs);
+        std::vector<mutil::StringPiece> addrs;
+        mutil::SplitString(_params.addrs, ',', &addrs);
         for (size_t i = 0; i < addrs.size(); ++i) {
             if (!addrs[i].empty()) {
                 os << "&addrs=" << addrs[i];
@@ -318,7 +318,7 @@ namespace melon::naming {
         cntl.http_request().set_method(HTTP_METHOD_POST);
         cntl.http_request().uri() = "/discovery/cancel";
         cntl.http_request().set_content_type("application/x-www-form-urlencoded");
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
         os << "appid=" << _params.appid
            << "&hostname=" << _params.hostname
            << "&env=" << _params.env
@@ -356,7 +356,7 @@ namespace melon::naming {
         }
         servers->clear();
         Controller cntl;
-        std::string uri_str = butil::string_printf(
+        std::string uri_str = mutil::string_printf(
                 "/discovery/fetchs?appid=%s&env=%s&status=%s", service_name,
                 FLAGS_discovery_env.c_str(), FLAGS_discovery_status.c_str());
         if (!FLAGS_discovery_zone.empty()) {
@@ -371,7 +371,7 @@ namespace melon::naming {
         }
 
         const std::string response = cntl.response_attachment().to_string();
-        BUTIL_RAPIDJSON_NAMESPACE::Document d;
+        MUTIL_RAPIDJSON_NAMESPACE::Document d;
         d.Parse(response.c_str());
         if (!d.IsObject()) {
             LOG(ERROR) << "Fail to parse " << response << " as json object";
@@ -382,31 +382,31 @@ namespace melon::naming {
             LOG(ERROR) << "No data field in discovery/fetchs response";
             return -1;
         }
-        const BUTIL_RAPIDJSON_NAMESPACE::Value &data = itr_data->value;
+        const MUTIL_RAPIDJSON_NAMESPACE::Value &data = itr_data->value;
         auto itr_service = data.FindMember(service_name);
         if (itr_service == data.MemberEnd()) {
             LOG(ERROR) << "No " << service_name << " field in discovery response";
             return -1;
         }
-        const BUTIL_RAPIDJSON_NAMESPACE::Value &services = itr_service->value;
+        const MUTIL_RAPIDJSON_NAMESPACE::Value &services = itr_service->value;
         auto itr_instances = services.FindMember("instances");
         if (itr_instances == services.MemberEnd()) {
             LOG(ERROR) << "Fail to find instances";
             return -1;
         }
-        const BUTIL_RAPIDJSON_NAMESPACE::Value &instances = itr_instances->value;
+        const MUTIL_RAPIDJSON_NAMESPACE::Value &instances = itr_instances->value;
         if (!instances.IsArray()) {
             LOG(ERROR) << "Fail to parse instances as an array";
             return -1;
         }
 
-        for (BUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < instances.Size(); ++i) {
+        for (MUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < instances.Size(); ++i) {
             std::string metadata;
             // convert metadata in object to string
             auto itr_metadata = instances[i].FindMember("metadata");
             if (itr_metadata != instances[i].MemberEnd()) {
-                BUTIL_RAPIDJSON_NAMESPACE::MemoryBuffer buffer;
-                BUTIL_RAPIDJSON_NAMESPACE::Writer<BUTIL_RAPIDJSON_NAMESPACE::MemoryBuffer> writer(buffer);
+                MUTIL_RAPIDJSON_NAMESPACE::MemoryBuffer buffer;
+                MUTIL_RAPIDJSON_NAMESPACE::Writer<MUTIL_RAPIDJSON_NAMESPACE::MemoryBuffer> writer(buffer);
                 itr_metadata->value.Accept(writer);
                 metadata.assign(buffer.GetBuffer(), buffer.GetSize());
             }
@@ -416,16 +416,16 @@ namespace melon::naming {
                 LOG(ERROR) << "Fail to find addrs or addrs is not an array";
                 return -1;
             }
-            const BUTIL_RAPIDJSON_NAMESPACE::Value &addrs = itr->value;
-            for (BUTIL_RAPIDJSON_NAMESPACE::SizeType j = 0; j < addrs.Size(); ++j) {
+            const MUTIL_RAPIDJSON_NAMESPACE::Value &addrs = itr->value;
+            for (MUTIL_RAPIDJSON_NAMESPACE::SizeType j = 0; j < addrs.Size(); ++j) {
                 if (!addrs[j].IsString()) {
                     continue;
                 }
                 // The result returned by discovery include protocol prefix, such as
                 // http://172.22.35.68:6686, which should be removed.
-                butil::StringPiece addr(addrs[j].GetString(), addrs[j].GetStringLength());
-                butil::StringPiece::size_type pos = addr.find("://");
-                if (pos != butil::StringPiece::npos) {
+                mutil::StringPiece addr(addrs[j].GetString(), addrs[j].GetStringLength());
+                mutil::StringPiece::size_type pos = addr.find("://");
+                if (pos != mutil::StringPiece::npos) {
                     if (pos != 4 /* sizeof("grpc") */ ||
                         strncmp("grpc", addr.data(), 4) != 0) {
                         // Skip server that has prefix but not start with "grpc"

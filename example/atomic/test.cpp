@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <gflags/gflags.h>
-#include <melon/bthread/bthread.h>
+#include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/raft/raft.h>
@@ -36,12 +36,12 @@ int get(const int64_t id) {
         if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = melon::raft::rtb::refresh_leader(
+            mutil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
                 LOG(WARNING) << "Fail to refresh_leader : " << st;
-                bthread_usleep(FLAGS_timeout_ms * 1000L);
+                fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
         }
@@ -50,7 +50,7 @@ int get(const int64_t id) {
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         // get request
@@ -70,7 +70,7 @@ int get(const int64_t id) {
             }
             // Clear leadership since this RPC failed.
             melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         if (!response.success()) {
@@ -97,12 +97,12 @@ int exchange(const int64_t id, const int64_t value) {
         if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = melon::raft::rtb::refresh_leader(
+            mutil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
                 LOG(WARNING) << "Fail to refresh_leader : " << st;
-                bthread_usleep(FLAGS_timeout_ms * 1000L);
+                fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
         }
@@ -111,7 +111,7 @@ int exchange(const int64_t id, const int64_t value) {
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         // get request
@@ -132,7 +132,7 @@ int exchange(const int64_t id, const int64_t value) {
             }
             // Clear leadership since this RPC failed.
             melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         if (!response.success()) {
@@ -161,12 +161,12 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         if (melon::raft::rtb::select_leader(FLAGS_group, &leader) != 0) {
             // Leader is unknown in RouteTable. Ask RouteTable to refresh leader
             // by sending RPCs.
-            butil::Status st = melon::raft::rtb::refresh_leader(
+            mutil::Status st = melon::raft::rtb::refresh_leader(
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
                 LOG(WARNING) << "Fail to refresh_leader : " << st;
-                bthread_usleep(FLAGS_timeout_ms * 1000L);
+                fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
         }
@@ -176,7 +176,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
             LOG(ERROR) << "Fail to init channel to " << leader;
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
         example::AtomicService_Stub stub(&channel);
@@ -199,7 +199,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
             }
             // Clear leadership since this RPC failed.
             melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
-            bthread_usleep(FLAGS_timeout_ms * 1000L);
+            fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
 

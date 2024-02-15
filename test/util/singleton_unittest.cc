@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/butil/at_exit.h"
-#include "melon/butil/memory/singleton.h"
+#include "melon/utility/at_exit.h"
+#include "melon/utility/memory/singleton.h"
 #include <gtest/gtest.h>
 
 namespace {
@@ -207,7 +207,7 @@ TEST_F(SingletonTest, Basic) {
   CallbackFunc* static_singleton;
 
   {
-    butil::ShadowingAtExitManager sem;
+    mutil::ShadowingAtExitManager sem;
     {
       singleton_int = SingletonInt();
     }
@@ -241,7 +241,7 @@ TEST_F(SingletonTest, Basic) {
   EXPECT_EQ(NULL, GetStaticSingleton());
 
   {
-    butil::ShadowingAtExitManager sem;
+    mutil::ShadowingAtExitManager sem;
     // Verifiy that the variables were reset.
     {
       singleton_int = SingletonInt();
@@ -266,7 +266,7 @@ TEST_F(SingletonTest, Basic) {
     EXPECT_EQ(0u, reinterpret_cast<uintptr_t>(ptr) & (align - 1))
 
 TEST_F(SingletonTest, Alignment) {
-  using butil::AlignedMemory;
+  using mutil::AlignedMemory;
 
   // Create some static singletons with increasing sizes and alignment
   // requirements. By ordering this way, the linker will need to do some work to

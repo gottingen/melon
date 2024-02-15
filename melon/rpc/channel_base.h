@@ -21,12 +21,11 @@
 
 #include <stdlib.h>
 #include <ostream>
-#include "melon/butil/logging.h"
+#include "melon/utility/logging.h"
 #include <google/protobuf/service.h>            // google::protobuf::RpcChannel
 #include "melon/rpc/describable.h"
 
-// To brpc developers: This is a header included by user, don't depend
-// on internal structures, use opaque pointers instead.
+
 
 
 namespace melon {

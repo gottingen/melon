@@ -17,7 +17,7 @@
 
 
 #include <limits>
-#include "melon/butil/macros.h"
+#include "melon/utility/macros.h"
 #include "melon/rpc/controller.h"
 #include "melon/rpc/details/server_private_accessor.h"
 #include "melon/rpc/details/method_status.h"
@@ -47,7 +47,7 @@ MethodStatus::MethodStatus()
 MethodStatus::~MethodStatus() {
 }
 
-int MethodStatus::Expose(const butil::StringPiece& prefix) {
+int MethodStatus::Expose(const mutil::StringPiece& prefix) {
     if (_nconcurrency_bvar.expose_as(prefix, "concurrency") != 0) {
         return -1;
     }
@@ -151,7 +151,7 @@ void MethodStatus::SetConcurrencyLimiter(ConcurrencyLimiter* cl) {
 
 ConcurrencyRemover::~ConcurrencyRemover() {
     if (_status) {
-        _status->OnResponded(_c->ErrorCode(), butil::cpuwide_time_us() - _received_us);
+        _status->OnResponded(_c->ErrorCode(), mutil::cpuwide_time_us() - _received_us);
         _status = NULL;
     }
     ServerPrivateAccessor(_c->server()).RemoveConcurrency(_c);

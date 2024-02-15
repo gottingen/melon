@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Authors: Zhangyi Chen(chenzhangyi01@baidu.com)
-//          Ma,Jingwei(majingwei@baidu.com)
 
 #ifndef  MELON_RAFT_REPEATED_TIMER_TASK_H_
 #define  MELON_RAFT_REPEATED_TIMER_TASK_H_
 
-#include <melon/bthread/unstable.h>
+#include <melon/fiber/unstable.h>
 #include "melon/raft/macros.h"
 
 namespace melon::raft {
@@ -79,7 +77,7 @@ namespace melon::raft {
         void schedule(std::unique_lock<raft_mutex_t> &lck);
 
         raft_mutex_t _mutex;
-        bthread_timer_t _timer;
+        fiber_timer_t _timer;
         timespec _next_duetime;
         int _timeout_ms;
         bool _stopped;

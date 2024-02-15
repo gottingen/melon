@@ -18,7 +18,7 @@
 // A client sending requests to server in batch every 1 second.
 
 #include <gflags/gflags.h>
-#include <melon/butil/logging.h>
+#include <melon/utility/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/stream.h>
 #include "echo.pb.h"
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
         
     // Initialize the channel, NULL means using default options. 
     melon::ChannelOptions options;
-    options.protocol = melon::PROTOCOL_BAIDU_STD;
+    options.protocol = melon::PROTOCOL_MELON_STD;
     options.connection_type = FLAGS_connection_type;
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
@@ -68,10 +68,10 @@ int main(int argc, char* argv[]) {
     }
     
     while (!melon::IsAskedToQuit()) {
-        butil::IOBuf msg1;
+        mutil::IOBuf msg1;
         msg1.append("abcdefghijklmnopqrstuvwxyz");
         CHECK_EQ(0, melon::StreamWrite(stream, msg1));
-        butil::IOBuf msg2;
+        mutil::IOBuf msg2;
         msg2.append("0123456789");
         CHECK_EQ(0, melon::StreamWrite(stream, msg2));
         sleep(1);

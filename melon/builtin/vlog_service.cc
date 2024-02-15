@@ -68,7 +68,7 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         const bool use_html = UseHTML(cntl->http_request());
-        butil::IOBufBuilder os;
+        mutil::IOBufBuilder os;
 
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");

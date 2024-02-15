@@ -10,15 +10,13 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  WangYao (fisherman), wangyao02@baidu.com
- *        Company:  Baidu, Inc
  *
  * =====================================================================================
  */
 
 #include <gtest/gtest.h>
-#include <melon/butil/logging.h>
-#include <melon/butil/iobuf.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/iobuf.h>
 #include "melon/raft/log_entry.h"
 
 class TestUsageSuits : public testing::Test {
@@ -42,7 +40,7 @@ TEST_F(TestUsageSuits, LogEntry) {
 
     entry = new melon::raft::LogEntry();
     entry->type = melon::raft::ENTRY_TYPE_DATA;
-    butil::IOBuf buf;
+    mutil::IOBuf buf;
     buf.append("hello, world");
     entry->data = buf;
     entry->data = buf;
