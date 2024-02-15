@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 
-#if !BRPC_WITH_GLOG
+#if !MELON_WITH_GLOG
 
 namespace logging {
 DECLARE_bool(crash_on_fatal_log);

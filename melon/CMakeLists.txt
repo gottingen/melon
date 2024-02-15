@@ -35,29 +35,6 @@ add_library(melon-static STATIC $<TARGET_OBJECTS:MUTIL_LIB>
                                $<TARGET_OBJECTS:SOURCES_LIB>
                                $<TARGET_OBJECTS:PROTO_LIB>)
 
-function(check_thrift_version target_arg)
-    #use thrift command to get version
-    execute_process(
-        COMMAND thrift --version
-        OUTPUT_VARIABLE THRIFT_VERSION_OUTPUT
-        ERROR_QUIET
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" THRIFT_VERSION ${THRIFT_VERSION_OUTPUT})
-    string(REGEX REPLACE "\\." ";" THRIFT_VERSION_LIST ${THRIFT_VERSION})
-
-    list(GET THRIFT_VERSION_LIST 0 THRIFT_MAJOR_VERSION)
-    list(GET THRIFT_VERSION_LIST 1 THRIFT_MINOR_VERSION)
-
-    if (THRIFT_MAJOR_VERSION EQUAL 0 AND THRIFT_MINOR_VERSION LESS 11)
-        message(STATUS "Thrift version is less than 0.11.0")
-        target_compile_definitions($(target_arg) PRIVATE _THRIFT_VERSION_LOWER_THAN_0_11_0_)
-    else()
-        message(STATUS "Thrift version is equal to or greater than 0.11.0")
-    endif()
-endfunction()
-
 
 SET_TARGET_PROPERTIES(melon-static PROPERTIES OUTPUT_NAME melon CLEAN_DIRECT_OUTPUT 1)
 

@@ -133,7 +133,7 @@ set_target_properties(melon-shared-debug PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/test)
 
 target_link_libraries(melon-shared-debug ${DYNAMIC_LIB})
-if(BRPC_WITH_GLOG)
+if(MELON_WITH_GLOG)
     target_link_libraries(melon-shared-debug ${GLOG_LIB})
 endif()
 

@@ -25,8 +25,8 @@
 // to use these.
 //
 
-#ifndef MUTIL_ATOMICOPS_H_
-#define MUTIL_ATOMICOPS_H_
+#ifndef MELON_UTILITY_ATOMICOPS_H_
+#define MELON_UTILITY_ATOMICOPS_H_
 
 #include <stdint.h>
 
@@ -319,4 +319,4 @@ private:
 };
 } // namespace mutil
 
-#endif  // MUTIL_ATOMICOPS_H_
+#endif  // MELON_UTILITY_ATOMICOPS_H_

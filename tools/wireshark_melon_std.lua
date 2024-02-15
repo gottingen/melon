@@ -129,7 +129,7 @@ end
 --------------------------------------------------------------------------------
 -- heuristic
 local function heur_dissect_proto(tvbuf, pktinfo, root)
-    LM_DBG("heur brpc: pkg number: " .. pktinfo.number)
+    LM_DBG("heur melon: pkg number: " .. pktinfo.number)
     if (tvbuf:len() < PROTO_HEADER_LENGTH) then
         LM_DBG("too short: pkg number: " .. pktinfo.number)
         return false
@@ -216,7 +216,7 @@ dissect_proto = function(tvbuf, pktinfo, root, offset)
     local tvb_meta = tvbuf:range(offset + PROTO_HEADER_LENGTH, meta_size):tvb()
     if     proto_f_magic_code().value == MAGIC_CODE_PRPC then
         -- dissect rpc meta fields
-        pktinfo.private["pb_msg_type"] = "message,brpc.policy.RpcMeta"
+        pktinfo.private["pb_msg_type"] = "message,melon.policy.RpcMeta"
         protobuf_dissector:call(tvb_meta, pktinfo, tree)
 
         local direction, method
@@ -256,7 +256,7 @@ dissect_proto = function(tvbuf, pktinfo, root, offset)
         end
     elseif proto_f_magic_code().value == MAGIC_CODE_STRM then
         -- dissect streaming meta fields
-        pktinfo.private["pb_msg_type"] = "message,brpc.StreamFrameMeta"
+        pktinfo.private["pb_msg_type"] = "message,melon.StreamFrameMeta"
         protobuf_dissector:call(tvb_meta, pktinfo, tree)
     end
 

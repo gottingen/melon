@@ -16,9 +16,9 @@
 #ifndef  MUTIL_CONFIG_H
 #define  MUTIL_CONFIG_H
 
-#ifdef BRPC_WITH_GLOG
-#undef BRPC_WITH_GLOG
+#ifdef MELON_WITH_GLOG
+#undef MELON_WITH_GLOG
 #endif
-/* #undef BRPC_WITH_GLOG */
+/* #undef MELON_WITH_GLOG */
 
 #endif  // MUTIL_CONFIG_H
