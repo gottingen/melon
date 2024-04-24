@@ -558,11 +558,11 @@ class SmallMap {
   }
 
   inline NormalMap* map() {
-    CHECK(UsingFullMap());
+    MCHECK(UsingFullMap());
     return map_.get();
   }
   inline const NormalMap* map() const {
-    CHECK(UsingFullMap());
+    MCHECK(UsingFullMap());
     return map_.get();
   }
 

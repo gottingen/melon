@@ -30,7 +30,7 @@ namespace melon::compress {
             mutil::IOBufAsSnappySink sink(*buf);
             return mutil::snappy::Compress(&source, &sink);
         }
-        LOG(WARNING) << "Fail to serialize input pb=" << &res;
+        MLOG(WARNING) << "Fail to serialize input pb=" << &res;
         return false;
     }
 
@@ -41,7 +41,7 @@ namespace melon::compress {
         if (mutil::snappy::Uncompress(&source, &sink)) {
             return ParsePbFromIOBuf(req, binary_pb);
         }
-        LOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
+        MLOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
         return false;
     }
 

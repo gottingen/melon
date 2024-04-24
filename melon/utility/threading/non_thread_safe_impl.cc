@@ -13,7 +13,7 @@ bool NonThreadSafeImpl::CalledOnValidThread() const {
 }
 
 NonThreadSafeImpl::~NonThreadSafeImpl() {
-  DCHECK(CalledOnValidThread());
+  DMCHECK(CalledOnValidThread());
 }
 
 void NonThreadSafeImpl::DetachFromThread() {

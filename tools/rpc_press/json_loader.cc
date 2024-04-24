@@ -62,7 +62,7 @@ bool JsonLoader::Reader::read_some() {
         if (errno == EINTR) {
             return read_some();
         }
-        PLOG(ERROR) << "Fail to read fd=" << _fd;
+        PMLOG(ERROR) << "Fail to read fd=" << _fd;
         return false;
     } else if (nr == 0) {
         return false;
@@ -127,7 +127,7 @@ bool JsonLoader::Reader::get_next_json(mutil::IOBuf* json1) {
                             json1->pop_front(skipped);
                             return possibly_valid_json(*json1);
                         } else if (_brace_depth < 0) {
-                            LOG(ERROR) << "More right braces than left braces";
+                            MLOG(ERROR) << "More right braces than left braces";
                             return false;
                         }
                     } else {
@@ -200,7 +200,7 @@ void JsonLoader::load_messages(
         google::protobuf::Message* request = _request_prototype->New();
         mutil::IOBufAsZeroCopyInputStream wrapper(request_json);
         if (!json2pb::JsonToProtoMessage(&wrapper, request, &error)) {
-            LOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
+            MLOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
                          << request_json << '\'';
             delete request;
             continue;

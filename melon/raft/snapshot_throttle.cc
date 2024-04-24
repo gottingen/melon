@@ -84,13 +84,13 @@ namespace melon::raft {
         int saved_task_num = _snapshot_task_num;
         if (_snapshot_task_num >= task_num_threshold) {
             lck.unlock();
-            LOG(WARNING) << "Fail to add one more task when current task num is: "
+            MLOG(WARNING) << "Fail to add one more task when current task num is: "
                          << saved_task_num << ", task num threshold: " << task_num_threshold;
             return false;
         }
         saved_task_num = ++_snapshot_task_num;
         lck.unlock();
-        LOG(INFO) << "Succed to add one more task, new task num is: " << saved_task_num
+        MLOG(INFO) << "Succed to add one more task, new task num is: " << saved_task_num
                   << ", task num threshold: " << task_num_threshold;
         return true;
     }
@@ -102,10 +102,10 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         int saved_task_num = --_snapshot_task_num;
         // _snapshot_task_num should not be negative
-        CHECK_GE(_snapshot_task_num, 0) << "Finishing task cause wrong task num: "
+        MCHECK_GE(_snapshot_task_num, 0) << "Finishing task cause wrong task num: "
                                         << saved_task_num;
         lck.unlock();
-        LOG(INFO) << "Finish one task, new task num is: " << saved_task_num;
+        MLOG(INFO) << "Finish one task, new task num is: " << saved_task_num;
         return;
     }
 

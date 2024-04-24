@@ -447,7 +447,7 @@ namespace {  /*anonymous namespace */                           \
 #define ASSERT_LOG(fmt, ...)                                            \
     do {                                                                \
         std::string log = mutil::string_printf(fmt, ## __VA_ARGS__);    \
-        LOG(FATAL) << log;                                              \
+        MLOG(FATAL) << log;                                              \
     } while (false)
 
 // Assert macro that can crash the process to generate a dump.

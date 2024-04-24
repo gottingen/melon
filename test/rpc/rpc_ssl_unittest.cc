@@ -66,7 +66,7 @@ public:
 
         response->set_message(EXP_RESPONSE);
         if (request->sleep_us() > 0) {
-            LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
+            MLOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
                       << cntl->request_protocol();
             fiber_usleep(request->sleep_us());
         }
@@ -355,7 +355,7 @@ void* ssl_perf_client(void* arg) {
             SSL_write(ssl, buf, size);
         }
         tm.stop();
-        LOG(INFO) << "SSL_write(" << size << ") tp="
+        MLOG(INFO) << "SSL_write(" << size << ") tp="
                   << size * REP / tm.u_elapsed() << "M/s"
                   << ", latency=" << tm.u_elapsed() / REP << "us";
     }

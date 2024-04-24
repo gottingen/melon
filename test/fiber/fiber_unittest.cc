@@ -46,11 +46,11 @@ protected:
 };
 
 TEST_F(FiberTest, sizeof_task_meta) {
-    LOG(INFO) << "sizeof(TaskMeta)=" << sizeof(fiber::TaskMeta);
+    MLOG(INFO) << "sizeof(TaskMeta)=" << sizeof(fiber::TaskMeta);
 }
 
 void* unrelated_pthread(void*) {
-    LOG(INFO) << "I did not call any fiber function, "
+    MLOG(INFO) << "I did not call any fiber function, "
         "I should begin and end without any problem";
     return (void*)(intptr_t)1;
 }
@@ -103,14 +103,14 @@ TEST_F(FiberTest, call_fiber_functions_before_tls_created) {
 mutil::atomic<bool> stop(false);
 
 void* sleep_for_awhile(void* arg) {
-    LOG(INFO) << "sleep_for_awhile(" << arg << ")";
+    MLOG(INFO) << "sleep_for_awhile(" << arg << ")";
     fiber_usleep(100000L);
-    LOG(INFO) << "sleep_for_awhile(" << arg << ") wakes up";
+    MLOG(INFO) << "sleep_for_awhile(" << arg << ") wakes up";
     return NULL;
 }
 
 void* just_exit(void* arg) {
-    LOG(INFO) << "just_exit(" << arg << ")";
+    MLOG(INFO) << "just_exit(" << arg << ")";
     fiber_exit(NULL);
     EXPECT_TRUE(false) << "just_exit(" << arg << ") should never be here";
     return NULL;
@@ -118,7 +118,7 @@ void* just_exit(void* arg) {
 
 void* repeated_sleep(void* arg) {
     for (size_t i = 0; !stop; ++i) {
-        LOG(INFO) << "repeated_sleep(" << arg << ") i=" << i;
+        MLOG(INFO) << "repeated_sleep(" << arg << ") i=" << i;
         fiber_usleep(1000000L);
     }
     return NULL;
@@ -130,19 +130,19 @@ void* spin_and_log(void* arg) {
     size_t i = 0;
     while (!stop) {
         if (every_1s) {
-            LOG(INFO) << "spin_and_log(" << arg << ")=" << i++;
+            MLOG(INFO) << "spin_and_log(" << arg << ")=" << i++;
         }
     }
     return NULL;
 }
 
 void* do_nothing(void* arg) {
-    LOG(INFO) << "do_nothing(" << arg << ")";
+    MLOG(INFO) << "do_nothing(" << arg << ")";
     return NULL;
 }
 
 void* launcher(void* arg) {
-    LOG(INFO) << "launcher(" << arg << ")";
+    MLOG(INFO) << "launcher(" << arg << ")";
     for (size_t i = 0; !stop; ++i) {
         fiber_t th;
         fiber_start_urgent(&th, NULL, do_nothing, (void*)i);
@@ -156,13 +156,13 @@ void* stopper(void*) {
     // never yields CPU) is scheduled to main thread, main thread cannot get
     // to run again.
     fiber_usleep(5*1000000L);
-    LOG(INFO) << "about to stop";
+    MLOG(INFO) << "about to stop";
     stop = true;
     return NULL;
 }
 
 void* misc(void* arg) {
-    LOG(INFO) << "misc(" << arg << ")";
+    MLOG(INFO) << "misc(" << arg << ")";
     fiber_t th[8];
     EXPECT_EQ(0, fiber_start_urgent(&th[0], NULL, sleep_for_awhile, (void*)2));
     EXPECT_EQ(0, fiber_start_urgent(&th[1], NULL, just_exit, (void*)3));
@@ -179,10 +179,10 @@ void* misc(void* arg) {
 }
 
 TEST_F(FiberTest, sanity) {
-    LOG(INFO) << "main thread " << pthread_self();
+    MLOG(INFO) << "main thread " << pthread_self();
     fiber_t th1;
     ASSERT_EQ(0, fiber_start_urgent(&th1, NULL, misc, (void*)1));
-    LOG(INFO) << "back to main thread " << th1 << " " << pthread_self();
+    MLOG(INFO) << "back to main thread " << th1 << " " << pthread_self();
     ASSERT_EQ(0, fiber_join(th1, NULL));
 }
 
@@ -220,7 +220,7 @@ TEST_F(FiberTest, backtrace) {
 
 void* show_self(void*) {
     EXPECT_NE(0ul, fiber_self());
-    LOG(INFO) << "fiber_self=" << fiber_self();
+    MLOG(INFO) << "fiber_self=" << fiber_self();
     return NULL;
 }
 
@@ -271,7 +271,7 @@ void* adding_func(void* arg) {
         }
         fiber_usleep(sleep_in_adding_func);
         if (t1) {
-            LOG(INFO) << "elapse is " << mutil::cpuwide_time_us() - t1 << "ns";
+            MLOG(INFO) << "elapse is " << mutil::cpuwide_time_us() - t1 << "ns";
         }
     } else {
         s->fetch_add(1);
@@ -313,7 +313,7 @@ TEST_F(FiberTest, small_threads) {
             for (size_t i = 0; i < N; ++i) {
                 fiber_join(th[i], NULL);
             }
-            LOG(INFO) << "[Round " << j + 1 << "] fiber_start_urgent takes "
+            MLOG(INFO) << "[Round " << j + 1 << "] fiber_start_urgent takes "
                       << tm.n_elapsed()/N << "ns, sum=" << s;
             ASSERT_EQ(N * (j + 1), (size_t)s);
         
@@ -404,7 +404,7 @@ TEST_F(FiberTest, start_latency_when_high_idle) {
             warmup = false;
         }
     }
-    LOG(INFO) << "start_urgent=" << elp1 / REP << "ns start_background="
+    MLOG(INFO) << "start_urgent=" << elp1 / REP << "ns start_background="
               << elp2 / REP << "ns";
 }
 
@@ -517,7 +517,7 @@ static const fiber_attr_t FIBER_ATTR_NORMAL_WITH_SPAN =
 void* test_parent_span(void* p) {
     uint64_t *q = (uint64_t *)p;
     *q = (uint64_t)(fiber::tls_bls.rpcz_parent_span);
-    LOG(INFO) << "span id in thread is " << *q;
+    MLOG(INFO) << "span id in thread is " << *q;
     return NULL;
 }
 
@@ -526,7 +526,7 @@ TEST_F(FiberTest, test_span) {
     uint64_t p2 = 0;
 
     uint64_t target = 0xBADBEAFUL;
-    LOG(INFO) << "target span id is " << target;
+    MLOG(INFO) << "target span id is " << target;
 
     fiber::tls_bls.rpcz_parent_span = (void*)target;
     fiber_t th1;

@@ -44,7 +44,7 @@ namespace melon::raft {
     int NodeManager::add_service(melon::Server *server,
                                  const mutil::EndPoint &listen_address) {
         if (server == NULL) {
-            LOG(ERROR) << "server is NULL";
+            MLOG(ERROR) << "server is NULL";
             return -1;
         }
         if (server_exists(listen_address)) {
@@ -52,23 +52,23 @@ namespace melon::raft {
         }
 
         if (0 != server->AddService(file_service(), melon::SERVER_DOESNT_OWN_SERVICE)) {
-            LOG(ERROR) << "Fail to add FileService";
+            MLOG(ERROR) << "Fail to add FileService";
             return -1;
         }
 
         if (0 != server->AddService(
                 new RaftServiceImpl(listen_address),
                 melon::SERVER_OWNS_SERVICE)) {
-            LOG(ERROR) << "Fail to add RaftService";
+            MLOG(ERROR) << "Fail to add RaftService";
             return -1;
         }
 
         if (0 != server->AddService(new RaftStatImpl, melon::SERVER_OWNS_SERVICE)) {
-            LOG(ERROR) << "Fail to add RaftStatService";
+            MLOG(ERROR) << "Fail to add RaftStatService";
             return -1;
         }
         if (0 != server->AddService(new CliServiceImpl, melon::SERVER_OWNS_SERVICE)) {
-            LOG(ERROR) << "Fail to add CliService";
+            MLOG(ERROR) << "Fail to add CliService";
             return -1;
         }
 
@@ -107,7 +107,7 @@ namespace melon::raft {
                 return 1;
             }
         }
-        CHECK(false) << "Can't reach here";
+        MCHECK(false) << "Can't reach here";
         return 0;
     }
 

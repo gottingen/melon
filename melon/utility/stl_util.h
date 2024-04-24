@@ -211,8 +211,8 @@ bool STLIsSorted(const Container& cont) {
 // Returns a new ResultType containing the difference of two sorted containers.
 template <typename ResultType, typename Arg1, typename Arg2>
 ResultType STLSetDifference(const Arg1& a1, const Arg2& a2) {
-  DCHECK(STLIsSorted(a1));
-  DCHECK(STLIsSorted(a2));
+  DMCHECK(STLIsSorted(a1));
+  DMCHECK(STLIsSorted(a2));
   ResultType difference;
   std::set_difference(a1.begin(), a1.end(),
                       a2.begin(), a2.end(),
@@ -223,8 +223,8 @@ ResultType STLSetDifference(const Arg1& a1, const Arg2& a2) {
 // Returns a new ResultType containing the union of two sorted containers.
 template <typename ResultType, typename Arg1, typename Arg2>
 ResultType STLSetUnion(const Arg1& a1, const Arg2& a2) {
-  DCHECK(STLIsSorted(a1));
-  DCHECK(STLIsSorted(a2));
+  DMCHECK(STLIsSorted(a1));
+  DMCHECK(STLIsSorted(a2));
   ResultType result;
   std::set_union(a1.begin(), a1.end(),
                  a2.begin(), a2.end(),
@@ -236,8 +236,8 @@ ResultType STLSetUnion(const Arg1& a1, const Arg2& a2) {
 // containers.
 template <typename ResultType, typename Arg1, typename Arg2>
 ResultType STLSetIntersection(const Arg1& a1, const Arg2& a2) {
-  DCHECK(STLIsSorted(a1));
-  DCHECK(STLIsSorted(a2));
+  DMCHECK(STLIsSorted(a1));
+  DMCHECK(STLIsSorted(a2));
   ResultType result;
   std::set_intersection(a1.begin(), a1.end(),
                         a2.begin(), a2.end(),
@@ -249,8 +249,8 @@ ResultType STLSetIntersection(const Arg1& a1, const Arg2& a2) {
 // container |a2|.
 template <typename Arg1, typename Arg2>
 bool STLIncludes(const Arg1& a1, const Arg2& a2) {
-  DCHECK(STLIsSorted(a1));
-  DCHECK(STLIsSorted(a2));
+  DMCHECK(STLIsSorted(a1));
+  DMCHECK(STLIsSorted(a2));
   return std::includes(a1.begin(), a1.end(),
                        a2.begin(), a2.end());
 }

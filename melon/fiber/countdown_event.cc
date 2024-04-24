@@ -74,7 +74,7 @@ void CountdownEvent::add_count(int v) {
 
 void CountdownEvent::reset(int v) {
     if (v < 0) {
-        LOG(ERROR) << "Invalid count=" << v;
+        MLOG(ERROR) << "Invalid count=" << v;
         return;
     }
     const int prev_counter =

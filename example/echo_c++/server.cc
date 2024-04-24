@@ -56,7 +56,7 @@ public:
         // The purpose of following logs is to help you to understand
         // how clients interact with servers more intuitively. You should 
         // remove these logs in performance-sensitive servers.
-        LOG(INFO) << "Received request[log_id=" << cntl->log_id() 
+        MLOG(INFO) << "Received request[log_id=" << cntl->log_id()
                   << "] from " << cntl->remote_side() 
                   << " to " << cntl->local_side()
                   << ": " << request->message()
@@ -85,7 +85,7 @@ public:
         std::string res_str;
         json2pb::ProtoMessageToJson(*req, &req_str, NULL);
         json2pb::ProtoMessageToJson(*res, &res_str, NULL);
-        LOG(INFO) << "req:" << req_str
+        MLOG(INFO) << "req:" << req_str
                     << " res:" << res_str;
     }
 };
@@ -106,14 +106,14 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add service";
+        MLOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     mutil::EndPoint point;
     if (!FLAGS_listen_addr.empty()) {
         if (mutil::str2endpoint(FLAGS_listen_addr.c_str(), &point) < 0) {
-            LOG(ERROR) << "Invalid listen address:" << FLAGS_listen_addr;
+            MLOG(ERROR) << "Invalid listen address:" << FLAGS_listen_addr;
             return -1;
         }
     } else {
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(point, &options) != 0) {
-        LOG(ERROR) << "Fail to start EchoServer";
+        MLOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

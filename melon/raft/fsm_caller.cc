@@ -41,7 +41,7 @@ namespace melon::raft {
     }
 
     FSMCaller::~FSMCaller() {
-        CHECK(_after_shutdown == NULL);
+        MCHECK(_after_shutdown == NULL);
     }
 
     int FSMCaller::run(void *meta, fiber::TaskIterator<ApplyTask> &iter) {
@@ -113,7 +113,7 @@ namespace melon::raft {
                         caller->do_on_error((OnErrorClousre *) iter->done);
                         break;
                     case IDLE:
-                        CHECK(false) << "Can't reach here";
+                        MCHECK(false) << "Can't reach here";
                         break;
                 };
             }
@@ -167,7 +167,7 @@ namespace melon::raft {
                                            &execq_opt,
                                            FSMCaller::run,
                                            this) != 0) {
-            LOG(ERROR) << "fsm fail to start execution_queue";
+            MLOG(ERROR) << "fsm fail to start execution_queue";
             return -1;
         }
         _queue_started = true;
@@ -265,7 +265,7 @@ namespace melon::raft {
         }
         std::vector<Closure *> closure;
         int64_t first_closure_index = 0;
-        CHECK_EQ(0, _closure_queue->pop_closure_until(committed_index, &closure,
+        MCHECK_EQ(0, _closure_queue->pop_closure_until(committed_index, &closure,
                                                       &first_closure_index));
 
         IteratorImpl iter_impl(_fsm, _log_manager, &closure, first_closure_index,
@@ -318,7 +318,7 @@ namespace melon::raft {
     }
 
     void FSMCaller::do_snapshot_save(SaveSnapshotClosure *done) {
-        CHECK(done);
+        MCHECK(done);
 
         int64_t last_applied_index = _last_applied_index.load(mutil::memory_order_relaxed);
 
@@ -585,7 +585,7 @@ namespace melon::raft {
     void IteratorImpl::set_error_and_rollback(
             size_t ntail, const mutil::Status *st) {
         if (ntail == 0) {
-            CHECK(false) << "Invalid ntail=" << ntail;
+            MCHECK(false) << "Invalid ntail=" << ntail;
             return;
         }
         if (_cur_entry == NULL || _cur_entry->type != ENTRY_TYPE_DATA) {

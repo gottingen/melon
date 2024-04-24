@@ -137,17 +137,17 @@ private:
 //   channel.CallMethod(&controller, &request, &response, NULL/*done*/);
 //   ...
 //   if (!response.PopGet(&my_value1, &flags1, &cas1)) {
-//       LOG(FATAL) << "Fail to pop GET: " << response.LastError();
+//       MLOG(FATAL) << "Fail to pop GET: " << response.LastError();
 //   } else {
 //       // Use my_value1, flags1, cas1
 //   }
 //   if (!response.PopGet(&my_value2, &flags2, &cas2)) {
-//       LOG(FATAL) << "Fail to pop GET: " << response.LastError();
+//       MLOG(FATAL) << "Fail to pop GET: " << response.LastError();
 //   } else {
 //       // Use my_value2, flags2, cas2
 //   }
 //   if (!response.PopSet(&cas3)) {
-//       LOG(FATAL) << "Fail to pop SET: " << response.LastError();
+//       MLOG(FATAL) << "Fail to pop SET: " << response.LastError();
 //   } else {
 //       // the SET was successful.
 //   }

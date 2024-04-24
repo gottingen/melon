@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (argc != 2) {
-        LOG(ERROR) << "Usage: ./http_client \"http(s)://www.foo.com\"";
+        MLOG(ERROR) << "Usage: ./http_client \"http(s)://www.foo.com\"";
         return -1;
     }
     char* url = argv[1];
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     // Initialize the channel, nullptr means using default options. 
     // options, see `melon/rpc/channel.h'.
     if (channel.Init(url, FLAGS_load_balancer.c_str(), &options) != 0) {
-        LOG(ERROR) << "Fail to initialize channel";
+        MLOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 

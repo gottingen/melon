@@ -21,7 +21,7 @@ namespace internal {
 // IsValid() - Returns true if the underlying numeric value is valid (i.e. has
 //             has not wrapped and is not the result of an invalid conversion).
 // ValueOrDie() - Returns the underlying value. If the state is not valid this
-//                call will crash on a CHECK.
+//                call will crash on a MCHECK.
 // ValueOrDefault() - Returns the current value, or the supplied default if the
 //                    state is not valid.
 // ValueFloating() - Returns the underlying floating point value (valid only
@@ -30,7 +30,7 @@ namespace internal {
 // Bitwise operations are explicitly not supported, because correct
 // handling of some cases (e.g. sign manipulation) is ambiguous. Comparison
 // operations are explicitly not supported because they could result in a crash
-// on a CHECK condition. You should use patterns like the following for these
+// on a MCHECK condition. You should use patterns like the following for these
 // operations:
 // Bitwise operation:
 //     CheckedNumeric<int> checked_int = untrusted_input_value;
@@ -70,9 +70,9 @@ class CheckedNumeric {
   bool IsValid() const { return validity() == RANGE_VALID; }
 
   // ValueOrDie() The primary accessor for the underlying value. If the current
-  // state is not valid it will CHECK and crash.
+  // state is not valid it will MCHECK and crash.
   T ValueOrDie() const {
-    CHECK(IsValid());
+    MCHECK(IsValid());
     return state_.value();
   }
 
@@ -85,7 +85,7 @@ class CheckedNumeric {
 
   // ValueFloating() - Since floating point values include their validity state,
   // we provide an easy method for extracting them directly, without a risk of
-  // crashing on a CHECK.
+  // crashing on a MCHECK.
   T ValueFloating() const {
     COMPILE_ASSERT(std::numeric_limits<T>::is_iec559, argument_must_be_float);
     return CheckedNumeric<T>::cast(*this).ValueUnsafe();

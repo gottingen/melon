@@ -55,7 +55,7 @@ TEST_F(ClassNameTest, class_name_sanity) {
     int array[32];
     ASSERT_EQ("int [32]", mutil::class_name_str(array));
 
-    LOG(INFO) << mutil::class_name_str(this);
-    LOG(INFO) << mutil::class_name_str(*this);
+    MLOG(INFO) << mutil::class_name_str(this);
+    MLOG(INFO) << mutil::class_name_str(*this);
 }
 }

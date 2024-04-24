@@ -284,7 +284,7 @@ bool SpanInfoExtractor::PopAnnotation(
                 return true;
             }
         }
-        LOG(ERROR) << "Unknown annotation: "
+        MLOG(ERROR) << "Unknown annotation: "
                     << std::string(_sp.field(), _sp.length());
     }
     return false;
@@ -478,7 +478,7 @@ SpanDB* SpanDB::Open() {
     mutil::File::Error error;
     const mutil::FilePath dir(local.id_db_name);
     if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-        LOG(ERROR) << "Fail to create directory=`" << dir.value() << ", "
+        MLOG(ERROR) << "Fail to create directory=`" << dir.value() << ", "
                    << error;
         return NULL;
     }
@@ -486,7 +486,7 @@ SpanDB* SpanDB::Open() {
     local.id_db_name.append("/id.db");
     st = leveldb::DB::Open(options, local.id_db_name.c_str(), &local.id_db);
     if (!st.ok()) {
-        LOG(ERROR) << "Fail to open id_db: " << st.ToString();
+        MLOG(ERROR) << "Fail to open id_db: " << st.ToString();
         return NULL;
     }
 
@@ -495,14 +495,14 @@ SpanDB* SpanDB::Open() {
     local.time_db_name.append("/time.db");
     st = leveldb::DB::Open(options, local.time_db_name.c_str(), &local.time_db);
     if (!st.ok()) {
-        LOG(ERROR) << "Fail to open time_db: " << st.ToString();
+        MLOG(ERROR) << "Fail to open time_db: " << st.ToString();
         return NULL;
     }
     SpanDB* db = new (std::nothrow) SpanDB;
     if (NULL == db) {
         return NULL;
     }
-    LOG(INFO) << "Opened " << local.id_db_name << " and "
+    MLOG(INFO) << "Opened " << local.id_db_name << " and "
                << local.time_db_name;
     Swap(local, *db);
     return db;
@@ -599,7 +599,7 @@ leveldb::Status SpanDB::RemoveSpansBefore(int64_t tm) {
     leveldb::Iterator* it = time_db->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         if (it->key().size() != 8) {
-            LOG(ERROR) << "Invalid key size: " << it->key().size();
+            MLOG(ERROR) << "Invalid key size: " << it->key().size();
             continue;
         }
         const int64_t realtime =
@@ -615,15 +615,15 @@ leveldb::Status SpanDB::RemoveSpansBefore(int64_t tm) {
             leveldb::Slice key((char*)key_data, sizeof(key_data));
             rc = id_db->Delete(options, key);
             if (!rc.ok()) {
-                LOG(ERROR) << "Fail to delete from id_db";
+                MLOG(ERROR) << "Fail to delete from id_db";
                 break;
             }
         } else {
-            LOG(ERROR) << "Fail to parse from value";
+            MLOG(ERROR) << "Fail to parse from value";
         }
         rc = time_db->Delete(options, it->key());
         if (!rc.ok()) {
-            LOG(ERROR) << "Fail to delete from time_db";
+            MLOG(ERROR) << "Fail to delete from time_db";
             break;
         }
     }
@@ -645,7 +645,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
         }
         SpanDB* db2 = SpanDB::Open();
         if (db2 == NULL) {
-            LOG(WARNING) << "Fail to open SpanDB";
+            MLOG(WARNING) << "Fail to open SpanDB";
             destroy();
             return;
         }
@@ -656,7 +656,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
     leveldb::Status st = db->Index(this, &value_buf);
     destroy();
     if (!st.ok()) {
-        LOG(WARNING) << st.ToString();
+        MLOG(WARNING) << st.ToString();
         if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
             ResetSpanDB(NULL);
             return;
@@ -670,7 +670,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
         leveldb::Status st = db->RemoveSpansBefore(
             now - FLAGS_rpcz_keep_span_seconds * 1000000L);
         if (!st.ok()) {
-            LOG(ERROR) << st.ToString();
+            MLOG(ERROR) << st.ToString();
             if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
                 ResetSpanDB(NULL);
                 return;
@@ -694,7 +694,7 @@ int FindSpan(uint64_t trace_id, uint64_t span_id, RpczSpan* response) {
         return -1;
     }
     if (!response->ParseFromString(value)) {
-        LOG(ERROR) << "Fail to parse from the value";
+        MLOG(ERROR) << "Fail to parse from the value";
         return -1;
     }
     return 0;
@@ -713,7 +713,7 @@ void FindSpans(uint64_t trace_id, std::deque<RpczSpan>* out) {
     leveldb::Slice key((char*)key_data, sizeof(key_data));
     for (it->Seek(key); it->Valid(); it->Next()) {
         if (it->key().size() != sizeof(key_data)) {
-            LOG(ERROR) << "Invalid key size: " << it->key().size();
+            MLOG(ERROR) << "Invalid key size: " << it->key().size();
             break;
         }
         const uint64_t stored_trace_id =
@@ -725,7 +725,7 @@ void FindSpans(uint64_t trace_id, std::deque<RpczSpan>* out) {
         if (span.ParseFromArray(it->value().data(), it->value().size())) {
             out->push_back(span);
         } else {
-            LOG(ERROR) << "Fail to parse from value";
+            MLOG(ERROR) << "Fail to parse from value";
         }
     }
     delete it;
@@ -764,7 +764,7 @@ void ListSpans(int64_t starting_realtime, size_t max_scan,
             // scaning too many entries.
             ++nscan;
         } else {
-            LOG(ERROR) << "Fail to parse from value";
+            MLOG(ERROR) << "Fail to parse from value";
         }
     }
     delete it;

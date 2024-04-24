@@ -139,7 +139,7 @@ TEST_F(VariableTest, status) {
     ASSERT_EQ("var2_again", vars[3]);
 
     melon::var::Status<void*> st5((void*)19UL);
-    LOG(INFO) << st5;
+    MLOG(INFO) << st5;
     ASSERT_EQ("0x13", st5.get_description());
 }
 
@@ -373,7 +373,7 @@ TEST_F(VariableTest, recursive_mutex) {
         MELON_SCOPED_LOCK(mutex);
     }
     timer.stop();
-    LOG(INFO) << "Each recursive mutex lock/unlock pair take "
+    MLOG(INFO) << "Each recursive mutex lock/unlock pair take "
               << timer.n_elapsed() / N << "ns";
 }
 } // namespace

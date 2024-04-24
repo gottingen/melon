@@ -157,7 +157,7 @@ public:
                 return;
             }
         }
-        LOG(ERROR) << "Fail to destroy all objects in KeyTable[" << this << ']';
+        MLOG(ERROR) << "Fail to destroy all objects in KeyTable[" << this << ']';
     }
 
     inline void* get_data(fiber_key_t key) const {
@@ -188,7 +188,7 @@ public:
                              key.version, data);
             return 0;
         }
-        CHECK(false) << "fiber_setspecific is called on invalid " << key;
+        MCHECK(false) << "fiber_setspecific is called on invalid " << key;
         return EINVAL;
     }
 
@@ -270,7 +270,7 @@ extern "C" {
 
 int fiber_keytable_pool_init(fiber_keytable_pool_t* pool) {
     if (pool == NULL) {
-        LOG(ERROR) << "Param[pool] is NULL";
+        MLOG(ERROR) << "Param[pool] is NULL";
         return EINVAL;
     }
     pthread_mutex_init(&pool->mutex, NULL);
@@ -281,7 +281,7 @@ int fiber_keytable_pool_init(fiber_keytable_pool_t* pool) {
 
 int fiber_keytable_pool_destroy(fiber_keytable_pool_t* pool) {
     if (pool == NULL) {
-        LOG(ERROR) << "Param[pool] is NULL";
+        MLOG(ERROR) << "Param[pool] is NULL";
         return EINVAL;
     }
     fiber::KeyTable* saved_free_keytables = NULL;
@@ -321,7 +321,7 @@ int fiber_keytable_pool_destroy(fiber_keytable_pool_t* pool) {
 int fiber_keytable_pool_getstat(fiber_keytable_pool_t* pool,
                                   fiber_keytable_pool_stat_t* stat) {
     if (pool == NULL || stat == NULL) {
-        LOG(ERROR) << "Param[pool] or Param[stat] is NULL";
+        MLOG(ERROR) << "Param[pool] or Param[stat] is NULL";
         return EINVAL;
     }
     std::unique_lock<pthread_mutex_t> mu(pool->mutex);
@@ -341,12 +341,12 @@ void fiber_keytable_pool_reserve(fiber_keytable_pool_t* pool,
                                    void* ctor(const void*),
                                    const void* ctor_args) {
     if (pool == NULL) {
-        LOG(ERROR) << "Param[pool] is NULL";
+        MLOG(ERROR) << "Param[pool] is NULL";
         return;
     }
     fiber_keytable_pool_stat_t stat;
     if (fiber_keytable_pool_getstat(pool, &stat) != 0) {
-        LOG(ERROR) << "Fail to getstat of pool=" << pool;
+        MLOG(ERROR) << "Fail to getstat of pool=" << pool;
         return;
     }
     for (size_t i = stat.nfree; i < nfree; ++i) {
@@ -420,7 +420,7 @@ int fiber_key_delete(fiber_key_t key) {
             return 0;
         } 
     }
-    CHECK(false) << "fiber_key_delete is called on invalid " << key;
+    MCHECK(false) << "fiber_key_delete is called on invalid " << key;
     return EINVAL;
 }
 
@@ -446,7 +446,7 @@ int fiber_setspecific(fiber_key_t key, void* data) {
             // in `return_keytable' or `fiber_keytable_pool_destroy'.
             if (!fiber::tls_ever_created_keytable) {
                 fiber::tls_ever_created_keytable = true;
-                CHECK_EQ(0, mutil::thread_atexit(fiber::cleanup_pthread, kt));
+                MCHECK_EQ(0, mutil::thread_atexit(fiber::cleanup_pthread, kt));
             }
         }
     }

@@ -84,13 +84,13 @@ void* process_thread(void* arg) {
     //printf("begin to process fd=%d\n", m->fd);
     ssize_t n = read(m->fd, &count, sizeof(count));
     if (n != sizeof(count)) {
-        LOG(FATAL) << "Should not happen in this test";
+        MLOG(FATAL) << "Should not happen in this test";
         return NULL;
     }
     count += NCLIENT;
     //printf("write result=%lu to fd=%d\n", count, m->fd);
     if (write(m->fd, &count, sizeof(count)) != sizeof(count)) {
-        LOG(FATAL) << "Should not happen in this test";
+        MLOG(FATAL) << "Should not happen in this test";
         return NULL;
     }
 #ifdef CREATE_THREAD_TO_PROCESS
@@ -154,9 +154,9 @@ void* epoll_thread(void* arg) {
                 continue;
             }
 #if defined(OS_LINUX)
-            PLOG(FATAL) << "Fail to epoll_wait";
+            PMLOG(FATAL) << "Fail to epoll_wait";
 #elif defined(OS_MACOSX)
-            PLOG(FATAL) << "Fail to kevent";
+            PMLOG(FATAL) << "Fail to kevent";
 #endif
             break;
         }
@@ -190,7 +190,7 @@ void* client_thread(void* arg) {
     ClientMeta* m = (ClientMeta*)arg;
     for (size_t i = 0; i < m->times; ++i) {
         if (write(m->fd, &m->count, sizeof(m->count)) != sizeof(m->count)) {
-            LOG(FATAL) << "Should not happen in this test";
+            MLOG(FATAL) << "Should not happen in this test";
             return NULL;
         }
 #ifdef RUN_CLIENT_IN_FIBER
@@ -208,7 +208,7 @@ void* client_thread(void* arg) {
         ssize_t rc = read(m->fd, &m->count, sizeof(m->count));
 #endif
         if (rc != sizeof(m->count)) {
-            PLOG(FATAL) << "Should not happen in this test, rc=" << rc;
+            PMLOG(FATAL) << "Should not happen in this test, rc=" << rc;
             return NULL;
         }
     }
@@ -323,7 +323,7 @@ TEST(FDTest, ping_pong) {
     }
     tm.stop();
     ProfilerStop();
-    LOG(INFO) << "tid=" << REP*NCLIENT*1000000L/tm.u_elapsed();
+    MLOG(INFO) << "tid=" << REP*NCLIENT*1000000L/tm.u_elapsed();
     stop = true;
     for (size_t i = 0; i < NEPOLL; ++i) {
 #if defined(OS_LINUX)

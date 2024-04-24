@@ -114,7 +114,7 @@ bool GetRecoverPolicyByParams(const mutil::StringPiece& params,
     for (mutil::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
             sp; ++sp) {
         if (sp.value().empty()) {
-            LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
+            MLOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
             return false;
         }
         if (sp.key() == "min_working_instances") {
@@ -130,7 +130,7 @@ bool GetRecoverPolicyByParams(const mutil::StringPiece& params,
             has_meet_params = true;
             continue;
         }
-        LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
+        MLOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
         return false;
     }
     if (min_working_instances > 0 && hold_seconds > 0) {
@@ -139,7 +139,7 @@ bool GetRecoverPolicyByParams(const mutil::StringPiece& params,
     } else if (has_meet_params) {
         // In this case, user set some params but not in the right way, just return
         // false to let user take care of this situation.
-        LOG(ERROR) << "Invalid params=`" << params << "'";
+        MLOG(ERROR) << "Invalid params=`" << params << "'";
         return false;
     }
     return true;

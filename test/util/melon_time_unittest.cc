@@ -33,7 +33,7 @@ TEST(BaiduTimeTest, diff_between_gettimeofday_and_REALTIME) {
     timespec time;
     clock_gettime(CLOCK_REALTIME, &time);
     long t2 = mutil::timespec_to_microseconds(time);
-    LOG(INFO) << "t1=" << t1 << " t2=" << t2;
+    MLOG(INFO) << "t1=" << t1 << " t2=" << t2;
 }
 
 const char* clock_desc[] = {

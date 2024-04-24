@@ -77,7 +77,7 @@ namespace melon::naming {
 
         mutil::ScopedFILE fp(fopen(service_name, "r"));
         if (!fp) {
-            PLOG(ERROR) << "Fail to open `" << service_name << "'";
+            PMLOG(ERROR) << "Fail to open `" << service_name << "'";
             return errno;
         }
         while ((nr = getline(&line, &line_len, fp.get())) != -1) {
@@ -94,7 +94,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;
@@ -117,7 +117,7 @@ namespace melon::naming {
         std::vector<ServerNode> servers;
         mutil::FileWatcher fw;
         if (fw.init(service_name) < 0) {
-            LOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
+            MLOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
             return -1;
         }
         for (;;) {
@@ -133,18 +133,18 @@ namespace melon::naming {
                     break;
                 }
                 if (change < 0) {
-                    LOG(ERROR) << "`" << service_name << "' was deleted";
+                    MLOG(ERROR) << "`" << service_name << "' was deleted";
                 }
                 if (fiber_usleep(100000L/*100ms*/) < 0) {
                     if (errno == ESTOP) {
                         return 0;
                     }
-                    PLOG(ERROR) << "Fail to sleep";
+                    PMLOG(ERROR) << "Fail to sleep";
                     return -1;
                 }
             }
         }
-        CHECK(false);
+        MCHECK(false);
         return -1;
     }
 

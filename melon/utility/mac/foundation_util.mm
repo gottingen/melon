@@ -49,7 +49,7 @@ bool AmIBundled() {
   // values depending on when it's called. This confuses some client code, see
   // http://crbug.com/63183 .
   static bool result = UncachedAmIBundled();
-  DCHECK_EQ(result, UncachedAmIBundled())
+  DMCHECK_EQ(result, UncachedAmIBundled())
       << "The return value of AmIBundled() changed. This will confuse tests. "
       << "Call SetAmIBundled() override manually if your test binary "
       << "delay-loads the framework.";
@@ -98,7 +98,7 @@ OSType CreatorCodeForApplication() {
 bool GetSearchPathDirectory(NSSearchPathDirectory directory,
                             NSSearchPathDomainMask domain_mask,
                             FilePath* result) {
-  DCHECK(result);
+  DMCHECK(result);
   NSArray* dirs =
       NSSearchPathForDirectoriesInDomains(directory, domain_mask, YES);
   if ([dirs count] < 1) {
@@ -119,7 +119,7 @@ bool GetUserDirectory(NSSearchPathDirectory directory, FilePath* result) {
 FilePath GetUserLibraryPath() {
   FilePath user_library_path;
   if (!GetUserDirectory(NSLibraryDirectory, &user_library_path)) {
-    DLOG(WARNING) << "Could not get user library path";
+    DMLOG(WARNING) << "Could not get user library path";
   }
   return user_library_path;
 }
@@ -144,7 +144,7 @@ FilePath GetAppBundlePath(const FilePath& exec_name) {
   // Don't prepend '/' to the first component.
   std::vector<std::string>::const_iterator it = components.begin();
   std::string bundle_name = *it;
-  DCHECK_GT(it->length(), 0U);
+  DMCHECK_GT(it->length(), 0U);
   // If the first component ends in ".app", we're already done.
   if (it->length() > kExtLength &&
       !it->compare(it->length() - kExtLength, kExtLength, kExt, kExtLength))
@@ -157,7 +157,7 @@ FilePath GetAppBundlePath(const FilePath& exec_name) {
 
   // Go through the remaining components.
   for (++it; it != components.end(); ++it) {
-    DCHECK_GT(it->length(), 0U);
+    DMCHECK_GT(it->length(), 0U);
 
     bundle_name += *it;
 
@@ -245,7 +245,7 @@ void SetBaseBundleID(const char* new_base_bundle_id) {
 #define CF_TO_NS_CAST_DEFN(TypeCF, TypeNS) \
 \
 TypeNS* CFToNSCast(TypeCF##Ref cf_val) { \
-  DCHECK(!cf_val || TypeCF##GetTypeID() == CFGetTypeID(cf_val)); \
+  DMCHECK(!cf_val || TypeCF##GetTypeID() == CFGetTypeID(cf_val)); \
   TypeNS* ns_val = \
       const_cast<TypeNS*>(reinterpret_cast<const TypeNS*>(cf_val)); \
   return ns_val; \
@@ -253,7 +253,7 @@ TypeNS* CFToNSCast(TypeCF##Ref cf_val) { \
 \
 TypeCF##Ref NSToCFCast(TypeNS* ns_val) { \
   TypeCF##Ref cf_val = reinterpret_cast<TypeCF##Ref>(ns_val); \
-  DCHECK(!cf_val || TypeCF##GetTypeID() == CFGetTypeID(cf_val)); \
+  DMCHECK(!cf_val || TypeCF##GetTypeID() == CFGetTypeID(cf_val)); \
   return cf_val; \
 }
 
@@ -261,7 +261,7 @@ TypeCF##Ref NSToCFCast(TypeNS* ns_val) { \
 CF_TO_NS_CAST_DEFN(CF##name, NS##name) \
 \
 NSMutable##name* CFToNSCast(CFMutable##name##Ref cf_val) { \
-  DCHECK(!cf_val || CF##name##GetTypeID() == CFGetTypeID(cf_val)); \
+  DMCHECK(!cf_val || CF##name##GetTypeID() == CFGetTypeID(cf_val)); \
   NSMutable##name* ns_val = reinterpret_cast<NSMutable##name*>(cf_val); \
   return ns_val; \
 } \
@@ -269,7 +269,7 @@ NSMutable##name* CFToNSCast(CFMutable##name##Ref cf_val) { \
 CFMutable##name##Ref NSToCFCast(NSMutable##name* ns_val) { \
   CFMutable##name##Ref cf_val = \
       reinterpret_cast<CFMutable##name##Ref>(ns_val); \
-  DCHECK(!cf_val || CF##name##GetTypeID() == CFGetTypeID(cf_val)); \
+  DMCHECK(!cf_val || CF##name##GetTypeID() == CFGetTypeID(cf_val)); \
   return cf_val; \
 }
 
@@ -300,7 +300,7 @@ CF_TO_NS_CAST_DEFN(CTFont, UIFont);
 NSFont* CFToNSCast(CTFontRef cf_val) {
   NSFont* ns_val =
       const_cast<NSFont*>(reinterpret_cast<const NSFont*>(cf_val));
-  DCHECK(!cf_val ||
+  DMCHECK(!cf_val ||
          CTFontGetTypeID() == CFGetTypeID(cf_val) ||
          (_CFIsObjC(CTFontGetTypeID(), cf_val) &&
           [ns_val isKindOfClass:NSClassFromString(@"NSFont")]));
@@ -309,7 +309,7 @@ NSFont* CFToNSCast(CTFontRef cf_val) {
 
 CTFontRef NSToCFCast(NSFont* ns_val) {
   CTFontRef cf_val = reinterpret_cast<CTFontRef>(ns_val);
-  DCHECK(!cf_val ||
+  DMCHECK(!cf_val ||
          CTFontGetTypeID() == CFGetTypeID(cf_val) ||
          [ns_val isKindOfClass:NSClassFromString(@"NSFont")]);
   return cf_val;
@@ -334,7 +334,7 @@ CFCast<TypeCF##Ref>(const CFTypeRef& cf_val) { \
 template<> TypeCF##Ref \
 CFCastStrict<TypeCF##Ref>(const CFTypeRef& cf_val) { \
   TypeCF##Ref rv = CFCast<TypeCF##Ref>(cf_val); \
-  DCHECK(cf_val == NULL || rv); \
+  DMCHECK(cf_val == NULL || rv); \
   return rv; \
 }
 
@@ -383,7 +383,7 @@ CFCast<CTFontRef>(const CFTypeRef& cf_val) {
 template<> CTFontRef
 CFCastStrict<CTFontRef>(const CFTypeRef& cf_val) {
   CTFontRef rv = CFCast<CTFontRef>(cf_val);
-  DCHECK(cf_val == NULL || rv);
+  DMCHECK(cf_val == NULL || rv);
   return rv;
 }
 #endif

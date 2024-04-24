@@ -200,7 +200,7 @@ int is_zero_memcmp(const char* buff, size_t size) {
         int64_t start = mutil::detail::clock_cycles();                          \
         ASSERT_TRUE(func(data, size));                                         \
         int64_t end = mutil::detail::clock_cycles();                            \
-        LOG(INFO) << #func << " cycle: " << end - start;     \
+        MLOG(INFO) << #func << " cycle: " << end - start;     \
     } while (0)
 
 TEST_F(TestUsageSuits, is_zero) {
@@ -216,7 +216,7 @@ TEST_F(TestUsageSuits, is_zero) {
 
     int test_sizes[] = {4*1024, 8*1024, 16*1024, 64*1024, 128*1024, 256*1024, 512*1024, 1024*1024};
     for (size_t i = 0; i < sizeof(test_sizes) / sizeof(int); i++) {
-        LOG(INFO) << "is_zero size: " << test_sizes[i];
+        MLOG(INFO) << "is_zero size: " << test_sizes[i];
         IS_ZERO_TEST(is_zero1, test_sizes[i]);
         IS_ZERO_TEST(is_zero2, test_sizes[i]);
         IS_ZERO_TEST(is_zero3, test_sizes[i]);
@@ -251,12 +251,12 @@ TEST_F(TestUsageSuits, is_zero) {
 
 TEST_F(TestUsageSuits, file_path) {
     mutil::FilePath path("dir/");
-    LOG(INFO) << "dir_name=" << path.DirName().value()
+    MLOG(INFO) << "dir_name=" << path.DirName().value()
               << " base_name=" << path.BaseName().value();
     path = mutil::FilePath("dir");
-    LOG(INFO) << "dir_name=" << path.DirName().value()
+    MLOG(INFO) << "dir_name=" << path.DirName().value()
               << " base_name=" << path.BaseName().value();
     path = mutil::FilePath("../sub4/sub5/dir");
-    LOG(INFO) << path.ReferencesParent();
+    MLOG(INFO) << path.ReferencesParent();
 }
 

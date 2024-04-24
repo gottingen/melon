@@ -19,18 +19,18 @@ ConditionVariable::ConditionVariable(Mutex* user_lock)
   // NOTE(gejun): Disable monotonic clock always due to difficulty of adapting
   // all versions of gcc
   int rv = pthread_cond_init(&condition_, NULL);
-  DCHECK_EQ(0, rv);
+  DMCHECK_EQ(0, rv);
 }
 
 ConditionVariable::~ConditionVariable() {
   int rv = pthread_cond_destroy(&condition_);
-  DCHECK_EQ(0, rv);
+  DMCHECK_EQ(0, rv);
 }
 
 void ConditionVariable::Wait() {
   mutil::ThreadRestrictions::AssertWaitAllowed();
   int rv = pthread_cond_wait(&condition_, user_mutex_);
-  DCHECK_EQ(0, rv);
+  DMCHECK_EQ(0, rv);
 }
 
 void ConditionVariable::TimedWait(const TimeDelta& max_time) {
@@ -55,22 +55,22 @@ void ConditionVariable::TimedWait(const TimeDelta& max_time) {
   absolute_time.tv_nsec += relative_time.tv_nsec;
   absolute_time.tv_sec += absolute_time.tv_nsec / Time::kNanosecondsPerSecond;
   absolute_time.tv_nsec %= Time::kNanosecondsPerSecond;
-  DCHECK_GE(absolute_time.tv_sec, now.tv_sec);  // Overflow paranoia
+  DMCHECK_GE(absolute_time.tv_sec, now.tv_sec);  // Overflow paranoia
 
   int rv = pthread_cond_timedwait(&condition_, user_mutex_, &absolute_time);
 #endif  // OS_MACOSX
 
-  DCHECK(rv == 0 || rv == ETIMEDOUT);
+  DMCHECK(rv == 0 || rv == ETIMEDOUT);
 }
 
 void ConditionVariable::Broadcast() {
   int rv = pthread_cond_broadcast(&condition_);
-  DCHECK_EQ(0, rv);
+  DMCHECK_EQ(0, rv);
 }
 
 void ConditionVariable::Signal() {
   int rv = pthread_cond_signal(&condition_);
-  DCHECK_EQ(0, rv);
+  DMCHECK_EQ(0, rv);
 }
 
 }  // namespace mutil

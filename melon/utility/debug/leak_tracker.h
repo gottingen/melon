@@ -79,7 +79,7 @@ class LeakTracker : public LinkNode<LeakTracker<T> > {
     size_t count = 0;
 
     // Copy the first 3 leak allocation callstacks onto the stack.
-    // This way if we hit the CHECK() in a release build, the leak
+    // This way if we hit the MCHECK() in a release build, the leak
     // information will be available in mini-dump.
     const size_t kMaxStackTracesToCopyOntoStack = 3;
     StackTrace stacktraces[kMaxStackTracesToCopyOntoStack];
@@ -96,10 +96,10 @@ class LeakTracker : public LinkNode<LeakTracker<T> > {
       std::ostringstream err;
       err << "Leaked " << node << " which was allocated by:";
       allocation_stack.OutputToStream(&err);
-      LOG(ERROR) << err.str();
+      MLOG(ERROR) << err.str();
     }
 
-    CHECK_EQ(0u, count);
+    MCHECK_EQ(0u, count);
 
     // Hack to keep |stacktraces| and |count| alive (so compiler
     // doesn't optimize it out, and it will appear in mini-dumps).

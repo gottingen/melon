@@ -82,7 +82,7 @@ namespace melon {
                           RestfulMethodPath *path_out) {
         path.trim_spaces();
         if (path.empty()) {
-            LOG(ERROR) << "Parameter[path] is empty";
+            MLOG(ERROR) << "Parameter[path] is empty";
             return false;
         }
         // Check validity of the path.
@@ -93,12 +93,12 @@ namespace melon {
                 if (star_index < 0) {
                     star_index = (int) (p - path.data());
                 } else {
-                    LOG(ERROR) << "More than one wildcard in restful_path=`"
+                    MLOG(ERROR) << "More than one wildcard in restful_path=`"
                                << path << '\'';
                     return false;
                 }
             } else if (!is_url_char(*p)) {
-                LOG(ERROR) << "Invalid character=`" << *p << "' (index="
+                MLOG(ERROR) << "Invalid character=`" << *p << "' (index="
                            << p - path.data() << ") in path=`" << path << '\'';
                 return false;
             }
@@ -146,7 +146,7 @@ namespace melon {
                 prefix_raw.back() == '/') {
                 path_out->prefix.push_back('/');
             } else {
-                LOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
+                MLOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
                            << path << "' is disallowed for performance concerns";
                 return false;
             }
@@ -156,7 +156,7 @@ namespace melon {
             path_out->prefix.push_back('/');
         } else { // no slashes, has wildcard. Example: abc* => Method
             if (!first_part.empty()) {
-                LOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
+                MLOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
                            << path << "' is disallowed for performance concerns";
                 return false;
             }
@@ -195,7 +195,7 @@ namespace melon {
     bool ParseRestfulMappings(const mutil::StringPiece &mappings,
                               std::vector<RestfulMapping> *list) {
         if (list == NULL) {
-            LOG(ERROR) << "Param[list] is NULL";
+            MLOG(ERROR) << "Param[list] is NULL";
             return false;
         }
         list->clear();
@@ -223,14 +223,14 @@ namespace melon {
                     // Parse left part of the arrow as url path.
                     mutil::StringPiece path(sp.field(), equal_sign_pos);
                     if (!ParseRestfulPath(path, &m.path)) {
-                        LOG(ERROR) << "Fail to parse path=`" << path << '\'';
+                        MLOG(ERROR) << "Fail to parse path=`" << path << '\'';
                         return false;
                     }
                     // Treat right part of the arrow as method_name.
                     mutil::StringPiece method_name_piece(p + i + 1, n - (i + 1));
                     method_name_piece.trim_spaces();
                     if (method_name_piece.empty()) {
-                        LOG(ERROR) << "No method name in " << nmappings
+                        MLOG(ERROR) << "No method name in " << nmappings
                                    << "-th mapping";
                         return false;
                     }
@@ -243,7 +243,7 @@ namespace melon {
             }
             // If we don't get a valid mapping from the string, issue error.
             if (!added_sth) {
-                LOG(ERROR) << "Invalid mapping: "
+                MLOG(ERROR) << "Invalid mapping: "
                            << mutil::StringPiece(sp.field(), sp.length());
                 return false;
             }
@@ -262,18 +262,18 @@ namespace melon {
                                const std::string &method_name,
                                MethodStatus *status) {
         if (service == NULL) {
-            LOG(ERROR) << "Param[service] is NULL";
+            MLOG(ERROR) << "Param[service] is NULL";
             return false;
         }
         const google::protobuf::MethodDescriptor *md =
                 service->GetDescriptor()->FindMethodByName(method_name);
         if (md == NULL) {
-            LOG(ERROR) << service->GetDescriptor()->full_name()
+            MLOG(ERROR) << service->GetDescriptor()->full_name()
                        << " has no method called `" << method_name << '\'';
             return false;
         }
         if (path.service_name != _service_name) {
-            LOG(ERROR) << "Impossible: path.service_name does not match name"
+            MLOG(ERROR) << "Impossible: path.service_name does not match name"
                           " of this RestfulMap";
             return false;
         }
@@ -282,7 +282,7 @@ namespace melon {
         std::string dedup_key = path.to_string();
         DedupMap::const_iterator it = _dedup_map.find(dedup_key);
         if (it != _dedup_map.end()) {
-            LOG(ERROR) << "Already mapped `" << it->second.path
+            MLOG(ERROR) << "Already mapped `" << it->second.path
                        << "' to `" << it->second.method->full_name() << '\'';
             return false;
         }
@@ -410,7 +410,7 @@ namespace melon {
     RestfulMap::FindMethodProperty(const mutil::StringPiece &method_path,
                                    std::string *unresolved_path) const {
         if (_sorted_paths.empty()) {
-            LOG(ERROR) << "_sorted_paths is empty, method_path=" << method_path;
+            MLOG(ERROR) << "_sorted_paths is empty, method_path=" << method_path;
             return NULL;
         }
         const std::string full_path = NormalizeSlashes(method_path);

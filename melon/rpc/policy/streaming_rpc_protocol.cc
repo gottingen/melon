@@ -51,7 +51,7 @@ void PackStreamMessage(mutil::IOBuf* out,
         .pack32(meta_length);
     out->append(head, ARRAY_SIZE(head));
     mutil::IOBufAsZeroCopyOutputStream wrapper(out);
-    CHECK(fm.SerializeToZeroCopyStream(&wrapper));
+    MCHECK(fm.SerializeToZeroCopyStream(&wrapper));
     if (data != NULL) {
         out->append(*data);
     }
@@ -83,7 +83,7 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
     }
     if (MELON_UNLIKELY(meta_size > body_size)) {
-        LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+        MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                    << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -98,7 +98,7 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
     do {
         StreamFrameMeta fm;
         if (!ParsePbFromIOBuf(&fm, meta_buf)) {
-            LOG(WARNING) << "Fail to Parse StreamFrameMeta from " << *socket;
+            MLOG(WARNING) << "Fail to Parse StreamFrameMeta from " << *socket;
             break;
         }
         SocketUniquePtr ptr;
@@ -123,11 +123,11 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
 }
 
 void ProcessStreamingMessage(InputMessageBase* /*msg*/) {
-    CHECK(false) << "Should never be called";
+    MCHECK(false) << "Should never be called";
 }
 
 void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
-    CHECK(sock != NULL);
+    MCHECK(sock != NULL);
     StreamFrameMeta fm;
     fm.set_stream_id(remote_stream_id);
     fm.set_frame_type(FRAME_TYPE_RST);
@@ -138,7 +138,7 @@ void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
 
 void SendStreamClose(Socket *sock, int64_t remote_stream_id,
                      int64_t source_stream_id) {
-    CHECK(sock != NULL);
+    MCHECK(sock != NULL);
     StreamFrameMeta fm;
     fm.set_stream_id(remote_stream_id);
     fm.set_source_stream_id(source_stream_id);

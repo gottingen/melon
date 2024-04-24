@@ -89,13 +89,13 @@ static bool GetUserAddressFromHeaderImpl(const HttpHeader& headers,
     //TODO add protocols other than IPv4 supports.
     if (user_addr_str->find(':') == std::string::npos) {
         if (mutil::str2ip(user_addr_str->c_str(), &user_addr->ip) != 0) {
-            LOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
+            MLOG(WARNING) << "Fail to parse ip from " << *user_addr_str;
             return false;
         }
         user_addr->port = 0;
     } else {
         if (mutil::str2endpoint(user_addr_str->c_str(), user_addr) != 0) {
-            LOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
+            MLOG(WARNING) << "Fail to parse ip:port from " << *user_addr_str;
             return false;
         }
     }
@@ -236,9 +236,9 @@ static void PrintMessage(const mutil::IOBuf& inbuf,
         buf2.pop_back(2);  // remove "> "
     }
     if (!has_content) {
-        LOG(INFO) << '\n' << buf2 << buf1;
+        MLOG(INFO) << '\n' << buf2 << buf1;
     } else {
-        LOG(INFO) << '\n' << buf2 << mutil::ToPrintableString(buf1, FLAGS_http_verbose_max_body_length);
+        MLOG(INFO) << '\n' << buf2 << mutil::ToPrintableString(buf1, FLAGS_http_verbose_max_body_length);
     }
 }
 
@@ -281,7 +281,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
         cid_value = socket->correlation_id();
     }
     if (cid_value == 0) {
-        LOG(WARNING) << "Fail to find correlation_id from " << *socket;
+        MLOG(WARNING) << "Fail to find correlation_id from " << *socket;
         return;
     }
     const fiber_session_t cid = { cid_value };
@@ -307,7 +307,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
     HttpHeader* res_header = &cntl->http_response();
     res_header->Swap(imsg_guard->header());
     mutil::IOBuf& res_body = imsg_guard->body();
-    CHECK(cntl->response_attachment().empty());
+    MCHECK(cntl->response_attachment().empty());
     const int saved_error = cntl->ErrorCode();
 
     bool is_grpc_ct = false;
@@ -888,7 +888,7 @@ HttpResponseSender::~HttpResponseSender() {
             res_header->SetHeader("Transfer-Encoding", "chunked");
         }
         if (!cntl->response_attachment().empty()) {
-            LOG(ERROR) << "response_attachment(size="
+            MLOG(ERROR) << "response_attachment(size="
                        << cntl->response_attachment().size() << ") will be"
                 " ignored when CreateProgressiveAttachment() was called";
         }
@@ -908,7 +908,7 @@ HttpResponseSender::~HttpResponseSender() {
                     res_header->SetHeader(common->CONTENT_ENCODING, common->GZIP);
                 }
             } else {
-                LOG(ERROR) << "Fail to gzip the http response, skip compression.";
+                MLOG(ERROR) << "Fail to gzip the http response, skip compression.";
             }
         }
     } else {
@@ -931,12 +931,12 @@ HttpResponseSender::~HttpResponseSender() {
         SocketMessagePtr<H2UnsentResponse> h2_response(
                 H2UnsentResponse::New(cntl, _h2_stream_id, is_grpc));
         if (h2_response == NULL) {
-            LOG(ERROR) << "Fail to make http2 response";
+            MLOG(ERROR) << "Fail to make http2 response";
             errno = EINVAL;
             rc = -1;
         } else {
             if (FLAGS_http_verbose) {
-                LOG(INFO) << '\n' << *h2_response;
+                MLOG(INFO) << '\n' << *h2_response;
             }
             if (span) {
                 span->set_response_size(h2_response->EstimatedByteSize());
@@ -963,7 +963,7 @@ HttpResponseSender::~HttpResponseSender() {
     if (rc != 0) {
         // EPIPE is common in pooled connections + backup requests.
         const int errcode = errno;
-        PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *socket;
+        PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *socket;
         cntl->SetFailed(errcode, "Fail to write into %s", socket->description().c_str());
         return;
     }
@@ -1113,7 +1113,7 @@ ParseResult ParseHttpMessage(mutil::IOBuf *source, Socket *socket,
             socket->is_read_progressive(),
             socket->http_request_method());
         if (http_imsg == NULL) {
-            LOG(FATAL) << "Fail to new HttpContext";
+            MLOG(FATAL) << "Fail to new HttpContext";
             return MakeParseError(PARSE_ERROR_NO_RESOURCE);
         }
         // Parsing http is costly, parsing an incomplete http message from the
@@ -1139,7 +1139,7 @@ ParseResult ParseHttpMessage(mutil::IOBuf *source, Socket *socket,
             source->pop_front(rc);
             if (http_imsg->Completed()) {
                 // Already returned the message before, don't return again.
-                CHECK_EQ(http_imsg, socket->release_parsing_context());
+                MCHECK_EQ(http_imsg, socket->release_parsing_context());
                 // NOTE: calling http_imsg->Destroy() is wrong which can only
                 // be called from ProcessHttpXXX
                 http_imsg->RemoveOneRefForStage2();
@@ -1159,7 +1159,7 @@ ParseResult ParseHttpMessage(mutil::IOBuf *source, Socket *socket,
         // Normal or stage1 of progressive-read http message.
         source->pop_front(rc);
         if (http_imsg->Completed()) {
-            CHECK_EQ(http_imsg, socket->release_parsing_context());
+            MCHECK_EQ(http_imsg, socket->release_parsing_context());
             const ParseResult result = MakeMessage(http_imsg);
             http_imsg->CheckProgressiveRead(arg, socket);
             if (socket->is_read_progressive()) {
@@ -1226,7 +1226,7 @@ ParseResult ParseHttpMessage(mutil::IOBuf *source, Socket *socket,
                 // by itself.
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             } else if (rc > 0) {
-                LOG(ERROR) << "Impossible: Recycled!";
+                MLOG(ERROR) << "Impossible: Recycled!";
                 return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
             }
             // Send 400 back.
@@ -1304,7 +1304,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
 
     Controller* cntl = new (std::nothrow) Controller;
     if (NULL == cntl) {
-        LOG(FATAL) << "Fail to new Controller";
+        MLOG(FATAL) << "Fail to new Controller";
         return;
     }
     HttpResponseSender resp_sender(cntl);
@@ -1345,7 +1345,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
         errno = 0;
         uint64_t logid = strtoull(log_id_str->c_str(), &logid_end, 10);
         if (*logid_end || errno) {
-            LOG(ERROR) << "Invalid " << common->LOG_ID << '=' 
+            MLOG(ERROR) << "Invalid " << common->LOG_ID << '='
                        << *log_id_str << " in http request";
         } else {
             cntl->set_log_id(logid);
@@ -1491,7 +1491,7 @@ void ProcessHttpRequest(InputMessageBase *msg) {
     resp_sender.own_response(res);
 
     if (__builtin_expect(!req || !res, 0)) {
-        PLOG(FATAL) << "Fail to new req or res";
+        PMLOG(FATAL) << "Fail to new req or res";
         cntl->SetFailed("Fail to new req or res");
         return;
     }
@@ -1617,7 +1617,7 @@ bool ParseHttpServerAddress(mutil::EndPoint* point, const char* server_addr_and_
     std::string host;
     int port = -1;
     if (ParseURL(server_addr_and_port, &scheme, &host, &port) != 0) {
-        LOG(ERROR) << "Invalid address=`" << server_addr_and_port << '\'';
+        MLOG(ERROR) << "Invalid address=`" << server_addr_and_port << '\'';
         return false;
     }
     if (scheme.empty() || scheme == "http") {
@@ -1629,12 +1629,12 @@ bool ParseHttpServerAddress(mutil::EndPoint* point, const char* server_addr_and_
             port = 443;
         }
     } else {
-        LOG(ERROR) << "Invalid scheme=`" << scheme << '\'';
+        MLOG(ERROR) << "Invalid scheme=`" << scheme << '\'';
         return false;
     }
     if (str2endpoint(host.c_str(), port, point) != 0 &&
         hostname2endpoint(host.c_str(), port, point) != 0) {
-        LOG(ERROR) << "Invalid host=" << host << " port=" << port;
+        MLOG(ERROR) << "Invalid host=" << host << " port=" << port;
         return false;
     }
     return true;

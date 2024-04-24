@@ -93,7 +93,7 @@ namespace melon {
             http_message->_stage = HTTP_ON_HEADER_VALUE;
             first_entry = true;
             if (http_message->_cur_header.empty()) {
-                LOG(ERROR) << "Header name is empty";
+                MLOG(ERROR) << "Header name is empty";
                 return -1;
             }
             http_message->_cur_value =
@@ -137,7 +137,7 @@ namespace melon {
         if (parser->http_major > 1) {
             // NOTE: this checking is a MUST because ProcessHttpResponse relies
             // on it to cast InputMessageBase* into different types.
-            LOG(WARNING) << "Invalid major_version=" << parser->http_major;
+            MLOG(WARNING) << "Invalid major_version=" << parser->http_major;
             parser->http_major = 1;
         }
         http_message->header().set_version(parser->http_major, parser->http_minor);
@@ -153,7 +153,7 @@ namespace melon {
         http_message->header().set_method(static_cast<HttpMethod>(parser->method));
         if (parser->type == HTTP_REQUEST &&
             http_message->header().uri().SetHttpURL(http_message->_url) != 0) {
-            LOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
+            MLOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
             return -1;
         }
         //rfc2616-sec5.2
@@ -222,7 +222,7 @@ namespace melon {
                 // description which is very helpful for debugging. Otherwise
                 // the body is probably streaming data which is too long to print.
                 header().status_code() == HTTP_STATUS_OK) {
-                LOG(INFO) << '\n' << _vmsgbuilder->buf();
+                MLOG(INFO) << '\n' << _vmsgbuilder->buf();
                 _vmsgbuilder.reset(NULL);
             } else {
                 if (_vbodylen < (size_t) FLAGS_http_verbose_max_body_length) {
@@ -286,7 +286,7 @@ namespace melon {
                 *_vmsgbuilder << "\n<skipped " << _vbodylen
                                                   - (size_t) FLAGS_http_verbose_max_body_length << " bytes>";
             }
-            LOG(INFO) << '\n' << _vmsgbuilder->buf();
+            MLOG(INFO) << '\n' << _vmsgbuilder->buf();
             _vmsgbuilder.reset(NULL);
         }
         _cur_header.clear();
@@ -418,7 +418,7 @@ namespace melon {
             if (length == 0) {
                 return 0;
             }
-            LOG(ERROR) << "Append data(len=" << length
+            MLOG(ERROR) << "Append data(len=" << length
                        << ") to already-completed message";
             return -1;
         }
@@ -439,7 +439,7 @@ namespace melon {
             if (buf.empty()) {
                 return 0;
             }
-            LOG(ERROR) << "Append data(len=" << buf.size()
+            MLOG(ERROR) << "Append data(len=" << buf.size()
                        << ") to already-completed message";
             return -1;
         }

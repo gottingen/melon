@@ -10,7 +10,7 @@ namespace mutil {
 
 void CancellationFlag::Set() {
 #if !defined(NDEBUG)
-  DCHECK_EQ(set_on_, PlatformThread::CurrentId());
+  DMCHECK_EQ(set_on_, PlatformThread::CurrentId());
 #endif
   mutil::subtle::Release_Store(&flag_, 1);
 }

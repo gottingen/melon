@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&http_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add http_svc";
+        MLOG(ERROR) << "Fail to add http_svc";
         return -1;
     }
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        LOG(ERROR) << "Fail to start HttpServer";
+        MLOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }
 

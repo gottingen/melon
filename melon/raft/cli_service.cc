@@ -71,7 +71,7 @@ namespace melon::raft {
                             request->peer_id().c_str());
             return;
         }
-        LOG(WARNING) << "Receive AddPeerRequest to " << node->node_id()
+        MLOG(WARNING) << "Receive AddPeerRequest to " << node->node_id()
                      << " from " << cntl->remote_side()
                      << ", adding " << request->peer_id();
         Closure *add_peer_done = NewCallback(
@@ -124,7 +124,7 @@ namespace melon::raft {
                             request->peer_id().c_str());
             return;
         }
-        LOG(WARNING) << "Receive RemovePeerRequest to " << node->node_id()
+        MLOG(WARNING) << "Receive RemovePeerRequest to " << node->node_id()
                      << " from " << cntl->remote_side()
                      << ", removing " << request->peer_id();
         Closure *remove_peer_done = NewCallback(
@@ -155,7 +155,7 @@ namespace melon::raft {
             }
             new_peers.add_peer(peer);
         }
-        LOG(WARNING) << "Receive set_peer to " << node->node_id()
+        MLOG(WARNING) << "Receive set_peer to " << node->node_id()
                      << " from " << cntl->remote_side();
         st = node->reset_peers(new_peers);
         if (!st.ok()) {

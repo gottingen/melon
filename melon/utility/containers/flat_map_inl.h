@@ -280,14 +280,14 @@ FlatMap<_K, _T, _H, _E, _S, _A>::operator=(const FlatMap<_K, _T, _H, _E, _S, _A>
         // note: need an extra bucket to let iterator know where buckets end
         _buckets = (Bucket*)get_allocator().Alloc(sizeof(Bucket) * (_nbucket + 1/*note*/));
         if (NULL == _buckets) {
-            LOG(ERROR) << "Fail to new _buckets";
+            MLOG(ERROR) << "Fail to new _buckets";
             return;
         }
         if (_S) {
             free(_thumbnail);
             _thumbnail = bit_array_malloc(_nbucket);
             if (NULL == _thumbnail) {
-                LOG(ERROR) << "Fail to new _thumbnail";
+                MLOG(ERROR) << "Fail to new _thumbnail";
                 return;
             }
             bit_array_clear(_thumbnail, _nbucket);
@@ -326,15 +326,15 @@ FlatMap<_K, _T, _H, _E, _S, _A>::operator=(const FlatMap<_K, _T, _H, _E, _S, _A>
 template <typename _K, typename _T, typename _H, typename _E, bool _S, typename _A>
 int FlatMap<_K, _T, _H, _E, _S, _A>::init(size_t nbucket, u_int load_factor) {
     if (initialized()) {
-        LOG(ERROR) << "Already initialized";
+        MLOG(ERROR) << "Already initialized";
         return -1;
     }
     if (nbucket == 0) {
-        LOG(WARNING) << "Fail to init FlatMap, nbucket=" << nbucket; 
+        MLOG(WARNING) << "Fail to init FlatMap, nbucket=" << nbucket;
         return -1;
     }
     if (load_factor < 10 || load_factor > 100) {
-        LOG(ERROR) << "Invalid load_factor=" << load_factor;
+        MLOG(ERROR) << "Invalid load_factor=" << load_factor;
         return -1;
     }
     _size = 0;
@@ -343,7 +343,7 @@ int FlatMap<_K, _T, _H, _E, _S, _A>::init(size_t nbucket, u_int load_factor) {
                                 
     _buckets = (Bucket*)get_allocator().Alloc(sizeof(Bucket) * (_nbucket + 1));
     if (NULL == _buckets) {
-        LOG(ERROR) << "Fail to new _buckets";
+        MLOG(ERROR) << "Fail to new _buckets";
         return -1;
     }
     for (size_t i = 0; i < _nbucket; ++i) {
@@ -354,7 +354,7 @@ int FlatMap<_K, _T, _H, _E, _S, _A>::init(size_t nbucket, u_int load_factor) {
     if (_S) {
         _thumbnail = bit_array_malloc(_nbucket);
         if (NULL == _thumbnail) {
-            LOG(ERROR) << "Fail to new _thumbnail";
+            MLOG(ERROR) << "Fail to new _thumbnail";
             return -1;
         }
         bit_array_clear(_thumbnail, _nbucket);
@@ -601,7 +601,7 @@ bool FlatMap<_K, _T, _H, _E, _S, _A>::resize(size_t nbucket2) {
     // internal state is lost.
     FlatMap new_map(_hashfn, _eql, get_allocator());
     if (new_map.init(nbucket2, _load_factor) != 0) {
-        LOG(ERROR) << "Fail to init new_map, nbucket=" << nbucket2;
+        MLOG(ERROR) << "Fail to init new_map, nbucket=" << nbucket2;
         return false;
     }
     for (iterator it = begin(); it != end(); ++it) {

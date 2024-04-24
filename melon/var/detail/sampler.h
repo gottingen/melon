@@ -72,7 +72,7 @@ namespace melon::var {
         struct VoidOp {
             template<typename T>
             T operator()(const T &, const T &) const {
-                CHECK(false) << "This function should never be called, abort";
+                MCHECK(false) << "This function should never be called, abort";
                 abort();
             }
         };
@@ -141,7 +141,7 @@ namespace melon::var {
 
             bool get_value(time_t window_size, Sample<T> *result) {
                 if (window_size <= 0) {
-                    LOG(FATAL) << "Invalid window_size=" << window_size;
+                    MLOG(FATAL) << "Invalid window_size=" << window_size;
                     return false;
                 }
                 MELON_SCOPED_LOCK(_mutex);
@@ -154,7 +154,7 @@ namespace melon::var {
                     oldest = _q.top();
                 }
                 Sample<T> *latest = _q.bottom();
-                DCHECK(latest != oldest);
+                DMCHECK(latest != oldest);
                 if (mutil::is_same<InvOp, VoidOp>::value) {
                     // No inverse op. Sum up all samples within the window.
                     result->data = latest->data;
@@ -177,7 +177,7 @@ namespace melon::var {
             // Change the time window which can only go larger.
             int set_window_size(time_t window_size) {
                 if (window_size <= 0 || window_size > MAX_SECONDS_LIMIT) {
-                    LOG(ERROR) << "Invalid window_size=" << window_size;
+                    MLOG(ERROR) << "Invalid window_size=" << window_size;
                     return -1;
                 }
                 MELON_SCOPED_LOCK(_mutex);
@@ -189,7 +189,7 @@ namespace melon::var {
 
             void get_samples(std::vector<T> *samples, time_t window_size) {
                 if (window_size <= 0) {
-                    LOG(FATAL) << "Invalid window_size=" << window_size;
+                    MLOG(FATAL) << "Invalid window_size=" << window_size;
                     return;
                 }
                 MELON_SCOPED_LOCK(_mutex);

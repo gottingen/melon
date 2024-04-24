@@ -57,7 +57,7 @@ static void InitFutexMap() {
 
 int futex_wait_private(void* addr1, int expected, const timespec* timeout) {
     if (pthread_once(&init_futex_map_once, InitFutexMap) != 0) {
-        LOG(FATAL) << "Fail to pthread_once";
+        MLOG(FATAL) << "Fail to pthread_once";
         exit(1);
     }
     std::unique_lock<pthread_mutex_t> mu(s_futex_map_mutex);
@@ -99,7 +99,7 @@ int futex_wait_private(void* addr1, int expected, const timespec* timeout) {
 
 int futex_wake_private(void* addr1, int nwake) {
     if (pthread_once(&init_futex_map_once, InitFutexMap) != 0) {
-        LOG(FATAL) << "Fail to pthread_once";
+        MLOG(FATAL) << "Fail to pthread_once";
         exit(1);
     }
     std::unique_lock<pthread_mutex_t> mu(s_futex_map_mutex);

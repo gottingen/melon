@@ -33,12 +33,12 @@
 //   // My class is logically attached to a single thread.  We cache a pointer
 //   // on the thread it was created on, so we can implement current().
 //   MyClass::MyClass() {
-//     DCHECK(Singleton<ThreadLocalPointer<MyClass> >::get()->Get() == NULL);
+//     DMCHECK(Singleton<ThreadLocalPointer<MyClass> >::get()->Get() == NULL);
 //     Singleton<ThreadLocalPointer<MyClass> >::get()->Set(this);
 //   }
 //
 //   MyClass::~MyClass() {
-//     DCHECK(Singleton<ThreadLocalPointer<MyClass> >::get()->Get() != NULL);
+//     DMCHECK(Singleton<ThreadLocalPointer<MyClass> >::get()->Get() != NULL);
 //     Singleton<ThreadLocalPointer<MyClass> >::get()->Set(NULL);
 //   }
 //

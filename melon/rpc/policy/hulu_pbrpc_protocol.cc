@@ -69,7 +69,7 @@ CompressType Hulu2CompressType(HuluCompressType type) {
     case HULU_COMPRESS_TYPE_ZLIB:
         return COMPRESS_TYPE_ZLIB;
     default:
-        LOG(ERROR) << "Unknown HuluCompressType=" << type;
+        MLOG(ERROR) << "Unknown HuluCompressType=" << type;
         return COMPRESS_TYPE_NONE;
     }
 }
@@ -85,10 +85,10 @@ HuluCompressType CompressType2Hulu(CompressType type) {
     case COMPRESS_TYPE_ZLIB:
         return HULU_COMPRESS_TYPE_ZLIB;
     case COMPRESS_TYPE_LZ4:
-        LOG(ERROR) << "Hulu doesn't support LZ4";
+        MLOG(ERROR) << "Hulu doesn't support LZ4";
         return HULU_COMPRESS_TYPE_NONE;
     default:
-        LOG(ERROR) << "Unknown CompressType=" << type;
+        MLOG(ERROR) << "Unknown CompressType=" << type;
         return HULU_COMPRESS_TYPE_NONE;
     }
 }
@@ -155,7 +155,7 @@ static void SerializeHuluHeaderAndMeta(
         ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 12, meta_size);
         ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
         meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-        CHECK(!coded_out.HadError());
+        MCHECK(!coded_out.HadError());
         out->append(header_and_meta, sizeof(header_and_meta));
     } else {
         char header[12];
@@ -164,7 +164,7 @@ static void SerializeHuluHeaderAndMeta(
         mutil::IOBufAsZeroCopyOutputStream buf_stream(out);
         ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
         meta.SerializeWithCachedSizes(&coded_out);
-        CHECK(!coded_out.HadError());
+        MCHECK(!coded_out.HadError());
     }
 }
 
@@ -191,7 +191,7 @@ ParseResult ParseHuluMessage(mutil::IOBuf* source, Socket* socket,
     if (body_size > FLAGS_max_body_size) {
         // We need this log to report the body_size to give users some clues
         // which is not printed in InputMessenger.
-        LOG(ERROR) << "body_size=" << body_size << " from "
+        MLOG(ERROR) << "body_size=" << body_size << " from "
                    << socket->remote_side() << " is too large";
         return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
     } else if (source->length() < sizeof(header_buf) + body_size) {
@@ -200,7 +200,7 @@ ParseResult ParseHuluMessage(mutil::IOBuf* source, Socket* socket,
     uint32_t meta_size;
     ru.unpack32(meta_size);
     if (__builtin_expect(meta_size > body_size, 0)) {
-        LOG(ERROR) << "meta_size=" << meta_size
+        MLOG(ERROR) << "meta_size=" << meta_size
                    << " is bigger than body_size=" << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -304,7 +304,7 @@ static void SendHuluResponse(int64_t correlation_id,
     wopt.ignore_eovercrowded = true;
     if (sock->Write(&res_buf, &wopt) != 0) {
         const int errcode = errno;
-        PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+        PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
         cntl->SetFailed(errcode, "Fail to write into %s",
                         sock->description().c_str());
         return;
@@ -334,7 +334,7 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
 
     HuluRpcRequestMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        LOG(WARNING) << "Fail to parse HuluRpcRequestMeta, close the connection";
+        MLOG(WARNING) << "Fail to parse HuluRpcRequestMeta, close the connection";
         socket->SetFailed();
         return;
     }
@@ -358,7 +358,7 @@ void ProcessHuluRequest(InputMessageBase* msg_base) {
 
     std::unique_ptr<HuluController> cntl(new (std::nothrow) HuluController());
     if (NULL == cntl.get()) {
-        LOG(WARNING) << "Fail to new Controller";
+        MLOG(WARNING) << "Fail to new Controller";
         return;
     }
     std::unique_ptr<google::protobuf::Message> req;
@@ -538,7 +538,7 @@ bool VerifyHuluRequest(const InputMessageBase* msg_base) {
 
     HuluRpcRequestMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        LOG(WARNING) << "Fail to parse HuluRpcRequestMeta";
+        MLOG(WARNING) << "Fail to parse HuluRpcRequestMeta";
         return false;
     }
     const Authenticator* auth = server->options().auth;
@@ -559,7 +559,7 @@ void ProcessHuluResponse(InputMessageBase* msg_base) {
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     HuluRpcResponseMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        LOG(WARNING) << "Fail to parse from response meta";
+        MLOG(WARNING) << "Fail to parse from response meta";
         return;
     }
 

@@ -75,7 +75,7 @@ void MemcacheRequest::Clear() {
 
 bool MemcacheRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-    LOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
+    MLOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
     
     // simple approach just making it work.
     mutil::IOBuf tmp;
@@ -110,7 +110,7 @@ bool MemcacheRequest::MergePartialFromCodedStream(
 
 void MemcacheRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-    LOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
+    MLOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
 
     // simple approach just making it work.
     mutil::IOBufAsZeroCopyInputStream wrapper(_buf);
@@ -133,7 +133,7 @@ int MemcacheRequest::ByteSize() const {
 }
 
 void MemcacheRequest::MergeFrom(const ::google::protobuf::Message& from) {
-    CHECK_NE(&from, this);
+    MCHECK_NE(&from, this);
     const MemcacheRequest* source = dynamic_cast<const MemcacheRequest*>(&from);
     if (source == NULL) {
         ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -143,7 +143,7 @@ void MemcacheRequest::MergeFrom(const ::google::protobuf::Message& from) {
 }
 
 void MemcacheRequest::MergeFrom(const MemcacheRequest& from) {
-    CHECK_NE(&from, this);
+    MCHECK_NE(&from, this);
     _buf.append(from._buf);
     _pipelined_count += from._pipelined_count;
 }
@@ -224,7 +224,7 @@ void MemcacheResponse::Clear() {
 
 bool MemcacheResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-    LOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
+    MLOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
 
     // simple approach just making it work.
     const void* data = NULL;
@@ -238,7 +238,7 @@ bool MemcacheResponse::MergePartialFromCodedStream(
 
 void MemcacheResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-    LOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
+    MLOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
     
     // simple approach just making it work.
     mutil::IOBufAsZeroCopyInputStream wrapper(_buf);
@@ -261,7 +261,7 @@ int MemcacheResponse::ByteSize() const {
 }
 
 void MemcacheResponse::MergeFrom(const ::google::protobuf::Message& from) {
-    CHECK_NE(&from, this);
+    MCHECK_NE(&from, this);
     const MemcacheResponse* source = dynamic_cast<const MemcacheResponse*>(&from);
     if (source == NULL) {
         ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -271,7 +271,7 @@ void MemcacheResponse::MergeFrom(const ::google::protobuf::Message& from) {
 }
 
 void MemcacheResponse::MergeFrom(const MemcacheResponse& from) {
-    CHECK_NE(&from, this);
+    MCHECK_NE(&from, this);
     _err = from._err;
     // responses of memcached according to their binary layout, should be
     // directly concatenatible.
@@ -593,7 +593,7 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
                                    << value_size;
     _buf.pop_front(sizeof(header) + header.total_body_length);
     if (cas_value) {
-        CHECK(header.cas_value);
+        MCHECK(header.cas_value);
         *cas_value = header.cas_value;
     }
     _err.clear();
@@ -622,7 +622,7 @@ bool MemcacheRequest::Append(
     const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     if (value.empty()) {
-        LOG(ERROR) << "value to append must be non-empty";
+        MLOG(ERROR) << "value to append must be non-empty";
         return false;
     }
     return Store(policy::MC_BINARY_APPEND, key, value, flags, exptime, cas_value);
@@ -632,7 +632,7 @@ bool MemcacheRequest::Prepend(
     const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     if (value.empty()) {
-        LOG(ERROR) << "value to prepend must be non-empty";
+        MLOG(ERROR) << "value to prepend must be non-empty";
         return false;
     }
     return Store(policy::MC_BINARY_PREPEND, key, value, flags, exptime, cas_value);

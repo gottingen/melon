@@ -36,7 +36,7 @@ NOINLINE void CorruptMemoryBlock(bool induce_crash) {
   } catch (...) {
   }
   if (induce_crash)
-    CHECK(false);
+    MCHECK(false);
   delete[] array;
 }
 #endif

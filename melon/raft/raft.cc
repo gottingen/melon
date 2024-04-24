@@ -80,7 +80,7 @@ namespace melon::raft {
 // Non-static for unit test
     void global_init_once_or_die() {
         if (pthread_once(&global_init_once, global_init_or_die_impl) != 0) {
-            PLOG(FATAL) << "Fail to pthread_once";
+            PMLOG(FATAL) << "Fail to pthread_once";
             exit(-1);
         }
     }
@@ -98,7 +98,7 @@ namespace melon::raft {
     int add_service(melon::Server *server, const char *listen_ip_and_port) {
         mutil::EndPoint addr;
         if (mutil::str2endpoint(listen_ip_and_port, &addr) != 0) {
-            LOG(ERROR) << "Fail to parse `" << listen_ip_and_port << "'";
+            MLOG(ERROR) << "Fail to parse `" << listen_ip_and_port << "'";
             return -1;
         }
         return add_service(server, addr);
@@ -115,18 +115,18 @@ namespace melon::raft {
         mutil::Status status = LogStorage::destroy(log_uri);
         if (!status.ok()) {
             is_success = false;
-            LOG(WARNING) << "Group " << vgid << " failed to gc raft log, uri " << log_uri;
+            MLOG(WARNING) << "Group " << vgid << " failed to gc raft log, uri " << log_uri;
         }
         // TODO encode vgid into raft_meta_uri ?
         status = RaftMetaStorage::destroy(raft_meta_uri, vgid);
         if (!status.ok()) {
             is_success = false;
-            LOG(WARNING) << "Group " << vgid << " failed to gc raft stable, uri " << raft_meta_uri;
+            MLOG(WARNING) << "Group " << vgid << " failed to gc raft stable, uri " << raft_meta_uri;
         }
         status = SnapshotStorage::destroy(snapshot_uri);
         if (!status.ok()) {
             is_success = false;
-            LOG(WARNING) << "Group " << vgid << " failed to gc raft snapshot, uri " << snapshot_uri;
+            MLOG(WARNING) << "Group " << vgid << " failed to gc raft snapshot, uri " << snapshot_uri;
         }
         return is_success ? 0 : -1;
     }
@@ -275,8 +275,8 @@ namespace melon::raft {
 
     void StateMachine::on_snapshot_save(SnapshotWriter *writer, Closure *done) {
         (void) writer;
-        CHECK(done);
-        LOG(ERROR) << mutil::class_name_str(*this)
+        MCHECK(done);
+        MLOG(ERROR) << mutil::class_name_str(*this)
                    << " didn't implement on_snapshot_save";
         done->status().set_error(-1, "%s didn't implement on_snapshot_save",
                                  mutil::class_name_str(*this).c_str());
@@ -285,7 +285,7 @@ namespace melon::raft {
 
     int StateMachine::on_snapshot_load(SnapshotReader *reader) {
         (void) reader;
-        LOG(ERROR) << mutil::class_name_str(*this)
+        MLOG(ERROR) << mutil::class_name_str(*this)
                    << " didn't implement on_snapshot_load"
                    << " while a snapshot is saved in " << reader->get_path();
         return -1;
@@ -296,7 +296,7 @@ namespace melon::raft {
     void StateMachine::on_leader_stop(const mutil::Status &) {}
 
     void StateMachine::on_error(const Error &e) {
-        LOG(ERROR) << "Encountered an error=" << e << " on StateMachine "
+        MLOG(ERROR) << "Encountered an error=" << e << " on StateMachine "
                    << mutil::class_name_str(*this)
                    << ", it's highly recommended to implement this interface"
                       " as raft stops working since some error ocurrs,"

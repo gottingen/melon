@@ -116,7 +116,7 @@ TEST_F(WatchdogTest, DisarmTest) {
   TimeTicks end = TimeTicks::Now();
 
   if (end - start > TimeDelta::FromMilliseconds(500)) {
-    LOG(WARNING) << "100ms sleep took over 500ms, making the results of this "
+    MLOG(WARNING) << "100ms sleep took over 500ms, making the results of this "
                  << "timing-sensitive test suspicious.  Aborting now.";
     return;
   }

@@ -27,7 +27,7 @@ inline int Log2Floor(uint32_t n) {
       log += shift;
     }
   }
-  DCHECK_EQ(value, 1u);
+  DMCHECK_EQ(value, 1u);
   return log;
 }
 

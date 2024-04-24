@@ -133,7 +133,7 @@ namespace melon {
 // Save gflags which could be reloaded at anytime.
     void RpcDumpContext::SaveFlags() {
         std::string dir;
-        CHECK(google::GetCommandLineOption("rpc_dump_dir", &dir));
+        MCHECK(google::GetCommandLineOption("rpc_dump_dir", &dir));
 
         const size_t pos = dir.find("<app>");
         if (pos != std::string::npos) {
@@ -174,7 +174,7 @@ namespace melon {
             // Make sure the dir exists.
             mutil::File::Error error;
             if (!mutil::CreateDirectoryAndGetError(_dir, &error)) {
-                LOG(ERROR) << "Fail to create directory=`" << _dir.value()
+                MLOG(ERROR) << "Fail to create directory=`" << _dir.value()
                            << "', " << error;
                 return;
             }
@@ -198,7 +198,7 @@ namespace melon {
                                  (unsigned) (cur_file_time - rawtime * 1000000L));
             _cur_fd = open(_cur_filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0666);
             if (_cur_fd < 0) {
-                PLOG(ERROR) << "Fail to open " << _cur_filename;
+                PMLOG(ERROR) << "Fail to open " << _cur_filename;
                 return;
             }
             _last_file_time = cur_file_time;
@@ -210,7 +210,7 @@ namespace melon {
         while (!_unwritten_buf.empty()) {
             if (_unwritten_buf.cut_into_file_descriptor(_cur_fd) < 0) {
                 if (errno != EINTR && errno != EAGAIN) {
-                    PLOG(ERROR) << "Fail to write into " << _cur_filename;
+                    PMLOG(ERROR) << "Fail to write into " << _cur_filename;
                     fail_to_write = true;
                     break;
                 }
@@ -236,7 +236,7 @@ namespace melon {
         const size_t starting_size = buf.size();
         mutil::IOBufAsZeroCopyOutputStream buf_stream(&buf);
         if (!sample->meta.SerializeToZeroCopyStream(&buf_stream)) {
-            LOG(ERROR) << "Fail to serialize";
+            MLOG(ERROR) << "Fail to serialize";
             return false;
         }
         const size_t meta_size = buf.size() - starting_size;
@@ -247,7 +247,7 @@ namespace melon {
         mutil::RawPacker(rpc_header + 4)
                 .pack32(meta_size + sample->request.size())
                 .pack32(meta_size);
-        CHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
+        MCHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
         return true;
     }
 
@@ -284,7 +284,7 @@ namespace melon {
                 ssize_t nr = _cur_buf.append_from_file_descriptor(_cur_fd, 524288);
                 if (nr < 0) {
                     if (errno != EAGAIN && errno != EINTR) {
-                        PLOG(ERROR) << "Fail to read fd=" << _cur_fd;
+                        PMLOG(ERROR) << "Fail to read fd=" << _cur_fd;
                         break;
                     }
                 } else if (nr == 0) {  // EOF
@@ -318,7 +318,7 @@ namespace melon {
             return NULL;
         }
         if (*(const uint32_t *) p != *(const uint32_t *) "MRPC") {
-            LOG(ERROR) << "Unmatched magic string";
+            MLOG(ERROR) << "Unmatched magic string";
             *format_error = true;
             return NULL;
         }
@@ -326,14 +326,14 @@ namespace melon {
         uint32_t meta_size;
         mutil::RawUnpacker(p + 4).unpack32(body_size).unpack32(meta_size);
         if (body_size > FLAGS_max_body_size) {
-            LOG(ERROR) << "Too big body=" << body_size;
+            MLOG(ERROR) << "Too big body=" << body_size;
             *format_error = true;
             return NULL;
         } else if (buf.length() < sizeof(backing_buf) + body_size) {
             return NULL;
         }
         if (meta_size > body_size) {
-            LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+            MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                        << body_size;
             *format_error = true;
             return NULL;
@@ -343,7 +343,7 @@ namespace melon {
         buf.cutn(&meta_buf, meta_size);
         std::unique_ptr<SampledRequest> req(new SampledRequest);
         if (!ParsePbFromIOBuf(&req->meta, meta_buf)) {
-            LOG(ERROR) << "Fail to parse RpcDumpMeta";
+            MLOG(ERROR) << "Fail to parse RpcDumpMeta";
             *format_error = true;
             return NULL;
         }

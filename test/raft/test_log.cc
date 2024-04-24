@@ -850,11 +850,11 @@ TEST_F(LogStorageTest, configuration) {
     melon::raft::ConfigurationEntry pair;
     configuration_manager->get(2 + 100000*5, &pair);
     ASSERT_EQ(2, pair.id.index);
-    LOG(INFO) << pair.conf;
+    MLOG(INFO) << pair.conf;
 
     configuration_manager->get(2 + 100000*5 + 1, &pair);
     ASSERT_EQ(2+100000*5+1, pair.id.index);
-    LOG(INFO) << pair.conf;
+    MLOG(INFO) << pair.conf;
 
     storage2->truncate_suffix(400000);
     configuration_manager->get(400000, &pair);
@@ -1223,7 +1223,7 @@ TEST_F(LogStorageTest, append_close_load_append_with_io_metric) {
     ASSERT_NE(0, metric.append_entry_time_us);
     ASSERT_NE(0, metric.sync_segment_time_us);
 
-    LOG(INFO) << metric;
+    MLOG(INFO) << metric;
 
     delete storage;
     delete configuration_manager;

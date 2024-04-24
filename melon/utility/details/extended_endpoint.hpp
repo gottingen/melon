@@ -215,7 +215,7 @@ public:
         ::mutil::ResourceId<ExtendedEndPoint> id;
         id.value = ep.ip.s_addr;
         ExtendedEndPoint* eep = ::mutil::address_resource<ExtendedEndPoint>(id);
-        CHECK(eep) << "fail to address ExtendedEndPoint from EndPoint";
+        MCHECK(eep) << "fail to address ExtendedEndPoint from EndPoint";
         return eep;
     }
 
@@ -236,8 +236,8 @@ private:
         ExtendedEndPoint* eep = ::mutil::get_resource(&id);
         if (eep) {
             int64_t old_ref = eep->_ref_count.load(mutil::memory_order_relaxed);
-            CHECK(old_ref == 0) << "new ExtendedEndPoint has reference " << old_ref;
-            CHECK(eep->_u.sa.sa_family == AF_UNSPEC) << "new ExtendedEndPoint has family " << eep->_u.sa.sa_family << " set";
+            MCHECK(old_ref == 0) << "new ExtendedEndPoint has reference " << old_ref;
+            MCHECK(eep->_u.sa.sa_family == AF_UNSPEC) << "new ExtendedEndPoint has family " << eep->_u.sa.sa_family << " set";
             eep->_ref_count.store(1, mutil::memory_order_relaxed);
             eep->_id = id;
             eep->_u.sa.sa_family = family;
@@ -246,7 +246,7 @@ private:
     }
 
     void embed_to(EndPoint* ep) const {
-        CHECK(0 == _id.value >> 32) << "ResourceId beyond index";
+        MCHECK(0 == _id.value >> 32) << "ResourceId beyond index";
         ep->reset();
         ep->ip = ip_t{static_cast<uint32_t>(_id.value)};
         ep->port = EXTENDED_ENDPOINT_PORT;
@@ -268,7 +268,7 @@ public:
 
     void dec_ref(void) {
         int64_t old_ref = _ref_count.fetch_sub(1, mutil::memory_order_relaxed);
-        CHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
+        MCHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
         if (old_ref == 1) {
             global_set()->erase(this);
             _u.sa.sa_family = AF_UNSPEC;
@@ -278,7 +278,7 @@ public:
 
     void inc_ref(void) {
         int64_t old_ref = _ref_count.fetch_add(1, mutil::memory_order_relaxed);
-        CHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
+        MCHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
     }
 
     sa_family_t family(void) const {
@@ -296,10 +296,10 @@ public:
         } else if (_u.sa.sa_family == AF_INET6) {
             char buf[INET6_ADDRSTRLEN] = {0};
             const char* ret = inet_ntop(_u.sa.sa_family, &_u.in6.sin6_addr, buf, sizeof(buf));
-            CHECK(ret) << "fail to do inet_ntop";
+            MCHECK(ret) << "fail to do inet_ntop";
             snprintf(ep_str->_buf, sizeof(ep_str->_buf), "[%s]:%d", buf, ntohs(_u.in6.sin6_port));
         } else {
-            CHECK(0) << "family " << _u.sa.sa_family << " not supported";
+            MCHECK(0) << "family " << _u.sa.sa_family << " not supported";
         }
     }
 
@@ -318,7 +318,7 @@ public:
             }
             return 0;
         } else {
-            CHECK(0) << "family " << _u.sa.sa_family << " not supported";
+            MCHECK(0) << "family " << _u.sa.sa_family << " not supported";
             return -1;
         }
     }

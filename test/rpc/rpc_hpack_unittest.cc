@@ -39,7 +39,7 @@ TEST_F(HPackTest, header_with_indexing) {
     mutil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     uint8_t expected[] = {
         0x40, 0x0a, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d, 0x6b, 0x65, 0x79,
         0x0d, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d, 0x68, 0x65, 0x61, 0x64,
@@ -69,7 +69,7 @@ TEST_F(HPackTest, header_without_indexing) {
     mutil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     uint8_t expected[] = {
         0x04, 0x0c, 0x2f, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x70, 0x61,
         0x74, 0x68, 
@@ -99,7 +99,7 @@ TEST_F(HPackTest, header_never_indexed) {
     mutil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     uint8_t expected[] = {
         0x10, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64,
         0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 
@@ -127,7 +127,7 @@ TEST_F(HPackTest, indexed_header) {
     mutil::IOBufAppender buf;
     p1.Encode(&buf, h, options);
     const ssize_t nwrite = buf.buf().size();
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     uint8_t expected[] = {
         0x82,
     };
@@ -266,7 +266,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         0x82, 0x86, 0x84, 0x41, 0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b,
         0xa0, 0xab, 0x90, 0xf4, 0xff
     };
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;
@@ -367,7 +367,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         0x74, 0x74, 0x70, 0x73, 0x3a, 0x2f, 0x2f, 0x77, 0x77, 0x77, 0x2e, 0x65,
         0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2e, 0x63, 0x6f, 0x6d, 
     };
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;
@@ -472,7 +472,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         0x91, 0x9d, 0x29, 0xad, 0x17, 0x18, 0x63, 0xc7, 0x8f, 0x0b, 0x97, 0xc8, 
         0xe9, 0xae, 0x82, 0xae, 0x43, 0xd3,             
     };
-    LOG(INFO) << mutil::ToPrintable(buf.buf());
+    MLOG(INFO) << mutil::ToPrintable(buf.buf());
     ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;

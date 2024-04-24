@@ -40,12 +40,12 @@ namespace melon {
     template<typename T>
     int Extension<T>::Register(const std::string &name, T *instance) {
         if (nullptr == instance) {
-            LOG(ERROR) << "instance to \"" << name << "\" is nullptr";
+            MLOG(ERROR) << "instance to \"" << name << "\" is nullptr";
             return -1;
         }
         MELON_SCOPED_LOCK(_map_mutex);
         if (_instance_map.seek(name) != nullptr) {
-            LOG(ERROR) << "\"" << name << "\" was registered";
+            MLOG(ERROR) << "\"" << name << "\" was registered";
             return -1;
         }
         _instance_map[name] = instance;

@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     if (FLAGS_target.empty() &&
         (argc != 2 || 
          google::SetCommandLineOption("target", argv[1]).empty())) {
-        LOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
+        MLOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
         return -1;
     }
     // This keeps ad-hoc creation of channels reuse previous connections.
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     melon::ServerOptions server_opt;
     server_opt.http_master_service = new ViewServiceImpl;
     if (server.Start(FLAGS_port, &server_opt) != 0) {
-        LOG(ERROR) << "Fail to start ViewServer";
+        MLOG(ERROR) << "Fail to start ViewServer";
         return -1;
     }
     server.RunUntilAskedToQuit();

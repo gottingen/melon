@@ -326,7 +326,7 @@ static int id_create_impl(
         meta->data = data;
         meta->on_error = on_error;
         meta->on_error2 = on_error2;
-        CHECK(meta->pending_q.empty());
+        MCHECK(meta->pending_q.empty());
         uint32_t* butex = meta->butex;
         if (0 == *butex || *butex + ID_MAX_RANGE + 2 < *butex) {
             // Skip 0 so that fiber_session_t is never 0
@@ -359,7 +359,7 @@ static int id_create_ranged_impl(
         meta->data = data;
         meta->on_error = on_error;
         meta->on_error2 = on_error2;
-        CHECK(meta->pending_q.empty());
+        MCHECK(meta->pending_q.empty());
         uint32_t* butex = meta->butex;
         if (0 == *butex || *butex + ID_MAX_RANGE + 2 < *butex) {
             // Skip 0 so that fiber_session_t is never 0
@@ -467,7 +467,7 @@ int fiber_session_about_to_destroy(fiber_session_t id) {
     }
     if (*butex == meta->first_ver) {
         meta->mutex.unlock();
-        LOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
+        MLOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
         return EPERM;
     }
     const bool contended = (*butex == meta->contended_ver());
@@ -570,12 +570,12 @@ int fiber_session_unlock(fiber_session_t id) {
     meta->mutex.lock();
     if (!meta->has_version(id_ver)) {
         meta->mutex.unlock();
-        LOG(FATAL) << "Invalid fiber_session=" << id.value;
+        MLOG(FATAL) << "Invalid fiber_session=" << id.value;
         return EINVAL;
     }
     if (*butex == meta->first_ver) {
         meta->mutex.unlock();
-        LOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
+        MLOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
         return EPERM;
     }
     fiber::PendingError front;
@@ -611,12 +611,12 @@ int fiber_session_unlock_and_destroy(fiber_session_t id) {
     meta->mutex.lock();
     if (!meta->has_version(id_ver)) {
         meta->mutex.unlock();
-        LOG(FATAL) << "Invalid fiber_session=" << id.value;
+        MLOG(FATAL) << "Invalid fiber_session=" << id.value;
         return EINVAL;
     }
     if (*butex == meta->first_ver) {
         meta->mutex.unlock();
-        LOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
+        MLOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
         return EPERM;
     }
     const uint32_t next_ver = meta->end_ver();

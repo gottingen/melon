@@ -38,10 +38,10 @@ void HandleEchoResponse(
     std::unique_ptr<example::EchoResponse> response_guard(response);
 
     if (cntl->Failed()) {
-        LOG(WARNING) << "Fail to send EchoRequest, " << cntl->ErrorText();
+        MLOG(WARNING) << "Fail to send EchoRequest, " << cntl->ErrorText();
         return;
     }
-    LOG(INFO) << "Received response from " << cntl->remote_side()
+    MLOG(INFO) << "Received response from " << cntl->remote_side()
         << ": " << response->message() << " (attached="
         << cntl->response_attachment() << ")"
         << " latency=" << cntl->latency_us() << "us";
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        LOG(ERROR) << "Fail to initialize channel";
+        MLOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -104,6 +104,6 @@ int main(int argc, char* argv[]) {
         sleep(1);
     }
 
-    LOG(INFO) << "EchoClient is going to quit";
+    MLOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

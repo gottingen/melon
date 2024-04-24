@@ -287,13 +287,13 @@ public:
 
     inline static DoublyBufferedData::Wrapper* get_or_create_tls_data(WrapperTLSId id) {
         if (MELON_UNLIKELY(id < 0)) {
-            CHECK(false) << "Invalid id=" << id;
+            MCHECK(false) << "Invalid id=" << id;
             return NULL;
         }
         if (_s_tls_blocks == NULL) {
             _s_tls_blocks = new (std::nothrow) std::vector<ThreadBlock*>;
             if (MELON_UNLIKELY(_s_tls_blocks == NULL)) {
-                LOG(FATAL) << "Fail to create vector, " << berror();
+                MLOG(FATAL) << "Fail to create vector, " << berror();
                 return NULL;
             }
             mutil::thread_atexit(_destroy_tls_blocks);
@@ -473,7 +473,7 @@ DoublyBufferedData<T, TLS, AllowFiberSuspended>::AddWrapper(
         return w;
     }
     if (w->_control != NULL) {
-        LOG(FATAL) << "Get wrapper from tls but control != this";
+        MLOG(FATAL) << "Get wrapper from tls but control != this";
         return NULL;
     }
     try {
@@ -607,7 +607,7 @@ size_t DoublyBufferedData<T, TLS, AllowFiberSuspended>::Modify(Fn& fn) {
     }
 
     const size_t ret2 = fn(_data[bg_index]);
-    CHECK_EQ(ret2, ret) << "index=" << _index.load(mutil::memory_order_relaxed);
+    MCHECK_EQ(ret2, ret) << "index=" << _index.load(mutil::memory_order_relaxed);
     return ret2;
 }
 

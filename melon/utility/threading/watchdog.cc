@@ -51,7 +51,7 @@ Watchdog::Watchdog(const TimeDelta& duration,
   enabled_ = PlatformThread::Create(0,  // Default stack size.
                                     &delegate_,
                                     &handle_);
-  DCHECK(enabled_);
+  DMCHECK(enabled_);
 }
 
 // Notify watchdog thread, and wait for it to finish up.
@@ -110,7 +110,7 @@ void Watchdog::Disarm() {
 }
 
 void Watchdog::Alarm() {
-  DVLOG(1) << "Watchdog alarmed for " << thread_watched_name_;
+  DVMLOG(1) << "Watchdog alarmed for " << thread_watched_name_;
 }
 
 //------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ void Watchdog::ThreadDelegate::ThreadMain() {
       watchdog_->state_ = JOINABLE;
       return;
     }
-    DCHECK(ARMED == watchdog_->state_);
+    DMCHECK(ARMED == watchdog_->state_);
     remaining_duration = watchdog_->duration_ -
         (TimeTicks::Now() - watchdog_->start_time_);
     if (remaining_duration.InMilliseconds() > 0) {
@@ -170,7 +170,7 @@ void Watchdog::ThreadDelegate::ThreadMain() {
 void Watchdog::ThreadDelegate::SetThreadName() const {
   std::string name = watchdog_->thread_watched_name_ + " Watchdog";
   PlatformThread::SetName(name.c_str());
-  DVLOG(1) << "Watchdog active: " << name;
+  DVMLOG(1) << "Watchdog active: " << name;
 }
 
 // static

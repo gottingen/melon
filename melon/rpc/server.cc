@@ -25,7 +25,7 @@
 #include "melon/fiber/unstable.h"                       // fiber_keytable_pool_init
 #include "melon/utility/macros.h"                            // ARRAY_SIZE
 #include "melon/utility/fd_guard.h"                          // fd_guard
-#include "melon/utility/logging.h"                           // CHECK
+#include "melon/utility/logging.h"                           // MCHECK
 #include "melon/utility/time.h"
 #include "melon/utility/class_name.h"
 #include "melon/utility/string_printf.h"
@@ -334,12 +334,12 @@ void* Server::UpdateDerivedVars(void* arg) {
         if (sleep_us < 1000L) {
             if (++consecutive_nosleep >= 2) {
                 consecutive_nosleep = 0;
-                LOG(WARNING) << __FUNCTION__ << " is too busy!";
+                MLOG(WARNING) << __FUNCTION__ << " is too busy!";
             }
         } else {
             consecutive_nosleep = 0;
             if (fiber_usleep(sleep_us) < 0) {
-                PLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
+                PMLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
                 return NULL;
             }
         }
@@ -442,107 +442,107 @@ Server::~Server() {
 int Server::AddBuiltinServices() {
     // Firstly add services shown in tabs.
     if (AddBuiltinService(new (std::nothrow) StatusService)) {
-        LOG(ERROR) << "Fail to add StatusService";
+        MLOG(ERROR) << "Fail to add StatusService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) VarsService)) {
-        LOG(ERROR) << "Fail to add VarsService";
+        MLOG(ERROR) << "Fail to add VarsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) ConnectionsService)) {
-        LOG(ERROR) << "Fail to add ConnectionsService";
+        MLOG(ERROR) << "Fail to add ConnectionsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) FlagsService)) {
-        LOG(ERROR) << "Fail to add FlagsService";
+        MLOG(ERROR) << "Fail to add FlagsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) RpczService)) {
-        LOG(ERROR) << "Fail to add RpczService";
+        MLOG(ERROR) << "Fail to add RpczService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) HotspotsService)) {
-        LOG(ERROR) << "Fail to add HotspotsService";
+        MLOG(ERROR) << "Fail to add HotspotsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) IndexService)) {
-        LOG(ERROR) << "Fail to add IndexService";
+        MLOG(ERROR) << "Fail to add IndexService";
         return -1;
     }
 
     // Add other services.
     if (AddBuiltinService(new (std::nothrow) VersionService(this))) {
-        LOG(ERROR) << "Fail to add VersionService";
+        MLOG(ERROR) << "Fail to add VersionService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) HealthService)) {
-        LOG(ERROR) << "Fail to add HealthService";
+        MLOG(ERROR) << "Fail to add HealthService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) ProtobufsService(this))) {
-        LOG(ERROR) << "Fail to add ProtobufsService";
+        MLOG(ERROR) << "Fail to add ProtobufsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) BadMethodService)) {
-        LOG(ERROR) << "Fail to add BadMethodService";
+        MLOG(ERROR) << "Fail to add BadMethodService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) ListService(this))) {
-        LOG(ERROR) << "Fail to add ListService";
+        MLOG(ERROR) << "Fail to add ListService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) PrometheusMetricsService)) {
-        LOG(ERROR) << "Fail to add MetricsService";
+        MLOG(ERROR) << "Fail to add MetricsService";
         return -1;
     }
     if (FLAGS_enable_threads_service &&
         AddBuiltinService(new (std::nothrow) ThreadsService)) {
-        LOG(ERROR) << "Fail to add ThreadsService";
+        MLOG(ERROR) << "Fail to add ThreadsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) MemoryService)) {
-        LOG(ERROR) << "Fail to add MemoryService";
+        MLOG(ERROR) << "Fail to add MemoryService";
         return -1;
     }
 
 #if !MELON_WITH_GLOG
     if (AddBuiltinService(new (std::nothrow) VLogService)) {
-        LOG(ERROR) << "Fail to add VLogService";
+        MLOG(ERROR) << "Fail to add VLogService";
         return -1;
     }
 #endif
 
     if (AddBuiltinService(new (std::nothrow) PProfService)) {
-        LOG(ERROR) << "Fail to add PProfService";
+        MLOG(ERROR) << "Fail to add PProfService";
         return -1;
     }
     if (FLAGS_enable_dir_service &&
         AddBuiltinService(new (std::nothrow) DirService)) {
-        LOG(ERROR) << "Fail to add DirService";
+        MLOG(ERROR) << "Fail to add DirService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) FibersService)) {
-        LOG(ERROR) << "Fail to add FibersService";
+        MLOG(ERROR) << "Fail to add FibersService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) IdsService)) {
-        LOG(ERROR) << "Fail to add IdsService";
+        MLOG(ERROR) << "Fail to add IdsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) SocketsService)) {
-        LOG(ERROR) << "Fail to add SocketsService";
+        MLOG(ERROR) << "Fail to add SocketsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) GetFaviconService)) {
-        LOG(ERROR) << "Fail to add GetFaviconService";
+        MLOG(ERROR) << "Fail to add GetFaviconService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) GetJsService)) {
-        LOG(ERROR) << "Fail to add GetJsService";
+        MLOG(ERROR) << "Fail to add GetJsService";
         return -1;
     }
     if (AddBuiltinService(new (std::nothrow) GrpcHealthCheckService)) {
-        LOG(ERROR) << "Fail to add GrpcHealthCheckService";
+        MLOG(ERROR) << "Fail to add GrpcHealthCheckService";
         return -1;
     }
     return 0;
@@ -565,7 +565,7 @@ Acceptor* Server::BuildAcceptor() {
     const bool has_whitelist = !whitelist.empty();
     Acceptor* acceptor = new (std::nothrow) Acceptor(_keytable_pool);
     if (NULL == acceptor) {
-        LOG(ERROR) << "Fail to new Acceptor";
+        MLOG(ERROR) << "Fail to new Acceptor";
         return NULL;
     }
     InputMessageHandler handler;
@@ -590,7 +590,7 @@ Acceptor* Server::BuildAcceptor() {
         handler.arg = this;
         handler.name = protocols[i].name;
         if (acceptor->AddHandler(handler) != 0) {
-            LOG(ERROR) << "Fail to add handler into Acceptor("
+            MLOG(ERROR) << "Fail to add handler into Acceptor("
                        << acceptor << ')';
             delete acceptor;
             return NULL;
@@ -605,7 +605,7 @@ Acceptor* Server::BuildAcceptor() {
         }
         err << '\'';
         delete acceptor;
-        LOG(ERROR) << err.str();
+        MLOG(ERROR) << err.str();
         return NULL;
     }
     return acceptor;
@@ -621,19 +621,19 @@ int Server::InitializeOnce() {
         return 0;
     }
     if (_fullname_service_map.init(INITIAL_SERVICE_CAP) != 0) {
-        LOG(ERROR) << "Fail to init _fullname_service_map";
+        MLOG(ERROR) << "Fail to init _fullname_service_map";
         return -1;
     }
     if (_service_map.init(INITIAL_SERVICE_CAP) != 0) {
-        LOG(ERROR) << "Fail to init _service_map";
+        MLOG(ERROR) << "Fail to init _service_map";
         return -1;
     }
     if (_method_map.init(INITIAL_SERVICE_CAP * 2) != 0) {
-        LOG(ERROR) << "Fail to init _method_map";
+        MLOG(ERROR) << "Fail to init _method_map";
         return -1;
     }
     if (_ssl_ctx_map.init(INITIAL_CERT_MAP) != 0) {
-        LOG(ERROR) << "Fail to init _ssl_ctx_map";
+        MLOG(ERROR) << "Fail to init _ssl_ctx_map";
         return -1;
     }
     _status = READY;
@@ -642,7 +642,7 @@ int Server::InitializeOnce() {
 
 int Server::InitALPNOptions(const ServerSSLOptions* options) {
     if (options == nullptr) {
-        LOG(ERROR) << "Fail to init alpn options, ssl options is nullptr.";
+        MLOG(ERROR) << "Fail to init alpn options, ssl options is nullptr.";
         return -1;
     }   
 
@@ -656,7 +656,7 @@ int Server::InitALPNOptions(const ServerSSLOptions* options) {
         AdaptiveProtocolType protocol_type(alpn);
         const Protocol* protocol = FindProtocol(protocol_type);
         if (protocol == nullptr || !protocol->support_server()) {
-            LOG(ERROR) << "Server does not support alpn=" << alpn;
+            MLOG(ERROR) << "Server does not support alpn=" << alpn;
             return -1;
         }
         raw_protocol.append(ALPNProtocolToString(protocol_type));
@@ -718,12 +718,12 @@ static bool CreateConcurrencyLimiter(const AdaptiveMaxConcurrency& amc,
     const ConcurrencyLimiter* cl =
         ConcurrencyLimiterExtension()->Find(amc.type().c_str());
     if (cl == NULL) {
-        LOG(ERROR) << "Fail to find ConcurrencyLimiter by `" << amc.value() << "'";
+        MLOG(ERROR) << "Fail to find ConcurrencyLimiter by `" << amc.value() << "'";
         return false;
     }
     ConcurrencyLimiter* cl_copy = cl->New(amc);
     if (cl_copy == NULL) {
-        LOG(ERROR) << "Fail to new ConcurrencyLimiter";
+        MLOG(ERROR) << "Fail to new ConcurrencyLimiter";
         return false;
     }
     *out = cl_copy;
@@ -739,21 +739,21 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
     std::unique_ptr<Server, RevertServerStatus> revert_server(this);
     if (_failed_to_set_max_concurrency_of_method) {
         _failed_to_set_max_concurrency_of_method = false;
-        LOG(ERROR) << "previous call to MaxConcurrencyOf() was failed, "
+        MLOG(ERROR) << "previous call to MaxConcurrencyOf() was failed, "
             "fix it before starting server";
         return -1;
     }
     if (InitializeOnce() != 0) {
-        LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
+        MLOG(ERROR) << "Fail to initialize Server[" << version() << ']';
         return -1;
     }
     const Status st = status();
     if (st != READY) {
         if (st == RUNNING) {
-            LOG(ERROR) << "Server[" << version() << "] is already running on "
+            MLOG(ERROR) << "Server[" << version() << "] is already running on "
                        << _listen_addr;
         } else {
-            LOG(ERROR) << "Can't start Server[" << version()
+            MLOG(ERROR) << "Can't start Server[" << version()
                        << "] which is " << status_str(status());
         }
         return -1;
@@ -767,12 +767,12 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
     }
 
     if (!_options.h2_settings.IsValid(true/*log_error*/)) {
-        LOG(ERROR) << "Invalid h2_settings";
+        MLOG(ERROR) << "Invalid h2_settings";
         return -1;
     }
 
     if (_options.use_rdma) {
-        LOG(WARNING) << "Cannot use rdma since melon does not compile with rdma";
+        MLOG(WARNING) << "Cannot use rdma since melon does not compile with rdma";
         return -1;
     }
 
@@ -784,16 +784,16 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         const google::protobuf::MethodDescriptor* md =
             sd->FindMethodByName("default_method");
         if (md == NULL) {
-            LOG(ERROR) << "http_master_service must have a method named `default_method'";
+            MLOG(ERROR) << "http_master_service must have a method named `default_method'";
             return -1;
         }
         if (md->input_type()->field_count() != 0) {
-            LOG(ERROR) << "The request type of http_master_service must have "
+            MLOG(ERROR) << "The request type of http_master_service must have "
                 "no fields, actually " << md->input_type()->field_count();
             return -1;
         }
         if (md->output_type()->field_count() != 0) {
-            LOG(ERROR) << "The response type of http_master_service must have "
+            MLOG(ERROR) << "The response type of http_master_service must have "
                 "no fields, actually " << md->output_type()->field_count();
             return -1;
         }
@@ -808,7 +808,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
             _session_local_data_pool =
                 new (std::nothrow) SimpleDataPool(_options.session_local_data_factory);
             if (NULL == _session_local_data_pool) {
-                LOG(ERROR) << "Fail to new SimpleDataPool";
+                MLOG(ERROR) << "Fail to new SimpleDataPool";
                 return -1;
             }
         } else {
@@ -821,7 +821,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
     // should be destroyed in Join().
     _keytable_pool = new fiber_keytable_pool_t;
     if (fiber_keytable_pool_init(_keytable_pool) != 0) {
-        LOG(ERROR) << "Fail to init _keytable_pool";
+        MLOG(ERROR) << "Fail to init _keytable_pool";
         delete _keytable_pool;
         _keytable_pool = NULL;
         return -1;
@@ -831,7 +831,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         _tl_options.thread_local_data_factory = _options.thread_local_data_factory;
         if (fiber_key_create2(&_tl_options.tls_key, DestroyServerTLS,
                                 _options.thread_local_data_factory) != 0) {
-            LOG(ERROR) << "Fail to create thread-local key";
+            MLOG(ERROR) << "Fail to create thread-local key";
             return -1;
         }
         if (_options.reserved_thread_local_data) {
@@ -887,12 +887,12 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         }
         delete [] init_args;
         if (ncreated != _options.fiber_init_count) {
-            LOG(ERROR) << "Fail to create "
+            MLOG(ERROR) << "Fail to create "
                        << _options.fiber_init_count - ncreated << " fibers";
             return -1;
         }
         if (num_failed_result != 0) {
-            LOG(ERROR) << num_failed_result << " fiber_init_fn failed";
+            MLOG(ERROR) << num_failed_result << " fiber_init_fn failed";
             return -1;
         }
     }
@@ -908,7 +908,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         }
         CertInfo& default_cert = _options.mutable_ssl_options()->default_cert;
         if (default_cert.certificate.empty()) {
-            LOG(ERROR) << "default_cert is empty";
+            MLOG(ERROR) << "default_cert is empty";
             return -1;
         }
         if (AddCertificate(default_cert) != 0) {
@@ -923,7 +923,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
             }
         }
     } else if (_options.force_ssl) {
-        LOG(ERROR) << "Fail to force SSL for all connections "
+        MLOG(ERROR) << "Fail to force SSL for all connections "
                       "without ServerOptions.ssl_options";
         return -1;
     }
@@ -933,14 +933,14 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
     if (_options.has_builtin_services &&
         _builtin_service_count <= 0 &&
         AddBuiltinServices() != 0) {
-        LOG(ERROR) << "Fail to add builtin services";
+        MLOG(ERROR) << "Fail to add builtin services";
         return -1;
     }
     // If a server is started/stopped for mutiple times and one of the options
     // sets has_builtin_service to true, builtin services will be enabled for
     // any later re-start. Check this case and report to user.
     if (!_options.has_builtin_services && _builtin_service_count > 0) {
-        LOG(ERROR) << "A server started/stopped for multiple times must be "
+        MLOG(ERROR) << "A server started/stopped for multiple times must be "
             "consistent on ServerOptions.has_builtin_services";
         return -1;
     }
@@ -977,7 +977,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
             }
             ConcurrencyLimiter* cl = NULL;
             if (!CreateConcurrencyLimiter(*amc, &cl)) {
-                LOG(ERROR) << "Fail to create ConcurrencyLimiter for method";
+                MLOG(ERROR) << "Fail to create ConcurrencyLimiter for method";
                 return -1;
             }
             it->second.status->SetConcurrencyLimiter(cl);
@@ -986,13 +986,13 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
 
     // Create listening ports
     if (port_range.min_port > port_range.max_port) {
-        LOG(ERROR) << "Invalid port_range=[" << port_range.min_port << '-'
+        MLOG(ERROR) << "Invalid port_range=[" << port_range.min_port << '-'
                    << port_range.max_port << ']';
         return -1;
     }
     if (mutil::is_endpoint_extended(endpoint) &&
             (port_range.min_port != endpoint.port || port_range.max_port != endpoint.port)) {
-        LOG(ERROR) << "Only IPv4 address supports port range feature";
+        MLOG(ERROR) << "Only IPv4 address supports port range feature";
         return -1;
     }
     _listen_addr = endpoint;
@@ -1004,11 +1004,11 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
                 continue;
             }
             if (port_range.min_port != port_range.max_port) {
-                LOG(ERROR) << "Fail to listen " << _listen_addr.ip
+                MLOG(ERROR) << "Fail to listen " << _listen_addr.ip
                            << ":[" << port_range.min_port << '-'
                            << port_range.max_port << ']';
             } else {
-                LOG(ERROR) << "Fail to listen " << _listen_addr;
+                MLOG(ERROR) << "Fail to listen " << _listen_addr;
             }
             return -1;
         }
@@ -1017,20 +1017,20 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
             // https://en.wikipedia.org/wiki/Ephemeral_port
             _listen_addr.port = get_port_from_fd(sockfd);
             if (_listen_addr.port <= 0) {
-                LOG(ERROR) << "Fail to get port from fd=" << sockfd;
+                MLOG(ERROR) << "Fail to get port from fd=" << sockfd;
                 return -1;
             }
         }
         if (_am == NULL) {
             _am = BuildAcceptor();
             if (NULL == _am) {
-                LOG(ERROR) << "Fail to build acceptor";
+                MLOG(ERROR) << "Fail to build acceptor";
                 return -1;
             }
             _am->_use_rdma = _options.use_rdma;
             if (_options.fiber_tag < FIBER_TAG_DEFAULT ||
                 _options.fiber_tag >= FLAGS_task_group_ntags) {
-                LOG(ERROR) << "Fail to set tag " << _options.fiber_tag << ", tag range is ["
+                MLOG(ERROR) << "Fail to set tag " << _options.fiber_tag << ", tag range is ["
                            << FIBER_TAG_DEFAULT << ":" << FLAGS_task_group_ntags << ")";
                 return -1;
             }
@@ -1047,7 +1047,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         if (_am->StartAccept(sockfd, _options.idle_timeout_sec,
                              _default_ssl_ctx,
                              _options.force_ssl) != 0) {
-            LOG(ERROR) << "Fail to start acceptor";
+            MLOG(ERROR) << "Fail to start acceptor";
             return -1;
         }
         sockfd.release();
@@ -1055,18 +1055,18 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
     }
     if (_options.internal_port >= 0 && _options.has_builtin_services) {
         if (_options.internal_port  == _listen_addr.port) {
-            LOG(ERROR) << "ServerOptions.internal_port=" << _options.internal_port
+            MLOG(ERROR) << "ServerOptions.internal_port=" << _options.internal_port
                        << " is same with port=" << _listen_addr.port << " to Start()";
             return -1;
         }
         if (_options.internal_port == 0) {
-            LOG(ERROR) << "ServerOptions.internal_port cannot be 0, which"
+            MLOG(ERROR) << "ServerOptions.internal_port cannot be 0, which"
                 " allocates a dynamic and probabaly unfiltered port,"
                 " against the purpose of \"being internal\".";
             return -1;
         }
         if (mutil::is_endpoint_extended(endpoint)) {
-            LOG(ERROR) << "internal_port is available in IPv4 address only";
+            MLOG(ERROR) << "internal_port is available in IPv4 address only";
             return -1;
         }
 
@@ -1074,13 +1074,13 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         internal_point.port = _options.internal_port;
         mutil::fd_guard sockfd(tcp_listen(internal_point));
         if (sockfd < 0) {
-            LOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
+            MLOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
             return -1;
         }
         if (NULL == _internal_am) {
             _internal_am = BuildAcceptor();
             if (NULL == _internal_am) {
-                LOG(ERROR) << "Fail to build internal acceptor";
+                MLOG(ERROR) << "Fail to build internal acceptor";
                 return -1;
             }
         }
@@ -1088,7 +1088,7 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
         if (_internal_am->StartAccept(sockfd, _options.idle_timeout_sec,
                                       _default_ssl_ctx,
                                       false) != 0) {
-            LOG(ERROR) << "Fail to start internal_acceptor";
+            MLOG(ERROR) << "Fail to start internal_acceptor";
             return -1;
         }
         sockfd.release();
@@ -1097,19 +1097,19 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
     PutPidFileIfNeeded();
 
     // Launch _derivative_thread.
-    CHECK_EQ(INVALID_FIBER, _derivative_thread);
+    MCHECK_EQ(INVALID_FIBER, _derivative_thread);
     fiber_attr_t tmp = FIBER_ATTR_NORMAL;
     tmp.tag = _options.fiber_tag;
     if (fiber_start_background(&_derivative_thread, &tmp,
                                  UpdateDerivedVars, this) != 0) {
-        LOG(ERROR) << "Fail to create _derivative_thread";
+        MLOG(ERROR) << "Fail to create _derivative_thread";
         return -1;
     }
 
     // Print tips to server launcher.
     if (mutil::is_endpoint_extended(_listen_addr)) {
         const char* builtin_msg = _options.has_builtin_services ? " with builtin service" : "";
-        LOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
+        MLOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
                   << builtin_msg << '.';
         //TODO add TrackMe support
     } else {
@@ -1121,13 +1121,13 @@ int Server::StartInternal(const mutil::EndPoint& endpoint,
             http_port = _options.internal_port;
             server_info << " and internal_port=" << _options.internal_port;
         }
-        LOG(INFO) << server_info.str() << '.';
+        MLOG(INFO) << server_info.str() << '.';
 
         if (_options.has_builtin_services) {
-            LOG(INFO) << "Check out http://" << mutil::my_hostname() << ':'
+            MLOG(INFO) << "Check out http://" << mutil::my_hostname() << ':'
                     << http_port << " in web browser.";
         } else {
-            LOG(WARNING) << "Builtin services are disabled according to "
+            MLOG(WARNING) << "Builtin services are disabled according to "
                 "ServerOptions.has_builtin_services";
         }
         // For trackme reporting
@@ -1146,7 +1146,7 @@ int Server::Start(const char* ip_port_str, const ServerOptions* opt) {
     mutil::EndPoint point;
     if (str2endpoint(ip_port_str, &point) != 0 &&
         hostname2endpoint(ip_port_str, &point) != 0) {
-        LOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
+        MLOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
         return -1;
     }
     return Start(point, opt);
@@ -1154,7 +1154,7 @@ int Server::Start(const char* ip_port_str, const ServerOptions* opt) {
 
 int Server::Start(int port, const ServerOptions* opt) {
     if (port < 0 || port > 65535) {
-        LOG(ERROR) << "Invalid port=" << port;
+        MLOG(ERROR) << "Invalid port=" << port;
         return -1;
     }
     return Start(mutil::EndPoint(mutil::IP_ANY, port), opt);
@@ -1165,7 +1165,7 @@ int Server::Start(const char* ip_str, PortRange port_range,
     mutil::ip_t ip;
     if (mutil::str2ip(ip_str, &ip) != 0 &&
         mutil::hostname2ip(ip_str, &ip) != 0) {
-        LOG(ERROR) << "Invalid address=`" << ip_str << '\'';
+        MLOG(ERROR) << "Invalid address=`" << ip_str << '\'';
         return -1;
     }
     return StartInternal(mutil::EndPoint(ip, 0), port_range, opt);
@@ -1181,7 +1181,7 @@ int Server::Stop(int timeout_ms) {
     }
     _status = STOPPING;
 
-    LOG(INFO) << "Server[" << version() << "] is going to quit";
+    MLOG(INFO) << "Server[" << version() << "] is going to quit";
 
     if (_am) {
         _am->StopAccept(timeout_ms);
@@ -1216,7 +1216,7 @@ int Server::Join() {
         // done here (before leaving Join) because it's legal for users to
         // delete fiber keys after Join which makes related objects
         // in KeyTables undeletable anymore and leaked.
-        CHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
+        MCHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
         // TODO: Can't delete _keytable_pool which may be accessed by
         // still-running fibers (created by the server). The memory is
         // leaked but servers are unlikely to be started/stopped frequently,
@@ -1226,7 +1226,7 @@ int Server::Join() {
 
     // Delete tls_key as well since we don't need it anymore.
     if (_tl_options.tls_key != INVALID_FIBER_KEY) {
-        CHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
+        MCHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
         _tl_options.tls_key = INVALID_FIBER_KEY;
     }
 
@@ -1248,34 +1248,34 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
                                bool is_builtin_service,
                                const ServiceOptions& svc_opt) {
     if (NULL == service) {
-        LOG(ERROR) << "Parameter[service] is NULL!";
+        MLOG(ERROR) << "Parameter[service] is NULL!";
         return -1;
     }
     const google::protobuf::ServiceDescriptor* sd = service->GetDescriptor();
     if (sd->method_count() == 0) {
-        LOG(ERROR) << "service=" << sd->full_name()
+        MLOG(ERROR) << "service=" << sd->full_name()
                    << " does not have any method.";
         return -1;
     }
 
     if (InitializeOnce() != 0) {
-        LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
+        MLOG(ERROR) << "Fail to initialize Server[" << version() << ']';
         return -1;
     }
     if (status() != READY) {
-        LOG(ERROR) << "Can't add service=" << sd->full_name() << " to Server["
+        MLOG(ERROR) << "Can't add service=" << sd->full_name() << " to Server["
                    << version() << "] which is " << status_str(status());
         return -1;
     }
 
     if (_fullname_service_map.seek(sd->full_name()) != NULL) {
-        LOG(ERROR) << "service=" << sd->full_name() << " already exists";
+        MLOG(ERROR) << "service=" << sd->full_name() << " already exists";
         return -1;
     }
     ServiceProperty* old_ss = _service_map.seek(sd->name());
     if (old_ss != NULL) {
         // names conflict.
-        LOG(ERROR) << "Conflict service name between "
+        MLOG(ERROR) << "Conflict service name between "
                    << sd->full_name() << " and "
                    << old_ss->service_name();
         return -1;
@@ -1316,7 +1316,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
             if (_method_map.seek(full_name_wo_ns) == NULL) {
                 _method_map[full_name_wo_ns] = mp2;
             } else {
-                LOG(ERROR) << '`' << full_name_wo_ns << "' already exists";
+                MLOG(ERROR) << '`' << full_name_wo_ns << "' already exists";
                 RemoveMethodsOf(service);
                 return -1;
             }
@@ -1341,13 +1341,13 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
         // Parse the mappings.
         std::vector<RestfulMapping> mappings;
         if (!ParseRestfulMappings(restful_mappings, &mappings)) {
-            LOG(ERROR) << "Fail to parse mappings `" << restful_mappings << '\'';
+            MLOG(ERROR) << "Fail to parse mappings `" << restful_mappings << '\'';
             RemoveService(service);
             return -1;
         }
         if (mappings.empty()) {
             // we already trimmed at the beginning, this is impossible.
-            LOG(ERROR) << "Impossible: Nothing in restful_mappings";
+            MLOG(ERROR) << "Impossible: Nothing in restful_mappings";
             RemoveService(service);
             return -1;
         }
@@ -1371,7 +1371,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
                 sd->full_name() + "." + mappings[i].method_name;
             MethodProperty* mp = _method_map.seek(full_method_name);
             if (mp == NULL) {
-                LOG(ERROR) << "Unknown method=`" << full_method_name << '\'';
+                MLOG(ERROR) << "Unknown method=`" << full_method_name << '\'';
                 RemoveService(service);
                 return -1;
             }
@@ -1390,7 +1390,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
                 if (!_global_restful_map->AddMethod(
                         mappings[i].path, service, params,
                         mappings[i].method_name, mp->status)) {
-                    LOG(ERROR) << "Fail to map `" << mappings[i].path
+                    MLOG(ERROR) << "Fail to map `" << mappings[i].path
                                << "' to `" << full_method_name << '\'';
                     RemoveService(service);
                     return -1;
@@ -1409,7 +1409,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
             ServiceProperty* sp2 = _service_map.seek(svc_name);
             if (((!!sp) != (!!sp2)) ||
                 (sp != NULL && sp->service != sp2->service)) {
-                LOG(ERROR) << "Impossible: _fullname_service and _service_map are"
+                MLOG(ERROR) << "Impossible: _fullname_service and _service_map are"
                         " inconsistent before inserting " << svc_name;
                 RemoveService(service);
                 return -1;
@@ -1428,7 +1428,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
             params.pb_single_repeated_to_array = svc_opt.pb_single_repeated_to_array;
             if (!m->AddMethod(mappings[i].path, service, params,
                               mappings[i].method_name, mp->status)) {
-                LOG(ERROR) << "Fail to map `" << mappings[i].path << "' to `"
+                MLOG(ERROR) << "Fail to map `" << mappings[i].path << "' to `"
                            << sd->full_name() << '.' << mappings[i].method_name
                            << '\'';
                 if (sp == NULL) {
@@ -1465,7 +1465,7 @@ int Server::AddServiceInternal(google::protobuf::Service* service,
         for (size_t i = last_size; i != cur_size; ++i) {
             const TabInfo& info = (*_tab_info_list)[i];
             if (!info.valid()) {
-                LOG(ERROR) << "Invalid TabInfo: path=" << info.path
+                MLOG(ERROR) << "Invalid TabInfo: path=" << info.path
                            << " tab_name=" << info.tab_name;
                 _tab_info_list->resize(last_size);
                 RemoveService(service);
@@ -1531,7 +1531,7 @@ void Server::RemoveMethodsOf(google::protobuf::Service* service) {
             _method_map.erase(full_name_wo_ns);
         }
         if (mp == NULL) {
-            LOG(ERROR) << "Fail to find method=" << md->full_name();
+            MLOG(ERROR) << "Fail to find method=" << md->full_name();
             continue;
         }
         if (mp->http_url) {
@@ -1542,7 +1542,7 @@ void Server::RemoveMethodsOf(google::protobuf::Service* service) {
                 mutil::StringSplitter slash_sp(
                     path.data(), path.data() + path.size(), '/');
                 if (slash_sp == NULL) {
-                    LOG(ERROR) << "Invalid http_url=" << *mp->http_url;
+                    MLOG(ERROR) << "Invalid http_url=" << *mp->http_url;
                     break;
                 }
                 mutil::StringPiece v_svc_name(slash_sp.field(), slash_sp.length());
@@ -1555,14 +1555,14 @@ void Server::RemoveMethodsOf(google::protobuf::Service* service) {
                             continue;
                         }
                     }
-                    LOG(ERROR) << "Impossible: service=" << v_svc_name
+                    MLOG(ERROR) << "Impossible: service=" << v_svc_name
                                << " for restful_map does not exist";
                     break;
                 }
                 std::string path_str;
                 path.CopyToString(&path_str);
                 if (!vsp->restful_map->RemoveByPathString(path_str)) {
-                    LOG(ERROR) << "Fail to find path=" << path
+                    MLOG(ERROR) << "Fail to find path=" << path
                                << " in restful_map of service=" << v_svc_name;
                 }
             }
@@ -1578,11 +1578,11 @@ void Server::RemoveMethodsOf(google::protobuf::Service* service) {
 
 int Server::RemoveService(google::protobuf::Service* service) {
     if (NULL == service) {
-        LOG(ERROR) << "Parameter[service] is NULL";
+        MLOG(ERROR) << "Parameter[service] is NULL";
         return -1;
     }
     if (status() != READY) {
-        LOG(ERROR) << "Can't remove service="
+        MLOG(ERROR) << "Can't remove service="
                    << service->GetDescriptor()->full_name() << " from Server["
                    << version() << "] which is " << status_str(status());
         return -1;
@@ -1727,21 +1727,21 @@ void Server::PutPidFileIfNeeded() {
         && errno != EISDIR
 #endif
         ) {
-            PLOG(WARNING) << "Fail to create " << dir_name;
+            PMLOG(WARNING) << "Fail to create " << dir_name;
             _options.pid_file.clear();
             return;
         }
     }
     int fd = open(_options.pid_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0) {
-        LOG(WARNING) << "Fail to open " << _options.pid_file;
+        MLOG(WARNING) << "Fail to open " << _options.pid_file;
         _options.pid_file.clear();
         return;
     }
     char buf[32];
     int nw = snprintf(buf, sizeof(buf), "%lld", (long long)getpid());
-    CHECK_EQ(nw, write(fd, buf, nw));
-    CHECK_EQ(0, close(fd));
+    MCHECK_EQ(nw, write(fd, buf, nw));
+    MCHECK_EQ(0, close(fd));
 }
 
 void Server::RunUntilAskedToQuit() {
@@ -1759,14 +1759,14 @@ void* thread_local_data() {
         return NULL;
     }
     if (MELON_UNLIKELY(tl_options->thread_local_data_factory == NULL)) {
-        CHECK(false) << "The protocol impl. may not set tls correctly";
+        MCHECK(false) << "The protocol impl. may not set tls correctly";
         return NULL;
     }
     void* data = fiber_getspecific(tl_options->tls_key);
     if (data == NULL) {
         data = tl_options->thread_local_data_factory->CreateData();
         if (data != NULL) {
-            CHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
+            MCHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
         }
     }
     return data;
@@ -1801,7 +1801,7 @@ static Server* g_dummy_server = NULL;
 
 int StartDummyServerAt(int port, ProfilerLinker) {
     if (port < 0 || port >= 65536) {
-        LOG(ERROR) << "Invalid port=" << port;
+        MLOG(ERROR) << "Invalid port=" << port;
         return -1;
     }
     if (g_dummy_server == NULL) {  // (1)
@@ -1813,7 +1813,7 @@ int StartDummyServerAt(int port, ProfilerLinker) {
             ServerOptions options;
             options.num_threads = 0;
             if (dummy_server->Start(port, &options) != 0) {
-                LOG(ERROR) << "Fail to start dummy_server at port=" << port;
+                MLOG(ERROR) << "Fail to start dummy_server at port=" << port;
                 return -1;
             }
             // (1) may see uninitialized dummy_server due to relaxed memory
@@ -1823,7 +1823,7 @@ int StartDummyServerAt(int port, ProfilerLinker) {
             return 0;
         }
     }
-    LOG(ERROR) << "Already have dummy_server at port="
+    MLOG(ERROR) << "Already have dummy_server at port="
                << g_dummy_server->listen_address().port;
     return -1;
 }
@@ -1885,13 +1885,13 @@ Server::FindServicePropertyByName(const mutil::StringPiece& name) const {
 
 int Server::AddCertificate(const CertInfo& cert) {
     if (!_options.has_ssl_options()) {
-        LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+        MLOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
         return -1;
     }
     std::string cert_key(cert.certificate);
     cert_key.append(cert.private_key);
     if (_ssl_ctx_map.seek(cert_key) != NULL) {
-        LOG(WARNING) << cert << " already exists";
+        MLOG(WARNING) << cert << " already exists";
         return 0;
     }
 
@@ -1912,7 +1912,7 @@ int Server::AddCertificate(const CertInfo& cert) {
 #endif
 
     if (!_reload_cert_maps.Modify(AddCertMapping, ssl_ctx)) {
-        LOG(ERROR) << "Fail to add mappings into _reload_cert_maps";
+        MLOG(ERROR) << "Fail to add mappings into _reload_cert_maps";
         return -1;
     }
     _ssl_ctx_map[cert_key] = ssl_ctx;
@@ -1922,12 +1922,12 @@ int Server::AddCertificate(const CertInfo& cert) {
 bool Server::AddCertMapping(CertMaps& bg, const SSLContext& ssl_ctx) {
     if (!bg.cert_map.initialized()
         && bg.cert_map.init(INITIAL_CERT_MAP) != 0) {
-        LOG(ERROR) << "Fail to init _cert_map";
+        MLOG(ERROR) << "Fail to init _cert_map";
         return false;
     }
     if (!bg.wildcard_cert_map.initialized()
         && bg.wildcard_cert_map.init(INITIAL_CERT_MAP) != 0) {
-        LOG(ERROR) << "Fail to init _wildcard_cert_map";
+        MLOG(ERROR) << "Fail to init _wildcard_cert_map";
         return false;
     }
 
@@ -1943,7 +1943,7 @@ bool Server::AddCertMapping(CertMaps& bg, const SSLContext& ssl_ctx) {
         if (cmap->seek(hostname) == NULL) {
             cmap->insert(hostname, ssl_ctx.ctx);
         } else {
-            LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
+            MLOG(WARNING) << "Duplicate certificate hostname=" << hostname;
         }
     }
     return true;
@@ -1951,24 +1951,24 @@ bool Server::AddCertMapping(CertMaps& bg, const SSLContext& ssl_ctx) {
 
 int Server::RemoveCertificate(const CertInfo& cert) {
     if (!_options.has_ssl_options()) {
-        LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+        MLOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
         return -1;
     }
     std::string cert_key(cert.certificate);
     cert_key.append(cert.private_key);
     SSLContext* ssl_ctx = _ssl_ctx_map.seek(cert_key);
     if (ssl_ctx == NULL) {
-        LOG(WARNING) << cert << " doesn't exist";
+        MLOG(WARNING) << cert << " doesn't exist";
         return 0;
     }
     if (ssl_ctx->ctx == _default_ssl_ctx) {
-        LOG(WARNING) << "Cannot remove: " << cert
+        MLOG(WARNING) << "Cannot remove: " << cert
                      << " since it's the default certificate";
         return -1;
     }
 
     if (!_reload_cert_maps.Modify(RemoveCertMapping, *ssl_ctx)) {
-        LOG(ERROR) << "Fail to remove mappings from _reload_cert_maps";
+        MLOG(ERROR) << "Fail to remove mappings from _reload_cert_maps";
         return -1;
     }
 
@@ -1996,13 +1996,13 @@ bool Server::RemoveCertMapping(CertMaps& bg, const SSLContext& ssl_ctx) {
 
 int Server::ResetCertificates(const std::vector<CertInfo>& certs) {
     if (!_options.has_ssl_options()) {
-        LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+        MLOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
         return -1;
     }
 
     SSLContextMap tmp_map;
     if (tmp_map.init(INITIAL_CERT_MAP) != 0) {
-        LOG(ERROR) << "Fail to initialize tmp_map";
+        MLOG(ERROR) << "Fail to initialize tmp_map";
         return -1;
     }
 
@@ -2016,7 +2016,7 @@ int Server::ResetCertificates(const std::vector<CertInfo>& certs) {
         std::string cert_key(certs[i].certificate);
         cert_key.append(certs[i].private_key);
         if (tmp_map.seek(cert_key) != NULL) {
-            LOG(WARNING) << certs[i] << " already exists";
+            MLOG(WARNING) << certs[i] << " already exists";
             return 0;
         }
 
@@ -2048,12 +2048,12 @@ int Server::ResetCertificates(const std::vector<CertInfo>& certs) {
 bool Server::ResetCertMappings(CertMaps& bg, const SSLContextMap& ctx_map) {
     if (!bg.cert_map.initialized()
         && bg.cert_map.init(INITIAL_CERT_MAP) != 0) {
-        LOG(ERROR) << "Fail to init _cert_map";
+        MLOG(ERROR) << "Fail to init _cert_map";
         return false;
     }
     if (!bg.wildcard_cert_map.initialized()
         && bg.wildcard_cert_map.init(INITIAL_CERT_MAP) != 0) {
-        LOG(ERROR) << "Fail to init _wildcard_cert_map";
+        MLOG(ERROR) << "Fail to init _wildcard_cert_map";
         return false;
     }
     bg.cert_map.clear();
@@ -2074,7 +2074,7 @@ bool Server::ResetCertMappings(CertMaps& bg, const SSLContextMap& ctx_map) {
             if (cmap->seek(hostname) == NULL) {
                 cmap->insert(hostname, ssl_ctx.ctx);
             } else {
-                LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
+                MLOG(WARNING) << "Duplicate certificate hostname=" << hostname;
             }
         }
     }
@@ -2095,7 +2095,7 @@ bool Server::ClearCertMapping(CertMaps& bg) {
 
 int Server::ResetMaxConcurrency(int max_concurrency) {
     if (!IsRunning()) {
-        LOG(WARNING) << "ResetMaxConcurrency is only allowed for a Running Server";
+        MLOG(WARNING) << "ResetMaxConcurrency is only allowed for a Running Server";
         return -1;
     }
     // Assume that modifying int32 is atomical in X86
@@ -2105,11 +2105,11 @@ int Server::ResetMaxConcurrency(int max_concurrency) {
 
 AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(MethodProperty* mp) {
     if (IsRunning()) {
-        LOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
+        MLOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
         return g_default_max_concurrency_of_method;
     }
     if (mp->status == NULL) {
-        LOG(ERROR) << "method=" << mp->method->full_name()
+        MLOG(ERROR) << "method=" << mp->method->full_name()
                    << " does not support max_concurrency";
         _failed_to_set_max_concurrency_of_method = true;
         return g_default_max_concurrency_of_method;
@@ -2119,7 +2119,7 @@ AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(MethodProperty* mp) {
 
 int Server::MaxConcurrencyOf(const MethodProperty* mp) const {
     if (IsRunning()) {
-        LOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
+        MLOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
         return g_default_max_concurrency_of_method;
     }
     if (mp == NULL || mp->status == NULL) {
@@ -2131,7 +2131,7 @@ int Server::MaxConcurrencyOf(const MethodProperty* mp) const {
 AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const mutil::StringPiece& full_method_name) {
     MethodProperty* mp = _method_map.seek(full_method_name);
     if (mp == NULL) {
-        LOG(ERROR) << "Fail to find method=" << full_method_name;
+        MLOG(ERROR) << "Fail to find method=" << full_method_name;
         _failed_to_set_max_concurrency_of_method = true;
         return g_default_max_concurrency_of_method;
     }
@@ -2147,7 +2147,7 @@ AdaptiveMaxConcurrency& Server::MaxConcurrencyOf(const mutil::StringPiece& full_
     MethodProperty* mp = const_cast<MethodProperty*>(
         FindMethodPropertyByFullName(full_service_name, method_name));
     if (mp == NULL) {
-        LOG(ERROR) << "Fail to find method=" << full_service_name
+        MLOG(ERROR) << "Fail to find method=" << full_service_name
                    << '/' << method_name;
         _failed_to_set_max_concurrency_of_method = true;
         return g_default_max_concurrency_of_method;

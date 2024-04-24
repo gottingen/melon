@@ -26,10 +26,10 @@ bool PerformInjectiveMultimapDestructive(
     InjectiveMultimap::value_type* i = &(*m)[i_index];
     int temp_fd = -1;
 
-    // We DCHECK the injectiveness of the mapping.
+    // We DMCHECK the injectiveness of the mapping.
     for (size_t j_index = i_index + 1; j_index < m->size(); ++j_index) {
       InjectiveMultimap::value_type* j = &(*m)[j_index];
-      DCHECK(i->dest != j->dest) << "Both fd " << i->source
+      DMCHECK(i->dest != j->dest) << "Both fd " << i->source
           << " and " << j->source << " map to " << i->dest;
     }
 
@@ -94,7 +94,7 @@ bool FileDescriptorTableInjection::Move(int src, int dest) {
 
 void FileDescriptorTableInjection::Close(int fd) {
   int ret = IGNORE_EINTR(close(fd));
-  DCHECK(ret == 0);
+  DMCHECK(ret == 0);
 }
 
 }  // namespace mutil

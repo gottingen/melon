@@ -77,7 +77,7 @@ void* TaskControl::worker_thread(void* arg) {
     TaskGroup* g = c->create_group(tag);
     TaskStatistics stat;
     if (NULL == g) {
-        LOG(ERROR) << "Fail to create TaskGroup in pthread=" << pthread_self();
+        MLOG(ERROR) << "Fail to create TaskGroup in pthread=" << pthread_self();
         return NULL;
     }
     std::string worker_thread_name = mutil::string_printf(
@@ -104,11 +104,11 @@ void* TaskControl::worker_thread(void* arg) {
 TaskGroup* TaskControl::create_group(fiber_tag_t tag) {
     TaskGroup* g = new (std::nothrow) TaskGroup(this);
     if (NULL == g) {
-        LOG(FATAL) << "Fail to new TaskGroup";
+        MLOG(FATAL) << "Fail to new TaskGroup";
         return NULL;
     }
     if (g->init(FLAGS_task_group_runqueue_capacity) != 0) {
-        LOG(ERROR) << "Fail to init TaskGroup";
+        MLOG(ERROR) << "Fail to init TaskGroup";
         delete g;
         return NULL;
     }
@@ -174,11 +174,11 @@ TaskControl::TaskControl()
 
 int TaskControl::init(int concurrency) {
     if (_concurrency != 0) {
-        LOG(ERROR) << "Already initialized";
+        MLOG(ERROR) << "Already initialized";
         return -1;
     }
     if (concurrency <= 0) {
-        LOG(ERROR) << "Invalid concurrency=" << concurrency;
+        MLOG(ERROR) << "Invalid concurrency=" << concurrency;
         return -1;
     }
     _concurrency = concurrency;
@@ -197,7 +197,7 @@ int TaskControl::init(int concurrency) {
 
     // Make sure TimerThread is ready.
     if (get_or_create_global_timer_thread() == NULL) {
-        LOG(ERROR) << "Fail to get global_timer_thread";
+        MLOG(ERROR) << "Fail to get global_timer_thread";
         return -1;
     }
     
@@ -207,7 +207,7 @@ int TaskControl::init(int concurrency) {
         const int rc = pthread_create(&_workers[i], NULL, worker_thread, arg);
         if (rc) {
             delete arg;
-            LOG(ERROR) << "Fail to create _workers[" << i << "], " << berror(rc);
+            MLOG(ERROR) << "Fail to create _workers[" << i << "], " << berror(rc);
             return -1;
         }
     }
@@ -251,7 +251,7 @@ int TaskControl::add_workers(int num, fiber_tag_t tag) {
                 &_workers[i + old_concurency], NULL, worker_thread, arg);
         if (rc) {
             delete arg;
-            LOG(WARNING) << "Fail to create _workers[" << i + old_concurency
+            MLOG(WARNING) << "Fail to create _workers[" << i + old_concurency
                          << "], " << berror(rc);
             _concurrency.fetch_sub(1, mutil::memory_order_release);
             break;
@@ -263,13 +263,13 @@ int TaskControl::add_workers(int num, fiber_tag_t tag) {
 }
 
 TaskGroup* TaskControl::choose_one_group(fiber_tag_t tag) {
-    CHECK(tag >= FIBER_TAG_DEFAULT && tag < FLAGS_task_group_ntags);
+    MCHECK(tag >= FIBER_TAG_DEFAULT && tag < FLAGS_task_group_ntags);
     auto& groups = tag_group(tag);
     const auto ngroup = tag_ngroup(tag).load(mutil::memory_order_acquire);
     if (ngroup != 0) {
         return groups[mutil::fast_rand_less_than(ngroup)];
     }
-    CHECK(false) << "Impossible: ngroup is 0";
+    MCHECK(false) << "Impossible: ngroup is 0";
     return NULL;
 }
 
@@ -278,7 +278,7 @@ extern int stop_and_join_epoll_threads();
 void TaskControl::stop_and_join() {
     // Close epoll threads so that worker threads are not waiting on epoll(
     // which cannot be woken up by signal_task below)
-    CHECK_EQ(0, stop_and_join_epoll_threads());
+    MCHECK_EQ(0, stop_and_join_epoll_threads());
 
     // Stop workers
     {
@@ -343,11 +343,11 @@ void TaskControl::delete_task_group(void* arg) {
 
 int TaskControl::_destroy_group(TaskGroup* g) {
     if (NULL == g) {
-        LOG(ERROR) << "Param[g] is NULL";
+        MLOG(ERROR) << "Param[g] is NULL";
         return -1;
     }
     if (g->_control != this) {
-        LOG(ERROR) << "TaskGroup=" << g
+        MLOG(ERROR) << "TaskGroup=" << g
                    << " does not belong to this TaskControl=" << this;
         return -1;
     }

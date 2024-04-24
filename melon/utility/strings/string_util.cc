@@ -206,12 +206,12 @@ bool TrimString(const std::string& input,
 void TruncateUTF8ToByteSize(const std::string& input,
                             const size_t byte_size,
                             std::string* output) {
-  DCHECK(output);
+  DMCHECK(output);
   if (byte_size > input.length()) {
     *output = input;
     return;
   }
-  DCHECK_LE(byte_size, static_cast<uint32_t>(kint32max));
+  DMCHECK_LE(byte_size, static_cast<uint32_t>(kint32max));
   // Note: This cast is necessary because CBU8_NEXT uses int32s.
   int32_t truncation_length = static_cast<int32_t>(byte_size);
   int32_t char_index = truncation_length - 1;
@@ -518,7 +518,7 @@ void DoReplaceSubstringsAfterOffset(StringType* str,
   if ((start_offset == StringType::npos) || (start_offset >= str->length()))
     return;
 
-  DCHECK(!find_this.empty());
+  DMCHECK(!find_this.empty());
   for (size_t offs(str->find(find_this, start_offset));
       offs != StringType::npos; offs = str->find(find_this, offs)) {
     str->replace(offs, find_this.length(), replace_with);
@@ -656,7 +656,7 @@ OutStringType DoReplaceStringPlaceholders(const FormatStringType& format_string,
     if ('$' == *i) {
       if (i + 1 != format_string.end()) {
         ++i;
-        DCHECK('$' == *i || '1' <= *i) << "Invalid placeholder: " << *i;
+        DMCHECK('$' == *i || '1' <= *i) << "Invalid placeholder: " << *i;
         if ('$' == *i) {
           while (i != format_string.end() && '$' == *i) {
             formatted.push_back('$');
@@ -718,7 +718,7 @@ string16 ReplaceStringPlaceholders(const string16& format_string,
   subst.push_back(a);
   string16 result = ReplaceStringPlaceholders(format_string, subst, &offsets);
 
-  DCHECK_EQ(1U, offsets.size());
+  DMCHECK_EQ(1U, offsets.size());
   if (offset)
     *offset = offsets[0];
   return result;

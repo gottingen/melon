@@ -108,7 +108,7 @@ namespace melon::var {
         Percentile &Percentile::operator<<(int64_t latency) {
             agent_type *agent = _combiner->get_or_create_tls_agent();
             if (MELON_UNLIKELY(!agent)) {
-                LOG(FATAL) << "Fail to create agent";
+                MLOG(FATAL) << "Fail to create agent";
                 return *this;
             }
             if (latency < 0) {
@@ -116,10 +116,10 @@ namespace melon::var {
                 // overflowed value which is included in last range does not affect
                 // overall distribution of other values too much.
                 if (!_debug_name.empty()) {
-                    LOG(WARNING) << "Input=" << latency << " to `" << _debug_name
+                    MLOG(WARNING) << "Input=" << latency << " to `" << _debug_name
                                  << "' is negative, drop";
                 } else {
-                    LOG(WARNING) << "Input=" << latency << " to Percentile("
+                    MLOG(WARNING) << "Input=" << latency << " to Percentile("
                                  << (void *) this << ") is negative, drop";
                 }
                 return *this;

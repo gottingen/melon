@@ -33,34 +33,34 @@ TEST_F(TestUsageSuits, PeerId) {
     ASSERT_TRUE(id1.is_empty());
 
     ASSERT_EQ(0, id1.parse("1.1.1.1:1000:"));
-    LOG(INFO) << "id:" << id1.to_string();
-    LOG(INFO) << "id:" << id1;
+    MLOG(INFO) << "id:" << id1.to_string();
+    MLOG(INFO) << "id:" << id1;
 
     ASSERT_EQ(0, id1.parse("1.1.1.1:1000:0"));
-    LOG(INFO) << "id:" << id1.to_string();
-    LOG(INFO) << "id:" << id1;
+    MLOG(INFO) << "id:" << id1.to_string();
+    MLOG(INFO) << "id:" << id1;
 
     ASSERT_EQ(0, id1.parse("1.1.1.1:1000:0:0"));
-    LOG(INFO) << "id:" << id1.to_string();
-    LOG(INFO) << "id:" << id1;
+    MLOG(INFO) << "id:" << id1.to_string();
+    MLOG(INFO) << "id:" << id1;
     ASSERT_FALSE(id1.is_witness());
 
     ASSERT_EQ(0, id1.parse("1.1.1.1:1000:0:1"));
-    LOG(INFO) << "id:" << id1.to_string();
-    LOG(INFO) << "id:" << id1;
+    MLOG(INFO) << "id:" << id1.to_string();
+    MLOG(INFO) << "id:" << id1;
     ASSERT_TRUE(id1.is_witness());
 
     ASSERT_EQ(-1, id1.parse("1.1.1.1:1000:0:2"));
 
     ASSERT_EQ(0, id1.parse("1.1.1.1:1000"));
-    LOG(INFO) << "id:" << id1.to_string();
-    LOG(INFO) << "id:" << id1;
+    MLOG(INFO) << "id:" << id1.to_string();
+    MLOG(INFO) << "id:" << id1;
 
     melon::raft::PeerId id2(id1);
-    LOG(INFO) << "id:" << id2;
+    MLOG(INFO) << "id:" << id2;
 
     melon::raft::PeerId id3("1.2.3.4:1000:0");
-    LOG(INFO) << "id:" << id3;
+    MLOG(INFO) << "id:" << id3;
 }
 
 TEST_F(TestUsageSuits, Configuration) {
@@ -71,7 +71,7 @@ TEST_F(TestUsageSuits, Configuration) {
     peers.push_back(melon::raft::PeerId("1.1.1.1:1000:1"));
     peers.push_back(melon::raft::PeerId("1.1.1.1:1000:2"));
     conf1 = peers;
-    LOG(INFO) << conf1;
+    MLOG(INFO) << conf1;
 
     ASSERT_TRUE(conf1.contains(melon::raft::PeerId("1.1.1.1:1000:0")));
     ASSERT_FALSE(conf1.contains(melon::raft::PeerId("1.1.1.1:2000:0")));

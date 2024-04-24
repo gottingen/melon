@@ -40,7 +40,7 @@ namespace melon::naming {
         std::string line;
 
         if (!service_name) {
-            LOG(FATAL) << "Param[service_name] is NULL";
+            MLOG(FATAL) << "Param[service_name] is NULL";
             return -1;
         }
         for (mutil::StringSplitter sp(service_name, ','); sp != NULL; ++sp) {
@@ -54,7 +54,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;

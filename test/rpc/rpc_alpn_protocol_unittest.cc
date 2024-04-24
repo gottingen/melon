@@ -46,7 +46,7 @@ public:
         response->set_message(request->message());
 
         melon::Controller* cntl = static_cast<melon::Controller*>(controller);
-        LOG(NOTICE) << "protocol:" << cntl->request_protocol();
+        MLOG(NOTICE) << "protocol:" << cntl->request_protocol();
   }
 };
 

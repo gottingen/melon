@@ -34,7 +34,7 @@ class ChannelBase : public google::protobuf::RpcChannel/*non-copyable*/,
                     public Describable {
 public:
     virtual int Weight() {
-        CHECK(false) << "Not implemented";
+        MCHECK(false) << "Not implemented";
         abort();
     };
 

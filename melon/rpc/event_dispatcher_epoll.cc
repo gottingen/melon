@@ -29,15 +29,15 @@ EventDispatcher::EventDispatcher()
 {
     _epfd = epoll_create(1024 * 1024);
     if (_epfd < 0) {
-        PLOG(FATAL) << "Fail to create epoll";
+        PMLOG(FATAL) << "Fail to create epoll";
         return;
     }
-    CHECK_EQ(0, mutil::make_close_on_exec(_epfd));
+    MCHECK_EQ(0, mutil::make_close_on_exec(_epfd));
 
     _wakeup_fds[0] = -1;
     _wakeup_fds[1] = -1;
     if (pipe(_wakeup_fds) != 0) {
-        PLOG(FATAL) << "Fail to create pipe";
+        PMLOG(FATAL) << "Fail to create pipe";
         return;
     }
 }
@@ -57,12 +57,12 @@ EventDispatcher::~EventDispatcher() {
 
 int EventDispatcher::Start(const fiber_attr_t* consumer_thread_attr) {
     if (_epfd < 0) {
-        LOG(FATAL) << "epoll was not created";
+        MLOG(FATAL) << "epoll was not created";
         return -1;
     }
     
     if (_tid != 0) {
-        LOG(FATAL) << "Already started this dispatcher(" << this 
+        MLOG(FATAL) << "Already started this dispatcher(" << this
                    << ") in fiber=" << _tid;
         return -1;
     }
@@ -84,7 +84,7 @@ int EventDispatcher::Start(const fiber_attr_t* consumer_thread_attr) {
     int rc = fiber_start_background(
         &_tid, &epoll_thread_attr, RunThis, this);
     if (rc) {
-        LOG(FATAL) << "Fail to create epoll thread: " << berror(rc);
+        MLOG(FATAL) << "Fail to create epoll thread: " << berror(rc);
         return -1;
     }
     return 0;
@@ -180,7 +180,7 @@ int EventDispatcher::RemoveConsumer(int fd) {
     // epoll_wait will keep returning events of the fd continuously, making
     // program abnormal.
     if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) < 0) {
-        PLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
+        PMLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
         return -1;
     }
     return 0;
@@ -206,7 +206,7 @@ void EventDispatcher::Run() {
                 // We've checked _stop, no wake-up will be missed.
                 continue;
             }
-            PLOG(FATAL) << "Fail to epoll_wait epfd=" << _epfd;
+            PMLOG(FATAL) << "Fail to epoll_wait epfd=" << _epfd;
             break;
         }
         for (int i = 0; i < n; ++i) {

@@ -232,7 +232,7 @@ public:
         if (_size < N) {
             return _arr[_size++];
         } else {
-            CHECK(false) << "push to a full array, cap=" << N;
+            MCHECK(false) << "push to a full array, cap=" << N;
             static T dummy;
             return dummy;
         }

@@ -138,7 +138,7 @@ int DynPartLoadBalancer::SelectServer(const SelectIn& in, SelectOut* out) {
             return EHOSTDOWN;
         }
         exclusion = false;
-        CHECK_EQ(0, total_weight);
+        MCHECK_EQ(0, total_weight);
         total_weight = 0;
     } while (1);
     

@@ -62,7 +62,7 @@ namespace {
                && !IsCoprime(weight_sum, *iter)) {
             ++iter;
         }
-        CHECK(iter != prime_stride.end()) << "Failed to get stride";
+        MCHECK(iter != prime_stride.end()) << "Failed to get stride";
         return *iter > weight_sum ? *iter % weight_sum : *iter;
     }
 
@@ -77,11 +77,11 @@ namespace melon::lb {
         uint32_t weight = 0;
         if (!mutil::StringToUint(id.tag, &weight) || weight <= 0) {
             if (FLAGS_default_weight_of_wlb > 0) {
-                LOG(WARNING) << "Invalid weight is set: " << id.tag
+                MLOG(WARNING) << "Invalid weight is set: " << id.tag
                              << ". Now, 'weight' has been set to 'FLAGS_default_weight_of_wlb' by default.";
                 weight = FLAGS_default_weight_of_wlb;
             } else {
-                LOG(ERROR) << "Invalid weight is set: " << id.tag;
+                MLOG(ERROR) << "Invalid weight is set: " << id.tag;
                 return false;
             }
         }

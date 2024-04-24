@@ -49,14 +49,14 @@ public:
 
     int CheckHealth(Socket* ptr) {
         if (ptr->health_check_count() == 0) {
-            LOG(INFO) << "Checking " << *chan << " chan=0x" << (void*)chan
+            MLOG(INFO) << "Checking " << *chan << " chan=0x" << (void*)chan
                       << " Fake" << *ptr;
         }
         return chan->CheckHealth();
     }
 
     void AfterRevived(Socket* ptr) {
-        LOG(INFO) << "Revived " << *chan << " chan=0x" << (void*)chan
+        MLOG(INFO) << "Revived " << *chan << " chan=0x" << (void*)chan
                   << " Fake" << *ptr << " (Connectable)";
     }
 };
@@ -170,17 +170,17 @@ int ChannelBalancer::Init(const char* lb_name) {
 int ChannelBalancer::AddChannel(ChannelBase* sub_channel,
                                 SelectiveChannel::ChannelHandle* handle) {
     if (NULL == sub_channel) {
-        LOG(ERROR) << "Parameter[sub_channel] is NULL";
+        MLOG(ERROR) << "Parameter[sub_channel] is NULL";
         return -1;
     }
     MELON_SCOPED_LOCK(_mutex);
     if (_chan_map.find(sub_channel) != _chan_map.end()) {
-        LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
+        MLOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
         return -1;
     }
     SubChannel* sub_chan = new (std::nothrow) SubChannel;
     if (sub_chan == NULL) {
-        LOG(FATAL) << "Fail to to new SubChannel";
+        MLOG(FATAL) << "Fail to to new SubChannel";
         return -1;
     }
     sub_chan->chan = sub_channel;
@@ -191,13 +191,13 @@ int ChannelBalancer::AddChannel(ChannelBase* sub_channel,
 
     if (Socket::Create(options, &sock_id) != 0) {
         delete sub_chan;
-        LOG(ERROR) << "Fail to create fake socket for sub channel";
+        MLOG(ERROR) << "Fail to create fake socket for sub channel";
         return -1;
     }
     SocketUniquePtr ptr;
-    CHECK_EQ(0, Socket::Address(sock_id, &ptr));
+    MCHECK_EQ(0, Socket::Address(sock_id, &ptr));
     if (!AddServer(ServerId(sock_id))) {
-        LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
+        MLOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
         // sub_chan will be deleted when the socket is recycled.
         ptr->SetFailed();
         return -1;
@@ -220,7 +220,7 @@ void ChannelBalancer::RemoveAndDestroyChannel(SelectiveChannel::ChannelHandle ha
         SubChannel* sub = static_cast<SubChannel*>(ptr->user());
         {
             MELON_SCOPED_LOCK(_mutex);
-            CHECK_EQ(1UL, _chan_map.erase(sub->chan));
+            MCHECK_EQ(1UL, _chan_map.erase(sub->chan));
         }
         {
             ptr->SetHCRelatedRefReleased(); // set released status to cancel health checking
@@ -301,14 +301,14 @@ int Sender::IssueRPC(int64_t start_realtime_us) {
         _main_cntl->SetFailed(rc, "Fail to select channel, %s", berror(rc));
         return -1;
     }
-    DLOG(INFO) << "Selected channel=" << sel_out.channel() << ", size="
+    DMLOG(INFO) << "Selected channel=" << sel_out.channel() << ", size="
                 << (_main_cntl->_accessed ? _main_cntl->_accessed->size() : 0);
     _main_cntl->_current_call.need_feedback = sel_out.need_feedback;
     _main_cntl->_current_call.peer_id = sel_out.fake_sock->id();
 
     Resource r = PopFree();
     if (r.sub_done == NULL) {
-        CHECK(false) << "Impossible!";
+        MCHECK(false) << "Impossible!";
         _main_cntl->SetFailed("Impossible happens");
         return -1;
     }
@@ -344,7 +344,7 @@ void SubDone::Run() {
     if (rc != 0) {
         // _cid must be valid because schan does not dtor before cancelling
         // all sub calls.
-        LOG(ERROR) << "Fail to lock correlation_id="
+        MLOG(ERROR) << "Fail to lock correlation_id="
                    << _cid.value << ": " << berror(rc);
         return;
     }
@@ -389,7 +389,7 @@ void Sender::Run() {
             ids[i] = _alloc_resources[i].sub_done->_cntl.call_id();
         }
         CallId cid = _main_cntl->call_id();
-        CHECK_EQ(0, fiber_session_unlock(cid));
+        MCHECK_EQ(0, fiber_session_unlock(cid));
         for (int i = 0; i < saved_nalloc; ++i) {
             fiber_session_error(ids[i], error);
         }
@@ -428,7 +428,7 @@ inline Resource Sender::PopFree() {
             _alloc_resources[_nalloc++] = r;
             return r;
         } else {
-            CHECK(false) << "nalloc=" << _nalloc;
+            MCHECK(false) << "nalloc=" << _nalloc;
             return Resource();
         }
     } else {
@@ -452,7 +452,7 @@ inline bool Sender::PushFree(const Resource& r) {
         }
         return true;
     } else {
-        CHECK(false) << "Impossible!";
+        MCHECK(false) << "Impossible!";
         return false;
     }
 }
@@ -491,16 +491,16 @@ int SelectiveChannel::Init(const char* lb_name, const ChannelOptions* options) {
     // Force naming services to register.
     GlobalInitializeOrDie();
     if (initialized()) {
-        LOG(ERROR) << "Already initialized";
+        MLOG(ERROR) << "Already initialized";
         return -1;
     }
     schan::ChannelBalancer* lb = new (std::nothrow) schan::ChannelBalancer;
     if (NULL == lb) {
-        LOG(FATAL) << "Fail to new ChannelBalancer";
+        MLOG(FATAL) << "Fail to new ChannelBalancer";
         return -1;
     }
     if (lb->Init(lb_name) != 0) {
-        LOG(ERROR) << "Fail to init lb";
+        MLOG(ERROR) << "Fail to init lb";
         delete lb;
         return -1;
     }
@@ -526,7 +526,7 @@ int SelectiveChannel::AddChannel(ChannelBase* sub_channel,
     schan::ChannelBalancer* lb =
         static_cast<schan::ChannelBalancer*>(_chan._lb.get());
     if (lb == NULL) {
-        LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
+        MLOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
         return -1;
     }
     return lb->AddChannel(sub_channel, handle);
@@ -536,7 +536,7 @@ void SelectiveChannel::RemoveAndDestroyChannel(ChannelHandle handle) {
     schan::ChannelBalancer* lb =
         static_cast<schan::ChannelBalancer*>(_chan._lb.get());
     if (lb == NULL) {
-        LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
+        MLOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
         return;
     }
     lb->RemoveAndDestroyChannel(handle);

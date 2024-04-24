@@ -44,7 +44,7 @@ static void* sender(void* arg) {
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
-                LOG(WARNING) << "Fail to refresh_leader : " << st;
+                MLOG(WARNING) << "Fail to refresh_leader : " << st;
                 fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
@@ -54,7 +54,7 @@ static void* sender(void* arg) {
         // rpc
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
-            LOG(ERROR) << "Fail to init channel to " << leader;
+            MLOG(ERROR) << "Fail to init channel to " << leader;
             fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -78,7 +78,7 @@ static void* sender(void* arg) {
             stub.read(&cntl, &request, &response, NULL);
         }
         if (cntl.Failed()) {
-            LOG(WARNING) << "Fail to send request to " << leader
+            MLOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
             // Clear leadership since this RPC failed.
             melon::raft::rtb::update_leader(FLAGS_group, melon::raft::PeerId());
@@ -86,7 +86,7 @@ static void* sender(void* arg) {
             continue;
         }
         if (!response.success()) {
-            LOG(WARNING) << "Fail to send request to " << leader
+            MLOG(WARNING) << "Fail to send request to " << leader
                          << ", redirecting to "
                          << (response.has_redirect() 
                                 ? response.redirect() : "nowhere");
@@ -96,7 +96,7 @@ static void* sender(void* arg) {
         }
         g_latency_recorder << cntl.latency_us();
         if (FLAGS_log_each_request) {
-            LOG(INFO) << "Received response from " << leader
+            MLOG(INFO) << "Received response from " << leader
                       << " op=" << op
                       << " offset=" << request.offset()
                       << " request_attachment="
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     // Register configuration of target group to RouteTable
     if (melon::raft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
-        LOG(ERROR) << "Fail to register configuration " << FLAGS_conf
+        MLOG(ERROR) << "Fail to register configuration " << FLAGS_conf
                    << " of group " << FLAGS_group;
         return -1;
     }
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, NULL) != 0) {
-                LOG(ERROR) << "Fail to create pthread";
+                MLOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
         tids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(&tids[i], NULL, sender, NULL) != 0) {
-                LOG(ERROR) << "Fail to create fiber";
+                MLOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
                 << " latency=" << g_latency_recorder.latency(1);
     }
 
-    LOG(INFO) << "Block client is going to quit";
+    MLOG(INFO) << "Block client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add service";
+        MLOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     options.max_concurrency = FLAGS_max_concurrency;
     options.internal_port = FLAGS_internal_port;
     if (server.Start(FLAGS_port, &options) != 0) {
-        LOG(ERROR) << "Fail to start EchoServer";
+        MLOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

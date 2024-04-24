@@ -601,7 +601,7 @@ namespace melon {
         const mutil::IOBuf &response_attachment() const { return _response_attachment; }
 
         // Get the object to write key/value which will be flushed into
-        // LOG(INFO) when this controller is deleted.
+        // MLOG(INFO) when this controller is deleted.
         KVMap &SessionKV();
 
         // Flush SessionKV() into `os'
@@ -983,11 +983,11 @@ namespace melon {
 //     Set cntl->set_request_id(REQUEST_ID);
 //   Standalone http client:
 //     Set header 'X-REQUEST-ID'
-#define CLOGD(cntl) LOG(DEBUG) << (cntl)->LogPrefix()
-#define CLOGI(cntl) LOG(INFO) << (cntl)->LogPrefix()
-#define CLOGW(cntl) LOG(WARNING) << (cntl)->LogPrefix()
-#define CLOGE(cntl) LOG(ERROR) << (cntl)->LogPrefix()
-#define CLOGF(cntl) LOG(FATAL) << (cntl)->LogPrefix()
+#define CLOGD(cntl) MLOG(DEBUG) << (cntl)->LogPrefix()
+#define CLOGI(cntl) MLOG(INFO) << (cntl)->LogPrefix()
+#define CLOGW(cntl) MLOG(WARNING) << (cntl)->LogPrefix()
+#define CLOGE(cntl) MLOG(ERROR) << (cntl)->LogPrefix()
+#define CLOGF(cntl) MLOG(FATAL) << (cntl)->LogPrefix()
 #define CVLOG(v, cntl) VLOG(v) << (cntl)->LogPrefix()
 
 #endif  // MELON_RPC_CONTROLLER_H_

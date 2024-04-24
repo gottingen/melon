@@ -26,7 +26,7 @@ void ScopedFDCloseTraits::Free(int fd) {
   // Chrome relies on being able to "drop" such access.
   // It's especially problematic on Linux with the setuid sandbox, where
   // a single open directory would bypass the entire security model.
-  PCHECK(0 == IGNORE_EINTR(close(fd)));
+  PMCHECK(0 == IGNORE_EINTR(close(fd)));
 }
 
 #endif  // OS_POSIX

@@ -51,12 +51,12 @@ int Acceptor::StartAccept(int listened_fd, int idle_timeout_sec,
                           const std::shared_ptr<SocketSSLContext>& ssl_ctx,
                           bool force_ssl) {
     if (listened_fd < 0) {
-        LOG(FATAL) << "Invalid listened_fd=" << listened_fd;
+        MLOG(FATAL) << "Invalid listened_fd=" << listened_fd;
         return -1;
     }
 
     if (!ssl_ctx && force_ssl) {
-        LOG(ERROR) << "Fail to force SSL for all connections "
+        MLOG(ERROR) << "Fail to force SSL for all connections "
                       " because ssl_ctx is NULL";
         return -1;
     }
@@ -64,20 +64,20 @@ int Acceptor::StartAccept(int listened_fd, int idle_timeout_sec,
     MELON_SCOPED_LOCK(_map_mutex);
     if (_status == UNINITIALIZED) {
         if (Initialize() != 0) {
-            LOG(FATAL) << "Fail to initialize Acceptor";
+            MLOG(FATAL) << "Fail to initialize Acceptor";
             return -1;
         }
         _status = READY;
     }
     if (_status != READY) {
-        LOG(FATAL) << "Acceptor hasn't stopped yet: status=" << status();
+        MLOG(FATAL) << "Acceptor hasn't stopped yet: status=" << status();
         return -1;
     }
     if (idle_timeout_sec > 0) {
         fiber_attr_t tmp = FIBER_ATTR_NORMAL;
         tmp.tag = _fiber_tag;
         if (fiber_start_background(&_close_idle_tid, &tmp, CloseIdleConnections, this) != 0) {
-            LOG(FATAL) << "Fail to start fiber";
+            MLOG(FATAL) << "Fail to start fiber";
             return -1;
         }
     }
@@ -94,7 +94,7 @@ int Acceptor::StartAccept(int listened_fd, int idle_timeout_sec,
     options.on_edge_triggered_events = OnNewConnections;
     if (Socket::Create(options, &_acception_id) != 0) {
         // Close-idle-socket thread will be stopped inside destructor
-        LOG(FATAL) << "Fail to create _acception_id";
+        MLOG(FATAL) << "Fail to create _acception_id";
         return -1;
     }
     
@@ -163,7 +163,7 @@ void Acceptor::StopAccept(int /*closewait_ms*/) {
 
 int Acceptor::Initialize() {
     if (_socket_map.init(INITIAL_CONNECTION_CAP) != 0) {
-        LOG(FATAL) << "Fail to initialize FlatMap, size="
+        MLOG(FATAL) << "Fail to initialize FlatMap, size="
                    << INITIAL_CONNECTION_CAP;
         return -1;
     }
@@ -206,7 +206,7 @@ size_t Acceptor::ConnectionCount() const {
 void Acceptor::ListConnections(std::vector<SocketId>* conn_list,
                                size_t max_copied) {
     if (conn_list == NULL) {
-        LOG(FATAL) << "Param[conn_list] is NULL";
+        MLOG(FATAL) << "Param[conn_list] is NULL";
         return;
     }
     conn_list->clear();
@@ -266,14 +266,14 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
             // instead.
             // If the accept was failed, the error may repeat constantly, 
             // limit frequency of logging.
-            PLOG_EVERY_SECOND(ERROR)
+            PMLOG_EVERY_SECOND(ERROR)
                 << "Fail to accept from listened_fd=" << acception->fd();
             continue;
         }
 
         Acceptor* am = dynamic_cast<Acceptor*>(acception->user());
         if (NULL == am) {
-            LOG(FATAL) << "Impossible! acception->user() MUST be Acceptor";
+            MLOG(FATAL) << "Impossible! acception->user() MUST be Acceptor";
             acception->SetFailed(EINVAL, "Impossible! acception->user() MUST be Acceptor");
             return;
         }
@@ -291,7 +291,7 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
         options.use_rdma = am->_use_rdma;
         options.fiber_tag = am->_fiber_tag;
         if (Socket::Create(options, &socket_id) != 0) {
-            LOG(ERROR) << "Fail to create Socket";
+            MLOG(ERROR) << "Fail to create Socket";
             continue;
         }
         in_fd.release(); // transfer ownership to socket_id
@@ -317,7 +317,7 @@ void Acceptor::OnNewConnectionsUntilEAGAIN(Socket* acception) {
                 am->_socket_map.insert(socket_id, ConnectStatistics());
             }
             if (!is_running) {
-                LOG(WARNING) << "Acceptor on fd=" << acception->fd()
+                MLOG(WARNING) << "Acceptor on fd=" << acception->fd()
                     << " has been stopped, discard newly created " << *sock;
                 sock->SetFailed(ELOGOFF, "Acceptor on fd=%d has been stopped, "
                         "discard newly created %s", acception->fd(),

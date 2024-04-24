@@ -116,10 +116,10 @@ inline int Socket::Dereference() {
             }
             return 0;
         }
-        LOG(FATAL) << "Invalid SocketId=" << id;
+        MLOG(FATAL) << "Invalid SocketId=" << id;
         return -1;
     }
-    LOG(FATAL) << "Over dereferenced SocketId=" << id;
+    MLOG(FATAL) << "Over dereferenced SocketId=" << id;
     return -1;
 }
 
@@ -155,15 +155,15 @@ inline int Socket::Address(SocketId id, SocketUniquePtr* ptr) {
                         return_resource(SlotOfSocketId(id));
                     }
                 } else {
-                    CHECK(false) << "ref-version=" << ver1
+                    MCHECK(false) << "ref-version=" << ver1
                                  << " unref-version=" << ver2;
                 }
             } else {
-                CHECK_EQ(ver1, ver2);
+                MCHECK_EQ(ver1, ver2);
                 // Addressed a free slot.
             }
         } else {
-            CHECK(false) << "Over dereferenced SocketId=" << id;
+            MCHECK(false) << "Over dereferenced SocketId=" << id;
         }
     }
     return -1;
@@ -208,14 +208,14 @@ inline int Socket::AddressFailedAsWell(SocketId id, SocketUniquePtr* ptr) {
                         return_resource(slot);
                     }
                 } else {
-                    CHECK(false) << "ref-version=" << ver1
+                    MCHECK(false) << "ref-version=" << ver1
                                  << " unref-version=" << ver2;
                 }
             } else {
                 // Addressed a free slot.
             }
         } else {
-            CHECK(false) << "Over dereferenced SocketId=" << id;
+            MCHECK(false) << "Over dereferenced SocketId=" << id;
         }
     }
     return -1;    

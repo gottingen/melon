@@ -117,7 +117,7 @@ time_t Time::ToTimeT() const {
     return std::numeric_limits<time_t>::max();
   }
   if (std::numeric_limits<int64_t>::max() - kTimeTToMicrosecondsOffset <= us_) {
-    DLOG(WARNING) << "Overflow when converting mutil::Time with internal " <<
+    DMLOG(WARNING) << "Overflow when converting mutil::Time with internal " <<
                      "value " << us_ << " to time_t.";
     return std::numeric_limits<time_t>::max();
   }

@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     options.max_retry = FLAGS_max_retry;
     options.backup_request_ms = FLAGS_backup_request_ms;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        LOG(ERROR) << "Fail to initialize channel";
+        MLOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -71,16 +71,16 @@ int main(int argc, char* argv[]) {
         // the response comes back or error occurs(including timedout).
         stub.Echo(&cntl, &request, &response, NULL);
         if (!cntl.Failed()) {
-            LOG(INFO) << "Received response[index=" << response.index()
+            MLOG(INFO) << "Received response[index=" << response.index()
                       << "] from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << " latency=" << cntl.latency_us() << "us";
         } else {
-            LOG(WARNING) << cntl.ErrorText();
+            MLOG(WARNING) << cntl.ErrorText();
         }
         sleep(1);
     }
 
-    LOG(INFO) << "EchoClient is going to quit";
+    MLOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

@@ -76,9 +76,9 @@ public:
     void on_leader_start(int64_t term) {
         _leader_term = term;
         if (_on_leader_start_closure) {
-            LOG(INFO) << "addr " << address << " before leader start closure";
+            MLOG(INFO) << "addr " << address << " before leader start closure";
             _on_leader_start_closure->Run();
-            LOG(INFO) << "addr " << address << " after leader start closure";
+            MLOG(INFO) << "addr " << address << " after leader start closure";
             _on_leader_start_closure = NULL;
         }
     }
@@ -91,7 +91,7 @@ public:
     virtual void on_apply(melon::raft::Iterator& iter) {
         for (; iter.valid(); iter.next()) {
             if (_witness && !FLAGS_raft_enable_witness_to_leader) {
-                LOG(INFO) << "addr " << address << " skip witness apply " << iter.index();
+                MLOG(INFO) << "addr " << address << " skip witness apply " << iter.index();
                 continue;
             }
             LOG_IF(INFO, !g_dont_print_apply_log) << "addr " << address 
@@ -107,7 +107,7 @@ public:
     }
 
     virtual void on_shutdown() {
-        LOG(INFO) << "addr " << address << " shutdowned";
+        MLOG(INFO) << "addr " << address << " shutdowned";
     }
 
     virtual void on_snapshot_save(melon::raft::SnapshotWriter* writer, melon::raft::Closure* done) {
@@ -115,11 +115,11 @@ public:
         file_path.append("/data");
         melon::ClosureGuard done_guard(done);
 
-        LOG(INFO) << "on_snapshot_save to " << file_path;
+        MLOG(INFO) << "on_snapshot_save to " << file_path;
 
         int fd = ::creat(file_path.c_str(), 0644);
         if (fd < 0) {
-            LOG(ERROR) << "create file failed, path: " << file_path << " err: " << berror();
+            MLOG(ERROR) << "create file failed, path: " << file_path << " err: " << berror();
             done->status().set_error(EIO, "Fail to create file");
             return;
         }
@@ -129,7 +129,7 @@ public:
             mutil::IOBuf data = logs[i];
             int len = data.size();
             int ret = write(fd, &len, sizeof(int));
-            CHECK_EQ(ret, 4);
+            MCHECK_EQ(ret, 4);
             data.cut_into_file_descriptor(fd, len);
         }
         ::close(fd);
@@ -142,11 +142,11 @@ public:
         std::string file_path = reader->get_path();
         file_path.append("/data");
 
-        LOG(INFO) << "on_snapshot_load from " << file_path;
+        MLOG(INFO) << "on_snapshot_load from " << file_path;
 
         int fd = ::open(file_path.c_str(), O_RDONLY);
         if (fd < 0) {
-            LOG(ERROR) << "creat file failed, path: " << file_path << " err: " << berror();
+            MLOG(ERROR) << "creat file failed, path: " << file_path << " err: " << berror();
             return EIO;
         }
 
@@ -170,19 +170,19 @@ public:
     }
 
     virtual void on_start_following(const melon::raft::LeaderChangeContext& start_following_context) {
-        LOG(INFO) << "address " << address << " start following new leader: " 
+        MLOG(INFO) << "address " << address << " start following new leader: "
                    <<  start_following_context;
         ++_on_start_following_times;
     }
 
     virtual void on_stop_following(const melon::raft::LeaderChangeContext& stop_following_context) {
-        LOG(INFO) << "address " << address << " stop following old leader: " 
+        MLOG(INFO) << "address " << address << " stop following old leader: "
                    <<  stop_following_context;
         ++_on_stop_following_times;
     }
 
     virtual void on_configuration_committed(const ::melon::raft::Configuration& conf, int64_t index) {
-        LOG(INFO) << "address " << address << " commit conf: " << conf << " at index " << index;
+        MLOG(INFO) << "address " << address << " commit conf: " << conf << " at index " << index;
     }
 };
 
@@ -250,7 +250,7 @@ public:
             melon::Server* server = new melon::Server();
             if (melon::raft::add_service(server, listen_addr) != 0
                     || server->Start(listen_addr, NULL) != 0) {
-                LOG(ERROR) << "Fail to start raft service";
+                MLOG(ERROR) << "Fail to start raft service";
                 delete server;
                 return -1;
             }
@@ -286,11 +286,11 @@ public:
         melon::raft::Node* node = new melon::raft::Node(_name, melon::raft::PeerId(listen_addr, 0, witness));
         int ret = node->init(options);
         if (ret != 0) {
-            LOG(WARNING) << "init_node failed, server: " << listen_addr;
+            MLOG(WARNING) << "init_node failed, server: " << listen_addr;
             delete node;
             return ret;
         } else {
-            LOG(INFO) << "init node " << listen_addr << " witness " << witness;;
+            MLOG(INFO) << "init node " << listen_addr << " witness " << witness;;
         }
 
         {
@@ -335,7 +335,7 @@ public:
                             mutil::endpoint2str(listen_addr).c_str());
 
         if (!mutil::DeleteFile(mutil::FilePath(data_path), true)) {
-            LOG(ERROR) << "delete path failed, path: " << data_path;
+            MLOG(ERROR) << "delete path failed, path: " << data_path;
         }
     }
 
@@ -414,7 +414,7 @@ public:
     }
 
     void ensure_leader(const mutil::EndPoint& expect_addr) {
-CHECK:
+MCHECK:
         std::lock_guard<raft_mutex_t> guard(_mutex);
         for (size_t i = 0; i < _nodes.size(); i++) {
             melon::raft::PeerId leader_id = _nodes[i]->leader_id();
@@ -426,7 +426,7 @@ CHECK:
         return;
 WAIT:
         usleep(100 * 1000);
-        goto CHECK;
+        goto MCHECK;
     }
 
     bool ensure_same(int wait_time_s = -1) {
@@ -434,7 +434,7 @@ WAIT:
         if (_fsms.size() <= 1) {
             return true;
         }
-        LOG(INFO) << "_fsms.size()=" << _fsms.size();
+        MLOG(INFO) << "_fsms.size()=" << _fsms.size();
 
         int nround = 0;
         MockFSM* first = nullptr;
@@ -446,7 +446,7 @@ WAIT:
             first = _fsms[i];
             break;
         }
-CHECK:
+MCHECK:
         first->lock();
         for (size_t i = 0; i < _fsms.size(); i++) {
             MockFSM* fsm = _fsms[i];
@@ -456,7 +456,7 @@ CHECK:
             fsm->lock();
 
             if (first->logs.size() != fsm->logs.size()) {
-                LOG(INFO) << "logs size not match, "
+                MLOG(INFO) << "logs size not match, "
                           << " addr: " << first->address << " vs "
                           << fsm->address << ", log num "
                           << first->logs.size() << " vs " << fsm->logs.size();
@@ -468,7 +468,7 @@ CHECK:
                 mutil::IOBuf& first_data = first->logs[j];
                 mutil::IOBuf& fsm_data = fsm->logs[j];
                 if (first_data.to_string() != fsm_data.to_string()) {
-                    LOG(INFO) << "log data of index=" << j << " not match, "
+                    MLOG(INFO) << "log data of index=" << j << " not match, "
                               << " addr: " << first->address << " vs "
                               << fsm->address << ", data ("
                               << first_data.to_string() << ") vs " 
@@ -492,7 +492,7 @@ WAIT:
         if (wait_time_s > 0 && nround > wait_time_s) {
             return false;
         }
-        goto CHECK;
+        goto MCHECK;
     }
 
 private:

@@ -40,15 +40,15 @@ public:
 
     int init(size_t capacity) {
         if (_capacity != 0) {
-            LOG(ERROR) << "Already initialized";
+            MLOG(ERROR) << "Already initialized";
             return -1;
         }
         if (capacity == 0) {
-            LOG(ERROR) << "Invalid capacity=" << capacity;
+            MLOG(ERROR) << "Invalid capacity=" << capacity;
             return -1;
         }
         if (capacity & (capacity - 1)) {
-            LOG(ERROR) << "Invalid capacity=" << capacity
+            MLOG(ERROR) << "Invalid capacity=" << capacity
                        << " which must be power of 2";
             return -1;
         }

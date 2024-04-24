@@ -41,7 +41,7 @@ namespace melon::raft {
         mutil::File::Error e;
         FileAdaptor *file = _fs->open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, NULL, &e);
         if (!file) {
-            LOG(WARNING) << "open file failed, path: " << _path
+            MLOG(WARNING) << "open file failed, path: " << _path
                          << ": " << mutil::File::ErrorToString(e);
             return -1;
         }
@@ -57,27 +57,27 @@ namespace melon::raft {
         int32_t header_len = mutil::HostToNet32(msg_buf.length());
         header_buf.append(&header_len, sizeof(int32_t));
         if (sizeof(int32_t) != file->write(header_buf, 0)) {
-            LOG(WARNING) << "write len failed, path: " << tmp_path;
+            MLOG(WARNING) << "write len failed, path: " << tmp_path;
             return -1;
         }
 
         ssize_t len = msg_buf.size();
         if (len != file->write(msg_buf, sizeof(int32_t))) {
-            LOG(WARNING) << "write failed, path: " << tmp_path;
+            MLOG(WARNING) << "write failed, path: " << tmp_path;
             return -1;
         }
 
         // sync
         if (sync) {
             if (!file->sync()) {
-                LOG(WARNING) << "sync failed, path: " << tmp_path;
+                MLOG(WARNING) << "sync failed, path: " << tmp_path;
                 return -1;
             }
         }
 
         // rename
         if (!_fs->rename(tmp_path, _path)) {
-            LOG(WARNING) << "rename failed, old: " << tmp_path << " , new: " << _path;
+            MLOG(WARNING) << "rename failed, old: " << tmp_path << " , new: " << _path;
             return -1;
         }
         return 0;
@@ -87,7 +87,7 @@ namespace melon::raft {
         mutil::File::Error e;
         FileAdaptor *file = _fs->open(_path, O_RDONLY, NULL, &e);
         if (!file) {
-            LOG(WARNING) << "open file failed, path: " << _path
+            MLOG(WARNING) << "open file failed, path: " << _path
                          << ": " << mutil::File::ErrorToString(e);
             return -1;
         }
@@ -97,7 +97,7 @@ namespace melon::raft {
         // len
         mutil::IOPortal header_buf;
         if (sizeof(int32_t) != file->read(&header_buf, 0, sizeof(int32_t))) {
-            LOG(WARNING) << "read len failed, path: " << _path;
+            MLOG(WARNING) << "read len failed, path: " << _path;
             return -1;
         }
         int32_t len = 0;
@@ -107,7 +107,7 @@ namespace melon::raft {
         // read protobuf data
         mutil::IOPortal msg_buf;
         if (left_len != file->read(&msg_buf, sizeof(int32_t), left_len)) {
-            LOG(WARNING) << "read body failed, path: " << _path;
+            MLOG(WARNING) << "read body failed, path: " << _path;
             return -1;
         }
 

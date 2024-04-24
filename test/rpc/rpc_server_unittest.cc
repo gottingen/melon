@@ -113,11 +113,11 @@ public:
         EXPECT_EQ(EXP_REQUEST, request->message());
         response->set_message(EXP_RESPONSE);
         if (request->sleep_us() > 0) {
-            LOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
+            MLOG(INFO) << "Sleep " << request->sleep_us() << " us, protocol="
                       << cntl->request_protocol(); 
             fiber_usleep(request->sleep_us());
         } else {
-            LOG(INFO) << "No sleep, protocol=" << cntl->request_protocol();
+            MLOG(INFO) << "No sleep, protocol=" << cntl->request_protocol();
         }
         if (cntl->has_request_user_fields()) {
             ASSERT_TRUE(!cntl->request_user_fields()->empty());
@@ -287,7 +287,7 @@ public:
         if (request->has_message()) {
             response->set_message(request->message() + "_v1");
         } else {
-            CHECK_EQ(melon::PROTOCOL_HTTP, cntl->request_protocol());
+            MCHECK_EQ(melon::PROTOCOL_HTTP, cntl->request_protocol());
             cntl->response_attachment() = cntl->request_attachment();
         }
         ncalled.fetch_add(1);
@@ -502,7 +502,7 @@ TEST_F(ServerTest, various_forms_of_uri_paths) {
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::EREQUEST, cntl.ErrorCode());
-    LOG(INFO) << "Expected error: " << cntl.ErrorText();
+    MLOG(INFO) << "Expected error: " << cntl.ErrorText();
     ASSERT_EQ(2, service_v1.ncalled.load());
 
     // Additional path(stored in unresolved_path) after method is acceptible
@@ -534,7 +534,7 @@ TEST_F(ServerTest, missing_required_fields) {
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
-    LOG(INFO) << cntl.ErrorText();
+    MLOG(INFO) << cntl.ErrorText();
     ASSERT_EQ(melon::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
     ASSERT_EQ(0, service_v1.ncalled.load());
 
@@ -766,7 +766,7 @@ TEST_F(ServerTest, restful_mapping) {
     http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
     ASSERT_TRUE(cntl.Failed());
     ASSERT_EQ(melon::EHTTP, cntl.ErrorCode());
-    LOG(INFO) << "Expected error: " << cntl.ErrorText();
+    MLOG(INFO) << "Expected error: " << cntl.ErrorText();
     ASSERT_EQ(3, service_v1.ncalled.load());
 
     // Access v1.Echo via /v2/echo
@@ -962,7 +962,7 @@ TEST_F(ServerTest, http_error_code) {
         http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_TRUE(cntl.Failed());
         ASSERT_EQ(melon::EREQUEST, cntl.ErrorCode());
-        LOG(INFO) << cntl.ErrorText();
+        MLOG(INFO) << cntl.ErrorText();
         ASSERT_EQ(melon::HTTP_STATUS_BAD_REQUEST, cntl.http_response().status_code());
         ASSERT_EQ(0, service_v1.ncalled.load());
     }
@@ -1036,7 +1036,7 @@ TEST_F(ServerTest, http_error_code) {
         http_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         ASSERT_TRUE(cntl.Failed());
         ASSERT_EQ(melon::ENOMETHOD, cntl.ErrorCode());
-        LOG(INFO) << "Expected error: " << cntl.ErrorText();
+        MLOG(INFO) << "Expected error: " << cntl.ErrorText();
         ASSERT_EQ(0, service_v1.ncalled.load());
     }
 
@@ -1074,7 +1074,7 @@ TEST_F(ServerTest, http_error_code) {
         stub.Echo(&cntl2, &req, &res, melon::DoNothing());
 
         fiber_usleep(20000);
-        LOG(INFO) << "Send other requests";
+        MLOG(INFO) << "Send other requests";
 
         melon::Controller cntl3;
         cntl3.http_request().uri() = "/EchoService/Echo";
@@ -1595,7 +1595,7 @@ TEST_F(ServerTest, max_concurrency) {
     stub.Echo(&cntl2, &req, &res, melon::DoNothing());
 
     fiber_usleep(20000);
-    LOG(INFO) << "Send other requests";
+    MLOG(INFO) << "Send other requests";
     
     melon::Controller cntl3;
     cntl3.http_request().uri() = "/EchoService/Echo";

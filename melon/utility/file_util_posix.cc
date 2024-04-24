@@ -96,32 +96,32 @@ bool VerifySpecificPathControlledByUser(const FilePath& path,
                                         const std::set<gid_t>& group_gids) {
   stat_wrapper_t stat_info;
   if (CallLstat(path.value().c_str(), &stat_info) != 0) {
-    DPLOG(ERROR) << "Failed to get information on path "
+    DPMLOG(ERROR) << "Failed to get information on path "
                  << path.value();
     return false;
   }
 
   if (S_ISLNK(stat_info.st_mode)) {
-    DLOG(ERROR) << "Path " << path.value()
+    DMLOG(ERROR) << "Path " << path.value()
                << " is a symbolic link.";
     return false;
   }
 
   if (stat_info.st_uid != owner_uid) {
-    DLOG(ERROR) << "Path " << path.value()
+    DMLOG(ERROR) << "Path " << path.value()
                 << " is owned by the wrong user.";
     return false;
   }
 
   if ((stat_info.st_mode & S_IWGRP) &&
       !ContainsKey(group_gids, stat_info.st_gid)) {
-    DLOG(ERROR) << "Path " << path.value()
+    DMLOG(ERROR) << "Path " << path.value()
                 << " is writable by an unprivileged group.";
     return false;
   }
 
   if (stat_info.st_mode & S_IWOTH) {
-    DLOG(ERROR) << "Path " << path.value()
+    DMLOG(ERROR) << "Path " << path.value()
                 << " is writable by any user.";
     return false;
   }
@@ -168,9 +168,9 @@ bool DetermineDevShmExecutable() {
   if (fd.is_valid()) {
     DeleteFile(path, false);
     long sysconf_result = sysconf(_SC_PAGESIZE);
-    CHECK_GE(sysconf_result, 0);
+    MCHECK_GE(sysconf_result, 0);
     size_t pagesize = static_cast<size_t>(sysconf_result);
-    CHECK_GE(sizeof(pagesize), sizeof(sysconf_result));
+    MCHECK_GE(sizeof(pagesize), sizeof(sysconf_result));
     void* mapping = mmap(NULL, pagesize, PROT_READ, MAP_SHARED, fd.get(), 0);
     if (mapping != MAP_FAILED) {
       if (mprotect(mapping, pagesize, PROT_READ | PROT_EXEC) == 0)
@@ -251,8 +251,8 @@ bool CopyDirectory(const FilePath& from_path,
   // Some old callers of CopyDirectory want it to support wildcards.
   // After some discussion, we decided to fix those callers.
   // Break loudly here if anyone tries to do this.
-  DCHECK(to_path.value().find('*') == std::string::npos);
-  DCHECK(from_path.value().find('*') == std::string::npos);
+  DMCHECK(to_path.value().find('*') == std::string::npos);
+  DMCHECK(from_path.value().find('*') == std::string::npos);
 
   if (from_path.value().size() >= PATH_MAX) {
     return false;
@@ -288,7 +288,7 @@ bool CopyDirectory(const FilePath& from_path,
   struct stat from_stat;
   FilePath current = from_path;
   if (stat(from_path.value().c_str(), &from_stat) < 0) {
-    DLOG(ERROR) << "CopyDirectory() couldn't stat source directory: "
+    DMLOG(ERROR) << "CopyDirectory() couldn't stat source directory: "
                 << from_path.value() << " errno = " << errno;
     return false;
   }
@@ -304,7 +304,7 @@ bool CopyDirectory(const FilePath& from_path,
   // The Windows version of this function assumes that non-recursive calls
   // will always have a directory for from_path.
   // TODO(maruel): This is not necessary anymore.
-  DCHECK(recursive || S_ISDIR(from_stat.st_mode));
+  DMCHECK(recursive || S_ISDIR(from_stat.st_mode));
 
   bool success = true;
   while (success && !current.empty()) {
@@ -321,18 +321,18 @@ bool CopyDirectory(const FilePath& from_path,
     if (S_ISDIR(from_stat.st_mode)) {
       if (mkdir(target_path.value().c_str(), from_stat.st_mode & 01777) != 0 &&
           errno != EEXIST) {
-        DLOG(ERROR) << "CopyDirectory() couldn't create directory: "
+        DMLOG(ERROR) << "CopyDirectory() couldn't create directory: "
                     << target_path.value() << " errno = " << errno;
         success = false;
       }
     } else if (S_ISREG(from_stat.st_mode)) {
       if (!CopyFile(current, target_path)) {
-        DLOG(ERROR) << "CopyDirectory() couldn't create file: "
+        DMLOG(ERROR) << "CopyDirectory() couldn't create file: "
                     << target_path.value();
         success = false;
       }
     } else {
-      DLOG(WARNING) << "CopyDirectory() skipping non-regular file: "
+      DMLOG(WARNING) << "CopyDirectory() skipping non-regular file: "
                     << current.value();
     }
 
@@ -381,15 +381,15 @@ bool ReadFromFD(int fd, char* buffer, size_t bytes) {
 
 bool CreateSymbolicLink(const FilePath& target_path,
                         const FilePath& symlink_path) {
-  DCHECK(!symlink_path.empty());
-  DCHECK(!target_path.empty());
+  DMCHECK(!symlink_path.empty());
+  DMCHECK(!target_path.empty());
   return ::symlink(target_path.value().c_str(),
                    symlink_path.value().c_str()) != -1;
 }
 
 bool ReadSymbolicLink(const FilePath& symlink_path, FilePath* target_path) {
-  DCHECK(!symlink_path.empty());
-  DCHECK(target_path);
+  DMCHECK(!symlink_path.empty());
+  DMCHECK(target_path);
   char buf[PATH_MAX];
   ssize_t count = ::readlink(symlink_path.value().c_str(), buf, arraysize(buf));
 
@@ -404,7 +404,7 @@ bool ReadSymbolicLink(const FilePath& symlink_path, FilePath* target_path) {
 
 bool GetPosixFilePermissions(const FilePath& path, int* mode) {
   ThreadRestrictions::AssertIOAllowed();
-  DCHECK(mode);
+  DMCHECK(mode);
 
   stat_wrapper_t file_info;
   // Uses stat(), because on symbolic link, lstat() does not return valid
@@ -419,7 +419,7 @@ bool GetPosixFilePermissions(const FilePath& path, int* mode) {
 bool SetPosixFilePermissions(const FilePath& path,
                              int mode) {
   ThreadRestrictions::AssertIOAllowed();
-  DCHECK((mode & ~FILE_PERMISSION_MASK) == 0);
+  DMCHECK((mode & ~FILE_PERMISSION_MASK) == 0);
 
   // Calls stat() so that we can preserve the higher bits like S_ISGID.
   stat_wrapper_t stat_buf;
@@ -464,7 +464,7 @@ FilePath GetHomeDir() {
     return FilePath(home_dir);
 
 #if defined(OS_ANDROID)
-  DLOG(WARNING) << "OS_ANDROID: Home directory lookup not yet implemented.";
+  DMLOG(WARNING) << "OS_ANDROID: Home directory lookup not yet implemented.";
 #elif defined(USE_GLIB) && !defined(OS_CHROMEOS)
   // g_get_home_dir calls getpwent, which can fall through to LDAP calls so
   // this may do I/O. However, it should be rare that $HOME is not defined and
@@ -519,7 +519,7 @@ static bool CreateTemporaryDirInDirImpl(const FilePath& base_dir,
                                         const FilePath::StringType& name_tmpl,
                                         FilePath* new_dir) {
   ThreadRestrictions::AssertIOAllowed();  // For call to mkdtemp().
-  DCHECK(name_tmpl.find("XXXXXX") != FilePath::StringType::npos)
+  DMCHECK(name_tmpl.find("XXXXXX") != FilePath::StringType::npos)
       << "Directory name template must contain \"XXXXXX\".";
 
   FilePath sub_dir = base_dir.Append(name_tmpl);
@@ -529,7 +529,7 @@ static bool CreateTemporaryDirInDirImpl(const FilePath& base_dir,
   char* buffer = const_cast<char*>(sub_dir_string.c_str());
   char* dtemp = mkdtemp(buffer);
   if (!dtemp) {
-    DPLOG(ERROR) << "mkdtemp";
+    DPMLOG(ERROR) << "mkdtemp";
     return false;
   }
   *new_dir = FilePath(dtemp);
@@ -761,7 +761,7 @@ bool VerifyPathControlledByUser(const FilePath& base,
                                 uid_t owner_uid,
                                 const std::set<gid_t>& group_gids) {
   if (base != path && !base.IsParent(path)) {
-     DLOG(ERROR) << "|base| must be a subdirectory of |path|.  base = \""
+     DMLOG(ERROR) << "|base| must be a subdirectory of |path|.  base = \""
                  << base.value() << "\", path = \"" << path.value() << "\"";
      return false;
   }
@@ -778,8 +778,8 @@ bool VerifyPathControlledByUser(const FilePath& base,
     // |base| must be a subpath of |path|, so all components should match.
     // If these CHECKs fail, look at the test that base is a parent of
     // path at the top of this function.
-    DCHECK(ip != path_components.end());
-    DCHECK(*ip == *ib);
+    DMCHECK(ip != path_components.end());
+    DMCHECK(*ip == *ib);
   }
 
   FilePath current_path = base;
@@ -813,7 +813,7 @@ bool VerifyPathControlledByAdmin(const FilePath& path) {
   for (int i = 0, ie = arraysize(kAdminGroupNames); i < ie; ++i) {
     struct group *group_record = getgrnam(kAdminGroupNames[i]);
     if (!group_record) {
-      DPLOG(ERROR) << "Could not get the group ID of group \""
+      DPMLOG(ERROR) << "Could not get the group ID of group \""
                    << kAdminGroupNames[i] << "\".";
       continue;
     }

@@ -99,7 +99,7 @@ public:
 
     void lock() {
         if (_owns_lock) {
-            CHECK(false) << "Detected deadlock issue";     
+            MCHECK(false) << "Detected deadlock issue";
             return;
         }
         _owns_lock = true;
@@ -108,7 +108,7 @@ public:
 
     bool try_lock() {
         if (_owns_lock) {
-            CHECK(false) << "Detected deadlock issue";     
+            MCHECK(false) << "Detected deadlock issue";
             return false;
         }
         _owns_lock = _mutex->try_lock();
@@ -117,7 +117,7 @@ public:
 
     void unlock() {
         if (!_owns_lock) {
-            CHECK(false) << "Invalid operation";
+            MCHECK(false) << "Invalid operation";
             return;
         }
         _mutex->unlock();
@@ -155,7 +155,7 @@ public:
 #if !defined(NDEBUG)
         const int rc = pthread_mutex_lock(_pmutex);
         if (rc) {
-            LOG(FATAL) << "Fail to lock pthread_mutex_t=" << _pmutex << ", " << berror(rc);
+            MLOG(FATAL) << "Fail to lock pthread_mutex_t=" << _pmutex << ", " << berror(rc);
             _pmutex = NULL;
         }
 #else
@@ -184,7 +184,7 @@ public:
 #if !defined(NDEBUG)
         const int rc = pthread_spin_lock(_pspin);
         if (rc) {
-            LOG(FATAL) << "Fail to lock pthread_spinlock_t=" << _pspin << ", " << berror(rc);
+            MLOG(FATAL) << "Fail to lock pthread_spinlock_t=" << _pspin << ", " << berror(rc);
             _pspin = NULL;
         }
 #else
@@ -234,13 +234,13 @@ public:
 
     void lock() {
         if (_owns_lock) {
-            CHECK(false) << "Detected deadlock issue";     
+            MCHECK(false) << "Detected deadlock issue";
             return;
         }
 #if !defined(NDEBUG)
         const int rc = pthread_mutex_lock(_mutex);
         if (rc) {
-            LOG(FATAL) << "Fail to lock pthread_mutex=" << _mutex << ", " << berror(rc);
+            MLOG(FATAL) << "Fail to lock pthread_mutex=" << _mutex << ", " << berror(rc);
             return;
         }
         _owns_lock = true;
@@ -252,7 +252,7 @@ public:
 
     bool try_lock() {
         if (_owns_lock) {
-            CHECK(false) << "Detected deadlock issue";     
+            MCHECK(false) << "Detected deadlock issue";
             return false;
         }
         _owns_lock = !pthread_mutex_trylock(_mutex);
@@ -261,7 +261,7 @@ public:
 
     void unlock() {
         if (!_owns_lock) {
-            CHECK(false) << "Invalid operation";
+            MCHECK(false) << "Invalid operation";
             return;
         }
         pthread_mutex_unlock(_mutex);
@@ -316,13 +316,13 @@ public:
 
     void lock() {
         if (_owns_lock) {
-            CHECK(false) << "Detected deadlock issue";     
+            MCHECK(false) << "Detected deadlock issue";
             return;
         }
 #if !defined(NDEBUG)
         const int rc = pthread_spin_lock(_mutex);
         if (rc) {
-            LOG(FATAL) << "Fail to lock pthread_spinlock=" << _mutex << ", " << berror(rc);
+            MLOG(FATAL) << "Fail to lock pthread_spinlock=" << _mutex << ", " << berror(rc);
             return;
         }
         _owns_lock = true;
@@ -334,7 +334,7 @@ public:
 
     bool try_lock() {
         if (_owns_lock) {
-            CHECK(false) << "Detected deadlock issue";     
+            MCHECK(false) << "Detected deadlock issue";
             return false;
         }
         _owns_lock = !pthread_spin_trylock(_mutex);
@@ -343,7 +343,7 @@ public:
 
     void unlock() {
         if (!_owns_lock) {
-            CHECK(false) << "Invalid operation";
+            MCHECK(false) << "Invalid operation";
             return;
         }
         pthread_spin_unlock(_mutex);
@@ -380,11 +380,11 @@ namespace mutil {
 // Lock both lck1 and lck2 without the dead lock issue
 template <typename Mutex1, typename Mutex2>
 void double_lock(std::unique_lock<Mutex1> &lck1, std::unique_lock<Mutex2> &lck2) {
-    DCHECK(!lck1.owns_lock());
-    DCHECK(!lck2.owns_lock());
+    DMCHECK(!lck1.owns_lock());
+    DMCHECK(!lck2.owns_lock());
     volatile void* const ptr1 = lck1.mutex();
     volatile void* const ptr2 = lck2.mutex();
-    DCHECK_NE(ptr1, ptr2);
+    DMCHECK_NE(ptr1, ptr2);
     if (ptr1 < ptr2) {
         lck1.lock();
         lck2.lock();

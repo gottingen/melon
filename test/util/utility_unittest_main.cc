@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
         setrlimit(RLIMIT_CORE, &core_limit);
     }
 #if !MELON_WITH_GLOG
-    CHECK(!google::SetCommandLineOption("crash_on_fatal_log", "true").empty());
+    MCHECK(!google::SetCommandLineOption("crash_on_fatal_log", "true").empty());
 #endif
     return RUN_ALL_TESTS();
 }

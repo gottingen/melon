@@ -84,11 +84,11 @@ void* process_thread(void* arg) {
                 } else if (errno == EINTR) {
                     continue;
                 } else {
-                    PLOG(FATAL) << "Fail to read fd=" << m->fd;
+                    PMLOG(FATAL) << "Fail to read fd=" << m->fd;
                     return NULL;
                 }
             } else {
-                LOG(FATAL) << "Another end closed fd=" << m->fd;
+                MLOG(FATAL) << "Another end closed fd=" << m->fd;
                 return NULL;
             }
         } while (1);
@@ -129,9 +129,9 @@ void* epoll_thread(void* arg) {
                 continue;
             }
 #if defined(OS_LINUX)
-            PLOG(FATAL) << "Fail to epoll_wait";
+            PMLOG(FATAL) << "Fail to epoll_wait";
 #elif defined(OS_MACOSX)
-            PLOG(FATAL) << "Fail to kevent";
+            PMLOG(FATAL) << "Fail to kevent";
 #endif
             break;
         }
@@ -179,7 +179,7 @@ void* client_thread(void* arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                PLOG(FATAL) << "Fail to write fd=" << m->fd;
+                PMLOG(FATAL) << "Fail to write fd=" << m->fd;
                 return NULL;
             }
         } else {
@@ -287,7 +287,7 @@ TEST(DispatcherTest, dispatch_tasks) {
         all_nfold += em[i]->nfold;
     }
 
-    LOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
+    MLOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
               << "MB/s server_tp=" << server_bytes / (double)tm.u_elapsed()
               << "MB/s nthread=" << all_nthread << " nfold=" << all_nfold;
 

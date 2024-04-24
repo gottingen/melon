@@ -57,17 +57,17 @@ int DHWrapper::copy_public_key(char* pkey, int* pkey_size) const {
     // copy public key to bytes.
     // sometimes, the key_size is 127, seems ok.
     int key_size = BN_num_bytes(pub_key);
-    CHECK_GT(key_size, 0);
+    MCHECK_GT(key_size, 0);
         
     // maybe the key_size is 127, but dh will write all 128bytes pkey,
     // no need to set/initialize the pkey.
     // @see https://github.com/ossrs/srs/issues/165
     key_size = BN_bn2bin(pub_key, (unsigned char*)pkey);
-    CHECK_GT(key_size, 0);
+    MCHECK_GT(key_size, 0);
         
     // output the size of public key.
     // @see https://github.com/ossrs/srs/issues/165
-    CHECK_LE(key_size, *pkey_size);
+    MCHECK_LE(key_size, *pkey_size);
     *pkey_size = key_size;
     return 0;
 }
@@ -76,13 +76,13 @@ int DHWrapper::copy_shared_key(const void* ppkey, int ppkey_size,
                            void* skey, int* skey_size) const {
     BIGNUM* ppk = BN_bin2bn((const unsigned char*)ppkey, ppkey_size, 0);
     if (ppk == NULL) {
-        LOG(ERROR) << "Fail to BN_bin2bn";
+        MLOG(ERROR) << "Fail to BN_bin2bn";
         return -1;
     }
     // @see https://github.com/ossrs/srs/issues/165
     int key_size = DH_compute_key((unsigned char*)skey, ppk, _pdh);
     if (key_size < 0 || key_size > *skey_size) {
-        LOG(ERROR) << "Fail to compute shared key";
+        MLOG(ERROR) << "Fail to compute shared key";
         BN_free(ppk);
         return -1;
     }
@@ -113,7 +113,7 @@ int DHWrapper::do_initialize() {
     
     // Generate private and public key
     if (!DH_generate_key(_pdh)) {
-        LOG(ERROR) << "Fail to DH_generate_key";
+        MLOG(ERROR) << "Fail to DH_generate_key";
         return -1;
     }
     return 0;

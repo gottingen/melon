@@ -107,7 +107,7 @@ std::string ParseCpuInfo() {
   const char kProcessorPrefix[] = "Processor\t: ";
   std::string contents;
   ReadFileToString(FilePath("/proc/cpuinfo"), &contents);
-  DCHECK(!contents.empty());
+  DMCHECK(!contents.empty());
   std::string cpu_brand;
   if (!contents.empty()) {
     std::istringstream iss(contents);

@@ -53,12 +53,12 @@ void* joiner(void* arg) {
     const long t1 = mutil::gettimeofday_us();
     for (fiber_t* th = (fiber_t*)arg; *th; ++th) {
         if (0 != fiber_join(*th, NULL)) {
-            LOG(FATAL) << "fail to join thread_" << th - (fiber_t*)arg;
+            MLOG(FATAL) << "fail to join thread_" << th - (fiber_t*)arg;
         }
         long elp = mutil::gettimeofday_us() - t1;
         EXPECT_LE(labs(elp - (th - (fiber_t*)arg + 1) * 100000L), 15000L)
             << "timeout when joining thread_" << th - (fiber_t*)arg;
-        LOG(INFO) << "Joined thread " << *th << " at " << elp << "us ["
+        MLOG(INFO) << "Joined thread " << *th << " at " << elp << "us ["
                   << fiber_self() << "]";
     }
     for (fiber_t* th = (fiber_t*)arg; *th; ++th) {
@@ -130,7 +130,7 @@ void* waiter(void* arg) {
     } else {
         EXPECT_EQ(wa->expected_result, errno) << fiber_self();
     }
-    LOG(INFO) << "after wait, time=" << (t2-t1) << "us";
+    MLOG(INFO) << "after wait, time=" << (t2-t1) << "us";
     return NULL;
 }
 
@@ -401,12 +401,12 @@ void* trigger_signal(void* arg) {
     for (size_t i = 0; i < 50; ++i) {
       usleep(100000);
       if (fiber::interrupt_pthread(*th) == ESRCH) {
-        LOG(INFO) << "waiter thread end, trigger count=" << i;
+        MLOG(INFO) << "waiter thread end, trigger count=" << i;
         break;
       }
     }
     const long t2 = mutil::gettimeofday_us();
-    LOG(INFO) << "trigger signal thread end, elapsed=" << (t2-t1) << "us";
+    MLOG(INFO) << "trigger signal thread end, elapsed=" << (t2-t1) << "us";
     return NULL;
 }
 
@@ -434,7 +434,7 @@ TEST(ButexTest, wait_with_signal_triggered) {
     ASSERT_EQ(0, pthread_join(waiter_th, NULL));
     tm.stop();
     auto wait_elapsed_ms = tm.m_elapsed();;
-    LOG(INFO) << "waiter thread end, elapsed " << wait_elapsed_ms << " ms";
+    MLOG(INFO) << "waiter thread end, elapsed " << wait_elapsed_ms << " ms";
 
     ASSERT_LT(labs(wait_elapsed_ms - WAIT_MSEC), 250);
 

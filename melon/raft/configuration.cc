@@ -38,7 +38,7 @@ namespace melon::raft {
             melon::raft::PeerId peer;
             peer_str.assign(sp.field(), sp.length());
             if (peer.parse(peer_str) != 0) {
-                LOG(ERROR) << "Fail to parse " << peer_str;
+                MLOG(ERROR) << "Fail to parse " << peer_str;
                 return -1;
             }
             add_peer(peer);

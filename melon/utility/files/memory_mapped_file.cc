@@ -20,7 +20,7 @@ bool MemoryMappedFile::Initialize(const FilePath& file_name) {
   file_.Initialize(file_name, File::FLAG_OPEN | File::FLAG_READ);
 
   if (!file_.IsValid()) {
-    DLOG(ERROR) << "Couldn't open " << file_name.AsUTF8Unsafe();
+    DMLOG(ERROR) << "Couldn't open " << file_name.AsUTF8Unsafe();
     return false;
   }
 

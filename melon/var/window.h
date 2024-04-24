@@ -83,7 +83,7 @@ namespace melon::var {
             WindowBase(R *var, time_t window_size)
                     : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_bvar_dump_interval),
                       _sampler(var->get_sampler()), _series_sampler(NULL) {
-                CHECK_EQ(0, _sampler->set_window_size(_window_size));
+                MCHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
 
             ~WindowBase() {

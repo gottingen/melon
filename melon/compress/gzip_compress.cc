@@ -24,17 +24,17 @@ namespace melon::compress {
 
     static void LogError(const google::protobuf::io::GzipOutputStream &gzip) {
         if (gzip.ZlibErrorMessage()) {
-            LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
+            MLOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
         } else {
-            LOG(WARNING) << "Fail to decompress.";
+            MLOG(WARNING) << "Fail to decompress.";
         }
     }
 
     static void LogError(const google::protobuf::io::GzipInputStream &gzip) {
         if (gzip.ZlibErrorMessage()) {
-            LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
+            MLOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
         } else {
-            LOG(WARNING) << "Fail to decompress.";
+            MLOG(WARNING) << "Fail to decompress.";
         }
     }
 

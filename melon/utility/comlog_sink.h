@@ -103,14 +103,14 @@ struct ComlogSinkOptions {
 // The LogSink to flush logs into comlog. Notice that this is a singleton class.
 // [ Setup from a Configure file ]
 //   if (logging::ComlogSink::GetInstance()->SetupFromConfig("log/log.conf") != 0) {
-//       LOG(ERROR) << "Fail to setup comlog";
+//       MLOG(ERROR) << "Fail to setup comlog";
 //       return -1;
 //   }
 //   logging::SetLogSink(ComlogSink::GetInstance());
 //
 // [ Setup from ComlogSinkOptions ]
 //   if (logging::ComlogSink::GetInstance()->Setup(NULL/*default options*/) != 0) {
-//       LOG(ERROR) << "Fail to setup comlog";
+//       MLOG(ERROR) << "Fail to setup comlog";
 //       return -1;
 //   }
 //   logging::SetLogSink(ComlogSink::GetInstance());

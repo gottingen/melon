@@ -134,7 +134,7 @@ namespace melon::var {
     int CounterRecorder::expose(const mutil::StringPiece &prefix1,
                                 const mutil::StringPiece &prefix2) {
         if (prefix2.empty()) {
-            LOG(ERROR) << "Parameter[prefix2] is empty";
+            MLOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
         mutil::StringPiece prefix = prefix2;
@@ -142,7 +142,7 @@ namespace melon::var {
         if (prefix.ends_with("counter") || prefix.ends_with("Counter")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
-                LOG(ERROR) << "Invalid prefix2=" << prefix2;
+                MLOG(ERROR) << "Invalid prefix2=" << prefix2;
                 return -1;
             }
         }
@@ -199,7 +199,7 @@ namespace melon::var {
         snprintf(namebuf, sizeof(namebuf), "%d%%,%d%%,%d%%,99.9%%",
                  (int) FLAGS_bvar_counter_p1, (int) FLAGS_bvar_counter_p2,
                  (int) FLAGS_bvar_counter_p3);
-        CHECK_EQ(0, _counter_percentiles.set_vector_names(namebuf));
+        MCHECK_EQ(0, _counter_percentiles.set_vector_names(namebuf));
         return 0;
     }
 
@@ -252,27 +252,27 @@ namespace melon::raft {
 
     void run_closure_in_fiber(google::protobuf::Closure *closure,
                                 bool in_pthread) {
-        DCHECK(closure);
+        DMCHECK(closure);
         fiber_t tid;
         fiber_attr_t attr = (in_pthread)
                               ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
         int ret = fiber_start_background(&tid, &attr, run_closure, closure);
         if (0 != ret) {
-            PLOG(ERROR) << "Fail to start fiber";
+            PMLOG(ERROR) << "Fail to start fiber";
             return closure->Run();
         }
     }
 
     void run_closure_in_fiber_nosig(google::protobuf::Closure *closure,
                                       bool in_pthread) {
-        DCHECK(closure);
+        DMCHECK(closure);
         fiber_t tid;
         fiber_attr_t attr = (in_pthread)
                               ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
         attr = attr | FIBER_NOSIGNAL;
         int ret = fiber_start_background(&tid, &attr, run_closure, closure);
         if (0 != ret) {
-            PLOG(ERROR) << "Fail to start fiber";
+            PMLOG(ERROR) << "Fail to start fiber";
             return closure->Run();
         }
     }
@@ -291,7 +291,7 @@ namespace melon::raft {
             } else if (errno == EINTR) {
                 continue;
             } else {
-                LOG(WARNING) << "read failed, err: " << berror()
+                MLOG(WARNING) << "read failed, err: " << berror()
                              << " fd: " << fd << " offset: " << orig_offset << " size: " << size;
                 return -1;
             }
@@ -313,7 +313,7 @@ namespace melon::raft {
             } else if (errno == EINTR) {
                 continue;
             } else {
-                LOG(WARNING) << "write falied, err: " << berror()
+                MLOG(WARNING) << "write falied, err: " << berror()
                              << " fd: " << fd << " offset: " << orig_offset << " size: " << size;
                 return -1;
             }
@@ -333,14 +333,14 @@ namespace melon::raft {
             char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
             if (_seg_len > 0) {
                 ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
-                CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
+                MCHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
             }
 
             // start new segment
             _seg_offset = offset;
             _seg_len = len;
             _seg_header = _data.reserve(sizeof(seg_header));
-            CHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
+            MCHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
             _data.append(data);
         }
     }
@@ -355,14 +355,14 @@ namespace melon::raft {
             char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
             if (_seg_len > 0) {
                 ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
-                CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
+                MCHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
             }
 
             // start new segment
             _seg_offset = offset;
             _seg_len = len;
             _seg_header = _data.reserve(sizeof(seg_header));
-            CHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
+            MCHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
             _data.append(data, len);
         }
     }
@@ -371,7 +371,7 @@ namespace melon::raft {
         char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
         if (_seg_len > 0) {
             ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
-            CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
+            MCHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
         }
 
         _seg_offset = 0;
@@ -386,7 +386,7 @@ namespace melon::raft {
 
         char header_buf[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
         size_t header_len = _data.cutn(header_buf, sizeof(header_buf));
-        CHECK_EQ(header_len, sizeof(header_buf)) << "header_len: " << header_len;
+        MCHECK_EQ(header_len, sizeof(header_buf)) << "header_len: " << header_len;
 
         uint64_t seg_offset = 0;
         uint32_t seg_len = 0;
@@ -394,7 +394,7 @@ namespace melon::raft {
 
         *offset = seg_offset;
         size_t body_len = _data.cutn(data, seg_len);
-        CHECK_EQ(body_len, seg_len) << "seg_len: " << seg_len << " body_len: " << body_len;
+        MCHECK_EQ(body_len, seg_len) << "seg_len: " << seg_len << " body_len: " << body_len;
         return seg_len;
     }
 

@@ -22,22 +22,22 @@ RefCountedThreadSafeBase::RefCountedThreadSafeBase() : ref_count_(0) {
 
 RefCountedThreadSafeBase::~RefCountedThreadSafeBase() {
 #ifndef NDEBUG
-  DCHECK(in_dtor_) << "RefCountedThreadSafe object deleted without "
+  DMCHECK(in_dtor_) << "RefCountedThreadSafe object deleted without "
                       "calling Release()";
 #endif
 }
 
 void RefCountedThreadSafeBase::AddRef() const {
 #ifndef NDEBUG
-  DCHECK(!in_dtor_);
+  DMCHECK(!in_dtor_);
 #endif
   AtomicRefCountInc(&ref_count_);
 }
 
 bool RefCountedThreadSafeBase::Release() const {
 #ifndef NDEBUG
-  DCHECK(!in_dtor_);
-  DCHECK(!AtomicRefCountIsZero(&ref_count_));
+  DMCHECK(!in_dtor_);
+  DMCHECK(!AtomicRefCountIsZero(&ref_count_));
 #endif
   if (!AtomicRefCountDec(&ref_count_)) {
 #ifndef NDEBUG

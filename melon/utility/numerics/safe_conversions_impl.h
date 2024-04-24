@@ -95,7 +95,7 @@ enum RangeConstraint {
 
 // Helper function for coercing an int back to a RangeContraint.
 inline RangeConstraint GetRangeConstraint(int integer_range_constraint) {
-  DCHECK(integer_range_constraint >= RANGE_VALID &&
+  DMCHECK(integer_range_constraint >= RANGE_VALID &&
          integer_range_constraint <= RANGE_INVALID);
   return static_cast<RangeConstraint>(integer_range_constraint);
 }

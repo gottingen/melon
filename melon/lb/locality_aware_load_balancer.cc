@@ -278,7 +278,7 @@ namespace melon::lb {
             // falls into infinite loop. This branch should never be entered in
             // production servers. If it does, there must be a bug.
             if (++nloop > 10000) {
-                LOG(ERROR) << "A selection runs too long!";
+                MLOG(ERROR) << "A selection runs too long!";
                 return EHOSTDOWN;
             }
 

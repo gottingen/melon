@@ -53,12 +53,12 @@ void InitializeGlobalDispatchers() {
             fiber_attr_t attr =
                 FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
             attr.tag = (FIBER_TAG_DEFAULT + i) % FLAGS_task_group_ntags;
-            CHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
+            MCHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
         }
     }
     // This atexit is will be run before g_task_control.stop() because above
     // Start() initializes g_task_control by creating fiber (to run epoll/kqueue).
-    CHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
+    MCHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
 }
 
 EventDispatcher& GetGlobalEventDispatcher(int fd, fiber_tag_t tag) {

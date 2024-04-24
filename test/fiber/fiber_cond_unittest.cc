@@ -273,7 +273,7 @@ TEST(CondTest, ping_pong) {
         ASSERT_EQ(0, fiber_join(threads[i], NULL));
     }
     ProfilerStop();
-    LOG(INFO) << "total_count=" << arg.total_count.load();
+    MLOG(INFO) << "total_count=" << arg.total_count.load();
 }
 
 struct BroadcastArg {
@@ -431,16 +431,16 @@ static void launch_many_fibers() {
         tids.push_back(t0);
     }
     tm.stop();
-    LOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
+    MLOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
     usleep(3 * 1000 * 1000L);
     c.Signal();
     g_stop = true;
     fiber_join(tid, NULL);
     for (size_t i = 0; i < tids.size(); ++i) {
-        LOG_EVERY_SECOND(INFO) << "Joined " << i << " threads";
+        MLOG_EVERY_SECOND(INFO) << "Joined " << i << " threads";
         fiber_join(tids[i], NULL);
     }
-    LOG_EVERY_SECOND(INFO) << "Joined " << tids.size() << " threads";
+    MLOG_EVERY_SECOND(INFO) << "Joined " << tids.size() << " threads";
 }
 
 TEST(CondTest, too_many_fibers_from_pthread) {

@@ -90,7 +90,7 @@ namespace melon::raft {
     int Replicator::start(const ReplicatorOptions &options, ReplicatorId *id) {
         if (options.log_manager == NULL || options.ballot_box == NULL
             || options.node == NULL) {
-            LOG(ERROR) << "Invalid arguments, group " << options.group_id;
+            MLOG(ERROR) << "Invalid arguments, group " << options.group_id;
             return -1;
         }
         Replicator *r = new Replicator();
@@ -98,7 +98,7 @@ namespace melon::raft {
         channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
         channel_opt.timeout_ms = -1; // We don't need RPC timeout
         if (r->_sending_channel.Init(options.peer_id.addr, &channel_opt) != 0) {
-            LOG(ERROR) << "Fail to init sending channel"
+            MLOG(ERROR) << "Fail to init sending channel"
                        << ", group " << options.group_id;
             delete r;
             return -1;
@@ -111,7 +111,7 @@ namespace melon::raft {
         r->_options = options;
         r->_next_index = r->_options.log_manager->last_log_index() + 1;
         if (fiber_session_create(&r->_id, r, _on_error) != 0) {
-            LOG(ERROR) << "Fail to create fiber_session"
+            MLOG(ERROR) << "Fail to create fiber_session"
                        << ", group " << options.group_id;
             delete r;
             return -1;
@@ -122,7 +122,7 @@ namespace melon::raft {
         if (id) {
             *id = r->_id.value;
         }
-        LOG(INFO) << "Replicator=" << r->_id << "@" << r->_options.peer_id << " is started"
+        MLOG(INFO) << "Replicator=" << r->_id << "@" << r->_options.peer_id << " is started"
                   << ", group " << r->_options.group_id;
         r->_catchup_closure = NULL;
         r->_update_last_rpc_send_timestamp(mutil::monotonic_time_ms());
@@ -141,7 +141,7 @@ namespace melon::raft {
         }
         // to run _catchup_closure if it is not NULL
         r->_notify_on_caught_up(EPERM, true);
-        CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+        MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
         return fiber_session_error(dummy_id, ESTOP);
     }
 
@@ -162,9 +162,9 @@ namespace melon::raft {
             return;
         }
         if (r->_catchup_closure != NULL) {
-            CHECK_EQ(0, fiber_session_unlock(dummy_id))
+            MCHECK_EQ(0, fiber_session_unlock(dummy_id))
                 << "Fail to unlock " << dummy_id;
-            LOG(ERROR) << "Previous wait_for_caught_up is not over"
+            MLOG(ERROR) << "Previous wait_for_caught_up is not over"
                        << ", group " << r->_options.group_id;
             done->status().set_error(EINVAL, "Duplicated call");
             run_closure_in_fiber(done);
@@ -172,10 +172,10 @@ namespace melon::raft {
         }
         done->_max_margin = max_margin;
         if (r->_has_succeeded && r->_is_catchup(max_margin)) {
-            LOG(INFO) << "Already catch up before add catch up timer"
+            MLOG(INFO) << "Already catch up before add catch up timer"
                       << ", group " << r->_options.group_id;
             run_closure_in_fiber(done);
-            CHECK_EQ(0, fiber_session_unlock(dummy_id))
+            MCHECK_EQ(0, fiber_session_unlock(dummy_id))
                 << "Fail to unlock" << dummy_id;
             return;
         }
@@ -185,8 +185,8 @@ namespace melon::raft {
                                   *due_time,
                                   _on_catch_up_timedout,
                                   (void *) id) != 0) {
-                CHECK_EQ(0, fiber_session_unlock(dummy_id));
-                LOG(ERROR) << "Fail to add timer";
+                MCHECK_EQ(0, fiber_session_unlock(dummy_id));
+                MLOG(ERROR) << "Fail to add timer";
                 done->status().set_error(EINVAL, "Duplicated call");
                 run_closure_in_fiber(done);
                 return;
@@ -194,7 +194,7 @@ namespace melon::raft {
         }
         r->_catchup_closure = done;
         // success
-        CHECK_EQ(0, fiber_session_unlock(dummy_id))
+        MCHECK_EQ(0, fiber_session_unlock(dummy_id))
             << "Fail to unlock " << dummy_id;
         return;
     }
@@ -215,7 +215,7 @@ namespace melon::raft {
         fiber_t tid;
         if (fiber_start_background(
                 &tid, NULL, _on_block_timedout_in_new_thread, arg) != 0) {
-            PLOG(ERROR) << "Fail to start fiber";
+            PMLOG(ERROR) << "Fail to start fiber";
             _on_block_timedout_in_new_thread(arg);
         }
     }
@@ -224,7 +224,7 @@ namespace melon::raft {
         // mainly for pipeline case, to avoid too many block timer when this
         // replicator is something wrong
         if (_st.st == BLOCKING) {
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             return;
         }
 
@@ -248,10 +248,10 @@ namespace melon::raft {
             BRAFT_VLOG << "Blocking " << _options.peer_id << " for "
                        << blocking_time << "ms" << ", group " << _options.group_id;
             _st.st = BLOCKING;
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             return;
         } else {
-            LOG(ERROR) << "Fail to add timer, " << berror(rc);
+            MLOG(ERROR) << "Fail to add timer, " << berror(rc);
             // _id is unlock in _send_empty_entries
             return _send_empty_entries(false);
         }
@@ -289,7 +289,7 @@ namespace melon::raft {
             << " _consecutive_error_times=" << r->_consecutive_error_times
             << ", " << cntl->ErrorText();
             r->_start_heartbeat_timer(start_time_us);
-            CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+            MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
             return;
         }
         r->_consecutive_error_times = 0;
@@ -303,7 +303,7 @@ namespace melon::raft {
             // after _notify_on_caught_up.
             node_impl->AddRef();
             r->_notify_on_caught_up(EPERM, true);
-            LOG(INFO) << "Replicator=" << dummy_id << " is going to quit"
+            MLOG(INFO) << "Replicator=" << dummy_id << " is going to quit"
                       << ", group " << r->_options.group_id;
             mutil::Status status;
             status.set_error(EHIGHERTERMRESPONSE, "Leader receives higher term "
@@ -327,12 +327,12 @@ namespace melon::raft {
             node_impl->AddRef();
         }
         if (!node_impl) {
-            CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+            MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
             return;
         }
         const PeerId peer_id = r->_options.peer_id;
         int64_t term = r->_options.term;
-        CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+        MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
         node_impl->change_readonly_config(term, peer_id, readonly);
         node_impl->Release();
         return;
@@ -361,7 +361,7 @@ namespace melon::raft {
         bool valid_rpc = false;
         int64_t rpc_first_index = request->prev_log_index() + 1;
         int64_t min_flying_index = r->_min_flying_index();
-        CHECK_GT(min_flying_index, 0);
+        MCHECK_GT(min_flying_index, 0);
 
         for (std::deque<FlyingAppendEntriesRpc>::iterator rpc_it = r->_append_entries_in_fly.begin();
              rpc_it != r->_append_entries_in_fly.end(); ++rpc_it) {
@@ -375,7 +375,7 @@ namespace melon::raft {
         if (!valid_rpc) {
             ss << " ignore invalid rpc";
             BRAFT_VLOG << ss.str();
-            CHECK_EQ(0, fiber_session_unlock(r->_id)) << "Fail to unlock " << r->_id;
+            MCHECK_EQ(0, fiber_session_unlock(r->_id)) << "Fail to unlock " << r->_id;
             return;
         }
 
@@ -438,7 +438,7 @@ namespace melon::raft {
                                << " log_index=" << r->_next_index << " mismatch";
                     --r->_next_index;
                 } else {
-                    LOG(ERROR) << "Group " << r->_options.group_id
+                    MLOG(ERROR) << "Group " << r->_options.group_id
                                << " peer=" << r->_options.peer_id
                                << " declares that log at index=0 doesn't match,"
                                   " which is not supposed to happen";
@@ -453,11 +453,11 @@ namespace melon::raft {
         BRAFT_VLOG << ss.str();
 
         if (response->term() != r->_options.term) {
-            LOG(ERROR) << "Group " << r->_options.group_id
+            MLOG(ERROR) << "Group " << r->_options.group_id
                        << " fail, response term " << response->term()
                        << " mismatch, expect term " << r->_options.term;
             r->_reset_next_index();
-            CHECK_EQ(0, fiber_session_unlock(r->_id)) << "Fail to unlock " << r->_id;
+            MCHECK_EQ(0, fiber_session_unlock(r->_id)) << "Fail to unlock " << r->_id;
             return;
         }
         r->_update_last_rpc_send_timestamp(rpc_send_time);
@@ -475,7 +475,7 @@ namespace melon::raft {
             int64_t rpc_latency_us = cntl->latency_us();
             if (FLAGS_raft_trace_append_entry_latency &&
                 rpc_latency_us > FLAGS_raft_append_entry_high_lat_us) {
-                LOG(WARNING) << "append entry rpc latency us " << rpc_latency_us
+                MLOG(WARNING) << "append entry rpc latency us " << rpc_latency_us
                              << " greater than "
                              << FLAGS_raft_append_entry_high_lat_us
                              << " Group " << r->_options.group_id
@@ -513,7 +513,7 @@ namespace melon::raft {
         const int64_t prev_log_term = _options.log_manager->get_term(prev_log_index);
         if (prev_log_term == 0 && prev_log_index != 0) {
             if (!is_heartbeat) {
-                CHECK_LT(prev_log_index, _options.log_manager->first_log_index());
+                MCHECK_LT(prev_log_index, _options.log_manager->first_log_index());
                 BRAFT_VLOG << "Group " << _options.group_id
                            << " log_index=" << prev_log_index << " was compacted";
                 return -1;
@@ -542,7 +542,7 @@ namespace melon::raft {
         std::unique_ptr<AppendEntriesResponse> response(new AppendEntriesResponse);
         if (_fill_common_fields(
                 request.get(), _next_index - 1, is_heartbeat) != 0) {
-            CHECK(!is_heartbeat);
+            MCHECK(!is_heartbeat);
             // _id is unlock in _install_snapshot
             return _install_snapshot();
         }
@@ -555,8 +555,8 @@ namespace melon::raft {
             _st.st = APPENDING_ENTRIES;
             _st.first_log_index = _next_index;
             _st.last_log_index = _next_index - 1;
-            CHECK(_append_entries_in_fly.empty());
-            CHECK_EQ(_flying_append_entries_size, 0);
+            MCHECK(_append_entries_in_fly.empty());
+            MCHECK_EQ(_flying_append_entries_size, 0);
             _append_entries_in_fly.push_back(FlyingAppendEntriesRpc(_next_index, 0, cntl->call_id()));
             _append_entries_counter++;
         }
@@ -575,7 +575,7 @@ namespace melon::raft {
         RaftService_Stub stub(&_sending_channel);
         stub.append_entries(cntl.release(), request.release(),
                             response.release(), done);
-        CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+        MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
     }
 
     int Replicator::_prepare_entry(int offset, EntryMeta *em, mutil::IOBuf *data) {
@@ -600,7 +600,7 @@ namespace melon::raft {
         em->set_term(entry->id.term);
         em->set_type(entry->type);
         if (entry->peers != NULL) {
-            CHECK(!entry->peers->empty()) << "log_index=" << log_index;
+            MCHECK(!entry->peers->empty()) << "log_index=" << log_index;
             for (size_t i = 0; i < entry->peers->size(); ++i) {
                 em->add_peers((*entry->peers)[i].to_string());
             }
@@ -610,7 +610,7 @@ namespace melon::raft {
                 }
             }
         } else {
-            CHECK(entry->type != ENTRY_TYPE_CONFIGURATION) << "log_index=" << log_index;
+            MCHECK(entry->type != ENTRY_TYPE_CONFIGURATION) << "log_index=" << log_index;
         }
         if (!is_witness() || FLAGS_raft_enable_witness_to_leader) {
             em->set_data_len(entry->data.length());
@@ -628,7 +628,7 @@ namespace melon::raft {
                        << " skip sending AppendEntriesRequest to " << _options.peer_id
                        << ", too many requests in flying, or the replicator is in block,"
                        << " next_index " << _next_index << " flying_size " << _flying_append_entries_size;
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             return;
         }
 
@@ -642,7 +642,7 @@ namespace melon::raft {
         EntryMeta em;
         const int max_entries_size = FLAGS_raft_max_entries_size - _flying_append_entries_size;
         int prepare_entry_rc = 0;
-        CHECK_GT(max_entries_size, 0);
+        MCHECK_GT(max_entries_size, 0);
         for (int i = 0; i < max_entries_size; ++i) {
             prepare_entry_rc = _prepare_entry(i, &em, &cntl->request_attachment());
             if (prepare_entry_rc != 0) {
@@ -663,7 +663,7 @@ namespace melon::raft {
                 if (_flying_append_entries_size == 0) {
                     _st.st = IDLE;
                 }
-                CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+                MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
                 return;
             }
             return _wait_more_entries();
@@ -729,7 +729,7 @@ namespace melon::raft {
                        << " Replicator=" << id << " canceled waiter";
             fiber_session_unlock(id);
         } else {
-            LOG(WARNING) << "Group " << r->_options.group_id
+            MLOG(WARNING) << "Group " << r->_options.group_id
                          << " Replicator=" << id << " stops sending entries";
             fiber_session_unlock(id);
         }
@@ -748,7 +748,7 @@ namespace melon::raft {
         if (_flying_append_entries_size == 0) {
             _st.st = IDLE;
         }
-        CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+        MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
     }
 
     void Replicator::_install_snapshot() {
@@ -761,10 +761,10 @@ namespace melon::raft {
             // one possible case is:
             //     enable -> install_snapshot -> disable -> wait_more_entries ->
             //     install_snapshot again
-            LOG(WARNING) << "node " << _options.group_id << ":" << _options.server_id
+            MLOG(WARNING) << "node " << _options.group_id << ":" << _options.server_id
                          << " refuse to send InstallSnapshotRequest to " << _options.peer_id
                          << " because there is an running one";
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             return;
         }
 
@@ -784,7 +784,7 @@ namespace melon::raft {
             }
             NodeImpl *node_impl = _options.node;
             node_impl->AddRef();
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             melon::raft::Error e;
             e.set_type(ERROR_TYPE_SNAPSHOT);
             e.status().set_error(EIO, "Fail to open snapshot");
@@ -797,7 +797,7 @@ namespace melon::raft {
         // immediately(making raft Node error), as FileSystemAdaptor layer of _reader is
         // user defined and may need some control logic when opened
         if (uri.empty()) {
-            LOG(WARNING) << "node " << _options.group_id << ":" << _options.server_id
+            MLOG(WARNING) << "node " << _options.group_id << ":" << _options.server_id
                          << " refuse to send InstallSnapshotRequest to " << _options.peer_id
                          << " because snapshot uri is empty";
             _close_reader();
@@ -809,7 +809,7 @@ namespace melon::raft {
             std::string snapshot_path = _reader->get_path();
             NodeImpl *node_impl = _options.node;
             node_impl->AddRef();
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             melon::raft::Error e;
             e.set_type(ERROR_TYPE_SNAPSHOT);
             e.status().set_error(EIO, "Fail to load meta from " + snapshot_path);
@@ -829,7 +829,7 @@ namespace melon::raft {
         request->mutable_meta()->CopyFrom(meta);
         request->set_uri(uri);
 
-        LOG(INFO) << "node " << _options.group_id << ":" << _options.server_id
+        MLOG(INFO) << "node " << _options.group_id << ":" << _options.server_id
                   << " send InstallSnapshotRequest to " << _options.peer_id
                   << " term " << _options.term << " last_included_term " << meta.last_included_term()
                   << " last_included_index " << meta.last_included_index() << " uri " << uri;
@@ -845,7 +845,7 @@ namespace melon::raft {
                 cntl, request, response);
         RaftService_Stub stub(&_sending_channel);
         stub.install_snapshot(cntl, request, response, done);
-        CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+        MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
     }
 
     void Replicator::_on_install_snapshot_returned(
@@ -876,7 +876,7 @@ namespace melon::raft {
         do {
             if (cntl->Failed()) {
                 ss << " error: " << cntl->ErrorText();
-                LOG(INFO) << ss.str();
+                MLOG(INFO) << ss.str();
 
                 LOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
                 << "Group " << r->_options.group_id
@@ -889,14 +889,14 @@ namespace melon::raft {
             if (!response->success()) {
                 succ = false;
                 ss << " fail.";
-                LOG(INFO) << ss.str();
+                MLOG(INFO) << ss.str();
                 // Let heartbeat do step down
                 break;
             }
             // Success
             r->_next_index = request->meta().last_included_index() + 1;
             ss << " success.";
-            LOG(INFO) << ss.str();
+            MLOG(INFO) << ss.str();
         } while (0);
 
         // We don't retry installing the snapshot explicitly.
@@ -983,7 +983,7 @@ namespace melon::raft {
             r->_options.log_manager->remove_waiter(r->_wait_id);
             r->_notify_on_caught_up(error_code, true);
             r->_wait_id = 0;
-            LOG(INFO) << "Group " << r->_options.group_id
+            MLOG(INFO) << "Group " << r->_options.group_id
                       << " Replicator=" << id << " is going to quit";
             r->_destroy();
             return 0;
@@ -991,18 +991,18 @@ namespace melon::raft {
             // This error is issued in the TimerThread, start a new fiber to avoid
             // blocking the caller.
             // Unlock id to remove the context-switch out of the critical section
-            CHECK_EQ(0, fiber_session_unlock(id)) << "Fail to unlock" << id;
+            MCHECK_EQ(0, fiber_session_unlock(id)) << "Fail to unlock" << id;
             fiber_t tid;
             if (fiber_start_urgent(&tid, NULL, _send_heartbeat,
                                      reinterpret_cast<void *>(id.value)) != 0) {
-                PLOG(ERROR) << "Fail to start fiber";
+                PMLOG(ERROR) << "Fail to start fiber";
                 _send_heartbeat(reinterpret_cast<void *>(id.value));
             }
             return 0;
         } else {
-            CHECK(false) << "Group " << r->_options.group_id
+            MCHECK(false) << "Group " << r->_options.group_id
                          << " Unknown error_code=" << error_code;
-            CHECK_EQ(0, fiber_session_unlock(id)) << "Fail to unlock " << id;
+            MCHECK_EQ(0, fiber_session_unlock(id)) << "Fail to unlock " << id;
             return -1;
         }
     }
@@ -1011,11 +1011,11 @@ namespace melon::raft {
         fiber_session_t id = {(uint64_t) arg};
         Replicator *r = NULL;
         if (fiber_session_lock(id, (void **) &r) != 0) {
-            LOG(WARNING) << "Replicator is destroyed when catch_up_timedout.";
+            MLOG(WARNING) << "Replicator is destroyed when catch_up_timedout.";
             return;
         }
         r->_notify_on_caught_up(ETIMEDOUT, false);
-        CHECK_EQ(0, fiber_session_unlock(id))
+        MCHECK_EQ(0, fiber_session_unlock(id))
             << "Fail to unlock" << id;
     }
 
@@ -1039,7 +1039,7 @@ namespace melon::raft {
         }
         // dummy is unlock in _transfer_leadership
         r->_timeout_now_index = 0;
-        CHECK_EQ(0, fiber_session_unlock(dummy)) << "Fail to unlock " << dummy;
+        MCHECK_EQ(0, fiber_session_unlock(dummy)) << "Fail to unlock " << dummy;
         return 0;
     }
 
@@ -1052,7 +1052,7 @@ namespace melon::raft {
         // Register log_index so that _on_rpc_returned trigger
         // _send_timeout_now if _min_flying_index reaches log_index
         _timeout_now_index = log_index;
-        CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+        MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
         return 0;
     }
 
@@ -1101,7 +1101,7 @@ namespace melon::raft {
                 old_leader_stepped_down);
         stub.timeout_now(cntl, request, response, done);
         if (unlock_id) {
-            CHECK_EQ(0, fiber_session_unlock(_id));
+            MCHECK_EQ(0, fiber_session_unlock(_id));
         }
     }
 
@@ -1132,7 +1132,7 @@ namespace melon::raft {
                 r->_notify_on_caught_up(ESTOP, true);
                 r->_destroy();
             } else {
-                CHECK_EQ(0, fiber_session_unlock(dummy_id));
+                MCHECK_EQ(0, fiber_session_unlock(dummy_id));
             }
             return;
         }
@@ -1158,7 +1158,7 @@ namespace melon::raft {
             r->_notify_on_caught_up(ESTOP, true);
             r->_destroy();
         } else {
-            CHECK_EQ(0, fiber_session_unlock(dummy_id));
+            MCHECK_EQ(0, fiber_session_unlock(dummy_id));
         }
     }
 
@@ -1183,7 +1183,7 @@ namespace melon::raft {
         if (r->_has_succeeded) {
             next_index = r->_next_index - r->_flying_append_entries_size;
         }
-        CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+        MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
         return next_index;
     }
 
@@ -1194,7 +1194,7 @@ namespace melon::raft {
             return -1;
         }
         int consecutive_error_times = r->_consecutive_error_times;
-        CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+        MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
         return consecutive_error_times;
     }
 
@@ -1214,19 +1214,19 @@ namespace melon::raft {
             BRAFT_VLOG << "node " << _options.group_id << ":" << _options.server_id
                        << " ignore change readonly config of " << _options.peer_id
                        << " to " << readonly << ", readonly_index " << _readonly_index;
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
             return 0;
         }
         if (readonly) {
             // Keep a readonly index here to make sure the pending logs can be committed.
             _readonly_index = _options.log_manager->last_log_index() + 1;
-            LOG(INFO) << "node " << _options.group_id << ":" << _options.server_id
+            MLOG(INFO) << "node " << _options.group_id << ":" << _options.server_id
                       << " enable readonly for " << _options.peer_id
                       << ", readonly_index " << _readonly_index;
-            CHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
+            MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
         } else {
             _readonly_index = 0;
-            LOG(INFO) << "node " << _options.group_id << ":" << _options.server_id
+            MLOG(INFO) << "node " << _options.group_id << ":" << _options.server_id
                       << " disable readonly for " << _options.peer_id;
             _wait_more_entries();
         }
@@ -1240,15 +1240,15 @@ namespace melon::raft {
             return 0;
         }
         bool readonly = (r->_readonly_index != 0);
-        CHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
+        MCHECK_EQ(0, fiber_session_unlock(dummy_id)) << "Fail to unlock " << dummy_id;
         return readonly;
     }
 
     void Replicator::_destroy() {
         fiber_session_t saved_id = _id;
-        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_id));
+        MCHECK_EQ(0, fiber_session_unlock_and_destroy(saved_id));
         // TODO: Add more information
-        LOG(INFO) << "Replicator=" << saved_id << " is going to quit";
+        MLOG(INFO) << "Replicator=" << saved_id << " is going to quit";
         delete this;
     }
 
@@ -1263,7 +1263,7 @@ namespace melon::raft {
         const int64_t append_entries_counter = _append_entries_counter;
         const int64_t install_snapshot_counter = _install_snapshot_counter;
         const int64_t readonly_index = _readonly_index;
-        CHECK_EQ(0, fiber_session_unlock(_id));
+        MCHECK_EQ(0, fiber_session_unlock(_id));
         // Don't touch *this ever after
         const char *new_line = use_html ? "<br>" : "\r\n";
         os << "replicator_" << id << '@' << peer_id << ':';
@@ -1303,7 +1303,7 @@ namespace melon::raft {
         status->last_rpc_send_timestamp = _last_rpc_send_timestamp();
         status->consecutive_error_times = _consecutive_error_times;
         status->readonly_index = _readonly_index;
-        CHECK_EQ(0, fiber_session_unlock(_id));
+        MCHECK_EQ(0, fiber_session_unlock(_id));
     }
 
     void Replicator::describe(ReplicatorId id, std::ostream &os, bool use_html) {
@@ -1370,7 +1370,7 @@ namespace melon::raft {
     }
 
     int ReplicatorGroup::add_replicator(const PeerId &peer) {
-        CHECK_NE(0, _common_options.term);
+        MCHECK_NE(0, _common_options.term);
         if (_rmap.find(peer) != _rmap.end()) {
             return 0;
         }
@@ -1379,7 +1379,7 @@ namespace melon::raft {
         options.replicator_status = new ReplicatorStatus;
         ReplicatorId rid;
         if (Replicator::start(options, &rid) != 0) {
-            LOG(ERROR) << "Group " << options.group_id
+            MLOG(ERROR) << "Group " << options.group_id
                        << " Fail to start replicator to peer=" << peer;
             delete options.replicator_status;
             return -1;
@@ -1440,7 +1440,7 @@ namespace melon::raft {
 
     int ReplicatorGroup::reset_term(int64_t new_term) {
         if (new_term <= _common_options.term) {
-            CHECK_GT(new_term, _common_options.term) << "term cannot be decreased";
+            MCHECK_GT(new_term, _common_options.term) << "term cannot be decreased";
             return -1;
         }
         _common_options.term = new_term;
@@ -1486,11 +1486,11 @@ namespace melon::raft {
         PeerId candidate_id;
         const int rc = find_the_next_candidate(&candidate_id, conf);
         if (rc == 0) {
-            LOG(INFO) << "Group " << _common_options.group_id
+            MLOG(INFO) << "Group " << _common_options.group_id
                       << " Found " << candidate_id << " as the next candidate";
             *candidate = _rmap[candidate_id].id;
         } else {
-            LOG(INFO) << "Group " << _common_options.group_id
+            MLOG(INFO) << "Group " << _common_options.group_id
                       << " Fail to find the next candidate";
         }
         for (std::map<PeerId, ReplicatorIdAndStatus>::const_iterator

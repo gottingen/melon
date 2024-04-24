@@ -34,7 +34,7 @@ namespace melon::raft {
         }
         LogEntry *temp = _log_entry_data[index - _first_log_index.load(mutil::memory_order_relaxed)];
         temp->AddRef();
-        CHECK(temp->id.index == index) << "get_entry entry index not equal. logentry index:"
+        MCHECK(temp->id.index == index) << "get_entry entry index not equal. logentry index:"
                                        << temp->id.index << " required_index:" << index;
         lck.unlock();
         return temp;
@@ -47,7 +47,7 @@ namespace melon::raft {
             return 0;
         }
         LogEntry *temp = _log_entry_data.at(index - _first_log_index.load(mutil::memory_order_relaxed));
-        CHECK(temp->id.index == index) << "get_term entry index not equal. logentry index:"
+        MCHECK(temp->id.index == index) << "get_term entry index not equal. logentry index:"
                                        << temp->id.index << " required_index:" << index;
         int64_t ret = temp->id.term;
         lck.unlock();
@@ -58,7 +58,7 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (input_entry->id.index !=
             _last_log_index.load(mutil::memory_order_relaxed) + 1) {
-            CHECK(false) << "input_entry index=" << input_entry->id.index
+            MCHECK(false) << "input_entry index=" << input_entry->id.index
                          << " _last_log_index=" << _last_log_index
                          << " _first_log_index=" << _first_log_index;
             return ERANGE;
@@ -134,7 +134,7 @@ namespace melon::raft {
 
     int MemoryLogStorage::reset(const int64_t next_log_index) {
         if (next_log_index <= 0) {
-            LOG(ERROR) << "Invalid next_log_index=" << next_log_index;
+            MLOG(ERROR) << "Invalid next_log_index=" << next_log_index;
             return EINVAL;
         }
         std::deque<LogEntry *> popped;

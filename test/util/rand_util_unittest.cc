@@ -127,7 +127,7 @@ TEST(RandUtilTest, RandGeneratorIsUniform) {
     const int kMaxAttempts = 1000000;
 
     for (int round = 0; round < 2; ++round) {
-        LOG(INFO) << "Use " << (round == 0 ? "RandUtil" : "fast_rand");
+        MLOG(INFO) << "Use " << (round == 0 ? "RandUtil" : "fast_rand");
         double cumulative_average = 0.0;
         int count = 0;
         while (count < kMaxAttempts) {
@@ -158,7 +158,7 @@ TEST(RandUtilTest, RandUint64ProducesBothValuesOfAllBits) {
     const uint64_t kAllOnes = ~kAllZeros;
 
     for (int round = 0; round < 2; ++round) {
-        LOG(INFO) << "Use " << (round == 0 ? "RandUtil" : "fast_rand");
+        MLOG(INFO) << "Use " << (round == 0 ? "RandUtil" : "fast_rand");
         uint64_t found_ones = kAllZeros;
         uint64_t found_zeros = kAllOnes;
         bool fail = true;
@@ -194,7 +194,7 @@ TEST(RandUtilTest, DISABLED_RandBytesPerf) {
     }
     const mutil::TimeTicks end = mutil::TimeTicks::HighResNow();
 
-    LOG(INFO) << "RandBytes(" << kTestBufferSize << ") took: "
+    MLOG(INFO) << "RandBytes(" << kTestBufferSize << ") took: "
               << (end - now).InMicroseconds() << "ms";
 }
 
@@ -208,7 +208,7 @@ TEST(RandUtilTest, fast_rand_perf) {
         s += mutil::fast_rand_less_than(kRange);
     }
     tm.stop();
-    LOG(INFO) << "Each fast_rand_less_than took " << tm.n_elapsed() / kTestIterations
+    MLOG(INFO) << "Each fast_rand_less_than took " << tm.n_elapsed() / kTestIterations
               << " ns, s=" << s
 #if !defined(NDEBUG)
               << " (debugging version)";

@@ -51,7 +51,7 @@ void SetCrashKeyValue(const mutil::StringPiece& key,
 
   const CrashKey* crash_key = LookupCrashKey(key);
 
-  DCHECK(crash_key) << "All crash keys must be registered before use "
+  DMCHECK(crash_key) << "All crash keys must be registered before use "
                     << "(key = " << key << ")";
 
   // Handle the un-chunked case.
@@ -121,7 +121,7 @@ void SetCrashKeyFromAddresses(const mutil::StringPiece& key,
     value = JoinString(hex_backtrace, ' ');
 
     // Warn if this exceeds the breakpad limits.
-    DCHECK_LE(value.length(), kBreakpadValueMax);
+    DMCHECK_LE(value.length(), kBreakpadValueMax);
   }
 
   SetCrashKeyValue(key, value);
@@ -139,7 +139,7 @@ ScopedCrashKey::~ScopedCrashKey() {
 
 size_t InitCrashKeys(const CrashKey* const keys, size_t count,
                      size_t chunk_max_length) {
-  DCHECK(!g_crash_keys_) << "Crash logging may only be initialized once";
+  DMCHECK(!g_crash_keys_) << "Crash logging may only be initialized once";
   if (!keys) {
     delete g_crash_keys_;
     g_crash_keys_ = NULL;
@@ -153,9 +153,9 @@ size_t InitCrashKeys(const CrashKey* const keys, size_t count,
   for (size_t i = 0; i < count; ++i) {
     g_crash_keys_->emplace(keys[i].key_name, keys[i]);
     total_keys += NumChunksForLength(keys[i].max_length);
-    DCHECK_LT(keys[i].max_length, kLargestValueAllowed);
+    DMCHECK_LT(keys[i].max_length, kLargestValueAllowed);
   }
-  DCHECK_EQ(count, g_crash_keys_->size())
+  DMCHECK_EQ(count, g_crash_keys_->size())
       << "Duplicate crash keys were registered";
 
   return total_keys;

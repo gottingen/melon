@@ -84,7 +84,7 @@ namespace melon::var {
 // Example:
 //   IntRecorder latency;
 //   latency << 1 << 3 << 5;
-//   CHECK_EQ(3, latency.average());
+//   MCHECK_EQ(3, latency.average());
     class IntRecorder : public Variable {
     public:
         // Compressing format:
@@ -253,19 +253,19 @@ namespace melon::var {
             // Truncate to be max or min of int. We're using 44 bits to store the
             // sum thus following aggregations are not likely to be over/underflow.
             if (!name().empty()) {
-                LOG(WARNING) << "Input=" << sample << " to `" << name()
+                MLOG(WARNING) << "Input=" << sample << " to `" << name()
                              << "\' " << reason;
             } else if (!_debug_name.empty()) {
-                LOG(WARNING) << "Input=" << sample << " to `" << _debug_name
+                MLOG(WARNING) << "Input=" << sample << " to `" << _debug_name
                              << "\' " << reason;
             } else {
-                LOG(WARNING) << "Input=" << sample << " to IntRecorder("
+                MLOG(WARNING) << "Input=" << sample << " to IntRecorder("
                              << (void *) this << ") " << reason;
             }
         }
         agent_type *agent = _combiner.get_or_create_tls_agent();
         if (MELON_UNLIKELY(!agent)) {
-            LOG(FATAL) << "Fail to create agent";
+            MLOG(FATAL) << "Fail to create agent";
             return *this;
         }
         uint64_t n;

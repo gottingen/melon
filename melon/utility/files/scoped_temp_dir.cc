@@ -14,7 +14,7 @@ ScopedTempDir::ScopedTempDir() {
 
 ScopedTempDir::~ScopedTempDir() {
   if (!path_.empty() && !Delete())
-    DLOG(WARNING) << "Could not delete temp dir in dtor.";
+    DMLOG(WARNING) << "Could not delete temp dir in dtor.";
 }
 
 bool ScopedTempDir::CreateUniqueTempDir() {

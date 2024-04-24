@@ -74,7 +74,7 @@ namespace melon::raft {
                    << ", buffer_offset " << _buffer_offset
                    << " buffer_size " << _buffer_size;
         if (offset < _buffer_offset || offset > off_t(_buffer_offset + _buffer_size)) {
-            LOG(WARNING) << "Fail to read from buffered file adaptor with invalid range"
+            MLOG(WARNING) << "Fail to read from buffered file adaptor with invalid range"
                          << ", buffer_offset: " << _buffer_offset
                          << ", buffer_size: " << _buffer_size
                          << ", read offset: " << offset
@@ -122,7 +122,7 @@ namespace melon::raft {
                    << ", buffer_offset " << _buffer_offset
                    << ", buffer_size " << _buffer_size;
         if (offset < _buffer_offset + _buffer_size) {
-            LOG(WARNING) << "Fail to write into buffered file adaptor with invalid range"
+            MLOG(WARNING) << "Fail to write into buffered file adaptor with invalid range"
                          << ", offset: " << offset
                          << ", data_size: " << data.size()
                          << ", buffer_offset: " << _buffer_offset
@@ -131,7 +131,7 @@ namespace melon::raft {
             return -1;
         } else if (offset > _buffer_offset + _buffer_size) {
             // passby hole
-            CHECK(_buffer_size == 0);
+            MCHECK(_buffer_size == 0);
             BRAFT_VLOG << "seek to new offset " << offset << " as there is hole";
             seek(offset);
         }
@@ -149,7 +149,7 @@ namespace melon::raft {
             _buffer_offset += write_count;
             _buffer_size -= write_count;
             _buffer.pop_front(write_count);
-            CHECK_EQ(_buffer_size, _buffer.size());
+            MCHECK_EQ(_buffer_size, _buffer.size());
         }
         return saved_size;
     }
@@ -294,7 +294,7 @@ namespace melon::raft {
                 continue;
             }
             full_path = full_path.Append(*i);
-            DLOG(INFO) << "Creating " << full_path.value();
+            DMLOG(INFO) << "Creating " << full_path.value();
             if (!fs->create_directory(full_path.value(), error, false)) {
                 return false;
             }

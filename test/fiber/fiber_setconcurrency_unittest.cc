@@ -117,11 +117,11 @@ TEST(FiberTest, setconcurrency_with_running_fiber) {
     for (size_t i = 0; i < tids.size(); ++i) {
         fiber_join(tids[i], NULL);
     }
-    LOG(INFO) << "All fibers has quit";
+    MLOG(INFO) << "All fibers has quit";
     ASSERT_EQ(2*N, nfibers);
     // This is not necessarily true, not all workers need to run sth.
     //ASSERT_EQ(N, npthreads);
-    LOG(INFO) << "Touched pthreads=" << npthreads;
+    MLOG(INFO) << "Touched pthreads=" << npthreads;
 }
 
 void* sleep_proc(void*) {

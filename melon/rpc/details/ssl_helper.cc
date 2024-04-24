@@ -79,7 +79,7 @@ static int ParseSSLProtocols(const std::string& str_protocol) {
         } else if (strncasecmp(protocol.data(), "TLSv1.2", protocol.size()) == 0) {
             protocol_flag |= TLSv1_2;
         } else {
-            LOG(ERROR) << "Unknown SSL protocol=" << protocol;
+            MLOG(ERROR) << "Unknown SSL protocol=" << protocol;
             return -1;
         }
     }
@@ -134,7 +134,7 @@ static void SSLInfoCallback(const SSL* ssl, int where, int ret) {
     if (where & SSL_CB_HANDSHAKE_START) {
         if (s->ssl_state() == SSL_CONNECTED) {
             // Disable renegotiation (CVE-2009-3555)
-            LOG(ERROR) << "Close " << *s << " due to insecure "
+            MLOG(ERROR) << "Close " << *s << " due to insecure "
                        << "renegotiation detected (CVE-2009-3555)";
             s->SetFailed();
         }
@@ -284,7 +284,7 @@ static int LoadCertificate(SSL_CTX* ctx,
         std::unique_ptr<EVP_PKEY, FreeEVPKEY> key(
             PEM_read_bio_PrivateKey(kbio.get(), NULL, 0, NULL));
         if (SSL_CTX_use_PrivateKey(ctx, key.get()) != 1) {
-            LOG(ERROR) << "Fail to load " << private_key << ": "
+            MLOG(ERROR) << "Fail to load " << private_key << ": "
                        << SSLError(ERR_get_error());
             return -1;
         }
@@ -292,7 +292,7 @@ static int LoadCertificate(SSL_CTX* ctx,
     } else {
         if (SSL_CTX_use_PrivateKey_file(
                 ctx, private_key.c_str(), SSL_FILETYPE_PEM) != 1) {
-            LOG(ERROR) << "Fail to load " << private_key << ": "
+            MLOG(ERROR) << "Fail to load " << private_key << ": "
                        << SSLError(ERR_get_error());
             return -1;
         }
@@ -305,7 +305,7 @@ static int LoadCertificate(SSL_CTX* ctx,
     } else {
         cbio.reset(BIO_new(BIO_s_file()));
         if (BIO_read_filename(cbio.get(), certificate.c_str()) <= 0) {
-            LOG(ERROR) << "Fail to read " << certificate << ": "
+            MLOG(ERROR) << "Fail to read " << certificate << ": "
                        << SSLError(ERR_get_error());
             return -1;
         }
@@ -313,14 +313,14 @@ static int LoadCertificate(SSL_CTX* ctx,
     std::unique_ptr<X509, FreeX509> x(
         PEM_read_bio_X509_AUX(cbio.get(), NULL, 0, NULL));
     if (!x) {
-        LOG(ERROR) << "Fail to parse " << certificate << ": "
+        MLOG(ERROR) << "Fail to parse " << certificate << ": "
                    << SSLError(ERR_get_error());
         return -1;
     }
     
     // Load the main certificate
     if (SSL_CTX_use_certificate(ctx, x.get()) != 1) {
-        LOG(ERROR) << "Fail to load " << certificate << ": "
+        MLOG(ERROR) << "Fail to load " << certificate << ": "
                    << SSLError(ERR_get_error());
         return -1;
     }
@@ -337,7 +337,7 @@ static int LoadCertificate(SSL_CTX* ctx,
     X509* ca = NULL;
     while ((ca = PEM_read_bio_X509(cbio.get(), NULL, 0, NULL))) {
         if (SSL_CTX_add_extra_chain_cert(ctx, ca) != 1) {
-            LOG(ERROR) << "Fail to load chain certificate in "
+            MLOG(ERROR) << "Fail to load chain certificate in "
                        << certificate << ": " << SSLError(ERR_get_error());
             X509_free(ca);
             return -1;
@@ -347,7 +347,7 @@ static int LoadCertificate(SSL_CTX* ctx,
     int err = ERR_get_error();
     if (err != 0 && (ERR_GET_LIB(err) != ERR_LIB_PEM
                      || ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-        LOG(ERROR) << "Fail to read chain certificate in "
+        MLOG(ERROR) << "Fail to read chain certificate in "
                    << certificate << ": " << SSLError(err);
         return -1;
     }
@@ -355,7 +355,7 @@ static int LoadCertificate(SSL_CTX* ctx,
 
     // Validate certificate and private key 
     if (SSL_CTX_check_private_key(ctx) != 1) {
-        LOG(ERROR) << "Fail to verify " << private_key << ": "
+        MLOG(ERROR) << "Fail to verify " << private_key << ": "
                    << SSLError(ERR_get_error());
         return -1;
     }
@@ -402,7 +402,7 @@ static int SetSSLOptions(SSL_CTX* ctx, const std::string& ciphers,
 
     if (!ciphers.empty() &&
         SSL_CTX_set_cipher_list(ctx, ciphers.c_str()) != 1) {
-        LOG(ERROR) << "Fail to set cipher list to " << ciphers
+        MLOG(ERROR) << "Fail to set cipher list to " << ciphers
                    << ": " << SSLError(ERR_get_error());
         return -1;
     }
@@ -418,10 +418,10 @@ static int SetSSLOptions(SSL_CTX* ctx, const std::string& ciphers,
         }
         if (SSL_CTX_load_verify_locations(ctx, cafile.c_str(), NULL) == 0) {
             if (verify.ca_file_path.empty()) {
-                LOG(WARNING) << "Fail to load default CA file " << cafile
+                MLOG(WARNING) << "Fail to load default CA file " << cafile
                              << ": " << SSLError(ERR_get_error());
             } else {
-                LOG(ERROR) << "Fail to load CA file " << cafile
+                MLOG(ERROR) << "Fail to load CA file " << cafile
                            << ": " << SSLError(ERR_get_error());
                 return -1;
             }
@@ -458,7 +458,7 @@ static int ServerALPNCallback(
 
 static int SetServerALPNCallback(SSL_CTX* ssl_ctx, const std::string* alpns) {
     if (ssl_ctx == nullptr) {
-        LOG(ERROR) << "Fail to set server ALPN callback, ssl_ctx is nullptr.";
+        MLOG(ERROR) << "Fail to set server ALPN callback, ssl_ctx is nullptr.";
         return -1;
     }
 
@@ -467,7 +467,7 @@ static int SetServerALPNCallback(SSL_CTX* ssl_ctx, const std::string* alpns) {
     SSL_CTX_set_alpn_select_cb(ssl_ctx, ServerALPNCallback,
             const_cast<std::string*>(alpns));
 #else
-    LOG(WARNING) << "OpenSSL version=" << OPENSSL_VERSION_STR 
+    MLOG(WARNING) << "OpenSSL version=" << OPENSSL_VERSION_STR
             << " is lower than 1.0.2, ignore server alpn.";
 #endif
     return 0;
@@ -477,7 +477,7 @@ SSL_CTX* CreateClientSSLContext(const ChannelSSLOptions& options) {
     std::unique_ptr<SSL_CTX, FreeSSLCTX> ssl_ctx(
         SSL_CTX_new(SSLv23_client_method()));
     if (!ssl_ctx) {
-        LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
+        MLOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
         return NULL;
     }
 
@@ -515,7 +515,7 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
     std::unique_ptr<SSL_CTX, FreeSSLCTX> ssl_ctx(
         SSL_CTX_new(SSLv23_server_method()));
     if (!ssl_ctx) {
-        LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
+        MLOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
         return NULL;
     }
 
@@ -551,7 +551,7 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
     EC_KEY* ecdh = NULL;
     int i = OBJ_sn2nid(options.ecdhe_curve_name.c_str());
     if (!i || ((ecdh = EC_KEY_new_by_curve_name(i)) == NULL)) {
-        LOG(ERROR) << "Fail to find ECDHE named curve="
+        MLOG(ERROR) << "Fail to find ECDHE named curve="
                    << options.ecdhe_curve_name
                    << ": " << SSLError(ERR_get_error());
         return NULL;
@@ -573,16 +573,16 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
 
 SSL* CreateSSLSession(SSL_CTX* ctx, SocketId id, int fd, bool server_mode) {
     if (ctx == NULL) {
-        LOG(WARNING) << "Lack SSL_ctx to create an SSL session";
+        MLOG(WARNING) << "Lack SSL_ctx to create an SSL session";
         return NULL;
     }
     SSL* ssl = SSL_new(ctx);
     if (ssl == NULL) {
-        LOG(ERROR) << "Fail to SSL_new: " << SSLError(ERR_get_error());
+        MLOG(ERROR) << "Fail to SSL_new: " << SSLError(ERR_get_error());
         return NULL;
     }
     if (SSL_set_fd(ssl, fd) != 1) {
-        LOG(ERROR) << "Fail to SSL_set_fd: " << SSLError(ERR_get_error());
+        MLOG(ERROR) << "Fail to SSL_set_fd: " << SSLError(ERR_get_error());
         SSL_free(ssl);
         return NULL;
     }
@@ -798,19 +798,19 @@ static DH* SSLGetDH8192() {
 int SSLDHInit() {
 #ifndef OPENSSL_NO_DH
     if ((g_dh_1024 = SSLGetDH1024()) == NULL) {
-        LOG(ERROR) << "Fail to initialize DH-1024";
+        MLOG(ERROR) << "Fail to initialize DH-1024";
         return -1;
     }
     if ((g_dh_2048 = SSLGetDH2048()) == NULL) {
-        LOG(ERROR) << "Fail to initialize DH-2048";
+        MLOG(ERROR) << "Fail to initialize DH-2048";
         return -1;
     }
     if ((g_dh_4096 = SSLGetDH4096()) == NULL) {
-        LOG(ERROR) << "Fail to initialize DH-4096";
+        MLOG(ERROR) << "Fail to initialize DH-4096";
         return -1;
     }
     if ((g_dh_8192 = SSLGetDH8192()) == NULL) {
-        LOG(ERROR) << "Fail to initialize DH-8192";
+        MLOG(ERROR) << "Fail to initialize DH-8192";
         return -1;
     }
 #endif  // OPENSSL_NO_DH
@@ -903,7 +903,7 @@ bool BuildALPNProtocolList(
     size_t alpn_list_length = 0;
     for (const auto& alpn_protocol : alpn_protocols) {
         if (alpn_protocol.size() > UCHAR_MAX) {
-            LOG(ERROR) << "Fail to build ALPN procotol list: "
+            MLOG(ERROR) << "Fail to build ALPN procotol list: "
                        << "protocol name length " << alpn_protocol.size() << " too long, "
                        << "max 255 supported.";
             return false;

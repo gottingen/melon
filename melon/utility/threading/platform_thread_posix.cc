@@ -125,7 +125,7 @@ bool CreateThread(size_t stack_size, bool joinable,
     // Value of |handle| is undefined if pthread_create fails.
     handle = 0;
     errno = err;
-    PLOG(ERROR) << "pthread_create";
+    PMLOG(ERROR) << "pthread_create";
   }
 
   pthread_attr_destroy(&attributes);
@@ -134,7 +134,7 @@ bool CreateThread(size_t stack_size, bool joinable,
   // is set in the handle.
   if (success)
     params.handle_set.Wait();
-  CHECK_EQ(handle, thread_handle->platform_handle());
+  MCHECK_EQ(handle, thread_handle->platform_handle());
 
   return success;
 }
@@ -231,7 +231,7 @@ void PlatformThread::Join(PlatformThreadHandle thread_handle) {
   // the thread referred to by |thread_handle| may still be running long-lived /
   // blocking tasks.
   mutil::ThreadRestrictions::AssertIOAllowed();
-  CHECK_EQ(0, pthread_join(thread_handle.handle_, NULL));
+  MCHECK_EQ(0, pthread_join(thread_handle.handle_, NULL));
 }
 
 }  // namespace mutil

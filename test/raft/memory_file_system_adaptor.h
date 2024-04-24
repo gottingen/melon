@@ -201,7 +201,7 @@ public:
             (*new_node_ptr)->impl = old_node->impl;
         }
 
-        CHECK(unsafe_delete_file(old_path, true));
+        MCHECK(unsafe_delete_file(old_path, true));
         return true;
     }
 
@@ -324,7 +324,7 @@ private:
                 return true;
             }
         }
-        CHECK(false);
+        MCHECK(false);
         return false;
     }
 

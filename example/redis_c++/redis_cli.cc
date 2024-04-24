@@ -38,14 +38,14 @@ namespace melon {
 static bool access_redis(melon::Channel &channel, const char *command) {
     melon::RedisRequest request;
     if (!request.AddCommand(command)) {
-        LOG(ERROR) << "Fail to add command";
+        MLOG(ERROR) << "Fail to add command";
         return false;
     }
     melon::RedisResponse response;
     melon::Controller cntl;
     channel.CallMethod(nullptr, &cntl, &request, &response, nullptr);
     if (cntl.Failed()) {
-        LOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
+        MLOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
         return false;
     } else {
         std::cout << response << std::endl;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), &options) != 0) {
-        LOG(ERROR) << "Fail to initialize channel";
+        MLOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 

@@ -159,7 +159,7 @@ void MPSCQueue<T, Alloc>::ReverseList(MPSCQueueNode<T>* old_head) {
         // No one added new requests.
         return;
     }
-    CHECK_NE(new_head, old_head);
+    MCHECK_NE(new_head, old_head);
     // Above acquire fence pairs release fence of exchange in Enqueue() to make
     // sure that we see all fields of requests set.
 
@@ -176,7 +176,7 @@ void MPSCQueue<T, Alloc>::ReverseList(MPSCQueueNode<T>* old_head) {
         p->next = tail;
         tail = p;
         p = saved_next;
-        CHECK(p);
+        MCHECK(p);
     } while (p != old_head);
 
     // Link old list with new list.

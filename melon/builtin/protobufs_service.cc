@@ -27,7 +27,7 @@
 namespace melon {
 
     ProtobufsService::ProtobufsService(Server *server) : _server(server) {
-        CHECK_EQ(0, Init());
+        MCHECK_EQ(0, Init());
     }
 
     int ProtobufsService::Init() {

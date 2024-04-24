@@ -38,7 +38,7 @@ namespace melon::var {
 
     static bool validator_bvar_max_multi_dimension_metric_number(const char *, int32_t v) {
         if (v < 1) {
-            LOG(ERROR) << "Invalid bvar_max_multi_dimension_metric_number=" << v;
+            MLOG(ERROR) << "Invalid bvar_max_multi_dimension_metric_number=" << v;
             return false;
         }
         return true;
@@ -46,7 +46,7 @@ namespace melon::var {
 
     static bool validator_bvar_max_dump_multi_dimension_metric_number(const char *, int32_t v) {
         if (v < 0) {
-            LOG(ERROR) << "Invalid bvar_max_dump_multi_dimension_metric_number=" << v;
+            MLOG(ERROR) << "Invalid bvar_max_dump_multi_dimension_metric_number=" << v;
             return false;
         }
         return true;
@@ -72,7 +72,7 @@ namespace melon::var {
         pthread_mutex_t mutex;
 
         MVarMapWithLock() {
-            CHECK_EQ(0, init(256, 80));
+            MCHECK_EQ(0, init(256, 80));
             pthread_mutex_init(&mutex, NULL);
         }
     };
@@ -97,14 +97,14 @@ namespace melon::var {
         _labels.assign(labels.begin(), labels.end());
         size_t n = labels.size();
         if (n > MAX_LABELS_COUNT) {
-            LOG(ERROR)
+            MLOG(ERROR)
             << "Too many labels: " << n << " seen, overflow detected, max labels count: " << MAX_LABELS_COUNT;
             _labels.resize(MAX_LABELS_COUNT);
         }
     }
 
     MVariable::~MVariable() {
-        CHECK(!hide()) << "Subclass of MVariable MUST call hide() manually in their"
+        MCHECK(!hide()) << "Subclass of MVariable MUST call hide() manually in their"
                           " dtors to avoid displaying a variable that is just destructing";
     }
 
@@ -137,7 +137,7 @@ namespace melon::var {
     int MVariable::expose_impl(const mutil::StringPiece &prefix,
                                const mutil::StringPiece &name) {
         if (name.empty()) {
-            LOG(ERROR) << "Parameter[name] is empty";
+            MLOG(ERROR) << "Parameter[name] is empty";
             return -1;
         }
         // NOTE: It's impossible to atomically erase from a submap and insert into
@@ -162,7 +162,7 @@ namespace melon::var {
         to_underscored_name(&_name, name);
 
         if (count_exposed() > (size_t) FLAGS_bvar_max_multi_dimension_metric_number) {
-            LOG(ERROR) << "Too many metric seen, overflow detected, max metric count:"
+            MLOG(ERROR) << "Too many metric seen, overflow detected, max metric count:"
                        << FLAGS_bvar_max_multi_dimension_metric_number;
             return -1;
         }
@@ -187,7 +187,7 @@ namespace melon::var {
             s_bvar_may_abort = true;
         }
 
-        LOG(WARNING) << "Already exposed `" << _name << "' whose describe is`"
+        MLOG(WARNING) << "Already exposed `" << _name << "' whose describe is`"
                      << get_description() << "'";
         _name.clear();
         return 0;
@@ -202,9 +202,9 @@ namespace melon::var {
         MELON_SCOPED_LOCK(m.mutex);
         MVarEntry *entry = m.seek(_name);
         if (entry) {
-            CHECK_EQ(1UL, m.erase(_name));
+            MCHECK_EQ(1UL, m.erase(_name));
         } else {
-            CHECK(false) << "`" << _name << "' must exist";
+            MCHECK(false) << "`" << _name << "' must exist";
         }
         _name.clear();
         return true;
@@ -241,7 +241,7 @@ namespace melon::var {
 
     size_t MVariable::dump_exposed(Dumper *dumper, const DumpOptions *options) {
         if (NULL == dumper) {
-            LOG(ERROR) << "Parameter[dumper] is NULL";
+            MLOG(ERROR) << "Parameter[dumper] is NULL";
             return -1;
         }
         DumpOptions opt;
@@ -259,7 +259,7 @@ namespace melon::var {
                 n += entry->var->dump(dumper, &opt);
             }
             if (n > static_cast<size_t>(FLAGS_bvar_max_dump_multi_dimension_metric_number)) {
-                LOG(WARNING) << "truncated because of \
+                MLOG(WARNING) << "truncated because of \
 		            exceed max dump multi dimension label number["
                              << FLAGS_bvar_max_dump_multi_dimension_metric_number
                              << "]";

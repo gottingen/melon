@@ -44,13 +44,13 @@ namespace melon::raft {
         std::string parameter;
         mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
-            LOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
+            MLOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
             return NULL;
         }
         const LogStorage *type = log_storage_extension()->Find(
                 protocol.as_string().c_str());
         if (type == NULL) {
-            LOG(ERROR) << "Fail to find log storage type " << protocol
+            MLOG(ERROR) << "Fail to find log storage type " << protocol
                        << ", uri=" << uri;
             return NULL;
         }
@@ -63,14 +63,14 @@ namespace melon::raft {
         std::string parameter;
         mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
-            LOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
+            MLOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid log storage uri = %s", uri.c_str());
             return status;
         }
         const LogStorage *type = log_storage_extension()->Find(
                 protocol.as_string().c_str());
         if (type == NULL) {
-            LOG(ERROR) << "Fail to find log storage type " << protocol
+            MLOG(ERROR) << "Fail to find log storage type " << protocol
                        << ", uri=" << uri;
             status.set_error(EINVAL, "Fail to find log storage type %s uri %s",
                              protocol.as_string().c_str(), uri.c_str());
@@ -84,13 +84,13 @@ namespace melon::raft {
         std::string parameter;
         mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
-            LOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
+            MLOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
             return NULL;
         }
         const SnapshotStorage *type = snapshot_storage_extension()->Find(
                 protocol.as_string().c_str());
         if (type == NULL) {
-            LOG(ERROR) << "Fail to find snapshot storage type " << protocol
+            MLOG(ERROR) << "Fail to find snapshot storage type " << protocol
                        << ", uri=" << uri;
             return NULL;
         }
@@ -103,14 +103,14 @@ namespace melon::raft {
         std::string parameter;
         mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
-            LOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
+            MLOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid log storage uri = %s", uri.c_str());
             return status;
         }
         const SnapshotStorage *type = snapshot_storage_extension()->Find(
                 protocol.as_string().c_str());
         if (type == NULL) {
-            LOG(ERROR) << "Fail to find snapshot storage type " << protocol
+            MLOG(ERROR) << "Fail to find snapshot storage type " << protocol
                        << ", uri=" << uri;
             status.set_error(EINVAL, "Fail to find snapshot storage type %s uri %s",
                              protocol.as_string().c_str(), uri.c_str());
@@ -124,13 +124,13 @@ namespace melon::raft {
         std::string parameter;
         mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
-            LOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
+            MLOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
             return NULL;
         }
         const RaftMetaStorage *type = meta_storage_extension()->Find(
                 protocol.as_string().c_str());
         if (type == NULL) {
-            LOG(ERROR) << "Fail to find meta storage type " << protocol
+            MLOG(ERROR) << "Fail to find meta storage type " << protocol
                        << ", uri=" << uri;
             return NULL;
         }
@@ -144,14 +144,14 @@ namespace melon::raft {
         std::string parameter;
         mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
-            LOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
+            MLOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid meta storage uri = %s", uri.c_str());
             return status;
         }
         const RaftMetaStorage *type = meta_storage_extension()->Find(
                 protocol.as_string().c_str());
         if (type == NULL) {
-            LOG(ERROR) << "Fail to find meta storage type " << protocol
+            MLOG(ERROR) << "Fail to find meta storage type " << protocol
                        << ", uri=" << uri;
             status.set_error(EINVAL, "Fail to find meta storage type %s uri %s",
                              protocol.as_string().c_str(), uri.c_str());

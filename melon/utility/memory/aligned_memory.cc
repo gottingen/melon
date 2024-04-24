@@ -13,9 +13,9 @@
 namespace mutil {
 
 void* AlignedAlloc(size_t size, size_t alignment) {
-  DCHECK_GT(size, 0U);
-  DCHECK_EQ(alignment & (alignment - 1), 0U);
-  DCHECK_EQ(alignment % sizeof(void*), 0U);
+  DMCHECK_GT(size, 0U);
+  DMCHECK_EQ(alignment & (alignment - 1), 0U);
+  DMCHECK_EQ(alignment % sizeof(void*), 0U);
   void* ptr = NULL;
 #if defined(COMPILER_MSVC)
   ptr = _aligned_malloc(size, alignment);
@@ -34,12 +34,12 @@ void* AlignedAlloc(size_t size, size_t alignment) {
   // crash if we encounter a failed allocation; maintaining consistent behavior
   // with a normal allocation failure in Chrome.
   if (!ptr) {
-    DLOG(ERROR) << "If you crashed here, your aligned allocation is incorrect: "
+    DMLOG(ERROR) << "If you crashed here, your aligned allocation is incorrect: "
                 << "size=" << size << ", alignment=" << alignment;
-    CHECK(false);
+    MCHECK(false);
   }
   // Sanity check alignment just to be safe.
-  DCHECK_EQ(reinterpret_cast<uintptr_t>(ptr) & (alignment - 1), 0U);
+  DMCHECK_EQ(reinterpret_cast<uintptr_t>(ptr) & (alignment - 1), 0U);
   return ptr;
 }
 

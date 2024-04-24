@@ -70,7 +70,7 @@ void PlatformThread::SetName(const char* name) {
   int err = prctl(PR_SET_NAME, name);
   // We expect EPERM failures in sandboxed processes, just ignore those.
   if (err < 0 && errno != EPERM)
-    DPLOG(ERROR) << "prctl(PR_SET_NAME)";
+    DPMLOG(ERROR) << "prctl(PR_SET_NAME)";
 #endif  //  !defined(OS_NACL)
 }
 
@@ -90,10 +90,10 @@ void PlatformThread::SetThreadPriority(PlatformThreadHandle handle,
   // the 'process identifier', not affecting the rest of the threads in the
   // process. Setting this priority will only succeed if the user has been
   // granted permission to adjust nice values on the system.
-  DCHECK_NE(handle.id_, kInvalidThreadId);
+  DMCHECK_NE(handle.id_, kInvalidThreadId);
   const int kNiceSetting = ThreadNiceValue(priority);
   if (setpriority(PRIO_PROCESS, handle.id_, kNiceSetting)) {
-    DVPLOG(1) << "Failed to set nice value of thread ("
+    DVPMLOG(1) << "Failed to set nice value of thread ("
               << handle.id_ << ") to " << kNiceSetting;
   }
 #endif  //  !defined(OS_NACL)

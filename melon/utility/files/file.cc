@@ -37,7 +37,7 @@ File::File(PlatformFile platform_file)
       created_(false),
       async_(false) {
 #if defined(OS_POSIX)
-  DCHECK_GE(platform_file, -1);
+  DMCHECK_GE(platform_file, -1);
 #endif
 }
 

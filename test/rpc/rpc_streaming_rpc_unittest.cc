@@ -56,7 +56,7 @@ public:
         melon::Controller* cntl = (melon::Controller*)controller;
         melon::StreamId response_stream;
         ASSERT_EQ(0, StreamAccept(&response_stream, *cntl, &_options));
-        LOG(INFO) << "Created response_stream=" << response_stream;
+        MLOG(INFO) << "Created response_stream=" << response_stream;
         if (_after_accept_stream) {
             _after_accept_stream->action(response_stream);
         }
@@ -120,7 +120,7 @@ public:
             }
         }
         for (size_t i = 0; i < size; ++i) {
-            CHECK(messages[i]->length() == sizeof(int));
+            MCHECK(messages[i]->length() == sizeof(int));
             int network = 0;
             messages[i]->cutn(&network, sizeof(int));
             EXPECT_EQ((int)ntohl(network), _expected_next_value++);
@@ -190,7 +190,7 @@ void on_writable(melon::StreamId, void* arg, int error_code) {
     std::pair<bool, int>* p = (std::pair<bool, int>*)arg;
     p->first = true;
     p->second = error_code;
-    LOG(INFO) << "error_code=" << error_code;
+    MLOG(INFO) << "error_code=" << error_code;
 }
 
 TEST_F(StreamingRpcTest, block) {
@@ -261,7 +261,7 @@ TEST_F(StreamingRpcTest, block) {
     }
     usleep(1000);
 
-    LOG(INFO) << "Starting block";
+    MLOG(INFO) << "Starting block";
     hc.block = true;
     for (int i = N + N; i < N + N + N; ++i) {
         int network = htonl(i);
@@ -274,7 +274,7 @@ TEST_F(StreamingRpcTest, block) {
     ASSERT_EQ(EAGAIN, melon::StreamWrite(request_stream, out));
     timespec duetime = mutil::microseconds_from_now(1);
     p.first = false;
-    LOG(INFO) << "Start wait";
+    MLOG(INFO) << "Start wait";
     melon::StreamWait(request_stream, &duetime, on_writable, &p);
     while (!p.first) {
         usleep(100);
@@ -388,7 +388,7 @@ public:
             return 0;
         }
         for (size_t i = 0; i < size; ++i) {
-            CHECK(messages[i]->length() == sizeof(int));
+            MCHECK(messages[i]->length() == sizeof(int));
             int network = 0;
             messages[i]->cutn(&network, sizeof(int));
             if ((int)ntohl(network) != _expected_next_value) {

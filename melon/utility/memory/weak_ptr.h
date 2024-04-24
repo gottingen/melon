@@ -201,11 +201,11 @@ class WeakPtr : public internal::WeakPtrBase {
   T* get() const { return ref_.is_valid() ? ptr_ : NULL; }
 
   T& operator*() const {
-    DCHECK(get() != NULL);
+    DMCHECK(get() != NULL);
     return *get();
   }
   T* operator->() const {
-    DCHECK(get() != NULL);
+    DMCHECK(get() != NULL);
     return get();
   }
 
@@ -264,19 +264,19 @@ class WeakPtrFactory {
   }
 
   WeakPtr<T> GetWeakPtr() {
-    DCHECK(ptr_);
+    DMCHECK(ptr_);
     return WeakPtr<T>(weak_reference_owner_.GetRef(), ptr_);
   }
 
   // Call this method to invalidate all existing weak pointers.
   void InvalidateWeakPtrs() {
-    DCHECK(ptr_);
+    DMCHECK(ptr_);
     weak_reference_owner_.Invalidate();
   }
 
   // Call this method to determine if any weak pointers exist.
   bool HasWeakPtrs() const {
-    DCHECK(ptr_);
+    DMCHECK(ptr_);
     return weak_reference_owner_.HasRefs();
   }
 

@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        LOG(ERROR) << "Fail to initialize channel";
+        MLOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -71,12 +71,12 @@ int main(int argc, char* argv[]) {
         // the response comes back or error occurs(including timedout).
         stub.SayHello(&cntl, &request, &response, NULL);
         if (!cntl.Failed()) {
-            LOG(INFO) << "Received response from " << cntl.remote_side()
+            MLOG(INFO) << "Received response from " << cntl.remote_side()
                 << " to " << cntl.local_side()
                 << ": " << response.message()
                 << " latency=" << cntl.latency_us() << "us";
         } else {
-            LOG(WARNING) << cntl.ErrorText();
+            MLOG(WARNING) << cntl.ErrorText();
         }
         usleep(FLAGS_interval_ms * 1000L);
     }
