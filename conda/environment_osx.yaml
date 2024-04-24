@@ -1,0 +1,12 @@
+name:  solo-dev
+channels:
+  - conda-forge
+  - defaults
+  - flare-rpc
+dependencies:
+  - clang # [osx]
+  - clangxx #   [osx]
+  - libfaiss
+  - libflare
+  - gtest =1.11.0
+  - gmock =1.11.0

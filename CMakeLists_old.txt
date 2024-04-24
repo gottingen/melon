@@ -1,0 +1,118 @@
+#
+# Copyright 2023 The titan-search Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+cmake_minimum_required(VERSION 3.15)
+project(melon C CXX)
+
+option(WITH_STATIC_DEPS "With glog" ON)
+option(WITH_GLOG "With glog" OFF)
+option(DEBUG "Print debug logs" OFF)
+option(WITH_DEBUG_SYMBOLS "With debug symbols" ON)
+option(WITH_SNAPPY "With snappy" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(BUILD_UNIT_TESTS "Whether to build unit tests" ON)
+option(BUILD_FUZZ_TESTS "Whether to build fuzz tests" OFF)
+option(BUILD_MELON_TOOLS "Whether to build melon tools" ON)
+option(DOWNLOAD_GTEST "Download and build a fresh copy of googletest. Requires Internet access." ON)
+
+# Enable MACOSX_RPATH. Run "cmake --help-policy CMP0042" for policy details.
+if (POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW)
+endif ()
+
+set(MELON_VERSION 1.6.0)
+
+include(GNUInstallDirs)
+
+configure_file(${PROJECT_SOURCE_DIR}/melon/utility/config.h.in ${PROJECT_SOURCE_DIR}/melon/utility/config.h @ONLY)
+
+
+execute_process(
+        COMMAND bash -c "${PROJECT_SOURCE_DIR}/tools/get_melon_revision.sh ${PROJECT_SOURCE_DIR} | tr -d '\n'"
+        OUTPUT_VARIABLE MELON_REVISION
+)
+
+# for *.so
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/output/lib)
+# for *.a
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/output/lib)
+
+
+add_subdirectory(melon)
+if (BUILD_UNIT_TESTS)
+
+    set(TEST_PROTO_FILES
+            test/addressbook1.proto
+            test/addressbook_encode_decode.proto
+            test/addressbook_map.proto
+            test/addressbook.proto
+            test/echo.proto
+            test/iobuf.proto
+            test/message.proto
+            test/repeated.proto
+            test/snappy_message.proto
+            test/v1.proto
+            test/v2.proto
+            test/grpc.proto
+            test/health_check.proto)
+    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test/hdrs)
+    set(PROTOC_FLAGS ${PROTOC_FLAGS} -I${PROJECT_SOURCE_DIR})
+    compile_proto(PROTO_HDRS PROTO_SRCS ${PROJECT_BINARY_DIR}
+            ${PROJECT_BINARY_DIR}/test/hdrs
+            ${PROJECT_SOURCE_DIR}
+            "${TEST_PROTO_FILES}")
+    add_library(TEST_PROTO_LIB OBJECT ${PROTO_SRCS} ${PROTO_HDRS})
+
+    enable_testing()
+    add_subdirectory(test)
+endif ()
+
+if (BUILD_FUZZ_TESTS)
+    if (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "Fuzzing is only supported with clang")
+    endif ()
+    if (NOT BUILD_UNIT_TESTS)
+        message(FATAL_ERROR "BUILD_UNIT_TESTS must be enabled to build fuzz tests")
+    endif ()
+endif ()
+
+if (BUILD_MELON_TOOLS)
+    add_subdirectory(tools)
+endif ()
+#[[
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}/melon/
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/melon/
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+        )
+        ]]
+file(COPY ${PROJECT_SOURCE_DIR}/melon/
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/melon
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+)
+
+# Install pkgconfig
+configure_file(cmake/melon.pc.in ${PROJECT_BINARY_DIR}/melon.pc @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/melon.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

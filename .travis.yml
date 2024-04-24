@@ -1,0 +1,21 @@
+language: cpp
+
+sudo: false
+
+matrix:
+  include:
+    - env: CMAKE_CXX="g++" BUILD_TYPE="Debug"
+      os: linux
+
+before_script:
+  # print out some version numbers
+  - pip install carbin --user
+  - $CMAKE_CXX --version
+  - cmake --version
+  - carbin install
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DCARBIN_PACKAGE_GEN=ON -DENABLE_BENCHMARK=ON -DENABLE_EXAMPLE=ON
+script:
+  - make
+  - make test
