@@ -84,7 +84,7 @@ private:
 //        // Handle the rec
 //    }
 //    if (rd.last_error() != RecordReader::END_OF_READER) {
-//        LOG(FATAL) << "Critical error occurred";
+//        MLOG(FATAL) << "Critical error occurred";
 //    }
 class RecordReader {
 public:

@@ -104,14 +104,14 @@ void* client_thread(void* arg) {
              (id % NEPOLL));
     mutil::fd_guard fd(mutil::unix_socket_connect(socket_name));
     if (fd < 0) {
-        PLOG(FATAL) << "Fail to connect to " << socket_name;
+        PMLOG(FATAL) << "Fail to connect to " << socket_name;
         return NULL;
     }
 #else
     mutil::EndPoint point(mutil::IP_ANY, 7878);
     mutil::fd_guard fd(mutil::tcp_connect(point, NULL));
     if (fd < 0) {
-        PLOG(FATAL) << "Fail to connect to " << point;
+        PMLOG(FATAL) << "Fail to connect to " << point;
         return NULL;
     }
 #endif
@@ -130,7 +130,7 @@ void* client_thread(void* arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                PLOG(FATAL) << "Fail to write fd=" << fd;
+                PMLOG(FATAL) << "Fail to write fd=" << fd;
                 return NULL;
             }
         } else {
@@ -180,7 +180,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
 
     sleep(1);
     
-    LOG(INFO) << "Begin to profile... (5 seconds)";
+    MLOG(INFO) << "Begin to profile... (5 seconds)";
     ProfilerStart("input_messenger.prof");
 
     size_t start_client_bytes = 0;
@@ -194,7 +194,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
     
     tm.stop();
     ProfilerStop();
-    LOG(INFO) << "End profiling";
+    MLOG(INFO) << "End profiling";
 
     client_stop = true;
 
@@ -202,7 +202,7 @@ TEST_F(MessengerTest, dispatch_tasks) {
     for (size_t i = 0; i < NCLIENT; ++i) {
         client_bytes += cm[i]->bytes;
     }
-    LOG(INFO) << "client_tp=" << (client_bytes - start_client_bytes) / (double)tm.u_elapsed()
+    MLOG(INFO) << "client_tp=" << (client_bytes - start_client_bytes) / (double)tm.u_elapsed()
               << "MB/s client_msg="
               << (client_bytes - start_client_bytes) * 1000000L / (MESSAGE_SIZE * tm.u_elapsed())
               << "/s";
@@ -215,5 +215,5 @@ TEST_F(MessengerTest, dispatch_tasks) {
         messenger[i].StopAccept(0);
     }
     sleep(1);
-    LOG(WARNING) << "begin to exit!!!!";
+    MLOG(WARNING) << "begin to exit!!!!";
 }

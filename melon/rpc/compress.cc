@@ -28,28 +28,28 @@ namespace melon {
     int RegisterCompressHandler(CompressType type,
                                 CompressHandler handler) {
         if (NULL == handler.Compress || NULL == handler.Decompress) {
-            LOG(FATAL) << "Invalid parameter: handler function is NULL";
+            MLOG(FATAL) << "Invalid parameter: handler function is NULL";
             return -1;
         }
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            LOG(FATAL) << "CompressType=" << type << " is out of range";
+            MLOG(FATAL) << "CompressType=" << type << " is out of range";
             return -1;
         }
         if (s_handler_map[index].Compress != NULL) {
-            LOG(FATAL) << "CompressType=" << type << " was registered";
+            MLOG(FATAL) << "CompressType=" << type << " was registered";
             return -1;
         }
         s_handler_map[index] = handler;
         return 0;
     }
 
-// Find CompressHandler by type.
-// Returns NULL if not found
+    // Find CompressHandler by type.
+    // Returns NULL if not found
     inline const CompressHandler *FindCompressHandler(CompressType type) {
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            LOG(ERROR) << "CompressType=" << type << " is out of range";
+            MLOG(ERROR) << "CompressType=" << type << " is out of range";
             return NULL;
         }
         if (NULL == s_handler_map[index].Compress) {

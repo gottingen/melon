@@ -71,7 +71,7 @@ namespace melon::naming {
                 proto = "http";
             }
             if (proto != "bns" && proto != "http") {
-                LOG(ERROR) << "Invalid protocol=`" << proto
+                MLOG(ERROR) << "Invalid protocol=`" << proto
                            << "\' in service_name=" << service_name_cstr;
                 return -1;
             }
@@ -95,7 +95,7 @@ namespace melon::naming {
             opt.timeout_ms = FLAGS_remote_file_timeout_ms;
             std::unique_ptr<Channel> chan(new Channel);
             if (chan->Init(_server_addr.c_str(), "rr", &opt) != 0) {
-                LOG(ERROR) << "Fail to init channel to " << _server_addr;
+                MLOG(ERROR) << "Fail to init channel to " << _server_addr;
                 return -1;
             }
             _channel.swap(chan);
@@ -105,7 +105,7 @@ namespace melon::naming {
         cntl.http_request().uri() = _path;
         _channel->CallMethod(NULL, &cntl, NULL, NULL, NULL);
         if (cntl.Failed()) {
-            LOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
+            MLOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
                          << cntl.ErrorText();
             return -1;
         }
@@ -125,7 +125,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                LOG(ERROR) << "Invalid address=`" << addr << '\'';
+                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;

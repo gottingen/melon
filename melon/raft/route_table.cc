@@ -130,7 +130,7 @@ namespace melon::raft {
             }
 
             static size_t init(GroupMap &m) {
-                CHECK_EQ(0, m.init(FLAGS_initial_route_table_cap));
+                MCHECK_EQ(0, m.init(FLAGS_initial_route_table_cap));
                 return 1;
             }
 

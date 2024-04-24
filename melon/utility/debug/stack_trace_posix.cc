@@ -593,13 +593,13 @@ class SandboxSymbolizeHelper {
     // Reads /proc/self/maps.
     std::string contents;
     if (!ReadProcMaps(&contents)) {
-      LOG(ERROR) << "Failed to read /proc/self/maps";
+      MLOG(ERROR) << "Failed to read /proc/self/maps";
       return false;
     }
 
     // Parses /proc/self/maps.
     if (!ParseProcMaps(contents, &regions_)) {
-      LOG(ERROR) << "Failed to parse the contents of /proc/self/maps";
+      MLOG(ERROR) << "Failed to parse the contents of /proc/self/maps";
       return false;
     }
 
@@ -648,7 +648,7 @@ class SandboxSymbolizeHelper {
           if (fd >= 0) {
             modules_.emplace(region.path, fd);
           } else {
-            LOG(WARNING) << "Failed to open file: " << region.path
+            MLOG(WARNING) << "Failed to open file: " << region.path
                          << "\n  Error: " << strerror(errno);
           }
         }
@@ -680,7 +680,7 @@ class SandboxSymbolizeHelper {
     std::map<std::string, int>::iterator it;
     for (it = modules_.begin(); it != modules_.end(); ++it) {
       int ret = IGNORE_EINTR(close(it->second));
-      DCHECK(!ret);
+      DMCHECK(!ret);
       it->second = -1;
     }
     modules_.clear();

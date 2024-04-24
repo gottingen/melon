@@ -270,7 +270,7 @@ void PerfTest(int thread_num, bool modify_during_reading) {
         wait_time += args[i].elapse_ns;
         count += args[i].counter;
     }
-    LOG(INFO) << mutil::class_name<DBD>()
+    MLOG(INFO) << mutil::class_name<DBD>()
               << " thread_num=" << thread_num
               << " modify_during_reading=" << modify_during_reading
               << " count=" << count
@@ -531,7 +531,7 @@ TEST_F(LoadBalancerTest, update_while_selection) {
             }
         }
         global_stop = true;
-        LOG(INFO) << "Stop all...";
+        MLOG(INFO) << "Stop all...";
         
         void* retval[ARRAY_SIZE(th)];
         for (size_t i = 0; i < ARRAY_SIZE(th); ++i) {
@@ -1267,7 +1267,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_intergrated) {
 TEST_F(LoadBalancerTest, la_selection_too_long) {
     melon::GlobalInitializeOrDie();
     melon::LoadBalancerWithNaming lb;
-    CHECK_EQ(0, lb.Init("list://127.0.0.1:8888", "la", nullptr, nullptr)); 
+    MCHECK_EQ(0, lb.Init("list://127.0.0.1:8888", "la", nullptr, nullptr));
     char addr[] = "127.0.0.1:8888";
     mutil::EndPoint ep;
     ASSERT_EQ(0, str2endpoint(addr, &ep));

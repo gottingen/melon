@@ -70,7 +70,7 @@ namespace melon::raft {
         scoped_refptr<KVBasedMergedMetaStorageImpl>
         get_meta_storage(const std::string &path) {
             DoublyBufferedMetaStorageMap::ScopedPtr ptr;
-            CHECK_EQ(0, _ss_map.Read(&ptr));
+            MCHECK_EQ(0, _ss_map.Read(&ptr));
             MetaStorageMap::const_iterator it = ptr->find(path);
             if (it != ptr->end()) {
                 return it->second;
@@ -165,7 +165,7 @@ namespace melon::raft {
 
         int ret = parse_mixed_path(uri, merged_path, single_path);
         if (ret != 0) {
-            LOG(ERROR) << "node parse mixed path failed, uri " << uri;
+            MLOG(ERROR) << "node parse mixed path failed, uri " << uri;
             _is_bad = true;
         } else {
             // Use single_path as the path of MixedMetaStorage as it usually
@@ -177,7 +177,7 @@ namespace melon::raft {
 
             if (!_single_impl || !_merged_impl) {
                 // Both _single_impl and _merged_impl are needed in MixedMetaStorage
-                LOG(ERROR) << "MixedMetaStorage failed to create both"
+                MLOG(ERROR) << "MixedMetaStorage failed to create both"
                               " sub stable storage, uri " << uri;
                 _is_bad = true;
             }
@@ -209,20 +209,20 @@ namespace melon::raft {
         // both _single_impl and _merged_impl are valid since _is_bad is false
         status = _single_impl->init();
         if (!status.ok()) {
-            LOG(ERROR) << "Init Mixed stable storage failed because init Single"
+            MLOG(ERROR) << "Init Mixed stable storage failed because init Single"
                           " stable storage failed, path " << _path;
             return status;
         }
 
         status = _merged_impl->init();
         if (!status.ok()) {
-            LOG(ERROR) << "Init Mixed stable storage failed because init merged"
+            MLOG(ERROR) << "Init Mixed stable storage failed because init merged"
                           " stable storage failed, path " << _path;
             return status;
         }
 
         _is_inited = true;
-        LOG(INFO) << "Succeed to init MixedMetaStorage, path: " << _path;
+        MLOG(INFO) << "Succeed to init MixedMetaStorage, path: " << _path;
         return status;
     }
 
@@ -237,13 +237,13 @@ namespace melon::raft {
 
         void Run() {
             if (!status().ok()) {
-                LOG(ERROR) << "Failed to write stable meta into db, group " << _vgid
+                MLOG(ERROR) << "Failed to write stable meta into db, group " << _vgid
                            << " term " << _term << " vote for " << _votedfor
                            << ", path: " << _path << ", error: " << status();
             } else {
                 int64_t u_elapsed = mutil::cpuwide_time_us() - _start_time_us;
                 g_save_kv_raft_meta << u_elapsed;
-                LOG(INFO) << "Saved merged stable meta, path " << _path
+                MLOG(INFO) << "Saved merged stable meta, path " << _path
                           << " group " << _vgid
                           << " term " << _term
                           << " votedfor " << _votedfor
@@ -268,7 +268,7 @@ namespace melon::raft {
                                                           const PeerId &peer_id, const VersionedGroupId &group) {
         mutil::Status status;
         if (!_is_inited) {
-            LOG(WARNING) << "MixedMetaStorage not init, path: " << _path;
+            MLOG(WARNING) << "MixedMetaStorage not init, path: " << _path;
             status.set_error(EINVAL, "MixedMetaStorage of group %s not init, path: %s",
                              group.c_str(), _path.c_str());
             return status;
@@ -276,7 +276,7 @@ namespace melon::raft {
 
         status = _single_impl->set_term_and_votedfor(term, peer_id, group);
         if (!status.ok()) {
-            LOG(WARNING) << "node " << group
+            MLOG(WARNING) << "node " << group
                          << " single stable storage failed to set_term_and_votedfor, path: "
                          << _path;
             return status;
@@ -298,7 +298,7 @@ namespace melon::raft {
                                                           const VersionedGroupId &group) {
         mutil::Status status;
         if (!_is_inited) {
-            LOG(WARNING) << "MixedMetaStorage not init, path: " << _path;
+            MLOG(WARNING) << "MixedMetaStorage not init, path: " << _path;
             status.set_error(EINVAL, "MixedMetaStorage of group %s not init, path: %s",
                              group.c_str(), _path.c_str());
             return status;
@@ -312,7 +312,7 @@ namespace melon::raft {
         PeerId peer_id_1;
         status = _single_impl->get_term_and_votedfor(&term_1, &peer_id_1, group);
         if (!status.ok()) {
-            LOG(WARNING) << "node " << group
+            MLOG(WARNING) << "node " << group
                          << " single stable storage failed to get_term_and_votedfor, path: "
                          << _path << ", error: " << status.error_cstr();
             return status;
@@ -323,7 +323,7 @@ namespace melon::raft {
         status = _merged_impl->get_term_and_votedfor(&term_2,
                                                      &peer_id_2, group);
         if (!status.ok()) {
-            LOG(WARNING) << "node " << group
+            MLOG(WARNING) << "node " << group
                          << " merged stable storage failed to get_term_and_votdfor,"
                          << " path: " << _path << ", error: " << status.error_cstr();
             return status;
@@ -338,7 +338,7 @@ namespace melon::raft {
         // this case is theoretically impossible, pay much attention to it if happens
         if (term_1 == term_2 && peer_id_1 != ANY_PEER
             && peer_id_2 != ANY_PEER) {
-            CHECK(false) << "Unexpected conflict when mixed stable storage of "
+            MCHECK(false) << "Unexpected conflict when mixed stable storage of "
                          << group << " get_term_and_votedfor, the same term " << term_1
                          << ", but different non-empty votdfor(" << peer_id_1
                          << " from single stable storage and " << peer_id_2
@@ -360,31 +360,31 @@ namespace melon::raft {
             done.wait();
             status = done.status();
             if (!status.ok()) {
-                LOG(WARNING) << "node " << group
+                MLOG(WARNING) << "node " << group
                              << " merged stable storage failed to set term " << *term
                              << " and vote for peer " << *peer_id
                              << " when catch up data, path " << _path
                              << ", error: " << status.error_cstr();
                 return status;
             }
-            LOG(INFO) << "node " << group
+            MLOG(INFO) << "node " << group
                       << " merged stable storage succeed to set term " << *term
                       << " and vote for peer " << *peer_id
                       << " when catch up data, path " << _path;
         } else {
-            LOG(WARNING) << "LocalMetaStorage not init(), path: " << _path;
+            MLOG(WARNING) << "LocalMetaStorage not init(), path: " << _path;
             *term = term_2;
             *peer_id = peer_id_2;
             status = _single_impl->set_term_and_votedfor(*term, *peer_id, group);
             if (!status.ok()) {
-                LOG(WARNING) << "node " << group
+                MLOG(WARNING) << "node " << group
                              << " single stable storage failed to set term " << *term
                              << " and vote for peer " << *peer_id
                              << " when catch up data, path " << _path
                              << ", error: " << status.error_cstr();
                 return status;
             }
-            LOG(INFO) << "node " << group
+            MLOG(INFO) << "node " << group
                       << " single stable storage succeed to set term " << *term
                       << " and vote for peer " << *peer_id
                       << " when catch up data, path " << _path;
@@ -405,26 +405,26 @@ namespace melon::raft {
 
         int ret = parse_mixed_path(uri, merged_path, single_path);
         if (ret != 0) {
-            LOG(WARNING) << "node parse mixed path failed, uri " << uri;
+            MLOG(WARNING) << "node parse mixed path failed, uri " << uri;
             status.set_error(EINVAL, "Group %s failed to parse mixed path, uri %s",
                              vgid.c_str(), uri.c_str());
             return status;
         }
         if (0 != gc_dir(single_path)) {
-            LOG(WARNING) << "Group " << vgid << " failed to gc path " << single_path;
+            MLOG(WARNING) << "Group " << vgid << " failed to gc path " << single_path;
             status.set_error(EIO, "Group %s failed to gc path %s",
                              vgid.c_str(), single_path.c_str());
             return status;
         }
         if (0 != global_mss_manager->
                 remove_instance_from_meta_storage(merged_path, vgid)) {
-            LOG(ERROR) << "Group " << vgid << " failed to gc kv from path: "
+            MLOG(ERROR) << "Group " << vgid << " failed to gc kv from path: "
                        << merged_path;
             status.set_error(EIO, "Group %s failed to gc kv from path %s",
                              vgid.c_str(), merged_path.c_str());
             return status;
         }
-        LOG(INFO) << "Group " << vgid << " succeed to gc from single path: "
+        MLOG(INFO) << "Group " << vgid << " succeed to gc from single path: "
                   << single_path << " and merged path: " << merged_path;
         return status;
     }
@@ -440,7 +440,7 @@ namespace melon::raft {
         mutil::File::Error e;
         if (!mutil::CreateDirectoryAndGetError(
                 dir_path, &e, FLAGS_raft_create_parent_directories)) {
-            LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
+            MLOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             status.set_error(e, "Fail to create dir when init SingleMetaStorage, "
                                 "path: %s", _path.c_str());
             return status;
@@ -448,7 +448,7 @@ namespace melon::raft {
 
         int ret = load();
         if (ret != 0) {
-            LOG(ERROR) << "Fail to load pb meta when init single stable storage"
+            MLOG(ERROR) << "Fail to load pb meta when init single stable storage"
                           ", path: " << _path;
             status.set_error(EIO, "Fail to load pb meta when init stabel storage"
                                   ", path: %s", _path.c_str());
@@ -508,14 +508,14 @@ namespace melon::raft {
         } else if (errno == ENOENT) {
             ret = 0;
         } else {
-            PLOG(ERROR) << "Fail to load meta from " << path;
+            PMLOG(ERROR) << "Fail to load meta from " << path;
         }
 
         timer.stop();
         // Only reload process will load stable meta of raft instances,
         // reading just go through memory
         g_load_pb_raft_meta << timer.u_elapsed();
-        LOG(INFO) << "Loaded single stable meta, path " << _path
+        MLOG(INFO) << "Loaded single stable meta, path " << _path
                   << " term " << _term
                   << " votedfor " << _votedfor.to_string()
                   << " time: " << timer.u_elapsed();
@@ -536,11 +536,11 @@ namespace melon::raft {
 
         ProtoBufFile pb_file(path);
         int ret = pb_file.save(&meta, raft_sync_meta());
-        PLOG_IF(ERROR, ret != 0) << "Fail to save meta to " << path;
+        PMLOG_IF(ERROR, ret != 0) << "Fail to save meta to " << path;
 
         timer.stop();
         g_save_pb_raft_meta << timer.u_elapsed();
-        LOG(INFO) << "Saved single stable meta, path " << _path
+        MLOG(INFO) << "Saved single stable meta, path " << _path
                   << " term " << _term
                   << " votedfor " << _votedfor.to_string()
                   << " time: " << timer.u_elapsed();
@@ -556,13 +556,13 @@ namespace melon::raft {
                                                           const VersionedGroupId &vgid) const {
         mutil::Status status;
         if (0 != gc_dir(uri)) {
-            LOG(WARNING) << "Group " << vgid << " failed to gc single stable storage"
+            MLOG(WARNING) << "Group " << vgid << " failed to gc single stable storage"
                                                 ", path: " << uri;
             status.set_error(EIO, "Group %s failed to gc single stable storage"
                                   ", path: %s", vgid.c_str(), uri.c_str());
             return status;
         }
-        LOG(INFO) << "Group " << vgid << " succeed to gc single stable storage"
+        MLOG(INFO) << "Group " << vgid << " succeed to gc single stable storage"
                                          ", path: " << uri;
         return status;
     }
@@ -607,12 +607,12 @@ namespace melon::raft {
         mutil::Status status;
         if (0 != global_mss_manager->
                 remove_instance_from_meta_storage(uri, vgid)) {
-            LOG(WARNING) << "Group " << vgid << " failed to gc kv, path: " << uri;
+            MLOG(WARNING) << "Group " << vgid << " failed to gc kv, path: " << uri;
             status.set_error(EIO, "Group %s failed to gc kv in path: %s",
                              vgid.c_str(), uri.c_str());
             return status;
         }
-        LOG(INFO) << "Group " << vgid << " succeed to gc kv, path: " << uri;
+        MLOG(INFO) << "Group " << vgid << " succeed to gc kv, path: " << uri;
         return status;
     };
 
@@ -635,7 +635,7 @@ namespace melon::raft {
         if (!mutil::CreateDirectoryAndGetError(
                 dir_path, &e, FLAGS_raft_create_parent_directories)) {
             lck.unlock();
-            LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
+            MLOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             status.set_error(e, "Fail to create dir when init MergedMetaStorage, "
                                 "path: %s", _path.c_str());
             return status;
@@ -649,7 +649,7 @@ namespace melon::raft {
         st = leveldb::DB::Open(options, _path.c_str(), &_db);
         if (!st.ok()) {
             lck.unlock();
-            LOG(ERROR) << "Fail to open db: " << st.ToString() << " path: " << _path;
+            MLOG(ERROR) << "Fail to open db: " << st.ToString() << " path: " << _path;
             status.set_error(EIO, "Fail to open db, path: %s, error: %s",
                              _path.c_str(), st.ToString().c_str());
             return status;
@@ -681,7 +681,7 @@ namespace melon::raft {
         options.sync = raft_sync_meta();
         leveldb::Status st = _db->Write(options, &updates);
         if (!st.ok()) {
-            LOG(ERROR) << "Fail to write batch into db, path: " << _path
+            MLOG(ERROR) << "Fail to write batch into db, path: " << _path
                        << ", error: " << st.ToString();
             mutil::Status status;
             status.set_error(EIO, "MergedMetaStorage failed to write batch"
@@ -785,18 +785,18 @@ namespace melon::raft {
             done.wait();
             status = done.status();
             if (!status.ok()) {
-                LOG(ERROR) << "node " << group
+                MLOG(ERROR) << "node " << group
                            << " failed to set initial term and votedfor when first time init"
                            << ", path " << _path
                            << ", error " << status.error_cstr();
                 return status;
             }
-            LOG(INFO) << "node " << group
+            MLOG(INFO) << "node " << group
                       << " succeed to set initial term and votedfor when first time init"
                       << ", path " << _path;
             return status;
         } else if (!st.ok()) {
-            LOG(ERROR) << "node " << group
+            MLOG(ERROR) << "node " << group
                        << " failed to get value from db, path " << _path
                        << ", error " << st.ToString().c_str();
             status.set_error(EIO, "MergedMetaStorage of group %s failed to"
@@ -810,7 +810,7 @@ namespace melon::raft {
         meta.ParseFromString(value);
         *term = meta.term();
         if (0 != peer_id->parse(meta.votedfor())) {
-            LOG(ERROR) << "node " << group
+            MLOG(ERROR) << "node " << group
                        << " failed to parse votedfor when loading meta from db, path "
                        << _path;
             status.set_error(EINVAL, "MergedMetaStorage of group %s failed to"
@@ -821,7 +821,7 @@ namespace melon::raft {
 
         timer.stop();
         g_load_kv_raft_meta << timer.u_elapsed();
-        LOG(INFO) << "Loaded merged stable meta, path " << _path
+        MLOG(INFO) << "Loaded merged stable meta, path " << _path
                   << " group " << group
                   << " term " << *term
                   << " votedfor " << *peer_id
@@ -846,7 +846,7 @@ namespace melon::raft {
         leveldb::Slice key(group.data(), group.size());
         leveldb::Status st = _db->Delete(options, key);
         if (!st.ok()) {
-            LOG(ERROR) << "Fail to delete meta info from db, group " << group;
+            MLOG(ERROR) << "Fail to delete meta info from db, group " << group;
             status.set_error(EIO, "MergedMetaStorage failed to delete group %s"
                                   ", path: %s, error: %s",
                              group.c_str(), _path.c_str(), st.ToString().c_str());
@@ -855,7 +855,7 @@ namespace melon::raft {
 
         timer.stop();
         g_delete_kv_raft_meta << timer.u_elapsed();
-        LOG(INFO) << "Deleted merged stable meta, path " << _path
+        MLOG(INFO) << "Deleted merged stable meta, path " << _path
                   << " group " << group
                   << " time: " << timer.u_elapsed();
         return status;

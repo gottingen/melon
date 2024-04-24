@@ -60,7 +60,7 @@ class DirReaderLinux {
     if (r == 0)
       return false;
     if (r == -1) {
-      DPLOG(FATAL) << "getdents64 returned an error: " << errno;
+      DPMLOG(FATAL) << "getdents64 returned an error: " << errno;
       return false;
     }
     size_ = r;

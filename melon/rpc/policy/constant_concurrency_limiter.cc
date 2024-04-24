@@ -36,7 +36,7 @@ int ConstantConcurrencyLimiter::MaxConcurrency() {
 
 ConstantConcurrencyLimiter*
 ConstantConcurrencyLimiter::New(const AdaptiveMaxConcurrency& amc) const {
-    CHECK_EQ(amc.type(), AdaptiveMaxConcurrency::CONSTANT());
+    MCHECK_EQ(amc.type(), AdaptiveMaxConcurrency::CONSTANT());
     return new ConstantConcurrencyLimiter(static_cast<int>(amc));
 }
 

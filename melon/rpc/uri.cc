@@ -281,7 +281,7 @@ int ParseURL(const char* url,
             }
         } else if (*p == ' ') {
             if (!is_all_spaces(p + 1)) {
-                LOG(ERROR) << "Invalid space in url=`" << url << '\'';
+                MLOG(ERROR) << "Invalid space in url=`" << url << '\'';
                 return -1;
             }
             break;
@@ -347,7 +347,7 @@ void URI::PrintWithoutHost(std::ostream& os) const {
 
 void URI::InitializeQueryMap() const {
     if (!_query_map.initialized()) {
-        CHECK_EQ(0, _query_map.init(QUERY_MAP_INITIAL_BUCKET));
+        MCHECK_EQ(0, _query_map.init(QUERY_MAP_INITIAL_BUCKET));
     }
     ParseQueries(_query_map, _query);
     _query_was_modified = false;

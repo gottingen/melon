@@ -194,7 +194,7 @@ class ObserverList : public ObserverListBase<ObserverType> {
     // When check_empty is true, assert that the list is empty on destruction.
     if (check_empty) {
       ObserverListBase<ObserverType>::Compact();
-      DCHECK_EQ(ObserverListBase<ObserverType>::size(), 0U);
+      DMCHECK_EQ(ObserverListBase<ObserverType>::size(), 0U);
     }
   }
 

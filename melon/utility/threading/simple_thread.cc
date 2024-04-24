@@ -23,21 +23,21 @@ SimpleThread::SimpleThread(const std::string& name_prefix,
 }
 
 SimpleThread::~SimpleThread() {
-  DCHECK(HasBeenStarted()) << "SimpleThread was never started.";
-  DCHECK(HasBeenJoined()) << "SimpleThread destroyed without being Join()ed.";
+  DMCHECK(HasBeenStarted()) << "SimpleThread was never started.";
+  DMCHECK(HasBeenJoined()) << "SimpleThread destroyed without being Join()ed.";
 }
 
 void SimpleThread::Start() {
-  DCHECK(!HasBeenStarted()) << "Tried to Start a thread multiple times.";
+  DMCHECK(!HasBeenStarted()) << "Tried to Start a thread multiple times.";
   bool success = PlatformThread::Create(options_.stack_size(), this, &thread_);
-  DCHECK(success);
+  DMCHECK(success);
   mutil::ThreadRestrictions::ScopedAllowWait allow_wait;
   event_.Wait();  // Wait for the thread to complete initialization.
 }
 
 void SimpleThread::Join() {
-  DCHECK(HasBeenStarted()) << "Tried to Join a never-started thread.";
-  DCHECK(!HasBeenJoined()) << "Tried to Join a thread multiple times.";
+  DMCHECK(HasBeenStarted()) << "Tried to Join a never-started thread.";
+  DMCHECK(!HasBeenJoined()) << "Tried to Join a thread multiple times.";
   PlatformThread::Join(thread_);
   joined_ = true;
 }
@@ -77,7 +77,7 @@ DelegateSimpleThread::~DelegateSimpleThread() {
 }
 
 void DelegateSimpleThread::Run() {
-  DCHECK(delegate_) << "Tried to call Run without a delegate (called twice?)";
+  DMCHECK(delegate_) << "Tried to call Run without a delegate (called twice?)";
   delegate_->Run();
   delegate_ = NULL;
 }
@@ -91,13 +91,13 @@ DelegateSimpleThreadPool::DelegateSimpleThreadPool(
 }
 
 DelegateSimpleThreadPool::~DelegateSimpleThreadPool() {
-  DCHECK(threads_.empty());
-  DCHECK(delegates_.empty());
-  DCHECK(!dry_.IsSignaled());
+  DMCHECK(threads_.empty());
+  DMCHECK(delegates_.empty());
+  DMCHECK(!dry_.IsSignaled());
 }
 
 void DelegateSimpleThreadPool::Start() {
-  DCHECK(threads_.empty()) << "Start() called with outstanding threads.";
+  DMCHECK(threads_.empty()) << "Start() called with outstanding threads.";
   for (int i = 0; i < num_threads_; ++i) {
     DelegateSimpleThread* thread = new DelegateSimpleThread(this, name_prefix_);
     thread->Start();
@@ -106,7 +106,7 @@ void DelegateSimpleThreadPool::Start() {
 }
 
 void DelegateSimpleThreadPool::JoinAll() {
-  DCHECK(!threads_.empty()) << "JoinAll() called with no outstanding threads.";
+  DMCHECK(!threads_.empty()) << "JoinAll() called with no outstanding threads.";
 
   // Tell all our threads to quit their worker loop.
   AddWork(NULL, num_threads_);
@@ -117,7 +117,7 @@ void DelegateSimpleThreadPool::JoinAll() {
     delete threads_[i];
   }
   threads_.clear();
-  DCHECK(delegates_.empty());
+  DMCHECK(delegates_.empty());
 }
 
 void DelegateSimpleThreadPool::AddWork(Delegate* delegate, int repeat_count) {
@@ -139,7 +139,7 @@ void DelegateSimpleThreadPool::Run() {
       if (!dry_.IsSignaled())
         continue;
 
-      DCHECK(!delegates_.empty());
+      DMCHECK(!delegates_.empty());
       work = delegates_.front();
       delegates_.pop();
 

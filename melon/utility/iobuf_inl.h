@@ -357,7 +357,7 @@ inline IOBufBytesIterator::IOBufBytesIterator(
     , _block_count(it._block_count)
     , _bytes_left(bytes_left)
     , _buf(it._buf) {
-    //CHECK_LE(_bytes_left, it._bytes_left);
+    //MCHECK_LE(_bytes_left, it._bytes_left);
     if (_block_end > _block_begin + _bytes_left) {
         _block_end = _block_begin + _bytes_left;
     }

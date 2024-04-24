@@ -94,14 +94,14 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         }
 
         if (!IsSupportedCommand(header->command)) {
-            LOG(WARNING) << "Not support command=" << header->command;
+            MLOG(WARNING) << "Not support command=" << header->command;
             source->pop_front(sizeof(*header) + total_body_length);
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
         
         PipelinedInfo pi;
         if (!socket->PopPipelinedInfo(&pi)) {
-            LOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
+            MLOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
             source->pop_front(sizeof(*header) + total_body_length);
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
@@ -129,7 +129,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         source->cutn(&msg->meta, total_body_length);
         if (header->command == MC_BINARY_SASL_AUTH) {
             if (header->status != 0) {
-                LOG(ERROR) << "Failed to authenticate the couchbase bucket.";
+                MLOG(ERROR) << "Failed to authenticate the couchbase bucket.";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE, 
                                       "Fail to authenticate with the couchbase bucket");
             }
@@ -138,7 +138,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
             socket->GivebackPipelinedInfo(pi);
         } else {
             if (++msg->pi.count >= pi.count) {
-                CHECK_EQ(msg->pi.count, pi.count);
+                MCHECK_EQ(msg->pi.count, pi.count);
                 msg = static_cast<MostCommonMessage*>(socket->release_parsing_context());
                 msg->pi = pi;
                 return MakeMessage(msg);

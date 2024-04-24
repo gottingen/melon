@@ -426,4 +426,3 @@ list(APPEND MELON_TEST_CXX_OPTIONS
         "-Wno-unused-parameter"
         "-fno-omit-frame-pointer"
 )
-set(CMAKE_VERBOSE_MAKEFILE ON)

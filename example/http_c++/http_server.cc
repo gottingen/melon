@@ -75,7 +75,7 @@ public:
         std::string res_str;
         json2pb::ProtoMessageToJson(*req, &req_str, NULL);
         json2pb::ProtoMessageToJson(*res, &res_str, NULL);
-        LOG(INFO) << "req:" << req_str
+        MLOG(INFO) << "req:" << req_str
                     << " res:" << res_str;
     }
 };
@@ -93,7 +93,7 @@ public:
     static void* SendLargeFile(void* raw_args) {
         std::unique_ptr<Args> args(static_cast<Args*>(raw_args));
         if (args->pa == NULL) {
-            LOG(ERROR) << "ProgressiveAttachment is NULL";
+            MLOG(ERROR) << "ProgressiveAttachment is NULL";
             return NULL;
         }
         for (int i = 0; i < 100; ++i) {
@@ -183,7 +183,7 @@ public:
     static void* Predict(void* raw_args) {
         std::unique_ptr<PredictJobArgs> args(static_cast<PredictJobArgs*>(raw_args));
         if (args->pa == NULL) {
-            LOG(ERROR) << "ProgressiveAttachment is NULL";
+            MLOG(ERROR) << "ProgressiveAttachment is NULL";
             return NULL;
         }
         for (int i = 0; i < 100; ++i) {
@@ -239,12 +239,12 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&http_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add http_svc";
+        MLOG(ERROR) << "Fail to add http_svc";
         return -1;
     }
     if (server.AddService(&file_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add file_svc";
+        MLOG(ERROR) << "Fail to add file_svc";
         return -1;
     }
     if (server.AddService(&queue_svc,
@@ -252,12 +252,12 @@ int main(int argc, char* argv[]) {
                           "/v1/queue/start   => start,"
                           "/v1/queue/stop    => stop,"
                           "/v1/queue/stats/* => getstats") != 0) {
-        LOG(ERROR) << "Fail to add queue_svc";
+        MLOG(ERROR) << "Fail to add queue_svc";
         return -1;
     }
     if (server.AddService(&sse_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add sse_svc";
+        MLOG(ERROR) << "Fail to add sse_svc";
         return -1;
     }
 
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     options.mutable_ssl_options()->default_cert.private_key = FLAGS_private_key;
     options.mutable_ssl_options()->ciphers = FLAGS_ciphers;
     if (server.Start(FLAGS_port, &options) != 0) {
-        LOG(ERROR) << "Fail to start HttpServer";
+        MLOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }
 

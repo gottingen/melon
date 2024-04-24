@@ -143,16 +143,16 @@ int TimerThread::start(const TimerThreadOptions* options_in) {
         _options = *options_in;
     }
     if (_options.num_buckets == 0) {
-        LOG(ERROR) << "num_buckets can't be 0";
+        MLOG(ERROR) << "num_buckets can't be 0";
         return EINVAL;
     }
     if (_options.num_buckets > 1024) {
-        LOG(ERROR) << "num_buckets=" << _options.num_buckets << " is too big";
+        MLOG(ERROR) << "num_buckets=" << _options.num_buckets << " is too big";
         return EINVAL;
     }
     _buckets = new (std::nothrow) Bucket[_options.num_buckets];
     if (NULL == _buckets) {
-        LOG(ERROR) << "Fail to new _buckets";
+        MLOG(ERROR) << "Fail to new _buckets";
         return ENOMEM;
     }        
     const int ret = pthread_create(&_thread, NULL, TimerThread::run_this, this);
@@ -254,7 +254,7 @@ int TimerThread::unschedule(TaskId task_id) {
     const mutil::ResourceId<Task> slot_id = slot_of_task_id(task_id);
     Task* const task = mutil::address_resource(slot_id);
     if (task == NULL) {
-        LOG(ERROR) << "Invalid task_id=" << task_id;
+        MLOG(ERROR) << "Invalid task_id=" << task_id;
         return -1;
     }
     const uint32_t id_version = version_of_task_id(task_id);
@@ -288,7 +288,7 @@ bool TimerThread::Task::run_and_delete() {
         return false;
     } else {
         // Impossible.
-        LOG(ERROR) << "Invalid version=" << expected_version
+        MLOG(ERROR) << "Invalid version=" << expected_version
                    << ", expecting " << id_version + 2;
         return false;
     }
@@ -297,7 +297,7 @@ bool TimerThread::Task::run_and_delete() {
 bool TimerThread::Task::try_delete() {
     const uint32_t id_version = version_of_task_id(task_id);
     if (version.load(mutil::memory_order_relaxed) != id_version) {
-        CHECK_EQ(version.load(mutil::memory_order_relaxed), id_version + 2);
+        MCHECK_EQ(version.load(mutil::memory_order_relaxed), id_version + 2);
         mutil::return_resource(slot_of_task_id(task_id));
         return true;
     }
@@ -453,14 +453,14 @@ static TimerThread* g_timer_thread = NULL;
 static void init_global_timer_thread() {
     g_timer_thread = new (std::nothrow) TimerThread;
     if (g_timer_thread == NULL) {
-        LOG(FATAL) << "Fail to new g_timer_thread";
+        MLOG(FATAL) << "Fail to new g_timer_thread";
         return;
     }
     TimerThreadOptions options;
     options.bvar_prefix = "fiber_timer";
     const int rc = g_timer_thread->start(&options);
     if (rc != 0) {
-        LOG(FATAL) << "Fail to start timer_thread, " << berror(rc);
+        MLOG(FATAL) << "Fail to start timer_thread, " << berror(rc);
         delete g_timer_thread;
         g_timer_thread = NULL;
         return;

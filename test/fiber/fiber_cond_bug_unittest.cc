@@ -52,10 +52,10 @@ void* print_func(void* arg) {
         usleep(1000000);
         for (int i = 0; i < PRODUCER_NUM; i++) {
             if (g_stat[i].loop_count.load() <= last_loop[i]) {
-                LOG(ERROR) << "producer thread:" << i << " stopped";
+                MLOG(ERROR) << "producer thread:" << i << " stopped";
                 return nullptr;
             }
-            LOG(INFO) << "producer stat idx:" << i
+            MLOG(INFO) << "producer stat idx:" << i
                       << " wait:" << g_stat[i].wait_count
                       << " wait_timeout:" << g_stat[i].wait_timeout_count
                       << " wait_success:" << g_stat[i].wait_success_count;
@@ -67,32 +67,32 @@ void* print_func(void* arg) {
 
 void* produce_func(void* arg) {
     const int64_t wait_us = FLAGS_wait_us;
-    LOG(INFO) << "wait us:" << wait_us;
+    MLOG(INFO) << "wait us:" << wait_us;
     int64_t idx = (int64_t)(arg);
     int32_t i = 0;
     while (!fiber_stopped(fiber_self())) {
-        //LOG(INFO) << "come to a new round " << idx << "round[" << i << "]";
+        //MLOG(INFO) << "come to a new round " << idx << "round[" << i << "]";
         {
             Lock lock(g_mutex); 
             while (g_que.size() >= g_capacity && !fiber_stopped(fiber_self())) {
                 g_stat[idx].wait_count << 1;
-                //LOG(INFO) << "wait begin " << idx;
+                //MLOG(INFO) << "wait begin " << idx;
                 int ret = g_cond.wait_for(lock, wait_us);
                 if (ret == ETIMEDOUT) {
                     g_stat[idx].wait_timeout_count << 1;
-                    //LOG_EVERY_SECOND(INFO) << "wait timeout " << idx;
+                    //MLOG_EVERY_SECOND(INFO) << "wait timeout " << idx;
                 } else {
                     g_stat[idx].wait_success_count << 1;
-                    //LOG_EVERY_SECOND(INFO) << "wait early " << idx;
+                    //MLOG_EVERY_SECOND(INFO) << "wait early " << idx;
                 }
             }
             g_que.push_back(++i);
-            //LOG(INFO) << "push back " << idx << " data[" << i << "]";
+            //MLOG(INFO) << "push back " << idx << " data[" << i << "]";
         }
         usleep(rand() % 20 + 5);
         g_stat[idx].loop_count.fetch_add(1);
     }
-    LOG(INFO) << "producer func return, idx:" << idx;
+    MLOG(INFO) << "producer func return, idx:" << idx;
     return nullptr;
 }
 
@@ -104,18 +104,18 @@ void* consume_func(void* arg) {
             need_notify = (g_que.size() == g_capacity);
             if (!g_que.empty()) {
                 g_que.pop_front();
-                LOG_EVERY_SECOND(INFO) << "pop a data";
+                MLOG_EVERY_SECOND(INFO) << "pop a data";
             } else {
-                LOG_EVERY_SECOND(INFO) << "que is empty";
+                MLOG_EVERY_SECOND(INFO) << "que is empty";
             }
         }
         usleep(rand() % 300 + 500);
         if (need_notify) {
             //g_cond.notify_all();
-            //LOG(WARNING) << "notify";
+            //MLOG(WARNING) << "notify";
         }
     }
-    LOG(INFO) << "consumer func return";
+    MLOG(INFO) << "consumer func return";
     return nullptr;
 }
 

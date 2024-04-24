@@ -151,15 +151,15 @@ static void HandleTrackMeResponse(Controller* cntl, TrackMeResponse* res) {
             case TrackMeOK:
                 break;
             case TrackMeFatal:
-                LOG(ERROR) << "Your melon (r" << g_rpc_version
+                MLOG(ERROR) << "Your melon (r" << g_rpc_version
                            << ") is affected by: " << res->error_text();
                 break;
             case TrackMeWarning:
-                LOG(WARNING) << "Your melon (r" << g_rpc_version
+                MLOG(WARNING) << "Your melon (r" << g_rpc_version
                              << ") is affected by: " << res->error_text();
                 break;
             default:
-                LOG(WARNING) << "Unknown severity=" << res->severity();
+                MLOG(WARNING) << "Unknown severity=" << res->severity();
                 break;
             }
         }
@@ -187,14 +187,14 @@ static void TrackMeNow(std::unique_lock<pthread_mutex_t>& mu) {
     if (s_trackme_chan == NULL) {
         Channel* chan = new (std::nothrow) Channel;
         if (chan == NULL) {
-            LOG(FATAL) << "Fail to new trackme channel";
+            MLOG(FATAL) << "Fail to new trackme channel";
             return;
         }
         ChannelOptions opt;
         // keep #connections on server-side low
         opt.connection_type = CONNECTION_TYPE_SHORT;
         if (chan->Init(FLAGS_trackme_server.c_str(), "c_murmurhash", &opt) != 0) {
-            LOG(WARNING) << "Fail to connect to " << FLAGS_trackme_server;
+            MLOG(WARNING) << "Fail to connect to " << FLAGS_trackme_server;
             delete chan;
             return;
         }

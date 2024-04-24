@@ -39,7 +39,7 @@ static void RemoveMemcached() {
     puts("[Stopping memcached]");
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "kill %d", g_mc_pid);
-    CHECK(0 == system(cmd));
+    MCHECK(0 == system(cmd));
     // Wait for mc to stop
     usleep(50000);
 }

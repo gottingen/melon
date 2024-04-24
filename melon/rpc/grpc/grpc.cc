@@ -219,7 +219,7 @@ namespace melon {
             default:
                 return -1;
         }
-        CHECK(false) << "Impossible";
+        MCHECK(false) << "Impossible";
     }
 
 } // namespace melon

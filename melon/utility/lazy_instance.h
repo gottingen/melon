@@ -62,7 +62,7 @@ struct DefaultLazyInstanceTraits {
 #endif
 
   static Type* New(void* instance) {
-    DCHECK_EQ(reinterpret_cast<uintptr_t>(instance) & (ALIGNOF(Type) - 1), 0u)
+    DMCHECK_EQ(reinterpret_cast<uintptr_t>(instance) & (ALIGNOF(Type) - 1), 0u)
         << ": Bad boy, the buffer passed to placement new is not aligned!\n"
         "This may break some stuff like SSE-based optimizations assuming the "
         "<Type> objects are word aligned.";

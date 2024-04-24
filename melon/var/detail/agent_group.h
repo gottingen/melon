@@ -126,13 +126,13 @@ namespace melon::var {
             // Note: May return non-null for unexist id, see notes on ThreadBlock
             inline static Agent *get_or_create_tls_agent(AgentId id) {
                 if (__builtin_expect(id < 0, 0)) {
-                    CHECK(false) << "Invalid id=" << id;
+                    MCHECK(false) << "Invalid id=" << id;
                     return NULL;
                 }
                 if (_s_tls_blocks == NULL) {
                     _s_tls_blocks = new(std::nothrow) std::vector<ThreadBlock *>;
                     if (__builtin_expect(_s_tls_blocks == NULL, 0)) {
-                        LOG(FATAL) << "Fail to create vector, " << berror();
+                        MLOG(FATAL) << "Fail to create vector, " << berror();
                         return NULL;
                     }
                     mutil::thread_atexit(_destroy_tls_blocks);

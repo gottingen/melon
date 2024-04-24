@@ -42,10 +42,10 @@ public:
     typedef fiber_cond_t*         native_handler_type;
     
     ConditionVariable() {
-        CHECK_EQ(0, fiber_cond_init(&_cond, NULL));
+        MCHECK_EQ(0, fiber_cond_init(&_cond, NULL));
     }
     ~ConditionVariable() {
-        CHECK_EQ(0, fiber_cond_destroy(&_cond));
+        MCHECK_EQ(0, fiber_cond_destroy(&_cond));
     }
 
     native_handler_type native_handler() { return &_cond; }

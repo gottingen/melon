@@ -72,7 +72,7 @@ static void* sender(void* arg) {
             g_latency_recorder << cntl.latency_us();
         } else {
             g_error_count << 1; 
-            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << elp;
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too // fast. You should continue the business logic in a production 
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     schan_options.backup_request_ms = FLAGS_backup_ms;
     schan_options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_load_balancer.c_str(), &schan_options) != 0) {
-        LOG(ERROR) << "Fail to init SelectiveChannel";
+        MLOG(ERROR) << "Fail to init SelectiveChannel";
         return -1;
     }
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     mutil::EndPoint pt;
     if (str2endpoint(FLAGS_starting_server.c_str(), &pt) != 0 &&
         hostname2endpoint(FLAGS_starting_server.c_str(), &pt) != 0) {
-        LOG(ERROR) << "Invalid address=`" << FLAGS_starting_server << "'";
+        MLOG(ERROR) << "Invalid address=`" << FLAGS_starting_server << "'";
         return -1;
     }
     melon::ChannelOptions options;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     }
     if (sub_channel1->Init(os.str().c_str(), FLAGS_load_balancer.c_str(),
                            &options) != 0) {
-        LOG(ERROR) << "Fail to init ordinary channel";
+        MLOG(ERROR) << "Fail to init ordinary channel";
         return -1;
     }
     sub_channels.push_back(sub_channel1);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     melon::ParallelChannelOptions pchan_options;
     pchan_options.fail_limit = 1;
     if (sub_channel2->Init(&pchan_options) != 0) {
-        LOG(ERROR) << "Fail to init sub_channel2";
+        MLOG(ERROR) << "Fail to init sub_channel2";
         return -1;
     }
     for (int i = 0; i < 3; ++i) {
@@ -140,11 +140,11 @@ int main(int argc, char* argv[]) {
         options.connection_type = FLAGS_connection_type;
         melon::Channel* c = new melon::Channel;
         if (c->Init(mutil::EndPoint(pt.ip, pt.port++), &options) != 0) {
-            LOG(ERROR) << "Fail to init sub channel[" << i << "] of pchan";
+            MLOG(ERROR) << "Fail to init sub channel[" << i << "] of pchan";
             return -1;
         }
         if (sub_channel2->AddChannel(c, melon::OWNS_CHANNEL, NULL, NULL) != 0) {
-            LOG(ERROR) << "Fail to add sub channel[" << i << "] into pchan";
+            MLOG(ERROR) << "Fail to add sub channel[" << i << "] into pchan";
             return -1;
         }
     }
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     // Add another selective channel with default options.
     melon::SelectiveChannel* sub_channel3 = new melon::SelectiveChannel;
     if (sub_channel3->Init(FLAGS_load_balancer.c_str(), NULL) != 0) {
-        LOG(ERROR) << "Fail to init schan";
+        MLOG(ERROR) << "Fail to init schan";
         return -1;
     }
     for (int i = 0; i < 3; ++i) {
@@ -166,17 +166,17 @@ int main(int argc, char* argv[]) {
             }
             if (c->Init(os.str().c_str(), FLAGS_load_balancer.c_str(),
                         &options) != 0) {
-                LOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
+                MLOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
                 return -1;
             }
         } else {
             if (c->Init(mutil::EndPoint(pt.ip, pt.port++), &options) != 0) {
-                LOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
+                MLOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
                 return -1;
             }
         }
         if (sub_channel3->AddChannel(c, NULL)) {
-            LOG(ERROR) << "Fail to add sub channel[" << i << "] into schan";
+            MLOG(ERROR) << "Fail to add sub channel[" << i << "] into schan";
             return -1;
         }
     }
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < sub_channels.size(); ++i) {
         // note: we don't need the handle for channel removal;
         if (channel.AddChannel(sub_channels[i], NULL/*note*/) != 0) {
-            LOG(ERROR) << "Fail to add sub_channel[" << i << "]";
+            MLOG(ERROR) << "Fail to add sub_channel[" << i << "]";
             return -1;
         }
     }
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
         g_attachment.resize(FLAGS_attachment_size, 'a');
     }
     if (FLAGS_request_size <= 0) {
-        LOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
+        MLOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
         return -1;
     }
     g_request.resize(FLAGS_request_size, 'r');
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create pthread";
+                MLOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create fiber";
+                MLOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -222,11 +222,11 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
+        MLOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    LOG(INFO) << "EchoClient is going to quit";
+    MLOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

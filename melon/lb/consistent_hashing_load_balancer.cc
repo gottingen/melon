@@ -99,7 +99,7 @@ namespace melon::lb {
         }
         replicas->clear();
         const size_t points_per_hash = 4;
-        CHECK(num_replicas % points_per_hash == 0)
+        MCHECK(num_replicas % points_per_hash == 0)
         << "Ketam hash replicas number(" << num_replicas << ") should be n*4";
         for (size_t i = 0; i < num_replicas / points_per_hash; ++i) {
             char host[32];
@@ -146,7 +146,7 @@ namespace melon::lb {
     ConsistentHashingLoadBalancer::ConsistentHashingLoadBalancer(
             ConsistentHashingLoadBalancerType type)
             : _num_replicas(FLAGS_chash_num_replicas), _type(type) {
-        CHECK(GetReplicaPolicy(_type))
+        MCHECK(GetReplicaPolicy(_type))
         << "Fail to find replica policy for consistency lb type: '" << _type << '\'';
     }
 
@@ -188,7 +188,7 @@ namespace melon::lb {
         } else {
             use_set = false;
         }
-        CHECK(use_set) << "Fail to construct id_set, " << berror();
+        MCHECK(use_set) << "Fail to construct id_set, " << berror();
         bg.clear();
         for (size_t i = 0; i < fg.size(); ++i) {
             const bool removed =
@@ -228,7 +228,7 @@ namespace melon::lb {
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(
                 AddBatch, add_nodes, &executed);
-        CHECK(ret == 0 || ret == _num_replicas) << ret;
+        MCHECK(ret == 0 || ret == _num_replicas) << ret;
         return ret != 0;
     }
 
@@ -247,7 +247,7 @@ namespace melon::lb {
         std::sort(add_nodes.begin(), add_nodes.end());
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(AddBatch, add_nodes, &executed);
-        CHECK(ret % _num_replicas == 0);
+        MCHECK(ret % _num_replicas == 0);
         const size_t n = ret / _num_replicas;
         LOG_IF(ERROR, n != servers.size())
         << "Fail to AddServersInBatch, expected " << servers.size()
@@ -258,7 +258,7 @@ namespace melon::lb {
     bool ConsistentHashingLoadBalancer::RemoveServer(const ServerId &server) {
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(Remove, server, &executed);
-        CHECK(ret == 0 || ret == _num_replicas);
+        MCHECK(ret == 0 || ret == _num_replicas);
         return ret != 0;
     }
 
@@ -266,7 +266,7 @@ namespace melon::lb {
             const std::vector<ServerId> &servers) {
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(RemoveBatch, servers, &executed);
-        CHECK(ret % _num_replicas == 0);
+        MCHECK(ret % _num_replicas == 0);
         const size_t n = ret / _num_replicas;
         LOG_IF(ERROR, n != servers.size())
         << "Fail to RemoveServersInBatch, expected " << servers.size()
@@ -291,11 +291,11 @@ namespace melon::lb {
     int ConsistentHashingLoadBalancer::SelectServer(
             const SelectIn &in, SelectOut *out) {
         if (!in.has_request_code) {
-            LOG(ERROR) << "Controller.set_request_code() is required";
+            MLOG(ERROR) << "Controller.set_request_code() is required";
             return EINVAL;
         }
         if (in.request_code > UINT_MAX) {
-            LOG(ERROR) << "request_code must be 32-bit currently";
+            MLOG(ERROR) << "request_code must be 32-bit currently";
             return EINVAL;
         }
         mutil::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
@@ -384,7 +384,7 @@ namespace melon::lb {
         for (mutil::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
              sp; ++sp) {
             if (sp.value().empty()) {
-                LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
+                MLOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
                 return false;
             }
             if (sp.key() == "replicas") {
@@ -393,7 +393,7 @@ namespace melon::lb {
                 }
                 continue;
             }
-            LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
+            MLOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
         }
         return true;
     }

@@ -119,7 +119,7 @@ namespace melon::var {
         pthread_cond_init(&_sleep_cond, NULL);
         int rc = pthread_create(&_grab_thread, NULL, run_grab_thread, this);
         if (rc != 0) {
-            LOG(ERROR) << "Fail to create Collector, " << berror(rc);
+            MLOG(ERROR) << "Fail to create Collector, " << berror(rc);
         } else {
             _created = true;
         }
@@ -153,7 +153,7 @@ namespace melon::var {
         // called inside the separate _dump_thread to prevent a slow callback
         // (caused by busy disk generally) from blocking collecting code too long
         // that pending requests may explode memory.
-        CHECK_EQ(0, pthread_create(&_dump_thread, NULL, run_dump_thread, this));
+        MCHECK_EQ(0, pthread_create(&_dump_thread, NULL, run_dump_thread, this));
 
         // vars
         melon::var::PassiveStatus<int64_t> pending_sampled_data(
@@ -272,7 +272,7 @@ namespace melon::var {
             _stop = true;
             pthread_cond_signal(&_dump_thread_cond);
         }
-        CHECK_EQ(0, pthread_join(_dump_thread, NULL));
+        MCHECK_EQ(0, pthread_join(_dump_thread, NULL));
     }
 
     void Collector::wakeup_grab_thread() {
@@ -386,7 +386,7 @@ namespace melon::var {
                 newhead = _dump_root.next();
                 _dump_root.RemoveFromList();
             }
-            CHECK(newhead != &_dump_root);
+            MCHECK(newhead != &_dump_root);
             newhead->InsertBeforeAsList(&root);
 
             // Call callbacks.

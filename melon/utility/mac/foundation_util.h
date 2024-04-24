@@ -244,9 +244,9 @@ namespace mac {
 // object is found by comparing its opaque type against the
 // requested type identifier. If the supplied object is not
 // compatible with the requested return type, CFCast<>() returns
-// NULL and CFCastStrict<>() will DCHECK. Providing a NULL pointer
+// NULL and CFCastStrict<>() will DMCHECK. Providing a NULL pointer
 // to either variant results in NULL being returned without
-// triggering any DCHECK.
+// triggering any DMCHECK.
 //
 // Example usage:
 // CFNumberRef some_number = mutil::mac::CFCast<CFNumberRef>(
@@ -298,8 +298,8 @@ CF_CAST_DECL(SecTrustedApplication);
 // object is found by checking if it's a kind of the requested type
 // identifier. If the supplied object is not compatible with the
 // requested return type, ObjCCast<>() returns nil and
-// ObjCCastStrict<>() will DCHECK. Providing a nil pointer to either
-// variant results in nil being returned without triggering any DCHECK.
+// ObjCCastStrict<>() will DMCHECK. Providing a nil pointer to either
+// variant results in nil being returned without triggering any DMCHECK.
 //
 // The strict variant is useful when retrieving a value from a
 // collection which only has values of a specific type, e.g. an
@@ -326,7 +326,7 @@ T* ObjCCast(id objc_val) {
 template<typename T>
 T* ObjCCastStrict(id objc_val) {
   T* rv = ObjCCast<T>(objc_val);
-  DCHECK(objc_val == nil || rv);
+  DMCHECK(objc_val == nil || rv);
   return rv;
 }
 
@@ -346,7 +346,7 @@ T GetValueFromDictionary(CFDictionaryRef dict, CFStringRef key) {
 
   if (value && !value_specific) {
     std::string expected_type = TypeNameForCFType(value_specific);
-    DLOG(WARNING) << GetValueFromDictionaryErrorMessage(key,
+    DMLOG(WARNING) << GetValueFromDictionaryErrorMessage(key,
                                                         expected_type,
                                                         value);
   }
@@ -365,7 +365,7 @@ MUTIL_EXPORT FilePath NSStringToFilePath(NSString* str);
 
 // Stream operations for CFTypes. They can be used with NSTypes as well
 // by using the NSToCFCast methods above.
-// e.g. LOG(INFO) << mutil::mac::NSToCFCast(@"foo");
+// e.g. MLOG(INFO) << mutil::mac::NSToCFCast(@"foo");
 // Operator << can not be overloaded for ObjectiveC types as the compiler
 // can not distinguish between overloads for id with overloads for void*.
 MUTIL_EXPORT extern std::ostream& operator<<(std::ostream& o,

@@ -86,23 +86,23 @@ namespace melon {
         };
 
         int GetIndexOfHeader(const HeaderAndHashCode &h) {
-            DCHECK(_need_indexes);
+            DMCHECK(_need_indexes);
             const uint64_t *v = _header_index.seek(h);
             if (!v) {
                 return 0;
             }
-            DCHECK_LE(_add_times - *v, _header_queue.size());
+            DMCHECK_LE(_add_times - *v, _header_queue.size());
             // The latest added entry has the smallest index
             return _start_index + (_add_times - *v) - 1;
         }
 
         int GetIndexOfName(const std::string &name) {
-            DCHECK(_need_indexes);
+            DMCHECK(_need_indexes);
             const uint64_t *v = _name_index.seek(name);
             if (!v) {
                 return 0;
             }
-            DCHECK_LE(_add_times - *v, _header_queue.size());
+            DMCHECK_LE(_add_times - *v, _header_queue.size());
             // The latest added entry has the smallest index
             return _start_index + (_add_times - *v) - 1;
         }
@@ -119,10 +119,10 @@ namespace melon {
         }
 
         void PopHeader() {
-            DCHECK(!empty());
+            DMCHECK(!empty());
             const Header *h = _header_queue.top();
             const size_t entry_size = HeaderSize(*h);
-            DCHECK_LE(entry_size, _size);
+            DMCHECK_LE(entry_size, _size);
             const uint64_t id = _add_times - _header_queue.size();
             if (_need_indexes) {
                 RemoveHeaderFromIndexes(*h, id);
@@ -134,20 +134,20 @@ namespace melon {
         void RemoveHeaderFromIndexes(const Header &h, uint64_t expected_id) {
             if (!h.value.empty()) {
                 const uint64_t *v = _header_index.seek(h);
-                DCHECK(v);
+                DMCHECK(v);
                 if (*v == expected_id) {
                     _header_index.erase(h);
                 }
             }
             const uint64_t *v = _name_index.seek(h.name);
-            DCHECK(v);
+            DMCHECK(v);
             if (*v == expected_id) {
                 _name_index.erase(h.name);
             }
         }
 
         void AddHeader(const Header &h) {
-            CHECK(!h.name.empty());
+            MCHECK(!h.name.empty());
             const size_t entry_size = HeaderSize(h);
 
             while (!empty() && (_size + entry_size) > _max_size) {
@@ -157,12 +157,12 @@ namespace melon {
             if (entry_size > _max_size) {
                 // https://tools.ietf.org/html/rfc7541#section-4.1
                 // If this header is larger than the max size, clear the table only.
-                DCHECK(empty());
+                DMCHECK(empty());
                 return;
             }
 
             _size += entry_size;
-            CHECK(!_header_queue.full());
+            MCHECK(!_header_queue.full());
             _header_queue.push(h);
 
             const int id = _add_times++;
@@ -176,10 +176,10 @@ namespace melon {
         }
 
         void ResetMaxSize(size_t new_max_size) {
-            LOG(INFO) << this << ".size=" << _size << " new_max_size=" << new_max_size
+            MLOG(INFO) << this << ".size=" << _size << " new_max_size=" << new_max_size
                       << " max_size=" << _max_size;
             if (new_max_size > _max_size) {
-                //LOG(ERROR) << "Invalid new_max_size=" << new_max_size;
+                //MLOG(ERROR) << "Invalid new_max_size=" << new_max_size;
                 //return -1;
                 _max_size = new_max_size;
                 return;
@@ -229,7 +229,7 @@ namespace melon {
         }
         void *header_queue_storage = malloc(num_headers * sizeof(Header));
         if (!header_queue_storage) {
-            LOG(ERROR) << "Fail to malloc space for " << num_headers << " headers";
+            MLOG(ERROR) << "Fail to malloc space for " << num_headers << " headers";
             return -1;
         }
         mutil::BoundedQueue<Header> tmp(
@@ -240,11 +240,11 @@ namespace melon {
         _need_indexes = options.need_indexes;
         if (_need_indexes) {
             if (_name_index.init(num_headers * 2) != 0) {
-                LOG(ERROR) << "Fail to init _name_index";
+                MLOG(ERROR) << "Fail to init _name_index";
                 return -1;
             }
             if (_header_index.init(num_headers * 2) != 0) {
-                LOG(ERROR) << "Fail to init _name_index";
+                MLOG(ERROR) << "Fail to init _name_index";
                 return -1;
             }
         }
@@ -298,7 +298,7 @@ namespace melon {
         void AddLeafNode(int32_t value, const HuffmanCode &code) {
             NodeId cur = ROOT_NODE;
             for (int i = code.bit_len; i > 0; i--) {
-                CHECK_EQ(node(cur).value, INVALID_VALUE) << "value=" << value << "cur=" << cur;
+                MCHECK_EQ(node(cur).value, INVALID_VALUE) << "value=" << value << "cur=" << cur;
                 if (code.code & (1u << (i - 1))) {
                     if (node(cur).right_child == NULL_NODE) {
                         NodeId new_id = AllocNode();
@@ -313,9 +313,9 @@ namespace melon {
                     cur = node(cur).left_child;
                 }
             }
-            CHECK_EQ(INVALID_VALUE, node(cur).value) << "value=" << value << " cur=" << cur;
-            CHECK_EQ(NULL_NODE, node(cur).left_child);
-            CHECK_EQ(NULL_NODE, node(cur).right_child);
+            MCHECK_EQ(INVALID_VALUE, node(cur).value) << "value=" << value << " cur=" << cur;
+            MCHECK_EQ(NULL_NODE, node(cur).left_child);
+            MCHECK_EQ(NULL_NODE, node(cur).right_child);
             node(cur).value = value;
         }
 
@@ -377,7 +377,7 @@ namespace melon {
             if (_remain_bit == 8u) {
                 return;
             }
-            DCHECK_LT(_remain_bit, 8u);
+            DMCHECK_LT(_remain_bit, 8u);
             // Add padding `1's to lsb to make _out aligned
             _partial_byte |= (1 << _remain_bit) - 1;
             // TODO: push_back is probably costly since it acquires tls everytime it
@@ -414,12 +414,12 @@ namespace melon {
                 if (byte & (1u << i)) {
                     _cur_node = _tree->node(_cur_node->right_child);
                     if (MELON_UNLIKELY(!_cur_node)) {
-                        LOG(ERROR) << "Decoder stream reaches NULL_NODE";
+                        MLOG(ERROR) << "Decoder stream reaches NULL_NODE";
                         return -1;
                     }
                     if (_cur_node->value != HuffmanTree::INVALID_VALUE) {
                         if (MELON_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
-                            LOG(ERROR) << "Decoder stream reaches EOS";
+                            MLOG(ERROR) << "Decoder stream reaches EOS";
                             return -1;
                         }
                         _out->push_back(static_cast<uint8_t>(_cur_node->value));
@@ -432,12 +432,12 @@ namespace melon {
                 } else {
                     _cur_node = _tree->node(_cur_node->left_child);
                     if (MELON_UNLIKELY(!_cur_node)) {
-                        LOG(ERROR) << "Decoder stream reaches NULL_NODE";
+                        MLOG(ERROR) << "Decoder stream reaches NULL_NODE";
                         return -1;
                     }
                     if (_cur_node->value != HuffmanTree::INVALID_VALUE) {
                         if (MELON_UNLIKELY(_cur_node->value == HPACK_HUFFMAN_EOS)) {
-                            LOG(ERROR) << "Decoder stream reaches EOS";
+                            MLOG(ERROR) << "Decoder stream reaches EOS";
                             return -1;
                         }
                         _out->push_back(static_cast<uint8_t>(_cur_node->value));
@@ -513,14 +513,14 @@ namespace melon {
         options.need_indexes = true;
         s_static_table = new IndexTable;
         if (s_static_table->Init(options) != 0) {
-            LOG(ERROR) << "Fail to init static table";
+            MLOG(ERROR) << "Fail to init static table";
             exit(1);
         }
     }
 
     static void CreateStaticTableOnceOrDie() {
         if (pthread_once(&s_create_once, CreateStaticTableOrDie) != 0) {
-            PLOG(ERROR) << "Fail to pthread_once";
+            PMLOG(ERROR) << "Fail to pthread_once";
             exit(1);
         }
     }
@@ -555,7 +555,7 @@ namespace melon {
         } while ((cur_byte & 0x80) && (tmp < MAX_HPACK_INTEGER));
 
         if (tmp >= MAX_HPACK_INTEGER) {
-            LOG(ERROR) << "Source stream is likely malformed";
+            MLOG(ERROR) << "Source stream is likely malformed";
             return -1;
         }
 
@@ -652,15 +652,15 @@ namespace melon {
     }
 
     int HPacker::Init(size_t max_table_size) {
-        CHECK(!_encode_table);
-        CHECK(!_decode_table);
+        MCHECK(!_encode_table);
+        MCHECK(!_decode_table);
         IndexTableOptions encode_table_options;
         encode_table_options.max_size = max_table_size;
         encode_table_options.start_index = s_static_table->end_index();
         encode_table_options.need_indexes = true;
         _encode_table = new IndexTable;
         if (_encode_table->Init(encode_table_options) != 0) {
-            LOG(ERROR) << "Fail to init encode table";
+            MLOG(ERROR) << "Fail to init encode table";
             return -1;
         }
         IndexTableOptions decode_table_options;
@@ -669,7 +669,7 @@ namespace melon {
         decode_table_options.need_indexes = false;
         _decode_table = new IndexTable;
         if (_decode_table->Init(decode_table_options) != 0) {
-            LOG(ERROR) << "Fail to init decode table";
+            MLOG(ERROR) << "Fail to init decode table";
             return -1;
         }
         return 0;
@@ -736,27 +736,27 @@ namespace melon {
         ssize_t index_bytes = DecodeInteger(iter, prefix_size, (uint32_t *) &index);
         ssize_t name_bytes = 0;
         if (index_bytes <= 0) {
-            LOG(ERROR) << "Fail to decode index";
+            MLOG(ERROR) << "Fail to decode index";
             return -1;
         }
         if (index != 0) {
             const Header *indexed_header = HeaderAt(index);
             if (indexed_header == NULL) {
-                LOG(ERROR) << "No header at index=" << index;
+                MLOG(ERROR) << "No header at index=" << index;
                 return -1;
             }
             h->name = indexed_header->name;
         } else {
             name_bytes = DecodeString(iter, &h->name);
             if (name_bytes <= 0) {
-                LOG(ERROR) << "Fail to decode name";
+                MLOG(ERROR) << "Fail to decode name";
                 return -1;
             }
             tolower(&h->name);
         }
         ssize_t value_bytes = DecodeString(iter, &h->value);
         if (value_bytes <= 0) {
-            LOG(ERROR) << "Fail to decode value";
+            MLOG(ERROR) << "Fail to decode value";
             return -1;
         }
         return index_bytes + name_bytes + value_bytes;
@@ -787,7 +787,7 @@ namespace melon {
                 }
                 const Header *indexed_header = HeaderAt(index);
                 if (indexed_header == NULL) {
-                    LOG(ERROR) << "No header at index=" << index;
+                    MLOG(ERROR) << "No header at index=" << index;
                     return -1;
                 }
                 *h = *indexed_header;
@@ -820,7 +820,7 @@ namespace melon {
                     return read_bytes;
                 }
                 if (max_size > H2Settings::DEFAULT_HEADER_TABLE_SIZE) {
-                    LOG(ERROR) << "Invalid max_size=" << max_size;
+                    MLOG(ERROR) << "Invalid max_size=" << max_size;
                     return -1;
                 }
                 _decode_table->ResetMaxSize(max_size);
@@ -837,7 +837,7 @@ namespace melon {
                 return DecodeWithKnownPrefix(iter, h, 4);
                 // TODO: Expose NeverIndex to the caller.
             default:
-                CHECK(false) << "Can't reach here";
+                MCHECK(false) << "Can't reach here";
                 return -1;
         }
     }

@@ -123,7 +123,7 @@ void OffsetAdjuster::MergeSequentialAdjustments(
       // current adjustment_on_adjusted_string somehow points to an offset
       // that was supposed to have been eliminated by the first set of
       // adjustments.)
-      DCHECK_LE(first_iter->original_offset + first_iter->output_length,
+      DMCHECK_LE(first_iter->original_offset + first_iter->output_length,
                 adjusted_iter->original_offset + shift);
 
       // Add the |first_adjustment_iter| to the full set of adjustments while
@@ -155,18 +155,18 @@ void OffsetAdjuster::MergeSequentialAdjustments(
           static_cast<int>(first_iter->output_length);
       // This function does not know how to deal with a string that expands and
       // then gets modified, only strings that collapse and then get modified.
-      DCHECK_GT(collapse, 0);
+      DMCHECK_GT(collapse, 0);
       adjusted_iter->original_length += collapse;
       currently_collapsing += collapse;
       ++first_iter;
     }
   }
-  DCHECK_EQ(0u, currently_collapsing);
+  DMCHECK_EQ(0u, currently_collapsing);
   if (first_iter != first_adjustments.end()) {
     // Only first adjustments are left.  These do not need to be modified.
     // (Their offsets are already correct with respect to the original string.)
     // Append them all.
-    DCHECK(adjusted_iter == adjustments_on_adjusted_string->end());
+    DMCHECK(adjusted_iter == adjustments_on_adjusted_string->end());
     adjustments_on_adjusted_string->insert(
         adjustments_on_adjusted_string->end(), first_iter,
         first_adjustments.end());

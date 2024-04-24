@@ -174,7 +174,7 @@ class MRUCacheBase {
   size_type size() const {
     // We don't use ordering_.size() for the return value because
     // (as a linked list) it can be O(n).
-    DCHECK(index_.size() == ordering_.size());
+    DMCHECK(index_.size() == ordering_.size());
     return index_.size();
   }
 

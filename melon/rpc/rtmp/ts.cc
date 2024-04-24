@@ -275,7 +275,7 @@ namespace melon {
 
     TsAdaptationField *TsPacket::CreateAdaptationField() {
         if (_adaptation_field != NULL) {
-            LOG(ERROR) << "_adaptation_field is not NULL";
+            MLOG(ERROR) << "_adaptation_field is not NULL";
             return _adaptation_field;
         }
         _adaptation_field = new TsAdaptationField;
@@ -284,7 +284,7 @@ namespace melon {
         } else if (_adaptation_field_control == TS_AF_PAYLOAD_ONLY) {
             _adaptation_field_control = TS_AF_BOTH;
         } else {
-            LOG(ERROR) << "Invalid _adaptation_field_control="
+            MLOG(ERROR) << "Invalid _adaptation_field_control="
                        << _adaptation_field_control;
         }
         return _adaptation_field;
@@ -324,7 +324,7 @@ namespace melon {
 
         if (_adaptation_field) {
             if (_adaptation_field->Encode(p, af_control) != 0) {
-                LOG(ERROR) << "Fail to encode _adaptation_field";
+                MLOG(ERROR) << "Fail to encode _adaptation_field";
                 return -1;
             }
             p += _adaptation_field->ByteSize();
@@ -332,7 +332,7 @@ namespace melon {
 
         if (_payload) {
             if (_payload->Encode(p) != 0) {
-                LOG(ERROR) << "Fail to encode _payload";
+                MLOG(ERROR) << "Fail to encode _payload";
                 return -1;
             }
             p += _payload->ByteSize();
@@ -379,7 +379,7 @@ namespace melon {
                               TsPid apid, TsStream as) {
         if (vs != TS_STREAM_VIDEO_H264 &&
             as != TS_STREAM_AUDIO_AAC && as != TS_STREAM_AUDIO_MP3) {
-            LOG(ERROR) << "Unsupported video_stream=" << vs << " audio_stream=" << as;
+            MLOG(ERROR) << "Unsupported video_stream=" << vs << " audio_stream=" << as;
             return -1;
         }
 
@@ -508,12 +508,12 @@ namespace melon {
 
         if (adaptation_field_control == TS_AF_BOTH) {
             if (af_length > 182) {
-                LOG(ERROR) << "Invalid af_length=" << af_length;
+                MLOG(ERROR) << "Invalid af_length=" << af_length;
                 return -1;
             }
         } else if (adaptation_field_control == TS_AF_ADAPTATION_ONLY) {
             if (af_length != 183) {
-                LOG(ERROR) << "Invalid af_length=" << af_length;
+                MLOG(ERROR) << "Invalid af_length=" << af_length;
                 return -1;
             }
         }
@@ -570,7 +570,7 @@ namespace melon {
             if (seamless_splice_flag) { p += 5; } // Ignore seamless_splice
             p += nb_af_ext_reserved;
             if (adaptation_field_extension_length != p - saved_p) {
-                LOG(ERROR) << "af_extension_length="
+                MLOG(ERROR) << "af_extension_length="
                            << adaptation_field_extension_length
                            << " does not match other fields";
                 return -1;
@@ -656,7 +656,7 @@ namespace melon {
     int TsPayloadPES::Encode(void *data) const {
         if (_PES_header_data_length < 0) {
             (void) ByteSize();
-            CHECK_GE(_PES_header_data_length, 0);
+            MCHECK_GE(_PES_header_data_length, 0);
         }
         char *p = (char *) data;
 
@@ -701,7 +701,7 @@ namespace melon {
             encode_33bits_dts_pts(&p, 0x01, dts);
             // the diff of dts and pts should never be greater than 1s.
             if (labs(dts - pts) > 90000) {
-                LOG(WARNING) << "Diff between dts=" << dts << " and pts=" << pts
+                MLOG(WARNING) << "Diff between dts=" << dts << " and pts=" << pts
                              << " is greater than 1 second";
             }
         }
@@ -769,7 +769,7 @@ namespace melon {
         char *p = (char *) data;
         if (_section_length < 0) {
             (void) ByteSize();
-            CHECK_GE(_section_length, 0);
+            MCHECK_GE(_section_length, 0);
         }
         if (packet()->payload_unit_start_indicator()) {
             policy::Write1Byte(&p, pointer_field);
@@ -785,7 +785,7 @@ namespace melon {
             return 0;
         }
         if (PsiEncode(p) != 0) {
-            LOG(ERROR) << "Fail to TsPayloadPSI.PsiEncode";
+            MLOG(ERROR) << "Fail to TsPayloadPSI.PsiEncode";
             return -1;
         }
         p += _section_length - 4;
@@ -839,7 +839,7 @@ namespace melon {
 
         for (size_t i = 0; i < programs.size(); ++i) {
             if (programs[i].Encode(p) != 0) {
-                LOG(ERROR) << "Fail to encode TsPayloadPAT.programs[" << i << ']';
+                MLOG(ERROR) << "Fail to encode TsPayloadPAT.programs[" << i << ']';
                 return -1;
             }
             p += programs[i].ByteSize();
@@ -936,7 +936,7 @@ namespace melon {
         for (size_t i = 0; i < infos.size(); ++i) {
             TsPayloadPMTESInfo *info = infos[i];
             if (info->Encode(p) != 0) {
-                LOG(ERROR) << "Fail to encode TsPayloadPMT.infos[" << i << ']';
+                MLOG(ERROR) << "Fail to encode TsPayloadPMT.infos[" << i << ']';
                 return -1;
             }
             p += info->ByteSize();
@@ -954,7 +954,7 @@ namespace melon {
                     packet()->channel_group()->set(info->elementary_PID);
                     break;
                 default:
-                    LOG(WARNING) << "Drop pid=" << info->elementary_PID
+                    MLOG(WARNING) << "Drop pid=" << info->elementary_PID
                                  << " stream=" << info->stream_type;
                     break;
             }
@@ -1299,7 +1299,7 @@ namespace melon {
         pat.CreateAsPAT(TS_PMT_NUMBER, TS_PID_PMT);
         // set the left bytes with 0xFF.
         const size_t size1 = pat.ByteSize();
-        CHECK_LT(size1, TS_PACKET_SIZE);
+        MCHECK_LT(size1, TS_PACKET_SIZE);
         memset(buf, 0xFF, TS_PACKET_SIZE);
         if (pat.Encode(buf) != 0) {
             return mutil::Status(EINVAL, "Fail to encode PAT");
@@ -1312,7 +1312,7 @@ namespace melon {
         }
         // set the left bytes with 0xFF.
         const size_t size2 = pmt.ByteSize();
-        CHECK_LT(size2, TS_PACKET_SIZE);
+        MCHECK_LT(size2, TS_PACKET_SIZE);
         memset(buf, 0xFF, TS_PACKET_SIZE);
         if (pmt.Encode(buf) != 0) {
             return mutil::Status(EINVAL, "Fail to encode PMT");
@@ -1365,7 +1365,7 @@ namespace melon {
         if (sid != TS_STREAM_VIDEO_H264 &&
             sid != TS_STREAM_AUDIO_MP3 &&
             sid != TS_STREAM_AUDIO_AAC) {
-            LOG(WARNING) << "Ignore unknown stream_id=" << sid;
+            MLOG(WARNING) << "Ignore unknown stream_id=" << sid;
             return mutil::Status::OK();
         }
 
@@ -1401,7 +1401,7 @@ namespace melon {
 
             // set the left bytes with 0xFF.
             size_t pkt_size = pkt.ByteSize();
-            CHECK_LT(pkt_size, TS_PACKET_SIZE);
+            MCHECK_LT(pkt_size, TS_PACKET_SIZE);
 
             size_t left = std::min(msg->payload.size(), TS_PACKET_SIZE - pkt_size);
             const size_t nb_stuffings = TS_PACKET_SIZE - pkt_size - left;
@@ -1412,11 +1412,11 @@ namespace melon {
                 pkt.AddPadding(nb_stuffings);
 
                 pkt_size = pkt.ByteSize();   // size changed, recalculate.
-                CHECK_LT(pkt_size, TS_PACKET_SIZE);
+                MCHECK_LT(pkt_size, TS_PACKET_SIZE);
 
                 left = std::min(msg->payload.size(), TS_PACKET_SIZE - pkt_size);
                 if (TS_PACKET_SIZE != pkt_size + left) {
-                    LOG(ERROR) << "pkt_size=" << pkt_size << " left=" << left
+                    MLOG(ERROR) << "pkt_size=" << pkt_size << " left=" << left
                                << " stuffing=" << nb_stuffings << " payload="
                                << msg->payload.size();
                 }

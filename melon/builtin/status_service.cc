@@ -135,7 +135,7 @@ namespace melon {
             if (!sp.is_user_service()) {
                 continue;
             }
-            CHECK(sp.service);
+            MCHECK(sp.service);
             if (dynamic_cast<Tabbed *>(sp.service)) {
                 // Tabbed services are probably for monitoring, their own status
                 // are not important.

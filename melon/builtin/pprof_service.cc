@@ -122,7 +122,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        LOG(INFO) << client_info.str() << " requests for cpu profile for "
+        MLOG(INFO) << client_info.str() << " requests for cpu profile for "
                   << sleep_sec << " seconds";
 
         char prof_name[256];
@@ -141,7 +141,7 @@ namespace melon {
             return;
         }
         if (fiber_usleep(sleep_sec * 1000000L) != 0) {
-            PLOG(WARNING) << "Profiling has been interrupted";
+            PMLOG(WARNING) << "Profiling has been interrupted";
         }
         ProfilerStop();
 
@@ -179,7 +179,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        LOG(INFO) << client_info.str() << " requests for contention profile for "
+        MLOG(INFO) << client_info.str() << " requests for contention profile for "
                   << sleep_sec << " seconds";
 
         char prof_name[256];
@@ -192,7 +192,7 @@ namespace melon {
             return;
         }
         if (fiber_usleep(sleep_sec * 1000000L) != 0) {
-            PLOG(WARNING) << "Profiling has been interrupted";
+            PMLOG(WARNING) << "Profiling has been interrupted";
         }
         fiber::ContentionProfilerStop();
 
@@ -232,7 +232,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        LOG(INFO) << client_info.str() << " requests for heap profile";
+        MLOG(INFO) << client_info.str() << " requests for heap profile";
 
         std::string obj;
         malloc_ext->GetHeapSample(&obj);
@@ -262,7 +262,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        LOG(INFO) << client_info.str() << " requests for growth profile";
+        MLOG(INFO) << client_info.str() << " requests for growth profile";
 
         std::string obj;
         malloc_ext->GetHeapGrowthStacks(&obj);
@@ -299,7 +299,7 @@ namespace melon {
         std::stringstream ss;
         const int rc = mutil::read_command_output(ss, cmd.c_str());
         if (rc < 0) {
-            LOG(ERROR) << "Fail to popen `" << cmd << "'";
+            MLOG(ERROR) << "Fail to popen `" << cmd << "'";
             return -1;
         }
         std::string line;

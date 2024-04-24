@@ -68,18 +68,18 @@ static pthread_mutex_t s_protocol_map_mutex = PTHREAD_MUTEX_INITIALIZER;
 int RegisterProtocol(ProtocolType type, const Protocol& protocol) {
     const size_t index = type;
     if (index >= MAX_PROTOCOL_SIZE) {
-        LOG(ERROR) << "ProtocolType=" << type << " is out of range";
+        MLOG(ERROR) << "ProtocolType=" << type << " is out of range";
         return -1;
     }
     if (!protocol.support_client() && !protocol.support_server()) {
-        LOG(ERROR) << "ProtocolType=" << type
+        MLOG(ERROR) << "ProtocolType=" << type
                    << " neither supports client nor server";
         return -1;
     }
     ProtocolEntry* const protocol_map = get_protocol_map();
     MELON_SCOPED_LOCK(s_protocol_map_mutex);
     if (protocol_map[index].valid.load(mutil::memory_order_relaxed)) {
-        LOG(ERROR) << "ProtocolType=" << type << " was registered";
+        MLOG(ERROR) << "ProtocolType=" << type << " was registered";
         return -1;
     }
     protocol_map[index].protocol = protocol;
@@ -91,7 +91,7 @@ int RegisterProtocol(ProtocolType type, const Protocol& protocol) {
 const Protocol* FindProtocol(ProtocolType type) {
     const size_t index = type;
     if (index >= MAX_PROTOCOL_SIZE) {
-        LOG(ERROR) << "ProtocolType=" << type << " is out of range";
+        MLOG(ERROR) << "ProtocolType=" << type << " is out of range";
         return NULL;
     }
     ProtocolEntry* const protocol_map = get_protocol_map();
@@ -179,7 +179,7 @@ ProtocolType StringToProtocolType(const mutil::StringPiece& name,
                 err << ' ' << protocol_map[i].protocol.name;
             }
         }
-        LOG(ERROR) << err.str();
+        MLOG(ERROR) << err.str();
     }
     return PROTOCOL_UNKNOWN;
 }
@@ -251,10 +251,10 @@ void LogErrorTextAndDelete::operator()(Controller* c) const {
     }
     if (FLAGS_log_error_text && c->ErrorCode()) {
         if (c->ErrorCode() == ECLOSE) {
-            LOG(WARNING) << "Close connection to " << c->remote_side()
+            MLOG(WARNING) << "Close connection to " << c->remote_side()
                          << ": " << c->ErrorText();
         } else {
-            LOG(WARNING) << "Error to " << c->remote_side()
+            MLOG(WARNING) << "Error to " << c->remote_side()
                          << ": " << c->ErrorText();
         }
     }

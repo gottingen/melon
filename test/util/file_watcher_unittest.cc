@@ -41,16 +41,16 @@ TEST_F(FileWatcherTest, random_op) {
             const mutil::FileWatcher::Change ret = fw.check_and_consume();
             switch (ret) {
             case mutil::FileWatcher::UPDATED:
-                LOG(INFO) << fw.filepath() << " is updated";
+                MLOG(INFO) << fw.filepath() << " is updated";
                 break;
             case mutil::FileWatcher::CREATED:
-                LOG(INFO) << fw.filepath() << " is created";
+                MLOG(INFO) << fw.filepath() << " is created";
                 break;
             case mutil::FileWatcher::DELETED:
-                LOG(INFO) << fw.filepath() << " is deleted";
+                MLOG(INFO) << fw.filepath() << " is deleted";
                 break;
             case mutil::FileWatcher::UNCHANGED:
-                LOG(INFO) << fw.filepath() << " does not change or still not exist";
+                MLOG(INFO) << fw.filepath() << " does not change or still not exist";
                 break;
             }
         }
@@ -58,14 +58,14 @@ TEST_F(FileWatcherTest, random_op) {
         switch (rand() % 2) {
         case 0:
             ASSERT_EQ(0, system("touch dummy_file"));
-            LOG(INFO) << "action: touch dummy_file";
+            MLOG(INFO) << "action: touch dummy_file";
             break;
         case 1:
             ASSERT_EQ(0, system("rm -f dummy_file"));
-            LOG(INFO) << "action: rm -f dummy_file";
+            MLOG(INFO) << "action: rm -f dummy_file";
             break;
         case 2:
-            LOG(INFO) << "action: (nothing)";
+            MLOG(INFO) << "action: (nothing)";
             break;
         }
         

@@ -12,7 +12,7 @@
 #include "melon/utility/compiler_specific.h"
 
 // See comment at top of thread_checker.h
-#if (!defined(NDEBUG) || defined(DCHECK_ALWAYS_ON))
+#if (!defined(NDEBUG) || defined(DMCHECK_ALWAYS_ON))
 #define ENABLE_NON_THREAD_SAFE 1
 #else
 #define ENABLE_NON_THREAD_SAFE 0
@@ -48,7 +48,7 @@ class NonThreadSafeDoNothing {
 // class MyClass : public mutil::NonThreadSafe {
 //  public:
 //   void Foo() {
-//     DCHECK(CalledOnValidThread());
+//     DMCHECK(CalledOnValidThread());
 //     ... (do stuff) ...
 //   }
 // }

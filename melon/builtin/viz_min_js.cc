@@ -42,7 +42,7 @@ static void InitVizMinBufGzip() {
     mutil::IOBuf viz_min;
     viz_min.append(viz_min_js());
     s_viz_min_buf_gzip = new mutil::IOBuf;
-    CHECK(compress::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
+    MCHECK(compress::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
 }
 const mutil::IOBuf& viz_min_js_iobuf_gzip() {
     pthread_once(&s_viz_min_buf_gzip_once, InitVizMinBufGzip);

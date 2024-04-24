@@ -117,7 +117,7 @@ namespace melon::var {
         bool operator()(pthread_mutex_t *mutex) const {
 #ifndef NDEBUG
             const int rc = pthread_mutex_init(mutex, NULL);
-            CHECK_EQ(0, rc) << "Fail to init pthread_mutex, " << berror(rc);
+            MCHECK_EQ(0, rc) << "Fail to init pthread_mutex, " << berror(rc);
             return rc == 0;
 #else
             return pthread_mutex_init(mutex, NULL) == 0;
@@ -130,7 +130,7 @@ namespace melon::var {
         bool operator()(pthread_mutex_t *mutex) const {
 #ifndef NDEBUG
             const int rc = pthread_mutex_destroy(mutex);
-            CHECK_EQ(0, rc) << "Fail to destroy pthread_mutex, " << berror(rc);
+            MCHECK_EQ(0, rc) << "Fail to destroy pthread_mutex, " << berror(rc);
             return rc == 0;
 #else
             return pthread_mutex_destroy(mutex) == 0;

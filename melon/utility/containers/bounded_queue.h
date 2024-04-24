@@ -44,7 +44,7 @@ namespace mutil {
 //   int Foo::init() {
 //     BoundedQueue<int> tmp(capacity);
 //     if (!tmp.initialized()) {
-//       LOG(ERROR) << "Fail to create _queue";
+//       MLOG(ERROR) << "Fail to create _queue";
 //       return -1;
 //     }
 //     tmp.swap(_queue);
@@ -63,7 +63,7 @@ public:
         , _start(0)
         , _ownership(ownership)
         , _items(mem) {
-        DCHECK(_items);
+        DMCHECK(_items);
     };
     
     // Construct a queue with the given capacity.
@@ -75,7 +75,7 @@ public:
         , _start(0)
         , _ownership(OWNS_STORAGE)
         , _items(malloc(capacity * sizeof(T))) {
-        DCHECK(_items);
+        DMCHECK(_items);
     };
     
     BoundedQueue()

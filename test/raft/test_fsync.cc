@@ -31,7 +31,7 @@ TEST_F(FsyncTest, benchmark_append) {
         fsync(fd);
     }
     timer.stop();
-    LOG(INFO) << "fsync takes " << timer.u_elapsed();
+    MLOG(INFO) << "fsync takes " << timer.u_elapsed();
     timer.start();
     fd.reset(-1);
     fd.reset(::open("fsync.data", O_RDWR | O_CREAT | O_TRUNC, 0644));
@@ -49,7 +49,7 @@ TEST_F(FsyncTest, benchmark_append) {
 #endif
     }
     timer.stop();
-    LOG(INFO) << "fdatasync takes " << timer.u_elapsed();
+    MLOG(INFO) << "fdatasync takes " << timer.u_elapsed();
 }
 
 TEST_F(FsyncTest, benchmark_randomly_write) {

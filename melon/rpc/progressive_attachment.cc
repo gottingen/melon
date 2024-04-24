@@ -42,8 +42,8 @@ ProgressiveAttachment::ProgressiveAttachment(SocketUniquePtr& movable_httpsock,
 
 ProgressiveAttachment::~ProgressiveAttachment() {
     if (_httpsock) {
-        CHECK(_rpc_state.load(mutil::memory_order_relaxed) != RPC_RUNNING);
-        CHECK(_saved_buf.empty());
+        MCHECK(_rpc_state.load(mutil::memory_order_relaxed) != RPC_RUNNING);
+        MCHECK(_saved_buf.empty());
         if (!_before_http_1_1) {
             // note: _httpsock may already be failed.
             if (_rpc_state.load(mutil::memory_order_relaxed) == RPC_SUCCEED) {
@@ -116,7 +116,7 @@ inline void AppendAsChunk(mutil::IOBuf* chunk_buf, const void* data,
 
 int ProgressiveAttachment::Write(const mutil::IOBuf& data) {
     if (data.empty()) {
-        LOG_EVERY_SECOND(WARNING)
+        MLOG_EVERY_SECOND(WARNING)
             << "Write an empty chunk. To suppress this warning, check emptiness"
             " of the chunk before calling ProgressiveAttachment.Write()";
         return 0;
@@ -150,7 +150,7 @@ int ProgressiveAttachment::Write(const mutil::IOBuf& data) {
 
 int ProgressiveAttachment::Write(const void* data, size_t n) {
     if (data == NULL || n == 0) {
-        LOG_EVERY_SECOND(WARNING)
+        MLOG_EVERY_SECOND(WARNING)
             << "Write an empty chunk. To suppress this warning, check emptiness"
             " of the chunk before calling ProgressiveAttachment.Write()";
         return 0;
@@ -239,11 +239,11 @@ static int RunOnFailed(fiber_session_t id, void* data, int) {
 
 void ProgressiveAttachment::NotifyOnStopped(google::protobuf::Closure* done) {
     if (done == NULL) {
-        LOG(ERROR) << "Param[done] is NULL";
+        MLOG(ERROR) << "Param[done] is NULL";
         return;
     }
     if (_notify_id != INVALID_FIBER_ID) {
-        LOG(ERROR) << "NotifyOnStopped() can only be called once";
+        MLOG(ERROR) << "NotifyOnStopped() can only be called once";
         return done->Run();
     }
     if (_httpsock == NULL) {
@@ -251,7 +251,7 @@ void ProgressiveAttachment::NotifyOnStopped(google::protobuf::Closure* done) {
     }
     const int rc = fiber_session_create(&_notify_id, done, RunOnFailed);
     if (rc) {
-        LOG(ERROR) << "Fail to create _notify_id: " << berror(rc);
+        MLOG(ERROR) << "Fail to create _notify_id: " << berror(rc);
         return done->Run();
     }
     _httpsock->NotifyOnFailed(_notify_id);

@@ -50,9 +50,9 @@ namespace {
             timespec current_time;
             clock_gettime(CLOCK_REALTIME, &current_time);
             if (_name) {
-                LOG(INFO) << "Run `" << _name << "' task_id=" << _task_id;
+                MLOG(INFO) << "Run `" << _name << "' task_id=" << _task_id;
             } else {
-                LOG(INFO) << "Run task_id=" << _task_id;
+                MLOG(INFO) << "Run task_id=" << _task_id;
             }
             _run_times.push_back(current_time);
             const int saved_sleep_ms = _sleep_ms;
@@ -67,7 +67,7 @@ namespace {
                 _sleep_ms = 0;
                 fiber::futex_wake_private(&_sleep_ms, 1);
             } else {
-                LOG(ERROR) << "No need to wakeup "
+                MLOG(ERROR) << "No need to wakeup "
                            << (_name ? _name : "") << " task_id=" << _task_id;
             }
         }
@@ -124,7 +124,7 @@ namespace {
         keeper5.schedule(&timer_thread);
 
         // sleep 1 second, and unschedule task2
-        LOG(INFO) << "Sleep 1s";
+        MLOG(INFO) << "Sleep 1s";
         sleep(1);
         timer_thread.unschedule(keeper2._task_id);
         timer_thread.unschedule(keeper4._task_id);
@@ -135,14 +135,14 @@ namespace {
         const timespec keeper6_addtime = mutil::seconds_from_now(0);
 
         // sleep 10 seconds and stop.
-        LOG(INFO) << "Sleep 2s";
+        MLOG(INFO) << "Sleep 2s";
         sleep(2);
-        LOG(INFO) << "Stop timer_thread";
+        MLOG(INFO) << "Stop timer_thread";
         mutil::Timer tm;
         tm.start();
         timer_thread.stop_and_join();
         tm.stop();
-        LOG(INFO) << "tm stop()";
+        MLOG(INFO) << "tm stop()";
         ASSERT_LE(tm.m_elapsed(), 15);
 
         // verify all runs in expected time range.
@@ -152,7 +152,7 @@ namespace {
         keeper4.expect_not_run();
         keeper5.expect_not_run();
         keeper6.expect_first_run(keeper6_addtime);
-        LOG(INFO) << "tm end()";
+        MLOG(INFO) << "tm end()";
     }
 
     // If the scheduled time is before start time, then should run it

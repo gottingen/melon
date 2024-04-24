@@ -82,7 +82,7 @@ size_t RefCountedString::size() const {
 RefCountedMallocedMemory::RefCountedMallocedMemory(
     void* data, size_t length)
     : data_(reinterpret_cast<unsigned char*>(data)), length_(length) {
-  DCHECK(data || length == 0);
+  DMCHECK(data || length == 0);
 }
 
 const unsigned char* RefCountedMallocedMemory::front() const {

@@ -64,7 +64,7 @@ class CancelableCallback<void(void)> {
   explicit CancelableCallback(const mutil::Callback<void(void)>& callback)
       : weak_factory_(this),
         callback_(callback) {
-    DCHECK(!callback.is_null());
+    DMCHECK(!callback.is_null());
     InitializeForwarder();
   }
 
@@ -85,7 +85,7 @@ class CancelableCallback<void(void)> {
   // Sets |callback| as the closure that may be cancelled. |callback| may not
   // be null. Outstanding and any previously wrapped callbacks are cancelled.
   void Reset(const mutil::Callback<void(void)>& callback) {
-    DCHECK(!callback.is_null());
+    DMCHECK(!callback.is_null());
 
     // Outstanding tasks (e.g., posted to a message loop) must not be called.
     Cancel();
@@ -134,7 +134,7 @@ class CancelableCallback<void(A1)> {
   explicit CancelableCallback(const mutil::Callback<void(A1)>& callback)
       : weak_factory_(this),
         callback_(callback) {
-    DCHECK(!callback.is_null());
+    DMCHECK(!callback.is_null());
     InitializeForwarder();
   }
 
@@ -155,7 +155,7 @@ class CancelableCallback<void(A1)> {
   // Sets |callback| as the closure that may be cancelled. |callback| may not
   // be null. Outstanding and any previously wrapped callbacks are cancelled.
   void Reset(const mutil::Callback<void(A1)>& callback) {
-    DCHECK(!callback.is_null());
+    DMCHECK(!callback.is_null());
 
     // Outstanding tasks (e.g., posted to a message loop) must not be called.
     Cancel();
@@ -204,7 +204,7 @@ class CancelableCallback<void(A1, A2)> {
   explicit CancelableCallback(const mutil::Callback<void(A1, A2)>& callback)
       : weak_factory_(this),
         callback_(callback) {
-    DCHECK(!callback.is_null());
+    DMCHECK(!callback.is_null());
     InitializeForwarder();
   }
 
@@ -225,7 +225,7 @@ class CancelableCallback<void(A1, A2)> {
   // Sets |callback| as the closure that may be cancelled. |callback| may not
   // be null. Outstanding and any previously wrapped callbacks are cancelled.
   void Reset(const mutil::Callback<void(A1, A2)>& callback) {
-    DCHECK(!callback.is_null());
+    DMCHECK(!callback.is_null());
 
     // Outstanding tasks (e.g., posted to a message loop) must not be called.
     Cancel();

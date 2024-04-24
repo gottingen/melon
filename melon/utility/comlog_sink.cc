@@ -155,7 +155,7 @@ int ComlogSink::SetupFromConfig(const std::string& conf_path_str) {
     mutil::FilePath path(conf_path_str);
     if (com_loadlog(path.DirName().value().c_str(),
                     path.BaseName().value().c_str()) != 0) {
-        LOG(ERROR) << "Fail to create ComlogSink from `" << conf_path_str << "'";
+        MLOG(ERROR) << "Fail to create ComlogSink from `" << conf_path_str << "'";
         return -1;
     }
     _init = true;
@@ -208,12 +208,12 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
     int index = dev->reserved_num;
     if (dev->splite_type == COMLOG_SPLIT_SIZECUT) {
         if (_options.cut_size_megabytes <= 0) {
-            LOG(ERROR) << "Invalid ComlogSinkOptions.cut_size_megabytes="
+            MLOG(ERROR) << "Invalid ComlogSinkOptions.cut_size_megabytes="
                        << _options.cut_size_megabytes;
             return -1;
         }
         if (_options.quota_size < 0) {
-            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_size="
+            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_size="
                        << _options.quota_size;
             return -1;
         }
@@ -224,15 +224,15 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
         index++;
     } else if (dev->splite_type == COMLOG_SPLIT_DATECUT) {
         if (_options.quota_day < 0) {
-            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_day=" << _options.quota_day;
+            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_day=" << _options.quota_day;
             return -1;
         }
         if (_options.quota_hour < 0) {
-            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_hour=" << _options.quota_hour;
+            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_hour=" << _options.quota_hour;
             return -1;
         }
         if (_options.quota_min < 0) {
-            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_min=" << _options.quota_min;
+            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_min=" << _options.quota_min;
             return -1;
         }
         if (_options.quota_day > 0) {
@@ -266,7 +266,7 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
     layout_options.shorter_log_level = _options.shorter_log_level;
     ComlogLayout* layout = new (std::nothrow) ComlogLayout(&layout_options);
     if (layout == NULL) {
-        LOG(FATAL) << "Fail to new layout";
+        MLOG(FATAL) << "Fail to new layout";
         return -1;
     }
     dev->layout = layout;
@@ -299,20 +299,20 @@ int ComlogSink::Setup(const ComlogSinkOptions* options) {
             cwd = log_dir;
         } else {
             if (!mutil::GetCurrentDirectory(&cwd)) {
-                LOG(ERROR) << "Fail to get cwd";
+                MLOG(ERROR) << "Fail to get cwd";
                 return -1;
             }
             cwd = cwd.Append(log_dir);
         }
     } else {
         if (!mutil::GetCurrentDirectory(&cwd)) {
-            LOG(ERROR) << "Fail to get cwd";
+            MLOG(ERROR) << "Fail to get cwd";
             return -1;
         }
     }
     mutil::File::Error err;
     if (!mutil::CreateDirectoryAndGetError(cwd, &err)) {
-        LOG(ERROR) << "Fail to create directory, " << err;
+        MLOG(ERROR) << "Fail to create directory, " << err;
         return -1;
     }
     char file[COM_MAXFILENAME];
@@ -322,21 +322,21 @@ int ComlogSink::Setup(const ComlogSinkOptions* options) {
     int dev_num = (_options.enable_wf_device ? 2 : 1);
     _dev = new (std::nothrow) com_device_t[dev_num];
     if (NULL == _dev) {
-        LOG(FATAL) << "Fail to new com_device_t";
+        MLOG(FATAL) << "Fail to new com_device_t";
         return -1;
     }
     if (0 != SetupDevice(&_dev[0], type, file, false)) {
-        LOG(ERROR) << "Fail to setup first com_device_t";
+        MLOG(ERROR) << "Fail to setup first com_device_t";
         return -1;
     }
     if (dev_num == 2) {
         if (0 != SetupDevice(&_dev[1], type, file, true)) {
-            LOG(ERROR) << "Fail to setup second com_device_t";
+            MLOG(ERROR) << "Fail to setup second com_device_t";
             return -1;
         }
     }
     if (com_openlog(_options.process_name.c_str(), _dev, dev_num, NULL) != 0) {
-        LOG(ERROR) << "Fail to com_openlog";
+        MLOG(ERROR) << "Fail to com_openlog";
         return -1;
     }
     _init = true;

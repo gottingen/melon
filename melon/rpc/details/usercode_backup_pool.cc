@@ -99,7 +99,7 @@ int UserCodeBackupPool::Init() {
     for (int i = 0; i < FLAGS_usercode_backup_threads; ++i) {
         pthread_t th;
         if (pthread_create(&th, NULL, UserCodeRunner, this) != 0) {
-            LOG(ERROR) << "Fail to create UserCodeRunner";
+            MLOG(ERROR) << "Fail to create UserCodeRunner";
             return -1;
         }
     }
@@ -139,7 +139,7 @@ void UserCodeBackupPool::UserCodeRunningLoop() {
 static void InitUserCodeBackupPool() {
     s_usercode_pool = new UserCodeBackupPool;
     if (s_usercode_pool->Init() != 0) {
-        LOG(ERROR) << "Fail to init UserCodeBackupPool";
+        MLOG(ERROR) << "Fail to init UserCodeBackupPool";
         // rare and critical, often happen when the program just started since
         // this function is called from GlobalInitializeOrDieImpl() as well,
         // quiting is the best choice.

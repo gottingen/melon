@@ -70,7 +70,7 @@ void DisplayStage(const test::Stage& stage) {
         << "Stage:[" << stage.lower_bound() << ':' 
         << stage.upper_bound() <<  "]"
         << " , Type:" << type;
-    LOG(INFO) << ss.str();
+    MLOG(INFO) << ss.str();
 }
 
 mutil::atomic<int> cnt(0);
@@ -102,7 +102,7 @@ public:
     }
 
     void StartTestCase() {
-        CHECK(!_running_case);
+        MCHECK(!_running_case);
         _running_case = true;
         UpdateLatency();
     }
@@ -169,7 +169,7 @@ public:
                 mutil::gettimeofday_s());
             _latency.store(latency, mutil::memory_order_relaxed);
         } else {
-            LOG(FATAL) << "Wrong Type:" << latency_stage.type();
+            MLOG(FATAL) << "Wrong Type:" << latency_stage.type();
         }
     }
 
@@ -194,7 +194,7 @@ public:
         _echo_service = new EchoServiceImpl;
         if (_server.AddService(_echo_service,
                                 melon::SERVER_OWNS_SERVICE) != 0) {
-            LOG(FATAL) << "Fail to add service";
+            MLOG(FATAL) << "Fail to add service";
         }
         g_timer_thread.start(NULL);
     }
@@ -209,7 +209,7 @@ public:
                         google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         const std::string& message = request->message();
-        LOG(INFO) << message;
+        MLOG(INFO) << message;
         if (message == "ResetCaseSet") {
             _server.Stop(0);
             _server.Join();
@@ -219,7 +219,7 @@ public:
             _case_index = 0;
             response->set_message("CaseSetReset");
         } else if (message == "StartCase") {
-            CHECK(!_server.IsRunning()) << "Continuous StartCase";
+            MCHECK(!_server.IsRunning()) << "Continuous StartCase";
             const test::TestCase& test_case = _case_set.test_case(_case_index++);
             _echo_service->SetTestCase(test_case);
             melon::ServerOptions options;
@@ -230,14 +230,14 @@ public:
             _echo_service->StartTestCase();
             response->set_message("CaseStarted");
         } else if (message == "StopCase") {
-            CHECK(_server.IsRunning()) << "Continuous StopCase";
+            MCHECK(_server.IsRunning()) << "Continuous StopCase";
             _server.Stop(0);
             _server.Join();
 
             _echo_service->StopTestCase();
             response->set_message("CaseStopped");
         } else {
-            LOG(FATAL) << "Invalid message:" << message;
+            MLOG(FATAL) << "Invalid message:" << message;
             response->set_message("Invalid Cntl Message");
         }
     }
@@ -246,14 +246,14 @@ private:
     void LoadCaseSet(const std::string& file_path) {
         std::ifstream ifs(file_path.c_str(), std::ios::in);  
         if (!ifs) {
-            LOG(FATAL) << "Fail to open case set file: " << file_path;
+            MLOG(FATAL) << "Fail to open case set file: " << file_path;
         }
         std::string case_set_json((std::istreambuf_iterator<char>(ifs)),  
                                   std::istreambuf_iterator<char>()); 
         test::TestCaseSet case_set;
         std::string err;
         if (!json2pb::JsonToProtoMessage(case_set_json, &case_set, &err)) {
-            LOG(FATAL) 
+            MLOG(FATAL)
                 << "Fail to trans case_set from json to protobuf message: "
                 << err;
         }
@@ -279,12 +279,12 @@ int main(int argc, char* argv[]) {
 
     if (server.AddService(&control_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add service";
+        MLOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     if (server.Start(FLAGS_cntl_port, NULL) != 0) {
-        LOG(ERROR) << "Fail to start EchoServer";
+        MLOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

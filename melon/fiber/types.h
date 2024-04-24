@@ -18,7 +18,7 @@
 
 #include <stdint.h>                            // uint64_t
 #if defined(__cplusplus)
-#include "melon/utility/logging.h"                      // CHECK
+#include "melon/utility/logging.h"                      // MCHECK
 #endif
 
 typedef uint64_t fiber_t;
@@ -102,7 +102,7 @@ typedef struct fiber_attr_t {
         tag = FIBER_TAG_INVALID;
     }
     fiber_attr_t operator|(unsigned other_flags) const {
-        CHECK(!(other_flags & 7)) << "flags=" << other_flags;
+        MCHECK(!(other_flags & 7)) << "flags=" << other_flags;
         fiber_attr_t tmp = *this;
         tmp.flags |= (other_flags & ~(unsigned)7u);
         return tmp;

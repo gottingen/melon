@@ -219,7 +219,7 @@ static void* locker(void* arg) {
     fiber_usleep(2000);
     EXPECT_EQ(0, fiber_session_unlock(id));
     tm.stop();
-    LOG(INFO) << "Unlocked, tm=" << tm.u_elapsed();
+    MLOG(INFO) << "Unlocked, tm=" << tm.u_elapsed();
     return NULL;
 }
 

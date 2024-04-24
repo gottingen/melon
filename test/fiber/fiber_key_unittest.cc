@@ -52,7 +52,7 @@ struct CountersWrapper {
         if (_c) {
             _c->ndestroy.fetch_add(1, mutil::memory_order_relaxed);
         }
-        CHECK_EQ(0, fiber_key_delete(_key));
+        MCHECK_EQ(0, fiber_key_delete(_key));
     }
 private:
     Counters* _c;

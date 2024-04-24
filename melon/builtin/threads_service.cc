@@ -41,7 +41,7 @@ namespace melon {
         mutil::IOBufBuilder pstack_output;
         const int rc = mutil::read_command_output(pstack_output, cmd.c_str());
         if (rc < 0) {
-            LOG(ERROR) << "Fail to popen `" << cmd << "'";
+            MLOG(ERROR) << "Fail to popen `" << cmd << "'";
             return;
         }
         pstack_output.move_to(resp);

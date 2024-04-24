@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_server_num <= 0) {
-        LOG(ERROR) << "server_num must be positive";
+        MLOG(ERROR) << "server_num must be positive";
         return -1;
     }
 
@@ -129,13 +129,13 @@ int main(int argc, char* argv[]) {
                     "example/dynamic_partition_echo_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            LOG(ERROR) << "Fail to add service";
+            MLOG(ERROR) << "Fail to add service";
             return -1;
         }
         // Start the server.
         int port = FLAGS_port + i;
         if (servers[i].Start(port, &options) != 0) {
-            LOG(ERROR) << "Fail to start EchoServer";
+            MLOG(ERROR) << "Fail to start EchoServer";
             return -1;
         }
     }
@@ -153,9 +153,9 @@ int main(int argc, char* argv[]) {
             size_t diff = current_num_requests - last_num_requests[i];
             cur_total += diff;
             last_num_requests[i] = current_num_requests;
-            LOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
+            MLOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
         }
-        LOG(INFO) << "[total=" << cur_total << ']';
+        MLOG(INFO) << "[total=" << cur_total << ']';
     }
 
     // Don't forget to stop and join the server otherwise still-running

@@ -30,16 +30,16 @@ TEST(DirReaderPosixUnittest, Read) {
   ASSERT_TRUE(dir);
 
   const int prev_wd = open(".", O_RDONLY | O_DIRECTORY);
-  DCHECK_GE(prev_wd, 0);
+  DMCHECK_GE(prev_wd, 0);
 
-  PCHECK(chdir(dir) == 0);
+  PMCHECK(chdir(dir) == 0);
 
   for (unsigned i = 0; i < kNumFiles; i++) {
     char buf[16];
     snprintf(buf, sizeof(buf), "%d", i);
     const int fd = open(buf, O_CREAT | O_RDONLY | O_EXCL, 0600);
-    PCHECK(fd >= 0);
-    PCHECK(close(fd) == 0);
+    PMCHECK(fd >= 0);
+    PMCHECK(close(fd) == 0);
   }
 
   std::set<unsigned> seen;
@@ -76,13 +76,13 @@ TEST(DirReaderPosixUnittest, Read) {
   for (unsigned i = 0; i < kNumFiles; i++) {
     char buf[16];
     snprintf(buf, sizeof(buf), "%d", i);
-    PCHECK(unlink(buf) == 0);
+    PMCHECK(unlink(buf) == 0);
   }
 
-  PCHECK(rmdir(dir) == 0);
+  PMCHECK(rmdir(dir) == 0);
 
-  PCHECK(fchdir(prev_wd) == 0);
-  PCHECK(close(prev_wd) == 0);
+  PMCHECK(fchdir(prev_wd) == 0);
+  PMCHECK(close(prev_wd) == 0);
 
   EXPECT_TRUE(seen_dot);
   EXPECT_TRUE(seen_dotdot);

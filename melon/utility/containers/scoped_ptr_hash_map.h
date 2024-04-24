@@ -73,7 +73,7 @@ class ScopedPtrHashMap {
   }
 
   scoped_ptr<Value> take(iterator it) {
-    DCHECK(it != data_.end());
+    DMCHECK(it != data_.end());
     if (it == data_.end())
       return scoped_ptr<Value>();
 
@@ -91,7 +91,7 @@ class ScopedPtrHashMap {
   }
 
   scoped_ptr<Value> take_and_erase(iterator it) {
-    DCHECK(it != data_.end());
+    DMCHECK(it != data_.end());
     if (it == data_.end())
       return scoped_ptr<Value>();
 

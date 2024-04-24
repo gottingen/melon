@@ -1031,7 +1031,7 @@ Date:   Tue May 22 09:32:50 2012 +0000
     
     Achieved by moving logging macro definitions to a test-only
     header file, and by changing non-test code to use assert,
-    fprintf, and abort instead of LOG/CHECK macros.
+    fprintf, and abort instead of LOG/MCHECK macros.
     
     R=sesse
     

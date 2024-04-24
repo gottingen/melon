@@ -32,7 +32,7 @@ class MUTIL_EXPORT RefCountedBase {
 
   ~RefCountedBase() {
   #ifndef NDEBUG
-    DCHECK(in_dtor_) << "RefCounted object deleted without calling Release()";
+    DMCHECK(in_dtor_) << "RefCounted object deleted without calling Release()";
   #endif
   }
 
@@ -43,7 +43,7 @@ class MUTIL_EXPORT RefCountedBase {
     // without release it.
     // DFAKE_SCOPED_LOCK_THREAD_LOCKED(add_release_);
   #ifndef NDEBUG
-    DCHECK(!in_dtor_);
+    DMCHECK(!in_dtor_);
   #endif
     ++ref_count_;
   }
@@ -55,7 +55,7 @@ class MUTIL_EXPORT RefCountedBase {
     // without release it.
     // DFAKE_SCOPED_LOCK_THREAD_LOCKED(add_release_);
   #ifndef NDEBUG
-    DCHECK(!in_dtor_);
+    DMCHECK(!in_dtor_);
   #endif
     if (--ref_count_ == 0) {
   #ifndef NDEBUG

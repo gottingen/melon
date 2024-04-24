@@ -306,13 +306,13 @@ public:
     void StartConnect(const melon::Socket*,
                       void (*done)(int err, void* data),
                       void* data) {
-        LOG(INFO) << "Start application-level connect";
+        MLOG(INFO) << "Start application-level connect";
         _done = done;
         _data = data;
         _called_start_connect = true;
     }
     void StopConnect(melon::Socket*) {
-        LOG(INFO) << "Stop application-level connect";
+        MLOG(INFO) << "Stop application-level connect";
     }
     void MakeConnectDone() {
         _done(0, _data);
@@ -676,7 +676,7 @@ TEST_F(SocketTest, health_check) {
     int appended_msg = 0;
     mutil::IOBuf src;
     if (use_my_message) {
-        LOG(INFO) << "Use MyMessage";
+        MLOG(INFO) << "Use MyMessage";
         msg.reset(new MyMessage(buf, 12 + meta_len + len, &appended_msg));
     } else {
         src.append(buf, 12 + meta_len + len);
@@ -865,7 +865,7 @@ TEST_F(SocketTest, multi_threaded_write) {
                 }
                 fiber_usleep(1000);
                 if (mutil::gettimeofday_us() >= start_time + 2000000L) {
-                    LOG(FATAL) << "Wait too long!";
+                    MLOG(FATAL) << "Wait too long!";
                     break;
                 }
                 continue;

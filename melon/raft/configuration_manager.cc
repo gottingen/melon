@@ -20,7 +20,7 @@ namespace melon::raft {
     int ConfigurationManager::add(const ConfigurationEntry &entry) {
         if (!_configurations.empty()) {
             if (_configurations.back().id.index >= entry.id.index) {
-                CHECK(false) << "Did you forget to call truncate_suffix before "
+                MCHECK(false) << "Did you forget to call truncate_suffix before "
                                 " the last log index goes back";
                 return -1;
             }
@@ -44,14 +44,14 @@ namespace melon::raft {
     }
 
     void ConfigurationManager::set_snapshot(const ConfigurationEntry &entry) {
-        CHECK_GE(entry.id, _snapshot.id);
+        MCHECK_GE(entry.id, _snapshot.id);
         _snapshot = entry;
     }
 
     void ConfigurationManager::get(int64_t last_included_index,
                                    ConfigurationEntry *conf) {
         if (_configurations.empty()) {
-            CHECK_GE(last_included_index, _snapshot.id.index);
+            MCHECK_GE(last_included_index, _snapshot.id.index);
             *conf = _snapshot;
             return;
         }

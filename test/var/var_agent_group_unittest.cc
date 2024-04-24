@@ -110,7 +110,7 @@ TEST_F(AgentGroupTest, test_perf) {
         }
     }
     timer.stop();
-    LOG(INFO) << "It takes " << timer.n_elapsed() / (loops * id_num)
+    MLOG(INFO) << "It takes " << timer.n_elapsed() / (loops * id_num)
               << " ns to get tls agent for " << id_num << " agents";
     for (size_t i = 0; i < id_num; ++i) {
         AgentGroup<agent_type>::destroy_agent(ids[i]);
@@ -131,7 +131,7 @@ TEST_F(AgentGroupTest, test_all_perf) {
         pthread_join(threads[i], &ret);
         totol_time += (long)ret;
     }
-    LOG(INFO) << "ThreadAgent takes " 
+    MLOG(INFO) << "ThreadAgent takes "
               << totol_time / (OPS_PER_THREAD * ARRAY_SIZE(threads));
     totol_time = 0;
     g_counter.store(0, mutil::memory_order_relaxed);
@@ -143,7 +143,7 @@ TEST_F(AgentGroupTest, test_all_perf) {
         pthread_join(threads[i], &ret);
         totol_time += (long)ret;
     }
-    LOG(INFO) << "Global Atomic takes " 
+    MLOG(INFO) << "Global Atomic takes "
               << totol_time / (OPS_PER_THREAD * ARRAY_SIZE(threads));
     AgentGroup<agent_type>::destroy_agent(id);
     //sleep(1000);

@@ -114,7 +114,7 @@ void* THreadKeyCreateAndDeleteFunc(void* arg) {
 }
 
 TEST(ThreadLocalTest, thread_key_create_and_delete) {
-    LOG(INFO) << "numeric_limits<uint32_t>::max()=" << std::numeric_limits<uint32_t>::max();
+    MLOG(INFO) << "numeric_limits<uint32_t>::max()=" << std::numeric_limits<uint32_t>::max();
     g_stopped = false;
     const int thread_num = 8;
     pthread_t threads[thread_num];
@@ -360,7 +360,7 @@ void ThreadKeyPerfTest(int thread_num, bool test_pthread_key) {
     } else {
         ASSERT_EQ(0, mutil::thread_key_delete(thread_key));
     }
-    LOG(INFO) << (test_pthread_key ? "pthread_key" : "thread_key")
+    MLOG(INFO) << (test_pthread_key ? "pthread_key" : "thread_key")
               << " thread_num=" << thread_num
               << " count=" << count
               << " average_time=" << wait_time / (double)count;
@@ -432,7 +432,7 @@ void ThreadLocalPerfTest(int thread_num) {
         wait_time += args[i].elapse_ns;
         count += args[i].counter;
     }
-    LOG(INFO) << "ThreadLocal thread_num=" << thread_num
+    MLOG(INFO) << "ThreadLocal thread_num=" << thread_num
               << " count=" << count
               << " average_time=" << wait_time / (double)count;
 }

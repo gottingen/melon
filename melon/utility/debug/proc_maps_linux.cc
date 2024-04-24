@@ -49,7 +49,7 @@ bool ReadProcMaps(std::string* proc_maps) {
 
   mutil::ScopedFD fd(HANDLE_EINTR(open("/proc/self/maps", O_RDONLY)));
   if (!fd.is_valid()) {
-    DPLOG(ERROR) << "Couldn't open /proc/self/maps";
+    DPMLOG(ERROR) << "Couldn't open /proc/self/maps";
     return false;
   }
   proc_maps->clear();
@@ -63,7 +63,7 @@ bool ReadProcMaps(std::string* proc_maps) {
 
     ssize_t bytes_read = HANDLE_EINTR(read(fd.get(), buffer, kReadSize));
     if (bytes_read < 0) {
-      DPLOG(ERROR) << "Couldn't read /proc/self/maps";
+      DPMLOG(ERROR) << "Couldn't read /proc/self/maps";
       proc_maps->clear();
       return false;
     }
@@ -91,7 +91,7 @@ bool ReadProcMaps(std::string* proc_maps) {
 
 bool ParseProcMaps(const std::string& input,
                    std::vector<MappedMemoryRegion>* regions_out) {
-  CHECK(regions_out);
+  MCHECK(regions_out);
   std::vector<MappedMemoryRegion> regions;
 
   // This isn't async safe nor terribly efficient, but it doesn't need to be at
@@ -103,7 +103,7 @@ bool ParseProcMaps(const std::string& input,
     // Due to splitting on '\n' the last line should be empty.
     if (i == lines.size() - 1) {
       if (!lines[i].empty()) {
-        DLOG(WARNING) << "Last line not empty";
+        DMLOG(WARNING) << "Last line not empty";
         return false;
       }
       break;
@@ -128,7 +128,7 @@ bool ParseProcMaps(const std::string& input,
     if (sscanf(line, "%" SCNxPTR "-%" SCNxPTR " %4c %llx %hhx:%hhx %ld %n",
                &region.start, &region.end, permissions, &region.offset,
                &dev_major, &dev_minor, &inode, &path_index) < 7) {
-      DPLOG(WARNING) << "sscanf failed for line: " << line;
+      DPMLOG(WARNING) << "sscanf failed for line: " << line;
       return false;
     }
 

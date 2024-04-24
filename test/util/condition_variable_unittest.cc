@@ -490,7 +490,7 @@ WorkQueue::~WorkQueue() {
 
 int WorkQueue::GetThreadId() {
   DFAKE_SCOPED_RECURSIVE_LOCK(locked_methods_);
-  DCHECK(!EveryIdWasAllocated());
+  DMCHECK(!EveryIdWasAllocated());
   return thread_started_counter_++;  // Give out Unique IDs.
 }
 
@@ -501,7 +501,7 @@ bool WorkQueue::EveryIdWasAllocated() const {
 
 TimeDelta WorkQueue::GetAnAssignment(int thread_id) {
   DFAKE_SCOPED_RECURSIVE_LOCK(locked_methods_);
-  DCHECK_LT(0, task_count_);
+  DMCHECK_LT(0, task_count_);
   assignment_history_[thread_id]++;
   if (0 == --task_count_) {
     no_more_tasks_.Signal();

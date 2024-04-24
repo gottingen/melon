@@ -88,7 +88,7 @@ TEST_F(CliTest, add_and_remove_peer) {
     st = melon::raft::cli::add_peer("test", old_conf, peer2,
                              melon::raft::cli::CliOptions());
     ASSERT_FALSE(st.ok());
-    LOG(INFO) << "st=" << st;
+    MLOG(INFO) << "st=" << st;
     RaftNode node2;
     ASSERT_EQ(0, node2.start(peer2.addr.port, false));
     st = melon::raft::cli::add_peer("test", old_conf, peer2,
@@ -185,11 +185,11 @@ TEST_F(CliTest, change_peer) {
         usleep(10 * 1000);
         melon::raft::Configuration new_conf;
         new_conf.add_peer("127.0.0.1:" + std::to_string(9500 + i));
-        LOG(WARNING) << "change " << conf << " to " << new_conf;
+        MLOG(WARNING) << "change " << conf << " to " << new_conf;
         st = melon::raft::cli::change_peers("test", conf, new_conf, melon::raft::cli::CliOptions());
         ASSERT_TRUE(st.ok()) << st;
         usleep(1000 * 1000);
-        LOG(WARNING) << "change " << new_conf << " to " << conf;
+        MLOG(WARNING) << "change " << new_conf << " to " << conf;
         st = melon::raft::cli::change_peers("test", new_conf, conf, melon::raft::cli::CliOptions());
         ASSERT_TRUE(st.ok()) << st << " i=" << i;
     }

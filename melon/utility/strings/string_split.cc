@@ -46,7 +46,7 @@ bool SplitStringIntoKeyValueT(const STR& line,
   // Find the delimiter.
   size_t end_key_pos = line.find_first_of(key_value_delimiter);
   if (end_key_pos == STR::npos) {
-    DVLOG(1) << "cannot find delimiter in: " << line;
+    DVMLOG(1) << "cannot find delimiter in: " << line;
     return false;    // no delimiter
   }
   key->assign(line, 0, end_key_pos);
@@ -55,7 +55,7 @@ bool SplitStringIntoKeyValueT(const STR& line,
   STR remains(line, end_key_pos, line.size() - end_key_pos);
   size_t begin_value_pos = remains.find_first_not_of(key_value_delimiter);
   if (begin_value_pos == STR::npos) {
-    DVLOG(1) << "cannot parse value from line: " << line;
+    DVMLOG(1) << "cannot parse value from line: " << line;
     return false;   // no value
   }
   value->assign(remains, begin_value_pos, remains.size() - begin_value_pos);
@@ -131,14 +131,14 @@ void SplitStringAlongWhitespaceT(const STR& str, std::vector<STR>* result) {
 void SplitString(const string16& str,
                  char16 c,
                  std::vector<string16>* r) {
-  DCHECK(CBU16_IS_SINGLE(c));
+  DMCHECK(CBU16_IS_SINGLE(c));
   SplitStringT(str, c, true, r);
 }
 
 void SplitString(const mutil::StringPiece16& str,
                  char16 c,
                  std::vector<mutil::StringPiece16>* r) {
-  DCHECK(CBU16_IS_SINGLE(c));
+  DMCHECK(CBU16_IS_SINGLE(c));
   SplitStringT(str, c, true, r);
 }
 
@@ -146,9 +146,9 @@ void SplitString(const std::string& str,
                  char c,
                  std::vector<std::string>* r) {
 #if CHAR_MIN < 0
-  DCHECK(c >= 0);
+  DMCHECK(c >= 0);
 #endif
-  DCHECK(c < 0x7F);
+  DMCHECK(c < 0x7F);
   SplitStringT(str, c, true, r);
 }
 
@@ -156,9 +156,9 @@ void SplitString(const StringPiece& str,
                  char c,
                  std::vector<StringPiece>* r) {
 #if CHAR_MIN < 0
-  DCHECK(c >= 0);
+  DMCHECK(c >= 0);
 #endif
-  DCHECK(c < 0x7F);
+  DMCHECK(c < 0x7F);
   SplitStringT(str, c, true, r);
 }
 
@@ -233,36 +233,36 @@ void SplitStringUsingSubstr(const mutil::StringPiece& str,
 void SplitStringDontTrim(const string16& str,
                          char16 c,
                          std::vector<string16>* r) {
-  DCHECK(CBU16_IS_SINGLE(c));
+  DMCHECK(CBU16_IS_SINGLE(c));
   SplitStringT(str, c, false, r);
 }
 
 void SplitStringDontTrim(const mutil::StringPiece16& str,
                          char16 c,
                          std::vector<mutil::StringPiece16>* r) {
-  DCHECK(CBU16_IS_SINGLE(c));
+  DMCHECK(CBU16_IS_SINGLE(c));
   SplitStringT(str, c, false, r);
 }
 
 void SplitStringDontTrim(const std::string& str,
                          char c,
                          std::vector<std::string>* r) {
-  DCHECK(IsStringUTF8(str));
+  DMCHECK(IsStringUTF8(str));
 #if CHAR_MIN < 0
-  DCHECK(c >= 0);
+  DMCHECK(c >= 0);
 #endif
-  DCHECK(c < 0x7F);
+  DMCHECK(c < 0x7F);
   SplitStringT(str, c, false, r);
 }
 
 void SplitStringDontTrim(const mutil::StringPiece& str,
                          char c,
                          std::vector<mutil::StringPiece>* r) {
-  DCHECK(IsStringUTF8(str));
+  DMCHECK(IsStringUTF8(str));
 #if CHAR_MIN < 0
-  DCHECK(c >= 0);
+  DMCHECK(c >= 0);
 #endif
-  DCHECK(c < 0x7F);
+  DMCHECK(c < 0x7F);
   SplitStringT(str, c, false, r);
 }
 

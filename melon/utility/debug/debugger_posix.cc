@@ -99,7 +99,7 @@ bool BeingDebugged() {
 #endif
 
   int sysctl_result = sysctl(mib, arraysize(mib), &info, &info_size, NULL, 0);
-  DCHECK_EQ(sysctl_result, 0);
+  DMCHECK_EQ(sysctl_result, 0);
   if (sysctl_result != 0) {
     is_set = true;
     being_debugged = false;

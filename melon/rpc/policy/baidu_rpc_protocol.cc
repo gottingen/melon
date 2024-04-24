@@ -75,16 +75,16 @@ static void SerializeBRPCHeaderAndMeta(
         ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 12, meta_size);
         ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
         meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-        CHECK(!coded_out.HadError());
-        CHECK_EQ(0, out->append(header_and_meta, sizeof(header_and_meta)));
+        MCHECK(!coded_out.HadError());
+        MCHECK_EQ(0, out->append(header_and_meta, sizeof(header_and_meta)));
     } else {
         char header[12];
         PackBRPCHeader(header, meta_size, payload_size);
-        CHECK_EQ(0, out->append(header, sizeof(header)));
+        MCHECK_EQ(0, out->append(header, sizeof(header)));
         mutil::IOBufAsZeroCopyOutputStream buf_stream(out);
         ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
         meta.SerializeWithCachedSizes(&coded_out);
-        CHECK(!coded_out.HadError());
+        MCHECK(!coded_out.HadError());
     }
 }
 
@@ -111,14 +111,14 @@ ParseResult ParseBRPCMessage(mutil::IOBuf* source, Socket* socket,
     if (body_size > FLAGS_max_body_size) {
         // We need this log to report the body_size to give users some clues
         // which is not printed in InputMessenger.
-        LOG(ERROR) << "body_size=" << body_size << " from "
+        MLOG(ERROR) << "body_size=" << body_size << " from "
                    << socket->remote_side() << " is too large";
         return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
     } else if (source->length() < sizeof(header_buf) + body_size) {
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
     }
     if (meta_size > body_size) {
-        LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+        MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                    << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -213,7 +213,7 @@ static void SendBRPCResponse(int64_t correlation_id,
             s->FillSettings(meta.mutable_stream_settings());
             s->SetHostSocket(sock);
         } else {
-            LOG(WARNING) << "Stream=" << response_stream_id 
+            MLOG(WARNING) << "Stream=" << response_stream_id
                          << " was closed before sending response";
         }
     }
@@ -249,7 +249,7 @@ static void SendBRPCResponse(int64_t correlation_id,
                            accessor.remote_stream_settings()->stream_id(),
                            accessor.response_stream()) != 0) {
             const int errcode = errno;
-            PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+            PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
             cntl->SetFailed(errcode, "Fail to write into %s",
                             sock->description().c_str());
             if(stream_ptr) {
@@ -270,7 +270,7 @@ static void SendBRPCResponse(int64_t correlation_id,
         wopt.ignore_eovercrowded = true;
         if (sock->Write(&res_buf, &wopt) != 0) {
             const int errcode = errno;
-            PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+            PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
             cntl->SetFailed(errcode, "Fail to write into %s",
                             sock->description().c_str());
             return;
@@ -329,7 +329,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
 
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        LOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
+        MLOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
         socket->SetFailed(EREQUEST, "Fail to parse RpcMeta from %s",
                           socket->description().c_str());
         return;
@@ -350,7 +350,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
 
     std::unique_ptr<Controller> cntl(new (std::nothrow) Controller);
     if (NULL == cntl.get()) {
-        LOG(WARNING) << "Fail to new Controller";
+        MLOG(WARNING) << "Fail to new Controller";
         return;
     }
     std::unique_ptr<google::protobuf::Message> req;
@@ -560,7 +560,7 @@ bool VerifyBRPCRequest(const InputMessageBase* msg_base) {
     
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        LOG(WARNING) << "Fail to parse RpcRequestMeta";
+        MLOG(WARNING) << "Fail to parse RpcRequestMeta";
         return false;
     }
     const Authenticator* auth = server->options().auth;
@@ -581,7 +581,7 @@ void ProcessBRPCResponse(InputMessageBase* msg_base) {
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        LOG(WARNING) << "Fail to parse from response meta";
+        MLOG(WARNING) << "Fail to parse from response meta";
         return;
     }
 

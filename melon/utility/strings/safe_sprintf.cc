@@ -275,7 +275,7 @@ class Buffer {
 bool Buffer::IToASCII(bool sign, bool upcase, int64_t i, int base,
                       char pad, size_t padding, const char* prefix) {
   // Sanity check for parameters. None of these should ever fail, but see
-  // above for the rationale why we can't call CHECK().
+  // above for the rationale why we can't call MCHECK().
   DEBUG_CHECK(base >= 2, "");
   DEBUG_CHECK(base <= 16, "");
   DEBUG_CHECK(!sign || base == 10, "");

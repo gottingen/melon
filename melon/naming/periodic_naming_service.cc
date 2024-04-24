@@ -65,7 +65,7 @@ namespace melon {
                     RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                     return 0;
                 }
-                PLOG(FATAL) << "Fail to sleep";
+                PMLOG(FATAL) << "Fail to sleep";
                 return -1;
             }
         }

@@ -119,7 +119,7 @@ namespace logging {
 DEFINE_bool(crash_on_fatal_log, false,
             "Crash process when a FATAL log is printed");
 DEFINE_bool(print_stack_on_check, true,
-            "Print the stack trace when a CHECK was failed");
+            "Print the stack trace when a MCHECK was failed");
 
 DEFINE_int32(v, 0, "Show all VLOG(m) messages for m <= this."
              " Overridable by --vmodule.");
@@ -299,7 +299,7 @@ private:
             // WaitForSingleObject could have returned WAIT_ABANDONED. We don't
             // abort the process here. UI tests might be crashy sometimes,
             // and aborting the test binary only makes the problem worse.
-            // We also don't use LOG macros because that might lead to an infinite
+            // We also don't use MLOG macros because that might lead to an infinite
             // loop. For more info see http://crbug.com/18028.
 #elif defined(OS_POSIX)
             pthread_mutex_lock(&log_mutex);
@@ -712,7 +712,7 @@ LoggingSettings::LoggingSettings()
 bool BaseInitLoggingImpl(const LoggingSettings& settings) {
 #if defined(OS_NACL)
     // Can log only to the system debug log.
-    CHECK_EQ(settings.logging_dest & ~LOG_TO_SYSTEM_DEBUG_LOG, 0);
+    MCHECK_EQ(settings.logging_dest & ~LOG_TO_SYSTEM_DEBUG_LOG, 0);
 #endif
 
     logging_destination = settings.logging_dest;
@@ -971,7 +971,7 @@ struct SetLogSinkFn {
 
 LogSink* SetLogSink(LogSink* sink) {
     SetLogSinkFn fn = { sink, NULL };
-    CHECK(DoublyBufferedLogSink::GetInstance()->Modify(fn));
+    MCHECK(DoublyBufferedLogSink::GetInstance()->Modify(fn));
     return fn.old_sink;
 }
 
@@ -1173,7 +1173,7 @@ inline LogStream* CreateLogStream(const LogChar* file,
                                   LogSeverity severity) {
     int slot = 0;
     if (severity >= 0) {
-        DCHECK_LT(severity, LOG_NUM_SEVERITIES);
+        DMCHECK_LT(severity, LOG_NUM_SEVERITIES);
         slot = severity + 1;
     } // else vlog
     LogStream** stream_array = get_or_new_tls_stream_array();
@@ -1466,7 +1466,7 @@ Win32ErrorLogMessage::Win32ErrorLogMessage(const char* file,
 
 Win32ErrorLogMessage::~Win32ErrorLogMessage() {
     stream() << ": " << SystemErrorCodeToString(err_);
-    // We're about to crash (CHECK). Put |err_| on the stack (by placing it in a
+    // We're about to crash (MCHECK). Put |err_| on the stack (by placing it in a
     // field) and use Alias in hopes that it makes it into crash dumps.
     DWORD last_error = err_;
     mutil::debug::Alias(&last_error);
@@ -1814,12 +1814,12 @@ static int on_reset_vmodule(const char* vmodule) {
     
     VModuleList* module_list = new (std::nothrow) VModuleList;
     if (NULL == module_list) {
-        LOG(FATAL) << "Fail to new VModuleList";
+        MLOG(FATAL) << "Fail to new VModuleList";
         return -1;
     }
     if (module_list->init(vmodule) != 0) {
         delete module_list;
-        LOG(FATAL) << "Fail to init VModuleList";
+        MLOG(FATAL) << "Fail to init VModuleList";
         return -1;
     }
     

@@ -362,7 +362,7 @@ inline bool IsHexDigit(Char c) {
 
 template <typename Char>
 inline Char HexDigitToInt(Char c) {
-  DCHECK(IsHexDigit(c));
+  DMCHECK(IsHexDigit(c));
   if (c >= '0' && c <= '9')
     return c - '0';
   if (c >= 'A' && c <= 'F')
@@ -439,7 +439,7 @@ MUTIL_EXPORT void ReplaceSubstringsAfterOffset(std::string* str,
 template <class string_type>
 inline typename string_type::value_type* WriteInto(string_type* str,
                                                    size_t length_with_null) {
-  DCHECK_GT(length_with_null, 1u);
+  DMCHECK_GT(length_with_null, 1u);
   str->reserve(length_with_null);
   str->resize(length_with_null - 1);
   return &((*str)[0]);

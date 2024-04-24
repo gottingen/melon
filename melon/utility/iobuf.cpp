@@ -30,7 +30,7 @@
 #include "melon/utility/atomicops.h"                // mutil::atomic
 #include "melon/utility/thread_local.h"             // thread_atexit
 #include "melon/utility/macros.h"                   // MELON_CASSERT
-#include "melon/utility/logging.h"                  // CHECK, LOG
+#include "melon/utility/logging.h"                  // MCHECK, LOG
 #include "melon/utility/fd_guard.h"                 // mutil::fd_guard
 #include "melon/utility/iobuf.h"
 
@@ -102,14 +102,14 @@ inline iov_function get_preadv_func() {
 #endif
     mutil::fd_guard fd(open("/dev/zero", O_RDONLY));
     if (fd < 0) {
-        PLOG(WARNING) << "Fail to open /dev/zero";
+        PMLOG(WARNING) << "Fail to open /dev/zero";
         return user_preadv;
     }
     char dummy[1];
     iovec vec = { dummy, sizeof(dummy) };
     const int rc = syscall(SYS_preadv, (int)fd, &vec, 1, 0);
     if (rc < 0) {
-        PLOG(WARNING) << "The kernel doesn't support SYS_preadv, "
+        PMLOG(WARNING) << "The kernel doesn't support SYS_preadv, "
                          " use user_preadv instead";
         return user_preadv;
     }
@@ -119,7 +119,7 @@ inline iov_function get_preadv_func() {
 inline iov_function get_pwritev_func() {
     mutil::fd_guard fd(open("/dev/null", O_WRONLY));
     if (fd < 0) {
-        PLOG(ERROR) << "Fail to open /dev/null";
+        PMLOG(ERROR) << "Fail to open /dev/null";
         return user_pwritev;
     }
 #if defined(OS_MACOSX)
@@ -129,7 +129,7 @@ inline iov_function get_pwritev_func() {
     iovec vec = { dummy, sizeof(dummy) };
     const int rc = syscall(SYS_pwritev, (int)fd, &vec, 1, 0);
     if (rc < 0) {
-        PLOG(WARNING) << "The kernel doesn't support SYS_pwritev, "
+        PMLOG(WARNING) << "The kernel doesn't support SYS_pwritev, "
                          " use user_pwritev instead";
         return user_pwritev;
     }
@@ -241,7 +241,7 @@ struct IOBuf::Block {
     inline void check_abi() {
 #ifndef NDEBUG
         if (abi_check != 0) {
-            LOG(FATAL) << "Your program seems to wrongly contain two "
+            MLOG(FATAL) << "Your program seems to wrongly contain two "
                 "ABI-incompatible implementations of IOBuf";
         }
 #endif
@@ -299,7 +299,7 @@ uint32_t block_size(IOBuf::Block const* b) {
 
 inline IOBuf::Block* create_block(const size_t block_size) {
     if (block_size > 0xFFFFFFFFULL) {
-        LOG(FATAL) << "block_size=" << block_size << " is too large";
+        MLOG(FATAL) << "block_size=" << block_size << " is too large";
         return NULL;
     }
     char* mem = (char*)iobuf::blockmem_allocate(block_size);
@@ -356,7 +356,7 @@ void remove_tls_block_chain() {
         b = saved_next;
         ++n;
     } while (b);
-    CHECK_EQ(n, tls_data.num_blocks);
+    MCHECK_EQ(n, tls_data.num_blocks);
     tls_data.num_blocks = 0;
 }
 
@@ -433,7 +433,7 @@ void release_tls_block_chain(IOBuf::Block* b) {
     IOBuf::Block* last_b = NULL;
     do {
         ++n;
-        CHECK(!b->full());
+        MCHECK(!b->full());
         if (b->u.portal_next == NULL) {
             last_b = b;
             break;
@@ -1208,7 +1208,7 @@ int IOBuf::append_user_data_with_meta(void* data,
                                       std::function<void(void*)> deleter,
                                       uint64_t meta) {
     if (size > 0xFFFFFFFFULL - 100) {
-        LOG(FATAL) << "data_size=" << size << " is too large";
+        MLOG(FATAL) << "data_size=" << size << " is too large";
         return -1;
     }
     if (!deleter) {
@@ -1277,7 +1277,7 @@ inline IOBuf::Area make_area(uint32_t ref_index, uint32_t ref_offset,
     if (ref_index > MAX_REF_INDEX ||
         ref_offset > MAX_REF_OFFSET ||
         size > MAX_AREA_SIZE) {
-        LOG(ERROR) << "Too big parameters!";
+        MLOG(ERROR) << "Too big parameters!";
         return IOBuf::INVALID_AREA;
     }
     return (((uint64_t)ref_index) << (REF_OFFSET_BITS + AREA_SIZE_BITS))
@@ -1318,7 +1318,7 @@ IOBuf::Area IOBuf::reserve(size_t count) {
 
 int IOBuf::unsafe_assign(Area area, const void* data) {
     if (area == INVALID_AREA || data == NULL) {
-        LOG(ERROR) << "Invalid parameters";
+        MLOG(ERROR) << "Invalid parameters";
         return -1;
     }
     const uint32_t ref_index = get_area_ref_index(area);
@@ -1342,7 +1342,7 @@ int IOBuf::unsafe_assign(Area area, const void* data) {
     }
     
     // Use check because we need to see the stack here.
-    CHECK(false) << "IOBuf(" << size() << ", nref=" << _ref_num()
+    MCHECK(false) << "IOBuf(" << size() << ", nref=" << _ref_num()
                  << ") is shorter than what we reserved("
                  << "ref=" << get_area_ref_index(area)
                  << " off=" << get_area_ref_offset(area)
@@ -1743,7 +1743,7 @@ IOBufCutter::~IOBufCutter() {
     if (_block) {
         if (_data != _data_end) {
             IOBuf::BlockRef& fr = _buf->_front_ref();
-            CHECK_EQ(fr.block, _block);
+            MCHECK_EQ(fr.block, _block);
             fr.offset = (uint32_t)((char*)_data - _block->data);
             fr.length = (uint32_t)((char*)_data_end - (char*)_data);
         } else {
@@ -1883,12 +1883,12 @@ bool IOBufAsZeroCopyInputStream::Next(const void** data, int* size) {
 void IOBufAsZeroCopyInputStream::BackUp(int count) {
     if (_ref_index > 0) {
         const IOBuf::BlockRef* cur_ref = _buf->_pref_at(--_ref_index);
-        CHECK(_add_offset == 0 && cur_ref->length >= (uint32_t)count)
+        MCHECK(_add_offset == 0 && cur_ref->length >= (uint32_t)count)
             << "BackUp() is not after a Next()";
         _add_offset = cur_ref->length - count;
         _byte_count -= count;
     } else {
-        LOG(FATAL) << "BackUp an empty ZeroCopyInputStream";
+        MLOG(FATAL) << "BackUp an empty ZeroCopyInputStream";
     }
 }
 
@@ -1967,12 +1967,12 @@ void IOBufAsZeroCopyOutputStream::BackUp(int count) {
             // A ordinary BackUp that should be supported by all ZeroCopyOutputStream
             // _cur_block must match end of the IOBuf
             if (r.block != _cur_block) {
-                LOG(FATAL) << "r.block=" << r.block
+                MLOG(FATAL) << "r.block=" << r.block
                            << " does not match _cur_block=" << _cur_block;
                 return;
             }
             if (r.offset + r.length != _cur_block->size) {
-                LOG(FATAL) << "r.offset(" << r.offset << ") + r.length("
+                MLOG(FATAL) << "r.offset(" << r.offset << ") + r.length("
                            << r.length << ") != _cur_block->size("
                            << _cur_block->size << ")";
                 return;
@@ -1985,7 +1985,7 @@ void IOBufAsZeroCopyOutputStream::BackUp(int count) {
                 // A special case: the block is only referenced by last
                 // BlockRef of _buf. Safe to allocate more on the block.
                 if (r.offset + r.length != r.block->size) {
-                    LOG(FATAL) << "r.offset(" << r.offset << ") + r.length("
+                    MLOG(FATAL) << "r.offset(" << r.offset << ") + r.length("
                                << r.length << ") != r.block->size("
                                << r.block->size << ")";
                     return;
@@ -2055,7 +2055,7 @@ IOBufAsSnappySink::IOBufAsSnappySink(mutil::IOBuf& buf)
 
 void IOBufAsSnappySink::Append(const char* bytes, size_t n) {
     if (_cur_len > 0) {
-        CHECK(bytes == _cur_buf && static_cast<int>(n) <= _cur_len)
+        MCHECK(bytes == _cur_buf && static_cast<int>(n) <= _cur_len)
             << "bytes must be _cur_buf";
         _buf_stream.BackUp(_cur_len - n);
         _cur_len = 0;
@@ -2074,7 +2074,7 @@ char* IOBufAsSnappySink::GetAppendBuffer(size_t length, char* scratch) {
                 _buf_stream.BackUp(_cur_len);
             }
         } else {
-            LOG(FATAL) << "Fail to alloc buffer";
+            MLOG(FATAL) << "Fail to alloc buffer";
         }
     } // else no need to try.
     _cur_buf = NULL;

@@ -92,7 +92,7 @@ TEST_F(FileServiceTest, hole_file) {
     int ret = 0;
     ASSERT_EQ(0, system("rm -rf a; rm -rf b; rm -rf c; mkdir a;"));
 
-    LOG(INFO) << "build hole file";
+    MLOG(INFO) << "build hole file";
     int fd = ::open("./a/hole.data", O_CREAT | O_TRUNC | O_WRONLY, 0644);
     ASSERT_GE(fd, 0);
     for (int i = 0; i < 1000; i++) {

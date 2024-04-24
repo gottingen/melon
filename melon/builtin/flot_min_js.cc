@@ -31,7 +31,7 @@ namespace melon {
         s_flot_min_buf = new mutil::IOBuf;
         s_flot_min_buf->append(flot_min_js());
         s_flot_min_buf_gzip = new mutil::IOBuf;
-        CHECK(compress::GzipCompress(*s_flot_min_buf, s_flot_min_buf_gzip, NULL));
+        MCHECK(compress::GzipCompress(*s_flot_min_buf, s_flot_min_buf_gzip, NULL));
     }
 
     const mutil::IOBuf &flot_min_js_iobuf() {

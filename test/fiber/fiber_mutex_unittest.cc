@@ -211,7 +211,7 @@ void PerfTest(Mutex* mutex,
         wait_time += args[i].elapse_ns;
         count += args[i].counter;
     }
-    LOG(INFO) << mutil::class_name<Mutex>() << " in "
+    MLOG(INFO) << mutil::class_name<Mutex>() << " in "
               << ((void*)create_fn == (void*)pthread_create ? "pthread" : "fiber")
               << " thread_num=" << thread_num
               << " count=" << count

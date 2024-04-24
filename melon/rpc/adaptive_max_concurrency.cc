@@ -45,7 +45,7 @@ AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(
 
 inline bool CompareStringPieceWithoutCase(
     const mutil::StringPiece& s1, const char* s2) {
-    DCHECK(s2 != NULL);
+    DMCHECK(s2 != NULL);
     if (std::strlen(s2) != s1.size()) {
         return false;
     }

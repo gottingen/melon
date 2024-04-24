@@ -93,7 +93,7 @@ void install_debug_allocator() {
         s_set.init(1024);
         mutil::iobuf::blockmem_allocate = debug_block_allocate;
         mutil::iobuf::blockmem_deallocate = debug_block_deallocate;
-        LOG(INFO) << "<Installed debug create/destroy>";
+        MLOG(INFO) << "<Installed debug create/destroy>";
     }
 }
 
@@ -458,7 +458,7 @@ TEST_F(IOBufTest, iobuf_as_queue) {
 TEST_F(IOBufTest, iobuf_sanity) {
     install_debug_allocator();
         
-    LOG(INFO) << "sizeof(mutil::IOBuf)=" << sizeof(mutil::IOBuf)
+    MLOG(INFO) << "sizeof(mutil::IOBuf)=" << sizeof(mutil::IOBuf)
               << " sizeof(IOPortal)=" << sizeof(mutil::IOPortal);
     
     mutil::IOBuf b1;
@@ -734,7 +734,7 @@ TEST_F(IOBufTest, cut_into_fd_tiny) {
     ASSERT_EQ(1UL, b1.pop_front(1));
     ref.erase(0, 1);
     ASSERT_EQ(ref, to_str(b1));
-    LOG(INFO) << "ref.size=" << ref.size();
+    MLOG(INFO) << "ref.size=" << ref.size();
     
     //ASSERT_EQ(0, pipe(fds));
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
@@ -820,7 +820,7 @@ TEST_F(IOBufTest, cut_into_fd_a_lot_of_data) {
     ASSERT_EQ(ref.length(), b1.length());
     ASSERT_EQ(ref, to_str(b1));
     ASSERT_TRUE(b0.empty());
-    LOG(INFO) << "ref.size=" << ref.size();
+    MLOG(INFO) << "ref.size=" << ref.size();
 
     //ASSERT_EQ(0, pipe(fds));
     ASSERT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds));
@@ -866,7 +866,7 @@ TEST_F(IOBufTest, cut_by_delim_perf) {
     t.stop();
     //ProfilerStop();
 
-    LOG(INFO) << "IOPortal::cut_by_delim takes "
+    MLOG(INFO) << "IOPortal::cut_by_delim takes "
               << t.n_elapsed()/N << "ns, tp="
               << s1.length() * N * 1000.0 / t.n_elapsed () << "MB/s";
     show_prof_and_rm("test_iobuf", "cutd.prof", 10);
@@ -895,7 +895,7 @@ TEST_F(IOBufTest, cut_perf) {
         }
         t.stop();
         //ProfilerStop();
-        LOG(INFO) << "IOPortal::append(std::string_" << s.length() << ") takes "
+        MLOG(INFO) << "IOPortal::append(std::string_" << s.length() << ") takes "
                   << t.n_elapsed() * s.length() / length / REP << "ns, tp="
                   << REP * length * 1000.0 / t.n_elapsed () << "MB/s";
     } else {
@@ -906,7 +906,7 @@ TEST_F(IOBufTest, cut_perf) {
         }
         t.stop();
         //ProfilerStop();
-        LOG(INFO) << "IOPortal::push_back(char) takes "
+        MLOG(INFO) << "IOPortal::push_back(char) takes "
                   << t.n_elapsed() / length << "ns, tp="
                   << length * 1000.0 / t.n_elapsed () << "MB/s";
     }
@@ -929,7 +929,7 @@ TEST_F(IOBufTest, cut_perf) {
 
         //ProfilerStop();
         
-        LOG(INFO) << "IOPortal::cutn(12+" << w[i] << ") takes "
+        MLOG(INFO) << "IOPortal::cutn(12+" << w[i] << ") takes "
                   << t.n_elapsed()*(w[i]+12)/length << "ns, tp="
                   << length * 1000.0 / t.n_elapsed () << "MB/s";
     
@@ -938,7 +938,7 @@ TEST_F(IOBufTest, cut_perf) {
         t.start();
         b.append(p);
         t.stop();
-        LOG(INFO) << "IOPortal::append(mutil::IOBuf) takes "
+        MLOG(INFO) << "IOPortal::append(mutil::IOBuf) takes "
                   << t.n_elapsed ()/p._ref_num() << "ns, tp="
                   << length * 1000.0 / t.n_elapsed () << "MB/s";
         
@@ -976,7 +976,7 @@ TEST_F(IOBufTest, append_store_append_cut) {
     
     for (size_t i = 0; i < ARRAY_SIZE(w); ++i) {
         ps.reserve(ref.size()/(w[i]+12) + 1);
-        // LOG(INFO) << "ps.cap=" << ps.capacity();
+        // MLOG(INFO) << "ps.cap=" << ps.capacity();
 
         const int ifd = open(f.fname(), O_RDONLY);
         ASSERT_TRUE(ifd > 0);
@@ -1019,9 +1019,9 @@ TEST_F(IOBufTest, append_store_append_cut) {
 
         ASSERT_TRUE(b1.empty());
         ASSERT_TRUE(b2.empty());
-        //LOG(INFO) << "ps.size=" << ps.size();
+        //MLOG(INFO) << "ps.size=" << ps.size();
         ps.clear();
-        LOG(INFO) << "Bandwidth of append(" << f.fname() << ")->cut(12+" << w[i]
+        MLOG(INFO) << "Bandwidth of append(" << f.fname() << ")->cut(12+" << w[i]
                   << ")->store->append->cut(" << name << ") is "
                   << ref.length() * 1000.0 / t.n_elapsed () << "MB/s";
 
@@ -1198,12 +1198,12 @@ TEST_F(IOBufTest, backup_iobuf_never_called_next) {
     ASSERT_EQ(size1 + size2, out_stream.ByteCount());
     ASSERT_EQ(4u, src.backing_block_num());
     ASSERT_EQ(N + size1 + size2, src.size());
-    LOG(INFO) << "Backup1";
+    MLOG(INFO) << "Backup1";
     out_stream.BackUp(size1); // intended size1, not size2 to make this BackUp
     // to cross boundary of blocks.
     ASSERT_EQ(size2, out_stream.ByteCount());
     ASSERT_EQ(N + size2, src.size());
-    LOG(INFO) << "Backup2";
+    MLOG(INFO) << "Backup2";
     out_stream.BackUp(size2);
     ASSERT_EQ(0, out_stream.ByteCount());
     ASSERT_EQ(N, src.size());
@@ -1284,7 +1284,7 @@ TEST_F(IOBufTest, as_ostream) {
     mutil::iobuf::reset_blockmem_allocate_and_deallocate();
 
     mutil::IOBufBuilder builder;
-    LOG(INFO) << "sizeof(IOBufBuilder)=" << sizeof(builder) << std::endl
+    MLOG(INFO) << "sizeof(IOBufBuilder)=" << sizeof(builder) << std::endl
               << "sizeof(IOBuf)=" << sizeof(mutil::IOBuf) << std::endl
               << "sizeof(IOBufAsZeroCopyOutputStream)="
               << sizeof(mutil::IOBufAsZeroCopyOutputStream) << std::endl
@@ -1352,7 +1352,7 @@ void* cut_into_fd(void* arg) {
         int to_write = start_num + i;
         mutil::IOBuf out;
         out.append(&to_write, sizeof(int));
-        CHECK_EQ(out.pcut_into_file_descriptor(fd, offset + sizeof(int) * i), 
+        MCHECK_EQ(out.pcut_into_file_descriptor(fd, offset + sizeof(int) * i),
                  (ssize_t)sizeof(int));
     }
     return NULL;
@@ -1497,7 +1497,7 @@ TEST_F(IOBufTest, appender_perf) {
     }
     tm2.stop();
 
-    LOG(INFO) << "IOBuf.push_back=" << tm1.n_elapsed() / N1
+    MLOG(INFO) << "IOBuf.push_back=" << tm1.n_elapsed() / N1
               << "ns IOBufAppender.push_back=" << tm2.n_elapsed() / N1
               << "ns";
 
@@ -1525,7 +1525,7 @@ TEST_F(IOBufTest, appender_perf) {
     }
     tm3.stop();
 
-    LOG(INFO) << "IOBuf.append=" << tm1.n_elapsed() / N2
+    MLOG(INFO) << "IOBuf.append=" << tm1.n_elapsed() / N2
               << "ns IOBufAppender.append=" << tm2.n_elapsed() / N2
               << "ns string.append=" << tm3.n_elapsed() / N2
               << "ns (string-length=" << s.size() << ')';

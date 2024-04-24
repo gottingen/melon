@@ -152,7 +152,7 @@ void ContentionProfiler::init_if_needed() {
     if (!_init) {
         // Already output nanoseconds, always set cycles/second to 1000000000.
         _disk_buf.append("--- contention\ncycles/second=1000000000\n");
-        CHECK_EQ(0, _dedup_map.init(1024, 60));
+        MCHECK_EQ(0, _dedup_map.init(1024, 60));
         _init = true;
     }
 }
@@ -211,7 +211,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
                     if (errno == EINTR) {
                         continue;
                     }
-                    PLOG(ERROR) << "Fail to read /proc/self/maps";
+                    PMLOG(ERROR) << "Fail to read /proc/self/maps";
                     break;
                 }
                 if (nr == 0) {
@@ -220,7 +220,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
                 }
             }
         } else {
-            PLOG(ERROR) << "Fail to open /proc/self/maps";
+            PMLOG(ERROR) << "Fail to open /proc/self/maps";
         }
     }
     // Write _disk_buf into _filename
@@ -228,7 +228,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     mutil::FilePath path(_filename);
     mutil::FilePath dir = path.DirName();
     if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-        LOG(ERROR) << "Fail to create directory=`" << dir.value()
+        MLOG(ERROR) << "Fail to create directory=`" << dir.value()
                    << "', " << error;
         return;
     }
@@ -240,7 +240,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     }
     mutil::fd_guard fd(open(_filename.c_str(), O_WRONLY|O_CREAT|flag, 0666));
     if (fd < 0) {
-        PLOG(ERROR) << "Fail to open " << _filename;
+        PMLOG(ERROR) << "Fail to open " << _filename;
         return;
     }
     // Write once normally, write until empty in the end.
@@ -250,7 +250,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
             if (errno == EINTR) {
                 continue;
             }
-            PLOG(ERROR) << "Fail to write into " << _filename;
+            PMLOG(ERROR) << "Fail to write into " << _filename;
             return;
         }
         BT_VLOG << "Write " << nw << " bytes into " << _filename;
@@ -313,7 +313,7 @@ static int64_t get_nconflicthash(void*) {
 // Start profiling contention.
 bool ContentionProfilerStart(const char* filename) {
     if (filename == NULL) {
-        LOG(ERROR) << "Parameter [filename] is NULL";
+        MLOG(ERROR) << "Parameter [filename] is NULL";
         return false;
     }
     // g_cp is also the flag marking start/stop.
@@ -358,7 +358,7 @@ void ContentionProfilerStop() {
             return;
         }
     }
-    LOG(ERROR) << "Contention profiler is not started!";
+    MLOG(ERROR) << "Contention profiler is not started!";
 }
 
 MUTIL_FORCE_INLINE bool

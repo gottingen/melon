@@ -95,7 +95,7 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
     void clear_before_return(clear_task_mem clear_func) {
         if (!stop_task) {
             clear_func(this);
-            CHECK(iterated);
+            MCHECK(iterated);
         }
         q = NULL;
         std::unique_lock<mutil::Mutex> lck(mutex);
@@ -103,7 +103,7 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
         const int saved_status = status;
         status = UNEXECUTED;
         lck.unlock();
-        CHECK_NE(saved_status, UNEXECUTED);
+        MCHECK_NE(saved_status, UNEXECUTED);
         LOG_IF(WARNING, saved_status == EXECUTING) 
                 << "Return a executing node, did you return before "
                    "iterator reached the end?";
@@ -478,7 +478,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         TaskNode* old_head, TaskNode** new_tail, 
         bool has_uniterated) {
 
-    CHECK(old_head->next == NULL);
+    MCHECK(old_head->next == NULL);
     // Try to set _head to NULL to mark that the execute is done.
     TaskNode* new_head = old_head;
     TaskNode* desired = NULL;
@@ -492,7 +492,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         // No one added new tasks.
         return return_when_no_more;
     }
-    CHECK_NE(new_head, old_head);
+    MCHECK_NE(new_head, old_head);
     // Above acquire fence pairs release fence of exchange in Write() to make
     // sure that we see all fields of requests set.
 
@@ -512,7 +512,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         p->next = tail;
         tail = p;
         p = saved_next;
-        CHECK(p != NULL);
+        MCHECK(p != NULL);
     } while (p != old_head);
 
     // Link old list with new list.
@@ -571,10 +571,10 @@ inline int ExecutionQueueBase::dereference() {
             }
             return 0;
         }
-        LOG(FATAL) << "Invalid id=" << id;
+        MLOG(FATAL) << "Invalid id=" << id;
         return -1;
     }
-    LOG(FATAL) << "Over dereferenced id=" << id;
+    MLOG(FATAL) << "Over dereferenced id=" << id;
     return -1;
 }
 

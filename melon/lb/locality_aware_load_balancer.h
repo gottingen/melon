@@ -133,7 +133,7 @@ namespace melon::lb {
             mutil::FlatMap<SocketId, size_t> server_map;
 
             Servers() {
-                CHECK_EQ(0, server_map.init(1024, 70));
+                MCHECK_EQ(0, server_map.init(1024, 70));
             }
 
             // Add diff to left_weight of all parent nodes of node `index'.

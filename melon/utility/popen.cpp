@@ -56,7 +56,7 @@ int launch_child_process(void* args) {
 int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     int pipe_fd[2];
     if (pipe(pipe_fd) != 0) {
-        PLOG(ERROR) << "Fail to pipe";
+        PMLOG(ERROR) << "Fail to pipe";
         return -1;
     }
     int saved_errno = 0;
@@ -69,7 +69,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     char* child_stack = NULL;
     char* child_stack_mem = (char*)malloc(CHILD_STACK_SIZE);
     if (!child_stack_mem) {
-        LOG(ERROR) << "Fail to alloc stack for the child process";
+        MLOG(ERROR) << "Fail to alloc stack for the child process";
         rc = -1;
         goto END;
     }
@@ -78,7 +78,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     cpid = clone(launch_child_process, child_stack,
                  __WCLONE | CLONE_VM | SIGCHLD | CLONE_UNTRACED, &args);
     if (cpid < 0) {
-        PLOG(ERROR) << "Fail to clone child process";
+        PMLOG(ERROR) << "Fail to clone child process";
         rc = -1;
         goto END;
     }
@@ -93,7 +93,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
         } else if (nr == 0) {
             break;
         } else if (errno != EINTR) {
-            LOG(ERROR) << "Encountered error while reading for the pipe";
+            MLOG(ERROR) << "Encountered error while reading for the pipe";
             break;
         }
     }
@@ -169,7 +169,7 @@ int read_command_output_through_popen(std::ostream& os, const char* cmd) {
             if (feof(pipe)) {
                 break;
             } else if (ferror(pipe)) {
-                LOG(ERROR) << "Encountered error while reading for the pipe";
+                MLOG(ERROR) << "Encountered error while reading for the pipe";
                 break;
             }
             // retry;

@@ -59,7 +59,7 @@ static void* sender(void* arg) {
         if (!cntl.Failed()) {
             g_latency_recorder << cntl.latency_us();
         } else {
-            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << cntl.latency_us();
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     // Initialize the channel, nullptr means using default options. 
     // options, see `melon/rpc/channel.h'.
     if (channel.Init(FLAGS_url.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        LOG(ERROR) << "Fail to initialize channel";
+        MLOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create pthread";
+                MLOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], nullptr, sender, &channel) != 0) {
-                LOG(ERROR) << "Fail to create fiber";
+                MLOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -116,12 +116,12 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        LOG(INFO) << "Sending " << FLAGS_protocol << " requests at qps=" 
+        MLOG(INFO) << "Sending " << FLAGS_protocol << " requests at qps="
                   << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    LOG(INFO) << "benchmark_http is going to quit";
+    MLOG(INFO) << "benchmark_http is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], nullptr);

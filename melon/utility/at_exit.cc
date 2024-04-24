@@ -23,7 +23,7 @@ AtExitManager::AtExitManager() : next_manager_(g_top_manager) {
 // If multiple modules instantiate AtExitManagers they'll end up living in this
 // module... they have to coexist.
 #if !defined(COMPONENT_BUILD)
-  DCHECK(!g_top_manager);
+  DMCHECK(!g_top_manager);
 #endif
   g_top_manager = this;
 }
@@ -33,7 +33,7 @@ AtExitManager::~AtExitManager() {
     NOTREACHED() << "Tried to ~AtExitManager without an AtExitManager";
     return;
   }
-  DCHECK_EQ(this, g_top_manager);
+  DMCHECK_EQ(this, g_top_manager);
 
   ProcessCallbacksNow();
   g_top_manager = next_manager_;
@@ -41,7 +41,7 @@ AtExitManager::~AtExitManager() {
 
 // static
 void AtExitManager::RegisterCallback(AtExitCallbackType func, void* param) {
-  DCHECK(func);
+  DMCHECK(func);
   if (!g_top_manager) {
     NOTREACHED() << "Tried to RegisterCallback without an AtExitManager";
     return;
@@ -68,7 +68,7 @@ void AtExitManager::ProcessCallbacksNow() {
 }
 
 AtExitManager::AtExitManager(bool shadow) : next_manager_(g_top_manager) {
-  DCHECK(shadow || !g_top_manager);
+  DMCHECK(shadow || !g_top_manager);
   g_top_manager = this;
 }
 

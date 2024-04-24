@@ -36,7 +36,7 @@ const MethodDescriptor* find_method_by_name(const string& service_name,
     const ServiceDescriptor* descriptor =
         importer->pool()->FindServiceByName(service_name);
     if (NULL == descriptor) {
-        LOG(FATAL) << "Fail to find service=" << service_name;
+        MLOG(FATAL) << "Fail to find service=" << service_name;
         return NULL;
     }
     return descriptor->FindMethodByName(method_name);
@@ -47,7 +47,7 @@ const Message* get_prototype_by_method_descriptor(
     bool is_input, 
     DynamicMessageFactory* factory) {
     if (NULL == descripter) {
-        LOG(FATAL) <<"Param[descripter] is NULL";
+        MLOG(FATAL) <<"Param[descripter] is NULL";
         return NULL;
     }   
     const Descriptor* message_descriptor = NULL;

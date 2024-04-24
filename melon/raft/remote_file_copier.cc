@@ -50,7 +50,7 @@ namespace melon::raft {
         static const size_t prefix_size = strlen("remote://");
         mutil::StringPiece uri_str(uri);
         if (!uri_str.starts_with("remote://")) {
-            LOG(ERROR) << "Invalid uri=" << uri;
+            MLOG(ERROR) << "Invalid uri=" << uri;
             return -1;
         }
         uri_str.remove_prefix(prefix_size);
@@ -58,14 +58,14 @@ namespace melon::raft {
         mutil::StringPiece ip_and_port = uri_str.substr(0, slash_pos);
         uri_str.remove_prefix(slash_pos + 1);
         if (!mutil::StringToInt64(uri_str, &_reader_id)) {
-            LOG(ERROR) << "Invalid reader_id_format=" << uri_str
+            MLOG(ERROR) << "Invalid reader_id_format=" << uri_str
                        << " in " << uri;
             return -1;
         }
         melon::ChannelOptions channel_opt;
         channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
         if (_channel.Init(ip_and_port.as_string().c_str(), &channel_opt) != 0) {
-            LOG(ERROR) << "Fail to init Channel to " << ip_and_port;
+            MLOG(ERROR) << "Fail to init Channel to " << ip_and_port;
             return -1;
         }
         _fs = fs;
@@ -91,7 +91,7 @@ namespace melon::raft {
         cntl.set_timeout_ms(timeout_ms);
         stub.get_file(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            LOG(WARNING) << "Fail to issue RPC, " << cntl.ErrorText();
+            MLOG(WARNING) << "Fail to issue RPC, " << cntl.ErrorText();
             return cntl.ErrorCode();
         }
         *is_eof = response.eof();
@@ -132,7 +132,7 @@ namespace melon::raft {
         FileAdaptor *file = _fs->open(dest_path, O_TRUNC | O_WRONLY | O_CREAT | O_CLOEXEC, NULL, &e);
 
         if (!file) {
-            LOG(ERROR) << "Fail to open " << dest_path
+            MLOG(ERROR) << "Fail to open " << dest_path
                        << ", " << mutil::File::ErrorToString(e);
             return NULL;
         }
@@ -219,7 +219,7 @@ namespace melon::raft {
                         mutil::milliseconds_from_now(retry_interval_ms_when_throttled),
                         on_timer, this) != 0) {
                     lck.unlock();
-                    LOG(ERROR) << "Fail to add timer";
+                    MLOG(ERROR) << "Fail to add timer";
                     return on_timer(this);
                 }
                 return;
@@ -274,7 +274,7 @@ namespace melon::raft {
                     mutil::milliseconds_from_now(retry_interval_ms),
                     on_timer, this) != 0) {
                 lck.unlock();
-                LOG(ERROR) << "Fail to add timer";
+                MLOG(ERROR) << "Fail to add timer";
                 return on_timer(this);
             }
             return;
@@ -298,7 +298,7 @@ namespace melon::raft {
             while (0 != data.next(&seg_offset, &seg_data)) {
                 ssize_t nwritten = _file->write(seg_data, seg_offset);
                 if (static_cast<size_t>(nwritten) != seg_data.size()) {
-                    LOG(WARNING) << "Fail to write into file: " << _dest_path;
+                    MLOG(WARNING) << "Fail to write into file: " << _dest_path;
                     _st.set_error(EIO, "%s", berror(EIO));
                     return on_finished();
                 }
@@ -309,7 +309,7 @@ namespace melon::raft {
             uint64_t seg_offset = 0;
             mutil::IOBuf seg_data;
             while (0 != data.next(&seg_offset, &seg_data)) {
-                CHECK_GE((size_t) seg_offset, _buf->length());
+                MCHECK_GE((size_t) seg_offset, _buf->length());
                 _buf->resize(seg_offset);
                 _buf->append(seg_data);
             }
@@ -333,7 +333,7 @@ namespace melon::raft {
         fiber_t tid;
         if (fiber_start_background(
                 &tid, NULL, send_next_rpc_on_timedout, arg) != 0) {
-            PLOG(ERROR) << "Fail to start fiber";
+            PMLOG(ERROR) << "Fail to start fiber";
             send_next_rpc_on_timedout(arg);
         }
     }

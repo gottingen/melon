@@ -32,13 +32,13 @@ static mutil::LazyInstance<mutil::Lock>::Leaky
 #define MULTIPLE_THREADS
 
 inline static void ACQUIRE_DTOA_LOCK(size_t n) {
-  DCHECK(n < 2);
+  DMCHECK(n < 2);
   mutil::Lock* lock = n == 0 ? dtoa_lock_0.Pointer() : dtoa_lock_1.Pointer();
   lock->Acquire();
 }
 
 inline static void FREE_DTOA_LOCK(size_t n) {
-  DCHECK(n < 2);
+  DMCHECK(n < 2);
   mutil::Lock* lock = n == 0 ? dtoa_lock_0.Pointer() : dtoa_lock_1.Pointer();
   lock->Release();
 }

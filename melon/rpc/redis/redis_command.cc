@@ -394,11 +394,11 @@ ParseError RedisCommandParser::Consume(mutil::IOBuf& buf,
     char* endptr = NULL;
     int64_t value = strtoll(intbuf + 1/*skip fc*/, &endptr, 10);
     if (endptr != intbuf + crlf_pos) {
-        LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
+        MLOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
         return PARSE_ERROR_ABSOLUTELY_WRONG;
     }
     if (value < 0) {
-        LOG(ERROR) << "Invalid len=" << value << " in redis command";
+        MLOG(ERROR) << "Invalid len=" << value << " in redis command";
         return PARSE_ERROR_ABSOLUTELY_WRONG;
     }
     if (!_parsing_array) {
@@ -409,15 +409,15 @@ ParseError RedisCommandParser::Consume(mutil::IOBuf& buf,
         _args.resize(value);
         return Consume(buf, args, arena);
     }
-    CHECK(_index < _length) << "a complete command has been parsed. "
+    MCHECK(_index < _length) << "a complete command has been parsed. "
             "impl of RedisCommandParser::Parse is buggy";
     const int64_t len = value;  // `value' is length of the string
     if (len < 0) {
-        LOG(ERROR) << "string in command is nil!";
+        MLOG(ERROR) << "string in command is nil!";
         return PARSE_ERROR_ABSOLUTELY_WRONG;
     }
     if (len > (int64_t)std::numeric_limits<uint32_t>::max()) {
-        LOG(ERROR) << "string in command is too long! max length=2^32-1,"
+        MLOG(ERROR) << "string in command is too long! max length=2^32-1,"
             " actually=" << len;
         return PARSE_ERROR_ABSOLUTELY_WRONG;
     }
@@ -438,7 +438,7 @@ ParseError RedisCommandParser::Consume(mutil::IOBuf& buf,
     char crlf[2];
     buf.cutn(crlf, sizeof(crlf));
     if (crlf[0] != '\r' || crlf[1] != '\n') {
-        LOG(ERROR) << "string in command is not ended with CRLF";
+        MLOG(ERROR) << "string in command is not ended with CRLF";
         return PARSE_ERROR_ABSOLUTELY_WRONG;
     }
     if (++_index < _length) {

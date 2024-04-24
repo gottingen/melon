@@ -68,7 +68,7 @@ public:
     // Returns 0 when successful, -1 when the obsever is NULL or already added. 
     int subscribe(Observer* ob) {
         if (NULL == ob) {
-            LOG(ERROR) << "Observer is NULL";
+            MLOG(ERROR) << "Observer is NULL";
             return -1;
         }
         if (std::find(_obs.begin(), _obs.end(), ob) != _obs.end()) {
@@ -84,7 +84,7 @@ public:
     // Returns 0 when successful, -1 when the observer is NULL or already removed.
     int unsubscribe(Observer* ob) {
         if (NULL == ob) {
-            LOG(ERROR) << "Observer is NULL";
+            MLOG(ERROR) << "Observer is NULL";
             return -1;
         }
         typename ObserverSet::iterator

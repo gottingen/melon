@@ -131,13 +131,13 @@ static void CreateVars() {
 }
 
 Controller::Controller() {
-    CHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
+    MCHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
     *g_ncontroller << 1;
     ResetPods();
 }
 
 Controller::Controller(const Inheritable& parent_ctx) {
-    CHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
+    MCHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
     *g_ncontroller << 1;
     ResetPods();
     _inheritable = parent_ctx;
@@ -154,7 +154,7 @@ static std::ostream& operator<<(std::ostream& os, const SessionKVFlusher& f) {
 Controller::~Controller() {
     *g_ncontroller << -1;
     if (_session_kv != nullptr && _session_kv->Count() != 0) {
-        LOG(INFO) << SessionKVFlusher{ this };
+        MLOG(INFO) << SessionKVFlusher{ this };
     }
     ResetNonPods();
 }
@@ -190,7 +190,7 @@ void Controller::ResetNonPods() {
     delete _sampled_request;
 
     if (!is_used_by_rpc() && _correlation_id != INVALID_FIBER_ID) {
-        CHECK_NE(EPERM, fiber_session_cancel(_correlation_id));
+        MCHECK_NE(EPERM, fiber_session_cancel(_correlation_id));
     }
     if (_oncancel_id != INVALID_FIBER_ID) {
         fiber_session_error(_oncancel_id, 0);
@@ -228,7 +228,7 @@ void Controller::ResetNonPods() {
     _thrift_method_name.clear();
     _after_rpc_resp_fn = nullptr;
 
-    CHECK(_unfinished_call == NULL);
+    MCHECK(_unfinished_call == NULL);
 }
 
 void Controller::ResetPods() {
@@ -304,7 +304,7 @@ Controller::Call::Call(Controller::Call* rhs)
 }
 
 Controller::Call::~Call() {
-    CHECK(sending_sock.get() == NULL);
+    MCHECK(sending_sock.get() == NULL);
 }
 
 void Controller::Call::Reset() {
@@ -323,7 +323,7 @@ void Controller::set_timeout_ms(int64_t timeout_ms) {
         _real_timeout_ms = timeout_ms;
     } else {
         _timeout_ms = 0x7fffffff;
-        LOG(WARNING) << "timeout_ms is limited to 0x7fffffff (roughly 24 days)";
+        MLOG(WARNING) << "timeout_ms is limited to 0x7fffffff (roughly 24 days)";
     }
 }
 
@@ -332,13 +332,13 @@ void Controller::set_backup_request_ms(int64_t timeout_ms) {
         _backup_request_ms = timeout_ms;
     } else {
         _backup_request_ms = 0x7fffffff;
-        LOG(WARNING) << "backup_request_ms is limited to 0x7fffffff (roughly 24 days)";
+        MLOG(WARNING) << "backup_request_ms is limited to 0x7fffffff (roughly 24 days)";
     }
 }
 
 void Controller::set_max_retry(int max_retry) {
     if (max_retry > MAX_RETRY_COUNT) {
-        LOG(WARNING) << "Retry count can't be larger than "
+        MLOG(WARNING) << "Retry count can't be larger than "
                      << MAX_RETRY_COUNT << ", round it to "
                      << MAX_RETRY_COUNT;
         _max_retry = MAX_RETRY_COUNT;
@@ -366,7 +366,7 @@ void StartCancel(CallId id) {
 }
 
 void Controller::StartCancel() {
-    LOG(FATAL) << "You must call melon::StartCancel(id) instead!"
+    MLOG(FATAL) << "You must call melon::StartCancel(id) instead!"
         " because this function is racing with ~Controller() in "
         " asynchronous calls.";
 }
@@ -396,7 +396,7 @@ void Controller::AppendServerIdentiy() {
 }
 
 inline void UpdateResponseHeader(Controller* cntl) {
-    DCHECK(cntl->Failed());
+    DMCHECK(cntl->Failed());
     if (cntl->request_protocol() == PROTOCOL_HTTP ||
         cntl->request_protocol() == PROTOCOL_H2) {
         if (cntl->ErrorCode() != EHTTP) {
@@ -435,7 +435,7 @@ void Controller::SetFailed(const std::string& reason) {
 
 void Controller::SetFailed(int error_code, const char* reason_fmt, ...) {
     if (error_code == 0) {
-        CHECK(false) << "error_code is 0";
+        MCHECK(false) << "error_code is 0";
         error_code = -1;
     }
     _error_code = error_code;
@@ -507,7 +507,7 @@ public:
 
     void Run() {
         _cb->Run();
-        CHECK_EQ(0, fiber_session_unlock_and_destroy(_id));
+        MCHECK_EQ(0, fiber_session_unlock_and_destroy(_id));
         delete this;
     }
 
@@ -521,7 +521,7 @@ int Controller::RunOnCancel(fiber_session_t id, void* data, int error_code) {
         // Called from Controller::ResetNonPods upon Controller's Reset or
         // destruction, we just call the callback in-place.
         static_cast<google::protobuf::Closure*>(data)->Run();
-        CHECK_EQ(0, fiber_session_unlock_and_destroy(id));
+        MCHECK_EQ(0, fiber_session_unlock_and_destroy(id));
         return 0;
     }
     // Called from Socket::SetFailed, should be infrequent.
@@ -530,23 +530,23 @@ int Controller::RunOnCancel(fiber_session_t id, void* data, int error_code) {
     RunOnCancelThread* arg = new RunOnCancelThread(
         static_cast<google::protobuf::Closure*>(data), id);
     fiber_t th;
-    CHECK_EQ(0, fiber_start_urgent(&th, NULL, RunOnCancelThread::RunThis, arg));
+    MCHECK_EQ(0, fiber_start_urgent(&th, NULL, RunOnCancelThread::RunThis, arg));
     return 0;
 }
 
 void Controller::NotifyOnCancel(google::protobuf::Closure* callback) {
     if (NULL == callback) {
-        LOG(WARNING) << "Parameter `callback' is NLLL";
+        MLOG(WARNING) << "Parameter `callback' is NLLL";
         return;
     }
 
     ClosureGuard guard(callback);
     if (_oncancel_id != INVALID_FIBER_ID) {
-        LOG(FATAL) << "NotifyCancel a single call more than once!";
+        MLOG(FATAL) << "NotifyCancel a single call more than once!";
         return;
     }
     if (fiber_session_create(&_oncancel_id, callback, RunOnCancel) != 0) {
-        PLOG(FATAL) << "Fail to create fiber_session";
+        PMLOG(FATAL) << "Fail to create fiber_session";
         return;
     }
     SocketUniquePtr sock;
@@ -589,7 +589,7 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
         // Ignore all non-backup requests and failed backup requests.
         _error_code = saved_error;
         response_attachment().clear();
-        CHECK_EQ(0, fiber_session_unlock(info.id));
+        MCHECK_EQ(0, fiber_session_unlock(info.id));
         return;
     }
 
@@ -622,7 +622,7 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
             _accessed->Add(_current_call.peer_id);
         }
         // _current_call does not end yet.
-        CHECK(_unfinished_call == NULL);  // only one backup request now.
+        MCHECK(_unfinished_call == NULL);  // only one backup request now.
         _unfinished_call = new (std::nothrow) Call(&_current_call);
         if (_unfinished_call == NULL) {
             SetFailed(ENOMEM, "Fail to new Call");
@@ -637,7 +637,7 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
             // The error must come from _current_call because:
             //  * we intercepted error from _unfinished_call in OnVersionedRPCReturned
             //  * ERPCTIMEDOUT/ECANCELED are not retrying error by default.
-            CHECK_EQ(current_id(), info.id) << "error_code=" << _error_code;
+            MCHECK_EQ(current_id(), info.id) << "error_code=" << _error_code;
             if (!SingleServer()) {
                 if (_accessed == NULL) {
                     _accessed = ExcludedServers::Create(
@@ -669,7 +669,7 @@ void Controller::OnVersionedRPCReturned(const CompletionInfo& info,
                     (g && !g->is_current_pthread_task())) {
                     fiber_usleep(backoff_time_us);
                 } else {
-                    LOG(WARNING) << "`CanRetryBackoffInPthread()' returns false, "
+                    MLOG(WARNING) << "`CanRetryBackoffInPthread()' returns false, "
                                     "skip retry backoff in pthread.";
                 }
             }
@@ -714,7 +714,7 @@ END_OF_RPC:
                                FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
         _tmp_completion_info = info;
         if (fiber_start_background(&bt, &attr, RunEndRPC, this) != 0) {
-            LOG(FATAL) << "Fail to start fiber";
+            MLOG(FATAL) << "Fail to start fiber";
             EndRPC(info);
         }
     } else {
@@ -875,7 +875,7 @@ void Controller::EndRPC(const CompletionInfo& info) {
         // is sent after _unfinished_call, it's just normal that _current_call
         // does not respond before _unfinished_call.
         if (_unfinished_call == NULL) {
-            CHECK(false) << "A previous non-backup request responded, cid="
+            MCHECK(false) << "A previous non-backup request responded, cid="
                          << info.id << " current_cid=" << current_id()
                          << " initial_cid=" << _correlation_id
                          << " stream_user_data=" << _current_call.stream_user_data
@@ -893,7 +893,7 @@ void Controller::EndRPC(const CompletionInfo& info) {
                 _unfinished_call->OnComplete(
                         this, _error_code, info.responded, true);
             } else {
-                CHECK(false) << "A previous non-backup request responded";
+                MCHECK(false) << "A previous non-backup request responded";
                 _unfinished_call->OnComplete(this, ECANCELED, false, true);
             }
 
@@ -947,7 +947,7 @@ void Controller::EndRPC(const CompletionInfo& info) {
                 // fibers, saving signalings.
                 // FIXME: We're assuming the calling thread is about to quit.
                 fiber_about_to_quit();
-                CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
+                MCHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
             }
         } else {
             RunUserCode(RunDoneInBackupThread, this);
@@ -958,7 +958,7 @@ void Controller::EndRPC(const CompletionInfo& info) {
 
         // Check comments in above branch on fiber_about_to_quit.
         fiber_about_to_quit();
-        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
+        MCHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 }
 void Controller::RunDoneInBackupThread(void* arg) {
@@ -974,7 +974,7 @@ void Controller::DoneInBackupThread() {
     _done->Run();
     // NOTE: Don't touch fields of controller anymore, it may be deleted.
     if (!destroy_cid_in_done) {
-        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
+        MCHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 }
 
@@ -991,7 +991,7 @@ void Controller::SubmitSpan() {
 void Controller::HandleSendFailed() {
     if (!FailedInline()) {
         SetFailed("Must be SetFailed() before calling HandleSendFailed()");
-        LOG(FATAL) << ErrorText();
+        MLOG(FATAL) << ErrorText();
     }
     const CompletionInfo info = { current_id(), false };
     // NOTE: Launch new thread to run the callback in an asynchronous call
@@ -1032,7 +1032,7 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
         if (_sender->IssueRPC(start_realtime_us) != 0) {
             return HandleSendFailed();
         }
-        CHECK_EQ(0, fiber_session_unlock(cid));
+        MCHECK_EQ(0, fiber_session_unlock(cid));
         return;
     }
 
@@ -1080,7 +1080,7 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
             return HandleSendFailed();
         }
         // remote_side can't be changed.
-        CHECK_EQ(_remote_side, tmp_sock->remote_side());
+        MCHECK_EQ(_remote_side, tmp_sock->remote_side());
     }
 
     Span* span = _span;
@@ -1219,12 +1219,12 @@ void Controller::IssueRPC(int64_t start_realtime_us) {
         // to confirm the credential data
         _current_call.sending_sock->SetAuthentication(rc);
     }
-    CHECK_EQ(0, fiber_session_unlock(cid));
+    MCHECK_EQ(0, fiber_session_unlock(cid));
 }
 
 void Controller::set_auth_context(const AuthContext* ctx) {
     if (_auth_context != NULL) {
-        LOG(FATAL) << "Impossible! This function is supposed to be called "
+        MLOG(FATAL) << "Impossible! This function is supposed to be called "
                  "only once when verification succeeds in server side";
         return;
     }
@@ -1293,7 +1293,7 @@ CallId Controller::call_id() {
     // Optimistic locking.
     CallId cid = { 0 };
     // The range of this id will be reset in Channel::CallMethod
-    CHECK_EQ(0, fiber_session_create2(&cid, this, HandleSocketFailed));
+    MCHECK_EQ(0, fiber_session_create2(&cid, this, HandleSocketFailed));
     if (!target->compare_exchange_strong(loaded, cid.value,
                                          mutil::memory_order_relaxed)) {
         fiber_session_cancel(cid);
@@ -1363,7 +1363,7 @@ void* Controller::session_local_data() {
 
 void Controller::HandleStreamConnection(Socket *host_socket) {
     if (_request_stream == INVALID_STREAM_ID) {
-        CHECK(!has_remote_stream());
+        MCHECK(!has_remote_stream());
         return;
     }
     SocketUniquePtr ptr;
@@ -1420,7 +1420,7 @@ void Controller::reset_sampled_request(SampledRequest* req) {
 
 void Controller::set_stream_creator(StreamCreator* sc) {
     if (_stream_creator) {
-        LOG(FATAL) << "A StreamCreator has been set previously";
+        MLOG(FATAL) << "A StreamCreator has been set previously";
         return;
     }
     _stream_creator = sc;
@@ -1429,15 +1429,15 @@ void Controller::set_stream_creator(StreamCreator* sc) {
 mutil::intrusive_ptr<ProgressiveAttachment>
 Controller::CreateProgressiveAttachment(StopStyle stop_style) {
     if (has_progressive_writer()) {
-        LOG(ERROR) << "One controller can only have one ProgressiveAttachment";
+        MLOG(ERROR) << "One controller can only have one ProgressiveAttachment";
         return NULL;
     }
     if (_request_protocol != PROTOCOL_HTTP) {
-        LOG(ERROR) << "Only http supports ProgressiveAttachment now";
+        MLOG(ERROR) << "Only http supports ProgressiveAttachment now";
         return NULL;
     }
     if (_current_call.sending_sock == NULL) {
-        LOG(ERROR) << "sending_sock is NULL";
+        MLOG(ERROR) << "sending_sock is NULL";
         return NULL;
     }
     SocketUniquePtr httpsock;
@@ -1453,7 +1453,7 @@ Controller::CreateProgressiveAttachment(StopStyle stop_style) {
 
 void Controller::ReadProgressiveAttachmentBy(ProgressiveReader* r) {
     if (r == NULL) {
-        LOG(FATAL) << "Param[r] is NULL";
+        MLOG(FATAL) << "Param[r] is NULL";
         return;
     }
     if (!is_response_read_progressively()) {
@@ -1540,7 +1540,7 @@ static void RegisterQuitSignalOrDie() {
         RELEASE_ASSERT_VERBOSE(prev != SIG_ERR,
                                "Fail to register SIGINT, abort");
         s_prev_sigint_handler = prev;
-        LOG(WARNING) << "SIGINT was installed with " << prev;
+        MLOG(WARNING) << "SIGINT was installed with " << prev;
     }
 
     if (FLAGS_graceful_quit_on_sigterm) {
@@ -1550,7 +1550,7 @@ static void RegisterQuitSignalOrDie() {
             RELEASE_ASSERT_VERBOSE(prev != SIG_ERR,
                                    "Fail to register SIGTERM, abort");
             s_prev_sigterm_handler = prev;
-            LOG(WARNING) << "SIGTERM was installed with " << prev;
+            MLOG(WARNING) << "SIGTERM was installed with " << prev;
         }
     }
 
@@ -1561,7 +1561,7 @@ static void RegisterQuitSignalOrDie() {
             RELEASE_ASSERT_VERBOSE(prev != SIG_ERR,
                                    "Fail to register SIGHUP, abort");
             s_prev_sighup_handler = prev;
-            LOG(WARNING) << "SIGHUP was installed with " << prev;
+            MLOG(WARNING) << "SIGHUP was installed with " << prev;
         }
     }
 }

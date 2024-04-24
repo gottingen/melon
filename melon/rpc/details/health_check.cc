@@ -80,7 +80,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
                  << " was abandoned during health checking";
         return;
     }
-    LOG(INFO) << "Checking path=" << ptr->remote_side() << FLAGS_health_check_path;
+    MLOG(INFO) << "Checking path=" << ptr->remote_side() << FLAGS_health_check_path;
     OnAppHealthCheckDone* done = new OnAppHealthCheckDone;
     done->id = id;
     done->interval_s = check_interval_s;
@@ -90,7 +90,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
     options.timeout_ms =
         std::min((int64_t)FLAGS_health_check_timeout_ms, check_interval_s * 1000);
     if (done->channel.Init(id, &options) != 0) {
-        LOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
+        MLOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
         ptr->_ninflight_app_health_check.fetch_sub(
                     1, mutil::memory_order_relaxed);
         delete done;
@@ -160,7 +160,7 @@ HealthCheckTask::HealthCheckTask(SocketId id)
 bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
     SocketUniquePtr ptr;
     const int rc = Socket::AddressFailedAsWell(_id, &ptr);
-    CHECK(rc != 0);
+    MCHECK(rc != 0);
     if (rc < 0) {
         RPC_VLOG << "SocketId=" << _id
                  << " was abandoned before health checking";
@@ -187,7 +187,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
     if (_first_time) {  // Only check at first time.
         _first_time = false;
         if (ptr->WaitAndReset(2/*note*/) != 0) {
-            LOG(INFO) << "Cancel checking " << *ptr;
+            MLOG(INFO) << "Cancel checking " << *ptr;
             ptr->AfterHCCompleted();
             return false;
         }
@@ -220,7 +220,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
         ptr->AfterHCCompleted();
         return false;
     } else if (hc == ESTOP) {
-        LOG(INFO) << "Cancel checking " << *ptr;
+        MLOG(INFO) << "Cancel checking " << *ptr;
         ptr->AfterHCCompleted();
         return false;
     }

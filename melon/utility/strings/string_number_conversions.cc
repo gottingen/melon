@@ -81,13 +81,13 @@ struct IntToStringT {
     typename STR::iterator it(outbuf.end());
     do {
       --it;
-      DCHECK(it != outbuf.begin());
+      DMCHECK(it != outbuf.begin());
       *it = static_cast<typename STR::value_type>((res % 10) + '0');
       res /= 10;
     } while (res != 0);
     if (is_neg) {
       --it;
-      DCHECK(it != outbuf.begin());
+      DMCHECK(it != outbuf.begin());
       *it = static_cast<typename STR::value_type>('-');
     }
     return STR(it, outbuf.end());
@@ -324,7 +324,7 @@ typedef BaseHexIteratorRangeToUInt64Traits<StringPiece::const_iterator>
 
 template<typename STR>
 bool HexStringToBytesT(const STR& input, std::vector<uint8_t>* output) {
-  DCHECK_EQ(output->size(), 0u);
+  DMCHECK_EQ(output->size(), 0u);
   size_t count = input.size();
   if (count == 0 || (count % 2) != 0)
     return false;
