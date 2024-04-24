@@ -52,7 +52,7 @@ set(CARBIN_PACKAGE_DIRECTORY package)
 #################################################################################
 # system configuration
 #################################################################################
-if (${PRETTY_NAME} MATCHES "Ubuntu")
+if (${CARBIN_PRETTY_NAME} MATCHES "Ubuntu")
     MESSAGE(STATUS "Linux dist: ubuntu, build deb package")
     set(CPACK_GENERATOR "STGZ;DEB")
     set(CPACK_PACKAGING_INSTALL_PREFIX ${CARBIN_PACKAGING_INSTALL_PREFIX})
@@ -71,9 +71,9 @@ if (${PRETTY_NAME} MATCHES "Ubuntu")
             "/usr/local/cuda-${CPACK_CUDA_VERSION_MAJOR}.${CPACK_CUDA_VERSION_MINOR}/lib64/stubs")
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
             "${CMAKE_CURRENT_SOURCE_DIR}/cmake/deb/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/deb/prerm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/deb/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/deb/postinst")
-elseif (${PRETTY_NAME} MATCHES "darwin")
+elseif (${CARBIN_PRETTY_NAME} MATCHES "darwin")
     MESSAGE(STATUS "Apple dist: macos build dmg package")
-elseif (${PRETTY_NAME} MATCHES "centos")
+elseif (${CARBIN_PRETTY_NAME} MATCHES "centos")
     set(CARBIN_GENERATOR "STGZ;RPM")
 
     carbin_print("on platform ${CMAKE_HOST_SYSTEM_NAME} package type tgz")
