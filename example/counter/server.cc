@@ -215,7 +215,7 @@ friend class FetchAddClosure;
             // The purpose of following logs is to help you understand the way
             // this StateMachine works.
             // Remove these logs in performance-sensitive servers.
-            LOG_IF(INFO, FLAGS_log_applied_task) 
+            MLOG_IF(INFO, FLAGS_log_applied_task)
                     << "Added value=" << prev << " by detal=" << detal_value
                     << " at log_index=" << iter.index();
         }

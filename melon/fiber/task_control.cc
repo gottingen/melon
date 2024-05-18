@@ -83,7 +83,7 @@ void* TaskControl::worker_thread(void* arg) {
     std::string worker_thread_name = mutil::string_printf(
         "melon_wkr:%d-%d", g->tag(), c->_next_worker_id.fetch_add(1, mutil::memory_order_relaxed));
     mutil::PlatformThread::SetName(worker_thread_name.c_str());
-    BT_VLOG << "Created worker=" << pthread_self() << " fiber=" << g->main_tid()
+    BT_VMLOG << "Created worker=" << pthread_self() << " fiber=" << g->main_tid()
             << " tag=" << g->tag();
     tls_task_group = g;
     c->_nworkers << 1;
@@ -91,7 +91,7 @@ void* TaskControl::worker_thread(void* arg) {
     g->run_main_task();
 
     stat = g->main_stat();
-    BT_VLOG << "Destroying worker=" << pthread_self() << " fiber="
+    BT_VMLOG << "Destroying worker=" << pthread_self() << " fiber="
             << g->main_tid() << " idle=" << stat.cputime_ns / 1000000.0
             << "ms uptime=" << g->current_uptime_ns() / 1000000.0 << "ms";
     tls_task_group = NULL;

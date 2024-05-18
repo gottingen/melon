@@ -94,10 +94,10 @@ public:
                 MLOG(INFO) << "addr " << address << " skip witness apply " << iter.index();
                 continue;
             }
-            LOG_IF(INFO, !g_dont_print_apply_log) << "addr " << address 
+            MLOG_IF(INFO, !g_dont_print_apply_log) << "addr " << address
                                                    << " apply " << iter.index()
                                                    << " data_size " << iter.data().size();
-            BRAFT_VLOG << "data " << iter.data();
+            BRAFT_VMLOG << "data " << iter.data();
             ::melon::ClosureGuard guard(iter.done());
             lock();
             logs.push_back(iter.data());

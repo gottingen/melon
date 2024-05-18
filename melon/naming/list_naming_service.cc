@@ -63,10 +63,10 @@ namespace melon::naming {
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {
-                RPC_VLOG << "Duplicated server=" << node;
+                RPC_VMLOG << "Duplicated server=" << node;
             }
         }
-        RPC_VLOG << "Got " << servers->size()
+        RPC_VMLOG << "Got " << servers->size()
                  << (servers->size() > 1 ? " servers" : " server");
         return 0;
     }

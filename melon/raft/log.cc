@@ -108,7 +108,7 @@ namespace melon::raft {
         if (_fd >= 0) {
             mutil::make_close_on_exec(_fd);
         }
-        LOG_IF(INFO, _fd >= 0) << "Created new segment `" << path
+        MLOG_IF(INFO, _fd >= 0) << "Created new segment `" << path
                                << "' with fd=" << _fd;
         return _fd >= 0 ? 0 : -1;
     }
@@ -230,11 +230,11 @@ namespace melon::raft {
         if (index > _last_index.load(mutil::memory_order_relaxed)
             || index < _first_index) {
             // out of range
-            BRAFT_VLOG << "_last_index=" << _last_index.load(mutil::memory_order_relaxed)
+            BRAFT_VMLOG << "_last_index=" << _last_index.load(mutil::memory_order_relaxed)
                        << " _first_index=" << _first_index;
             return -1;
         } else if (_last_index == _first_index - 1) {
-            BRAFT_VLOG << "_last_index=" << _last_index.load(mutil::memory_order_relaxed)
+            BRAFT_VMLOG << "_last_index=" << _last_index.load(mutil::memory_order_relaxed)
                        << " _first_index=" << _first_index;
             // empty
             return -1;
@@ -542,9 +542,9 @@ namespace melon::raft {
         if (ret == 0) {
             _is_open = false;
             const int rc = ::rename(old_path.c_str(), new_path.c_str());
-            LOG_IF(INFO, rc == 0) << "Renamed `" << old_path
+            MLOG_IF(INFO, rc == 0) << "Renamed `" << old_path
                                   << "' to `" << new_path << '\'';
-            LOG_IF(ERROR, rc != 0) << "Fail to rename `" << old_path
+            MLOG_IF(ERROR, rc != 0) << "Fail to rename `" << old_path
                                    << "' to `" << new_path << "\', "
                                    << berror();
             return rc;
@@ -566,7 +566,7 @@ namespace melon::raft {
         timer.start();
         int ret = ::unlink(file_path->c_str());
         timer.stop();
-        BRAFT_VLOG << "unlink " << *file_path << " ret " << ret << " time: " << timer.u_elapsed();
+        BRAFT_VMLOG << "unlink " << *file_path << " ret " << ret << " time: " << timer.u_elapsed();
         delete file_path;
 
         return NULL;
@@ -615,7 +615,7 @@ namespace melon::raft {
         }
         first_truncate_in_offset = last_index_kept + 1 - _first_index;
         truncate_size = _offset_and_term[first_truncate_in_offset].first;
-        BRAFT_VLOG << "Truncating " << _path << " first_index: " << _first_index
+        BRAFT_VMLOG << "Truncating " << _path << " first_index: " << _first_index
                    << " last_index from " << _last_index << " to " << last_index_kept
                    << " truncate size to " << truncate_size;
         lck.unlock();
@@ -631,9 +631,9 @@ namespace melon::raft {
             mutil::string_appendf(&new_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                                   _first_index);
             int ret = ::rename(old_path.c_str(), new_path.c_str());
-            LOG_IF(INFO, ret == 0) << "Renamed `" << old_path << "' to `"
+            MLOG_IF(INFO, ret == 0) << "Renamed `" << old_path << "' to `"
                                    << new_path << '\'';
-            LOG_IF(ERROR, ret != 0) << "Fail to rename `" << old_path << "' to `"
+            MLOG_IF(ERROR, ret != 0) << "Fail to rename `" << old_path << "' to `"
                                     << new_path << "', " << berror();
             if (ret != 0) {
                 return ret;
@@ -834,7 +834,7 @@ namespace melon::raft {
     int SegmentLogStorage::truncate_prefix(const int64_t first_index_kept) {
         // segment files
         if (_first_log_index.load(mutil::memory_order_acquire) >= first_index_kept) {
-            BRAFT_VLOG << "Nothing is going to happen since _first_log_index="
+            BRAFT_VMLOG << "Nothing is going to happen since _first_log_index="
                        << _first_log_index.load(mutil::memory_order_relaxed)
                        << " >= first_index_kept="
                        << first_index_kept;
@@ -1017,7 +1017,7 @@ namespace melon::raft {
             match = sscanf(dir_reader.name(), BRAFT_SEGMENT_OPEN_PATTERN,
                            &first_index);
             if (match == 1) {
-                BRAFT_VLOG << "restore open segment, path: " << _path
+                BRAFT_VMLOG << "restore open segment, path: " << _path
                            << " first_index: " << first_index;
                 if (!_open_segment) {
                     _open_segment = new Segment(_path, first_index, _checksum_type);
@@ -1215,7 +1215,7 @@ namespace melon::raft {
             return -1;
         }
         if (index < first_index || index > last_index + 1) {
-            LOG_IF(WARNING, index > last_index) << "Attempted to access entry " << index << " outside of log, "
+            MLOG_IF(WARNING, index > last_index) << "Attempted to access entry " << index << " outside of log, "
                                                 << " first_log_index: " << first_index
                                                 << " last_log_index: " << last_index;
             return -1;

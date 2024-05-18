@@ -226,7 +226,7 @@ namespace melon {
     }
 
     NamingServiceThread::~NamingServiceThread() {
-        RPC_VLOG << "~NamingServiceThread(" << *this << ')';
+        RPC_VMLOG << "~NamingServiceThread(" << *this << ')';
         // Remove from g_nsthread_map first
         if (!_protocol.empty()) {
             const NSKey key(_protocol, _service_name, _options.channel_signature);

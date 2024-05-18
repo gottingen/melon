@@ -245,7 +245,7 @@ namespace melon::raft {
         const int rc = fiber_timer_add(&timer, due_time,
                                          _on_block_timedout, (void *) _id.value);
         if (rc == 0) {
-            BRAFT_VLOG << "Blocking " << _options.peer_id << " for "
+            BRAFT_VMLOG << "Blocking " << _options.peer_id << " for "
                        << blocking_time << "ms" << ", group " << _options.group_id;
             _st.st = BLOCKING;
             MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;
@@ -280,10 +280,10 @@ namespace melon::raft {
 
         if (cntl->Failed()) {
             ss << " fail, sleep.";
-            BRAFT_VLOG << ss.str();
+            BRAFT_VMLOG << ss.str();
 
-            // TODO: Should it be VLOG?
-            LOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
+            // TODO: Should it be VMLOG?
+            MLOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
             << "Group " << r->_options.group_id
             << " fail to issue RPC to " << r->_options.peer_id
             << " _consecutive_error_times=" << r->_consecutive_error_times
@@ -296,7 +296,7 @@ namespace melon::raft {
         if (response->term() > r->_options.term) {
             ss << " fail, greater term " << response->term()
                << " expect term " << r->_options.term;
-            BRAFT_VLOG << ss.str();
+            BRAFT_VMLOG << ss.str();
 
             NodeImpl *node_impl = r->_options.node;
             // Acquire a reference of Node here in case that Node is detroyed
@@ -316,7 +316,7 @@ namespace melon::raft {
         }
 
         bool readonly = response->has_readonly() && response->readonly();
-        BRAFT_VLOG << ss.str() << " readonly " << readonly;
+        BRAFT_VMLOG << ss.str() << " readonly " << readonly;
         r->_update_last_rpc_send_timestamp(rpc_send_time);
         r->_start_heartbeat_timer(start_time_us);
         NodeImpl *node_impl = NULL;
@@ -374,17 +374,17 @@ namespace melon::raft {
         }
         if (!valid_rpc) {
             ss << " ignore invalid rpc";
-            BRAFT_VLOG << ss.str();
+            BRAFT_VMLOG << ss.str();
             MCHECK_EQ(0, fiber_session_unlock(r->_id)) << "Fail to unlock " << r->_id;
             return;
         }
 
         if (cntl->Failed()) {
             ss << " fail, sleep.";
-            BRAFT_VLOG << ss.str();
+            BRAFT_VMLOG << ss.str();
 
-            // TODO: Should it be VLOG?
-            LOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
+            // TODO: Should it be VMLOG?
+            MLOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
             << "Group " << r->_options.group_id
             << " fail to issue RPC to " << r->_options.peer_id
             << " _consecutive_error_times=" << r->_consecutive_error_times
@@ -399,7 +399,7 @@ namespace melon::raft {
         r->_consecutive_error_times = 0;
         if (!response->success()) {
             if (response->term() > r->_options.term) {
-                BRAFT_VLOG << " fail, greater term " << response->term()
+                BRAFT_VMLOG << " fail, greater term " << response->term()
                            << " expect term " << r->_options.term;
                 r->_reset_next_index();
 
@@ -420,12 +420,12 @@ namespace melon::raft {
             ss << " fail, find next_index remote last_log_index " << response->last_log_index()
                << " local next_index " << r->_next_index
                << " rpc prev_log_index " << request->prev_log_index();
-            BRAFT_VLOG << ss.str();
+            BRAFT_VMLOG << ss.str();
             r->_update_last_rpc_send_timestamp(rpc_send_time);
             // prev_log_index and prev_log_term doesn't match
             r->_reset_next_index();
             if (response->last_log_index() + 1 < r->_next_index) {
-                BRAFT_VLOG << "Group " << r->_options.group_id
+                BRAFT_VMLOG << "Group " << r->_options.group_id
                            << " last_log_index at peer=" << r->_options.peer_id
                            << " is " << response->last_log_index();
                 // The peer contains less logs than leader
@@ -434,7 +434,7 @@ namespace melon::raft {
                 // The peer contains logs from old term which should be truncated,
                 // decrease _last_log_at_peer by one to test the right index to keep
                 if (MELON_LIKELY(r->_next_index > 1)) {
-                    BRAFT_VLOG << "Group " << r->_options.group_id
+                    BRAFT_VMLOG << "Group " << r->_options.group_id
                                << " log_index=" << r->_next_index << " mismatch";
                     --r->_next_index;
                 } else {
@@ -450,7 +450,7 @@ namespace melon::raft {
         }
 
         ss << " success";
-        BRAFT_VLOG << ss.str();
+        BRAFT_VMLOG << ss.str();
 
         if (response->term() != r->_options.term) {
             MLOG(ERROR) << "Group " << r->_options.group_id
@@ -463,7 +463,7 @@ namespace melon::raft {
         r->_update_last_rpc_send_timestamp(rpc_send_time);
         const int entries_size = request->entries_size();
         const int64_t rpc_last_log_index = request->prev_log_index() + entries_size;
-        BRAFT_VLOG_IF(entries_size > 0) << "Group " << r->_options.group_id
+        BRAFT_VMLOG_IF(entries_size > 0) << "Group " << r->_options.group_id
                                         << " replicated logs in ["
                                         << min_flying_index << ", "
                                         << rpc_last_log_index
@@ -514,7 +514,7 @@ namespace melon::raft {
         if (prev_log_term == 0 && prev_log_index != 0) {
             if (!is_heartbeat) {
                 MCHECK_LT(prev_log_index, _options.log_manager->first_log_index());
-                BRAFT_VLOG << "Group " << _options.group_id
+                BRAFT_VMLOG << "Group " << _options.group_id
                            << " log_index=" << prev_log_index << " was compacted";
                 return -1;
             } else {
@@ -561,7 +561,7 @@ namespace melon::raft {
             _append_entries_counter++;
         }
 
-        BRAFT_VLOG << "node " << _options.group_id << ":" << _options.server_id
+        BRAFT_VMLOG << "node " << _options.group_id << ":" << _options.server_id
                    << " send HeartbeatRequest to " << _options.peer_id
                    << " term " << _options.term
                    << " prev_log_index " << request->prev_log_index()
@@ -624,7 +624,7 @@ namespace melon::raft {
         if (_flying_append_entries_size >= FLAGS_raft_max_entries_size ||
             _append_entries_in_fly.size() >= (size_t) FLAGS_raft_max_parallel_append_entries_rpc_num ||
             _st.st == BLOCKING) {
-            BRAFT_VLOG << "node " << _options.group_id << ":" << _options.server_id
+            BRAFT_VMLOG << "node " << _options.group_id << ":" << _options.server_id
                        << " skip sending AppendEntriesRequest to " << _options.peer_id
                        << ", too many requests in flying, or the replicator is in block,"
                        << " next_index " << _next_index << " flying_size " << _flying_append_entries_size;
@@ -677,7 +677,7 @@ namespace melon::raft {
 
         g_send_entries_batch_counter << request->entries_size();
 
-        BRAFT_VLOG << "node " << _options.group_id << ":" << _options.server_id
+        BRAFT_VMLOG << "node " << _options.group_id << ":" << _options.server_id
                    << " send AppendEntriesRequest to " << _options.peer_id << " term " << _options.term
                    << " last_committed_index " << request->committed_index()
                    << " prev_log_index " << request->prev_log_index()
@@ -725,7 +725,7 @@ namespace melon::raft {
             // install snapshot now. Although the registered waiter will be canceled
             // before the operations, there is still a little chance that LogManger already
             // waked up the waiter, and _continue_sending is waiting to execute.
-            BRAFT_VLOG << "Group " << r->_options.group_id
+            BRAFT_VMLOG << "Group " << r->_options.group_id
                        << " Replicator=" << id << " canceled waiter";
             fiber_session_unlock(id);
         } else {
@@ -742,7 +742,7 @@ namespace melon::raft {
             _wait_id = _options.log_manager->wait(
                     _next_index - 1, _continue_sending, (void *) _id.value);
             _is_waiter_canceled = false;
-            BRAFT_VLOG << "node " << _options.group_id << ":" << _options.peer_id
+            BRAFT_VMLOG << "node " << _options.group_id << ":" << _options.peer_id
                        << " wait more entries, wait_id " << _wait_id;
         }
         if (_flying_append_entries_size == 0) {
@@ -878,7 +878,7 @@ namespace melon::raft {
                 ss << " error: " << cntl->ErrorText();
                 MLOG(INFO) << ss.str();
 
-                LOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
+                MLOG_IF(WARNING, (r->_consecutive_error_times++) % 10 == 0)
                 << "Group " << r->_options.group_id
                 << " Fail to install snapshot at peer="
                 << r->_options.peer_id
@@ -1126,7 +1126,7 @@ namespace melon::raft {
 
         if (cntl->Failed()) {
             ss << " fail : " << cntl->ErrorText();
-            BRAFT_VLOG << ss.str();
+            BRAFT_VMLOG << ss.str();
 
             if (old_leader_stepped_down) {
                 r->_notify_on_caught_up(ESTOP, true);
@@ -1137,7 +1137,7 @@ namespace melon::raft {
             return;
         }
         ss << (response->success() ? " success " : "fail:");
-        BRAFT_VLOG << ss.str();
+        BRAFT_VMLOG << ss.str();
 
         if (response->term() > r->_options.term) {
             NodeImpl *node_impl = r->_options.node;
@@ -1211,7 +1211,7 @@ namespace melon::raft {
         if ((readonly && _readonly_index != 0) ||
             (!readonly && _readonly_index == 0)) {
             // Check if readonly already set
-            BRAFT_VLOG << "node " << _options.group_id << ":" << _options.server_id
+            BRAFT_VMLOG << "node " << _options.group_id << ":" << _options.server_id
                        << " ignore change readonly config of " << _options.peer_id
                        << " to " << readonly << ", readonly_index " << _readonly_index;
             MCHECK_EQ(0, fiber_session_unlock(_id)) << "Fail to unlock " << _id;

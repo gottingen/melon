@@ -18,6 +18,6 @@
 #define MELON_FIBER_LOG_H_
 
 
-#define BT_VLOG VLOG(100)
+#define BT_VMLOG VMLOG(100)
 
 #endif // MELON_FIBER_LOG_H_

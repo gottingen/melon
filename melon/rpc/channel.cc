@@ -418,7 +418,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
             cntl->SetFailed(EINVAL, "Fail to lock call_id=%" PRId64,
                             correlation_id.value);
         }
-        LOG_IF(ERROR, cntl->is_used_by_rpc())
+        MLOG_IF(ERROR, cntl->is_used_by_rpc())
             << "Controller=" << cntl << " was used by another RPC before. "
             "Did you forget to Reset() it before reuse?";
         // Have to run done in-place. If the done runs in another thread,

@@ -104,7 +104,7 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
         status = UNEXECUTED;
         lck.unlock();
         MCHECK_NE(saved_status, UNEXECUTED);
-        LOG_IF(WARNING, saved_status == EXECUTING) 
+        MLOG_IF(WARNING, saved_status == EXECUTING)
                 << "Return a executing node, did you return before "
                    "iterator reached the end?";
     }

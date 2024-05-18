@@ -388,7 +388,7 @@ namespace melon {
             addr_map[lib_info.end_addr] = std::string();
         }
         tm.stop();
-        RPC_VLOG << "Loaded " << lib_info.path << " in " << tm.m_elapsed() << "ms";
+        RPC_VMLOG << "Loaded " << lib_info.path << " in " << tm.m_elapsed() << "ms";
         return 0;
     }
 
@@ -485,11 +485,11 @@ namespace melon {
             }
         }
         tm2.stop();
-        RPC_VLOG_IF(num_removed) << "Removed " << num_removed << " entries in "
+        RPC_VMLOG_IF(num_removed) << "Removed " << num_removed << " entries in "
                                  << tm2.m_elapsed() << "ms";
 
         tm.stop();
-        RPC_VLOG << "Loaded all symbols in " << tm.m_elapsed() << "ms";
+        RPC_VMLOG << "Loaded all symbols in " << tm.m_elapsed() << "ms";
     }
 
     static void FindSymbols(mutil::IOBuf *out, std::vector<uintptr_t> &addr_list) {

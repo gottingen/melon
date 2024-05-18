@@ -1267,7 +1267,7 @@ namespace melon {
                     tsmsg.payload.append(cont_nalu_header, arraysize(cont_nalu_header));
                 }
                 tsmsg.payload.append(_avc_seq_header.sps_list[i]);
-                RPC_VLOG << "Append sps[" << i << "]=" << _avc_seq_header.sps_list[i].size();
+                RPC_VMLOG << "Append sps[" << i << "]=" << _avc_seq_header.sps_list[i].size();
             }
             for (size_t i = 0; i < _avc_seq_header.pps_list.size(); ++i) {
                 if (first) {
@@ -1277,7 +1277,7 @@ namespace melon {
                     tsmsg.payload.append(cont_nalu_header, arraysize(cont_nalu_header));
                 }
                 tsmsg.payload.append(_avc_seq_header.pps_list[i]);
-                RPC_VLOG << "Append pps[" << i << "]=" << _avc_seq_header.pps_list[i].size();
+                RPC_VMLOG << "Append pps[" << i << "]=" << _avc_seq_header.pps_list[i].size();
             }
         }
         tsmsg.payload.append(nalus);

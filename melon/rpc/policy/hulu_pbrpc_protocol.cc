@@ -567,7 +567,7 @@ void ProcessHuluResponse(InputMessageBase* msg_base) {
     Controller* cntl = NULL;
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         return;
     }

@@ -476,7 +476,7 @@ namespace melon {
             }
             PMLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
             if (succ) {
-                RPC_VLOG << "Hit cache=" << expected_result_name;
+                RPC_VMLOG << "Hit cache=" << expected_result_name;
                 os.move_to(resp);
                 if (use_html) {
                     resp.append("<pre>");
@@ -536,7 +536,7 @@ namespace melon {
             errno = 0; // read_command_output may not set errno, clear it to make sure if
             // we see non-zero errno, it's real error.
             mutil::IOBufBuilder pprof_output;
-            RPC_VLOG << "Running cmd=" << cmd;
+            RPC_VMLOG << "Running cmd=" << cmd;
             const int rc = mutil::read_command_output(pprof_output, cmd.c_str());
             if (rc != 0) {
                 mutil::FilePath pprof_path(pprof_tool);
@@ -679,7 +679,7 @@ namespace melon {
         if (prof_id_str != NULL) {
             char *endptr = NULL;
             prof_id = strtoll(prof_id_str->c_str(), &endptr, 10);
-            LOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
+            MLOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
         }
 
         {
@@ -690,7 +690,7 @@ namespace melon {
                 }
                 ProfilingWaiter waiter = {cntl, done_guard.release()};
                 g_env[type].waiters->push_back(waiter);
-                RPC_VLOG << "Queue request from " << cntl->remote_side();
+                RPC_VMLOG << "Queue request from " << cntl->remote_side();
                 return;
             }
             if (g_env[type].cached_result != NULL &&
@@ -699,7 +699,7 @@ namespace melon {
                         g_env[type].cached_result->status_code);
                 cntl->response_attachment().append(
                         g_env[type].cached_result->result);
-                RPC_VLOG << "Hit cached result, id=" << prof_id;
+                RPC_VMLOG << "Hit cached result, id=" << prof_id;
                 return;
             }
             MCHECK(NULL == g_env[type].client);
@@ -721,7 +721,7 @@ namespace melon {
             g_env[type].client->point = cntl->remote_side();
         }
 
-        RPC_VLOG << "Apply request from " << cntl->remote_side();
+        RPC_VMLOG << "Apply request from " << cntl->remote_side();
 
         char prof_name[128];
         if (MakeProfName(type, prof_name, sizeof(prof_name)) != 0) {

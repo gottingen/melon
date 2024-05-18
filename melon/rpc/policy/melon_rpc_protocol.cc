@@ -592,7 +592,7 @@ void ProcessMStdResponse(InputMessageBase* msg_base) {
 
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         if (remote_stream_id != INVALID_STREAM_ID) {
             SendStreamRst(msg->socket(), meta.stream_settings().stream_id());

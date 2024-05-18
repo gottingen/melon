@@ -41,7 +41,7 @@ int DHWrapper::initialize(bool ensure_128bytes_public_key) {
             DH_get0_key(_pdh, &pub_key, NULL);
             int key_size = BN_num_bytes(pub_key);
             if (key_size != 128) {
-                RPC_VLOG << "regenerate 128B key, current=" << key_size;
+                RPC_VMLOG << "regenerate 128B key, current=" << key_size;
                 clear();
                 continue;
             }

@@ -426,7 +426,7 @@ namespace melon {
                 http_parser_execute(&_parser, &g_parser_settings, data, length);
         if (_parser.http_errno != 0) {
             // May try HTTP on other formats, failure is norm.
-            RPC_VLOG << "Fail to parse http message, parser=" << _parser
+            RPC_VMLOG << "Fail to parse http message, parser=" << _parser
                      << ", buf=`" << mutil::StringPiece(data, length) << '\'';
             return -1;
         }
@@ -454,7 +454,7 @@ namespace melon {
                     &_parser, &g_parser_settings, blk.data(), blk.size());
             if (_parser.http_errno != 0) {
                 // May try HTTP on other formats, failure is norm.
-                RPC_VLOG << "Fail to parse http message, parser=" << _parser
+                RPC_VMLOG << "Fail to parse http message, parser=" << _parser
                          << ", buf=" << mutil::ToPrintable(buf);
                 return -1;
             }

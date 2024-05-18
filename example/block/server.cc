@@ -305,7 +305,7 @@ friend class BlockClosure;
             // The purpose of following logs is to help you understand the way
             // this StateMachine works.
             // Remove these logs in performance-sensitive servers.
-            LOG_IF(INFO, FLAGS_log_applied_task) 
+            MLOG_IF(INFO, FLAGS_log_applied_task)
                     << "Write " << data.size() << " bytes"
                     << " from offset=" << offset
                     << " at log_index=" << iter.index();

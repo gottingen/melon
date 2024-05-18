@@ -427,7 +427,7 @@ void* select_server(void* arg) {
         }
         ++(*selected_count)[ptr->id()];
     }
-    LOG_IF(INFO, ret != 0) << "select_server[" << pthread_self()
+    MLOG_IF(INFO, ret != 0) << "select_server[" << pthread_self()
                             << "] quits before of " << berror(ret);
     return selected_count;
 }

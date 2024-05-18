@@ -988,6 +988,6 @@ namespace melon {
 #define CLOGW(cntl) MLOG(WARNING) << (cntl)->LogPrefix()
 #define CLOGE(cntl) MLOG(ERROR) << (cntl)->LogPrefix()
 #define CLOGF(cntl) MLOG(FATAL) << (cntl)->LogPrefix()
-#define CVLOG(v, cntl) VLOG(v) << (cntl)->LogPrefix()
+#define CVMLOG(v, cntl) VMLOG(v) << (cntl)->LogPrefix()
 
 #endif  // MELON_RPC_CONTROLLER_H_

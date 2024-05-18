@@ -209,7 +209,7 @@ namespace melon::raft {
             new_max_count = _throttle->throttled_by_throughput(max_count);
             if (new_max_count == 0) {
                 // Reset count to make next rpc retry the previous one
-                BRAFT_VLOG << "Copy file throttled, path: " << _dest_path;
+                BRAFT_VMLOG << "Copy file throttled, path: " << _dest_path;
                 _request.set_count(0);
                 AddRef();
                 int64_t retry_interval_ms_when_throttled =

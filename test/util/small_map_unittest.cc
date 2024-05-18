@@ -206,7 +206,7 @@ TEST(SmallMap, Insert) {
 
   // loop through the transition from small map to map.
   for (int i = 1; i <= 10; ++i) {
-    VLOG(1) << "Iteration " << i;
+    VMLOG(1) << "Iteration " << i;
     // insert an element
     std::pair<SmallMap<hash_map<int, int> >::iterator,
         bool> ret;
@@ -239,7 +239,7 @@ TEST(SmallMap, Insert) {
 TEST(SmallMap, InsertRange) {
   // loop through the transition from small map to map.
   for (int elements = 0; elements <= 10; ++elements) {
-    VLOG(1) << "Elements " << elements;
+    VMLOG(1) << "Elements " << elements;
     hash_map<int, int> normal_map;
     for (int i = 1; i <= elements; ++i) {
       normal_map.insert(std::make_pair(i, 100*i));
@@ -249,7 +249,7 @@ TEST(SmallMap, InsertRange) {
     sm.insert(normal_map.begin(), normal_map.end());
     EXPECT_EQ(normal_map.size(), sm.size());
     for (int i = 1; i <= elements; ++i) {
-      VLOG(1) << "Iteration " << i;
+      VMLOG(1) << "Iteration " << i;
       EXPECT_TRUE(sm.find(i) != sm.end());
       EXPECT_EQ(sm.find(i)->first, i);
       EXPECT_EQ(sm.find(i)->second, 100*i);

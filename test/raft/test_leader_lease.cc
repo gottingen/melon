@@ -115,7 +115,7 @@ void *check_lease_in_thread(void *arg) {
     Cluster *cluster = static_cast<Cluster *>(arg);
     int round = 0;
     while (!g_check_lease_in_thread_stop) {
-        BRAFT_VLOG << "check stale lease, round: " << round++;
+        BRAFT_VMLOG << "check stale lease, round: " << round++;
         usleep(10 * 1000);
         CHECK_NO_STALE_LEADER(cluster);
     }
@@ -155,7 +155,7 @@ TEST_F(BaseLeaseTest, triple_node) {
     int64_t start_ms = mutil::monotonic_time_ms();
     while (lease_status.state == melon::raft::LEASE_NOT_READY ||
            mutil::monotonic_time_ms() - start_ms < 1000) {
-        BRAFT_VLOG << "waiting lease become valid";
+        BRAFT_VMLOG << "waiting lease become valid";
         fiber_usleep(100 * 1000);
         leader->get_leader_lease_status(&lease_status);
     }
@@ -705,7 +705,7 @@ TEST_P(ExtendLeaseTest, chaos) {
         melon::raft::Node *target_node = NULL;
         switch (type) {
             case NODE_START: {
-                BRAFT_VLOG << "chaos round " << i << ", node start";
+                BRAFT_VMLOG << "chaos round " << i << ", node start";
                 std::vector<melon::raft::PeerId> tmp_nodes;
                 size_t j = mutil::fast_rand() % stopped_nodes.size();
                 for (size_t t = 0; t < stopped_nodes.size(); ++t) {
@@ -720,7 +720,7 @@ TEST_P(ExtendLeaseTest, chaos) {
                 break;
             }
             case NODE_STOP: {
-                BRAFT_VLOG << "chaos round " << i << ", node stop";
+                BRAFT_VMLOG << "chaos round " << i << ", node stop";
                 std::vector<melon::raft::PeerId> tmp_nodes;
                 size_t j = mutil::fast_rand() % started_nodes.size();
                 for (size_t t = 0; t < started_nodes.size(); ++t) {
@@ -735,7 +735,7 @@ TEST_P(ExtendLeaseTest, chaos) {
                 break;
             }
             case TRANSFER_LEADER: {
-                BRAFT_VLOG << "chaos round " << i << ", transfer leader";
+                BRAFT_VMLOG << "chaos round " << i << ", transfer leader";
                 cluster.wait_leader();
                 melon::raft::Node *leader = cluster.leader();
                 melon::raft::PeerId target;
@@ -748,14 +748,14 @@ TEST_P(ExtendLeaseTest, chaos) {
                 break;
             }
             case VOTE: {
-                BRAFT_VLOG << "chaos round " << i << ", vote";
+                BRAFT_VMLOG << "chaos round " << i << ", vote";
                 melon::raft::PeerId target = started_nodes[mutil::fast_rand() % started_nodes.size()];
                 target_node = cluster.find_node(target);
                 target_node->vote(50);
                 break;
             }
             case RESET_ELECTION_TIMEOUT: {
-                BRAFT_VLOG << "chaos round " << i << ", vote";
+                BRAFT_VMLOG << "chaos round " << i << ", vote";
                 melon::raft::PeerId target = started_nodes[mutil::fast_rand() % started_nodes.size()];
                 target_node = cluster.find_node(target);
                 target_node->reset_election_timeout_ms(mutil::fast_rand_in(50, 500));

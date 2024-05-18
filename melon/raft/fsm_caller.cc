@@ -291,7 +291,7 @@ namespace melon::raft {
             }
             Iterator iter(&iter_impl);
             _fsm->on_apply(iter);
-            LOG_IF(ERROR, iter.valid())
+            MLOG_IF(ERROR, iter.valid())
             << "Node " << _node->node_id()
             << " Iterator is still valid, did you return before iterator "
                " reached the end?";

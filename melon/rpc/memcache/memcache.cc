@@ -445,8 +445,8 @@ bool MemcacheResponse::PopGet(
         return false;
     }
     if (header.status != (uint16_t)STATUS_SUCCESS) {
-        LOG_IF(ERROR, header.extras_length != 0) << "GET response must not have flags";
-        LOG_IF(ERROR, header.key_length != 0) << "GET response must not have key";
+        MLOG_IF(ERROR, header.extras_length != 0) << "GET response must not have flags";
+        MLOG_IF(ERROR, header.key_length != 0) << "GET response must not have key";
         const int value_size = (int)header.total_body_length - (int)header.extras_length
             - (int)header.key_length;
         if (value_size < 0) {
@@ -579,8 +579,8 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
         mutil::string_printf(&_err, "Not enough data");
         return false;
     }
-    LOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
-    LOG_IF(ERROR, header.key_length != 0) << "STORE response must not have key";
+    MLOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
+    MLOG_IF(ERROR, header.key_length != 0) << "STORE response must not have key";
     int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     if (header.status != (uint16_t)STATUS_SUCCESS) {
@@ -589,7 +589,7 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
         _buf.cutn(&_err, value_size);
         return false;
     }
-    LOG_IF(ERROR, value_size != 0) << "STORE response must not have value, actually="
+    MLOG_IF(ERROR, value_size != 0) << "STORE response must not have value, actually="
                                    << value_size;
     _buf.pop_front(sizeof(header) + header.total_body_length);
     if (cas_value) {
@@ -744,8 +744,8 @@ bool MemcacheResponse::PopCounter(
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
-    LOG_IF(ERROR, header.extras_length != 0) << "INCR/DECR response must not have flags";
-    LOG_IF(ERROR, header.key_length != 0) << "INCR/DECR response must not have key";
+    MLOG_IF(ERROR, header.extras_length != 0) << "INCR/DECR response must not have flags";
+    MLOG_IF(ERROR, header.key_length != 0) << "INCR/DECR response must not have key";
     const int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);
@@ -864,8 +864,8 @@ bool MemcacheResponse::PopVersion(std::string* version) {
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
-    LOG_IF(ERROR, header.extras_length != 0) << "VERSION response must not have flags";
-    LOG_IF(ERROR, header.key_length != 0) << "VERSION response must not have key";
+    MLOG_IF(ERROR, header.extras_length != 0) << "VERSION response must not have flags";
+    MLOG_IF(ERROR, header.key_length != 0) << "VERSION response must not have key";
     const int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);

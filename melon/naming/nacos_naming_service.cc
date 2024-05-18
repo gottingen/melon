@@ -218,7 +218,7 @@ namespace melon::naming {
             return -1;
         }
 
-        RPC_VLOG << "Got " << nodes->size()
+        RPC_VMLOG << "Got " << nodes->size()
                  << (nodes->size() > 1 ? " servers" : " server") << " from "
                  << service_name;
 

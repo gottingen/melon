@@ -91,7 +91,7 @@ ParseResult InputMessenger::CutInputMessage(
                 return result;
             } else if (result.error() != PARSE_ERROR_TRY_OTHERS) {
                 // Critical error, return directly.
-                LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
+                MLOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
                     << "A message from " << m->remote_side()
                     << "(protocol=" << _handlers[cur_index].name
                     << ") is bigger than " << FLAGS_max_body_size
@@ -148,7 +148,7 @@ ParseResult InputMessenger::CutInputMessage(
             return result;
         } else if (result.error() != PARSE_ERROR_TRY_OTHERS) {
             // Critical error, return directly.
-            LOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
+            MLOG_IF(ERROR, result.error() == PARSE_ERROR_TOO_BIG_DATA)
                 << "A message from " << m->remote_side()
                 << "(protocol=" << _handlers[i].name
                 << ") is bigger than " << FLAGS_max_body_size
@@ -306,7 +306,7 @@ int InputMessenger::ProcessNewMessage(
                     return -1;
                 }
             } else {
-                LOG_IF(FATAL, auth_error != 0) <<
+                MLOG_IF(FATAL, auth_error != 0) <<
                     "Impossible! Socket should have been "
                     "destroyed when authentication failed";
             }
@@ -365,7 +365,7 @@ void InputMessenger::OnNewMessages(Socket* m) {
                 // Set `read_eof' flag and proceed to feed EOF into `Protocol'
                 // (implied by m->_read_buf.empty), which may produce a new
                 // `InputMessageBase' under some protocols such as HTTP
-                LOG_IF(WARNING, FLAGS_log_connection_close) << *m << " was closed by remote side";
+                MLOG_IF(WARNING, FLAGS_log_connection_close) << *m << " was closed by remote side";
                 read_eof = true;                
             } else if (errno != EAGAIN) {
                 if (errno == EINTR) {

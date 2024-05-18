@@ -348,8 +348,8 @@ static int id_create_ranged_impl(
     int (*on_error2)(fiber_session_t, void*, int, const std::string&),
     int range) {
     if (range < 1 || range > ID_MAX_RANGE) {
-        LOG_IF(FATAL, range < 1) << "range must be positive, actually " << range;
-        LOG_IF(FATAL, range > ID_MAX_RANGE ) << "max of range is " 
+        MLOG_IF(FATAL, range < 1) << "range must be positive, actually " << range;
+        MLOG_IF(FATAL, range > ID_MAX_RANGE ) << "max of range is "
                 << ID_MAX_RANGE << ", actually " << range;
         return EINVAL;
     }
@@ -415,9 +415,9 @@ int fiber_session_lock_and_reset_range_verbose(
             } else if (range < 0 ||
                        range > fiber::ID_MAX_RANGE ||
                        range + meta->first_ver <= meta->locked_ver) {
-                LOG_IF(FATAL, range < 0) << "range must be positive, actually "
+                MLOG_IF(FATAL, range < 0) << "range must be positive, actually "
                                          << range;
-                LOG_IF(FATAL, range > fiber::ID_MAX_RANGE)
+                MLOG_IF(FATAL, range > fiber::ID_MAX_RANGE)
                     << "max range is " << fiber::ID_MAX_RANGE
                     << ", actually " << range;
             } else {

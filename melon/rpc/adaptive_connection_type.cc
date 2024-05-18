@@ -38,7 +38,7 @@ ConnectionType StringToConnectionType(const mutil::StringPiece& type,
     } else if (CompareStringPieceWithoutCase(type, "short")) {
         return CONNECTION_TYPE_SHORT;
     }
-    LOG_IF(ERROR, print_log_on_unknown && !type.empty())
+    MLOG_IF(ERROR, print_log_on_unknown && !type.empty())
         << "Unknown connection_type `" << type
         << "', supported types: single pooled short";
     return CONNECTION_TYPE_UNKNOWN;

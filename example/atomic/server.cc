@@ -244,7 +244,7 @@ friend class AtomicClosure;
             // The purpose of following logs is to help you understand the way
             // this StateMachine works.
             // Remove these logs in performance-sensitive servers.
-            LOG_IF(INFO, FLAGS_log_applied_task) 
+            MLOG_IF(INFO, FLAGS_log_applied_task)
                     << "Handled operation " << op 
                     << " on id=" << response->id()
                     << " at log_index=" << iter.index()

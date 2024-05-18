@@ -540,7 +540,7 @@ namespace melon {
                 break;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VMLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -587,7 +587,7 @@ namespace melon {
                 return false;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VMLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;

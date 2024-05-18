@@ -999,7 +999,7 @@ public:
     }
     ~RtmpClientImpl() {
         get_rtmp_bvars()->client_count << -1;
-        RPC_VLOG << "Destroying RtmpClientImpl=" << this;
+        RPC_VMLOG << "Destroying RtmpClientImpl=" << this;
     }
 
     // Specify the servers to connect.
@@ -1036,7 +1036,7 @@ public:
 
 void RtmpConnect::StartConnect(
     const Socket* s, void (*done)(int, void*), void* data) {
-    RPC_VLOG << "Establish rtmp-level connection on " << *s;
+    RPC_VMLOG << "Establish rtmp-level connection on " << *s;
     policy::RtmpContext* ctx =
         static_cast<policy::RtmpContext*>(s->parsing_context());
     if (ctx == NULL) {
@@ -1718,7 +1718,7 @@ StreamUserData* RtmpClientStream::OnCreatingStream(
                         esid, _client_impl.get());
         return NULL;
     }
-    RPC_VLOG << "Replace Socket For Stream, RTMP socketId=" << esid
+    RPC_VMLOG << "Replace Socket For Stream, RTMP socketId=" << esid
              << ", main socketId=" << (*inout)->id();
     tmp_ptr->ShareStats(inout->get());
     inout->reset(tmp_ptr.release());
@@ -2632,7 +2632,7 @@ int RtmpServerStream::SendStopMessage(const mutil::StringPiece& error_desc) {
                              (int)error_desc.size(), error_desc.data());
         // The purpose is to close the connection, no matter what SetFailed()
         // returns, the operation should be done.
-        LOG_IF(WARNING, FLAGS_log_error_text)
+        MLOG_IF(WARNING, FLAGS_log_error_text)
             << "Close connection because " << error_desc;
         return 0;
     }
@@ -2676,7 +2676,7 @@ int RtmpServerStream::SendStopMessage(const mutil::StringPiece& error_desc) {
             << "]: Fail to send " << info.code() << ": " << error_desc;
         return -1;
     }
-    LOG_IF(WARNING, FLAGS_log_error_text)
+    MLOG_IF(WARNING, FLAGS_log_error_text)
         << _rtmpsock->remote_side() << '[' << _message_stream_id << "]: Sent "
         << info.code() << ' ' << error_desc;
     return 0;

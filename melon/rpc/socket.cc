@@ -721,14 +721,14 @@ namespace melon {
                     return -1;
                 }
             } else if (NRefOfVRef(vref) < expected_nref) {
-                RPC_VLOG << "SocketId=" << _this_id
+                RPC_VMLOG << "SocketId=" << _this_id
                          << " was abandoned during health checking";
                 return -1;
             } else {
                 // nobody holds a health-checking-related reference,
                 // so no need to do health checking.
                 if (!_is_hc_related_ref_held) {
-                    RPC_VLOG << "Nobody holds a health-checking-related reference"
+                    RPC_VMLOG << "Nobody holds a health-checking-related reference"
                              << " for SocketId=" << _this_id;
                     return -1;
                 }
@@ -910,7 +910,7 @@ namespace melon {
                                          GetOrNewSharedPart()->circuit_breaker.isolation_duration_ms());
                     } else {
                         // No need to run 2 health checking at the same time.
-                        RPC_VLOG << "There is already a health checking running "
+                        RPC_VMLOG << "There is already a health checking running "
                                     "for SocketId=" << _this_id;
                     }
                 }
@@ -960,7 +960,7 @@ namespace melon {
         if (mutil::cpuwide_time_us() - last_active_us <= idle_seconds * 1000000L) {
             return 0;
         }
-        LOG_IF(WARNING, FLAGS_log_idle_connection_close)
+        MLOG_IF(WARNING, FLAGS_log_idle_connection_close)
         << "Close " << *this << " due to no data transmission for "
         << idle_seconds << " seconds";
         if (shall_fail_me_at_server_stop()) {
@@ -1294,7 +1294,7 @@ namespace melon {
 
         mutil::EndPoint local_point;
         MCHECK_EQ(0, mutil::get_local_side(sockfd, &local_point));
-        LOG_IF(INFO, FLAGS_log_connected)
+        MLOG_IF(INFO, FLAGS_log_connected)
         << "Connected to " << remote_side()
         << " via fd=" << (int) sockfd << " SocketId=" << id()
         << " local_side=" << local_point;

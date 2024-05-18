@@ -366,7 +366,7 @@ int const comlog_levels[LOG_NUM_SEVERITIES] = {
 
 bool ComlogSink::OnLogMessage(int severity, const char* file, int line,
                               const mutil::StringPiece& content) {
-    // Print warning for VLOG since many online servers do not enable COMLOG_TRACE.
+    // Print warning for VMLOG since many online servers do not enable COMLOG_TRACE.
     int comlog_level = 0;
     if (severity < 0) {
         comlog_level = _options.print_vlog_as_warning ? COMLOG_WARNING : COMLOG_TRACE;

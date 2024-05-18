@@ -182,35 +182,35 @@ TEST_F(LoggingTest, streaming_log_sanity) {
 
     errno = EINVAL;
     PMLOG(FATAL) << "Error occurred" << noflush;
-    ASSERT_EQ("Error occurred: Invalid argument", PLOG_STREAM(FATAL).content_str());
+    ASSERT_EQ("Error occurred: Invalid argument", PMLOG_STREAM(FATAL).content_str());
     
     errno = 0;
     PMLOG(FATAL) << "Error occurred" << noflush;
 #if defined(OS_LINUX)
-    ASSERT_EQ("Error occurred: Success", PLOG_STREAM(FATAL).content_str());
+    ASSERT_EQ("Error occurred: Success", PMLOG_STREAM(FATAL).content_str());
 #else
-    ASSERT_EQ("Error occurred: Undefined error: 0", PLOG_STREAM(FATAL).content_str());
+    ASSERT_EQ("Error occurred: Undefined error: 0", PMLOG_STREAM(FATAL).content_str());
 #endif
 
     errno = EINTR;
     PMLOG(FATAL) << "Error occurred" << noflush;
     ASSERT_EQ("Error occurred: Interrupted system call",
-              PLOG_STREAM(FATAL).content_str());
+              PMLOG_STREAM(FATAL).content_str());
 }
 
 TEST_F(LoggingTest, log_at) {
     ::logging::StringSink log_str;
     ::logging::LogSink* old_sink = ::logging::SetLogSink(&log_str);
-    LOG_AT(WARNING, "specified_file.cc", 12345) << "file/line is specified";
+    MLOG_AT(WARNING, "specified_file.cc", 12345) << "file/line is specified";
     // the file:line part should be using the argument given by us.
     ASSERT_NE(std::string::npos, log_str.find("specified_file.cc:12345"));
     // restore the old sink.
     ::logging::SetLogSink(old_sink);
 }
 
-#define VLOG_NE(verbose_level) VLOG(verbose_level) << noflush
+#define VMLOG_NE(verbose_level) VMLOG(verbose_level) << noflush
 
-#define VLOG2_NE(virtual_path, verbose_level)           \
+#define VMLOG2_NE(virtual_path, verbose_level)           \
     VMLOG2(virtual_path, verbose_level) << noflush
 
 TEST_F(LoggingTest, vlog_sanity) {
@@ -224,22 +224,22 @@ TEST_F(LoggingTest, vlog_sanity) {
                                                "logging_UNITTEST=2").empty());
 
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("vlog 1vlog 2", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
     
-    VLOG_NE(-1) << "nothing";
+    VMLOG_NE(-1) << "nothing";
     EXPECT_EQ("", LOG_STREAM(VERBOSE).content_str());
 
-    // VLOG(0) is MLOG(INFO)
-    VLOG_NE(0) << "always on";
+    // VMLOG(0) is MLOG(INFO)
+    VMLOG_NE(0) << "always on";
     EXPECT_EQ("always on", LOG_STREAM(INFO).content_str());
 
     EXPECT_FALSE(google::SetCommandLineOption("vmodule",
                                               "logging_unittest=0").empty());
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
@@ -247,7 +247,7 @@ TEST_F(LoggingTest, vlog_sanity) {
     EXPECT_FALSE(google::SetCommandLineOption("vmodule",
                      "logging_unittest=0,logging_unittest=1").empty());
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("vlog 1", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
@@ -255,14 +255,14 @@ TEST_F(LoggingTest, vlog_sanity) {
     EXPECT_FALSE(google::SetCommandLineOption("vmodule",
                      "logging_unittest=1,logging_unittest=0").empty());
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
 
     EXPECT_FALSE(google::SetCommandLineOption("vmodule", "").empty());
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("vlog 1", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
@@ -270,7 +270,7 @@ TEST_F(LoggingTest, vlog_sanity) {
     EXPECT_FALSE(google::SetCommandLineOption("vmodule",
                                                "logg?ng_*=2").empty());
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("vlog 1vlog 2", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
@@ -278,13 +278,13 @@ TEST_F(LoggingTest, vlog_sanity) {
     EXPECT_FALSE(google::SetCommandLineOption("vmodule",
         "foo=3,logging_unittest=3, logg?ng_*=2 , logging_*=1 ").empty());
     for (int i = 0; i < 10; ++i) {
-        VLOG_NE(i) << "vlog " << i;
+        VMLOG_NE(i) << "vlog " << i;
     }
     EXPECT_EQ("vlog 1vlog 2vlog 3", LOG_STREAM(VERBOSE).content_str());
     EXPECT_EQ("vlog 0", LOG_STREAM(INFO).content_str());
 
     for (int i = 0; i < 10; ++i) {
-        VLOG_IF(i, i % 2 == 1) << "vlog " << i << noflush;
+        VMLOG_IF(i, i % 2 == 1) << "vlog " << i << noflush;
     }
     EXPECT_EQ("vlog 1vlog 3", LOG_STREAM(VERBOSE).content_str());
 
@@ -292,18 +292,18 @@ TEST_F(LoggingTest, vlog_sanity) {
                      "vmodule",
                      "foo/bar0/0=2,foo/bar/1=3, 2=4, foo/*/3=5, */ba?/4=6,"
                      "/5=7,/foo/bar/6=8,foo2/bar/7=9,foo/bar/8=9").empty());
-    VLOG2_NE("foo/bar/0", 2) << " vlog0";
-    VLOG2_NE("foo/bar0/0", 2) << " vlog0.0";
-    VLOG2_NE("foo/bar/1", 3) << " vlog1";
-    VLOG2_NE("foo/bar/2", 4) << " vlog2";
-    VLOG2_NE("foo/bar2/2", 4) << " vlog2.2";
-    VLOG2_NE("foo/bar/3", 5) << " vlog3";
-    VLOG2_NE("foo/bar/4", 6) << " vlog4";
-    VLOG2_NE("foo/bar/5", 7) << " vlog5";
-    VLOG2_NE("foo/bar/6", 8) << " vlog6";
-    VLOG2_NE("foo/bar/7", 9) << " vlog7";
-    VLOG2_NE("foo/bar/8", 10) << " vlog8";
-    VLOG2_NE("foo/bar/9", 11) << " vlog9";
+    VMLOG2_NE("foo/bar/0", 2) << " vlog0";
+    VMLOG2_NE("foo/bar0/0", 2) << " vlog0.0";
+    VMLOG2_NE("foo/bar/1", 3) << " vlog1";
+    VMLOG2_NE("foo/bar/2", 4) << " vlog2";
+    VMLOG2_NE("foo/bar2/2", 4) << " vlog2.2";
+    VMLOG2_NE("foo/bar/3", 5) << " vlog3";
+    VMLOG2_NE("foo/bar/4", 6) << " vlog4";
+    VMLOG2_NE("foo/bar/5", 7) << " vlog5";
+    VMLOG2_NE("foo/bar/6", 8) << " vlog6";
+    VMLOG2_NE("foo/bar/7", 9) << " vlog7";
+    VMLOG2_NE("foo/bar/8", 10) << " vlog8";
+    VMLOG2_NE("foo/bar/9", 11) << " vlog9";
     EXPECT_EQ(" vlog0.0 vlog1 vlog2 vlog2.2 vlog3 vlog4",
               LOG_STREAM(VERBOSE).content_str());
 
@@ -407,18 +407,18 @@ TEST_F(LoggingTest, limited_logging) {
     for (int i = 0; i < 100000; ++i) {
         MLOG_ONCE(INFO) << "HEHE1";
         MLOG_ONCE(INFO) << "HEHE2";
-        VLOG_ONCE(1) << "VHEHE3";
-        VLOG_ONCE(1) << "VHEHE4";
+        VMLOG_ONCE(1) << "VHEHE3";
+        VMLOG_ONCE(1) << "VHEHE4";
         MLOG_EVERY_N(INFO, 10000) << "i1=" << i;
         MLOG_EVERY_N(INFO, 5000) << "i2=" << i;
-        VLOG_EVERY_N(1, 10000) << "vi3=" << i;
-        VLOG_EVERY_N(1, 5000) << "vi4=" << i;
+        VMLOG_EVERY_N(1, 10000) << "vi3=" << i;
+        VMLOG_EVERY_N(1, 5000) << "vi4=" << i;
     }
     for (int i = 0; i < 300; ++i) {
         MLOG_EVERY_SECOND(INFO) << "i1=" << i;
         MLOG_EVERY_SECOND(INFO) << "i2=" << i;
-        VLOG_EVERY_SECOND(1) << "vi3=" << i;
-        VLOG_EVERY_SECOND(1) << "vi4=" << i;
+        VMLOG_EVERY_SECOND(1) << "vi3=" << i;
+        VMLOG_EVERY_SECOND(1) << "vi4=" << i;
         usleep(10000);
     }
 }
@@ -443,28 +443,28 @@ void CheckFunctionName() {
 
     errno = EINTR;
     PMLOG(DEBUG) << "test" << noflush;
-    ASSERT_EQ(func_name, PLOG_STREAM(DEBUG).func());
+    ASSERT_EQ(func_name, PMLOG_STREAM(DEBUG).func());
     PMLOG(INFO) << "test" << noflush;
-    ASSERT_EQ(func_name, PLOG_STREAM(INFO).func());
+    ASSERT_EQ(func_name, PMLOG_STREAM(INFO).func());
     PMLOG(WARNING) << "test" << noflush;
-    ASSERT_EQ(func_name, PLOG_STREAM(WARNING).func());
+    ASSERT_EQ(func_name, PMLOG_STREAM(WARNING).func());
     PMLOG(WARNING) << "test" << noflush;
-    ASSERT_EQ(func_name, PLOG_STREAM(WARNING).func());
+    ASSERT_EQ(func_name, PMLOG_STREAM(WARNING).func());
     PMLOG(ERROR) << "test" << noflush;
-    ASSERT_EQ(func_name, PLOG_STREAM(ERROR).func());
+    ASSERT_EQ(func_name, PMLOG_STREAM(ERROR).func());
     PMLOG(FATAL) << "test" << noflush;
-    ASSERT_EQ(func_name, PLOG_STREAM(FATAL).func());
+    ASSERT_EQ(func_name, PMLOG_STREAM(FATAL).func());
 
     ::logging::StringSink log_str;
     ::logging::LogSink* old_sink = ::logging::SetLogSink(&log_str);
-    LOG_AT(WARNING, "specified_file.cc", 12345, "log_at") << "file/line is specified";
+    MLOG_AT(WARNING, "specified_file.cc", 12345, "log_at") << "file/line is specified";
     // the file:line part should be using the argument given by us.
     ASSERT_NE(std::string::npos, log_str.find("specified_file.cc:12345 log_at"));
     ::logging::SetLogSink(old_sink);
 
     EXPECT_FALSE(google::SetCommandLineOption("v", "1").empty());
-    VLOG(100) << "test" << noflush;
-    ASSERT_EQ(func_name, VLOG_STREAM(100).func());
+    VMLOG(100) << "test" << noflush;
+    ASSERT_EQ(func_name, VMLOG_STREAM(100).func());
 }
 
 TEST_F(LoggingTest, log_func) {

@@ -153,7 +153,7 @@ size_t PartitionChannelBase::AddServersInBatch(
         if (!_subs[i].tmp.empty()) {
             size_t n = _subs[i].lb()->AddServersInBatch(_subs[i].tmp);
             ntotal += n;
-            RPC_VLOG << "Added " << n << " servers to channel[" << i << "]";
+            RPC_VMLOG << "Added " << n << " servers to channel[" << i << "]";
         }
     }
     return ntotal;
@@ -167,7 +167,7 @@ size_t PartitionChannelBase::RemoveServersInBatch(
         if (!_subs[i].tmp.empty()) {
             size_t n = _subs[i].lb()->RemoveServersInBatch(_subs[i].tmp);
             ntotal += n;
-            RPC_VLOG << "Removed " << n << " servers from channel[" << i << "]";
+            RPC_VMLOG << "Removed " << n << " servers from channel[" << i << "]";
         }
     }
     return ntotal;
@@ -328,7 +328,7 @@ public:
                     continue;
                 }
                 _part_chan_map[part.num_partition_kinds] = pchan;
-                RPC_VLOG << "Added partition=" << part.num_partition_kinds;
+                RPC_VMLOG << "Added partition=" << part.num_partition_kinds;
             } else {
                 pchan = *ppchan;
                 MCHECK_EQ(part.num_partition_kinds, pchan->partition_count());
@@ -348,7 +348,7 @@ public:
             if (!it->second->tmp.empty()) {
                 size_t n = it->second->AddServersInBatch(it->second->tmp);
                 it->second->num_servers += n;
-                RPC_VLOG << "Added " << n << " servers to partition="
+                RPC_VMLOG << "Added " << n << " servers to partition="
                          << it->first;
             }
         }
@@ -363,14 +363,14 @@ public:
             if (!partchan->tmp.empty()) {
                 size_t n = partchan->RemoveServersInBatch(partchan->tmp);
                 partchan->num_servers -= n;
-                RPC_VLOG << "Removed " << n << " servers from partition="
+                RPC_VMLOG << "Removed " << n << " servers from partition="
                          << it->first;
                 if (partchan->num_servers <= 0) {
                     MCHECK_EQ(0, partchan->num_servers);
                     const int npart = partchan->partition_count();
                     _schan->RemoveAndDestroyChannel(partchan->handle);
                     // NOTE: Don't touch partchan again!
-                    RPC_VLOG << "Removed partition=" << npart;
+                    RPC_VMLOG << "Removed partition=" << npart;
                     erased_parts.push_back(it->first);
                 }
             }

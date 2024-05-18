@@ -46,7 +46,7 @@ namespace melon::raft {
         // Don't touch iter ever after
         reader = iter->second;
         lck.unlock();
-        BRAFT_VLOG << "get_file for " << cntl->remote_side() << " path=" << reader->path()
+        BRAFT_VMLOG << "get_file for " << cntl->remote_side() << " path=" << reader->path()
                    << " filename=" << request->filename()
                    << " offset=" << request->offset() << " count=" << request->count();
 

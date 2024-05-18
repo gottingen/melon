@@ -189,7 +189,7 @@ namespace melon::naming {
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {
-                RPC_VLOG << "Duplicated server=" << node;
+                RPC_VMLOG << "Duplicated server=" << node;
             }
         }
 
@@ -201,7 +201,7 @@ namespace melon::naming {
             return -1;
         }
 
-        RPC_VLOG << "Got " << servers->size()
+        RPC_VMLOG << "Got " << servers->size()
                  << (servers->size() > 1 ? " servers" : " server")
                  << " from " << service_name;
         return 0;
@@ -221,7 +221,7 @@ namespace melon::naming {
             // Finally, the ns fiber will never exit. So need to check the stop status of
             // the fiber here and exit the fiber in time.
             if (fiber_stopped(fiber_self())) {
-                RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
+                RPC_VMLOG << "Quit NamingServiceThread=" << fiber_self();
                 return 0;
             }
             if (rc == 0) {
@@ -238,7 +238,7 @@ namespace melon::naming {
                 if (fiber_usleep(
                         std::max(FLAGS_consul_retry_interval_ms, 1) * mutil::Time::kMicrosecondsPerMillisecond) < 0) {
                     if (errno == ESTOP) {
-                        RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
+                        RPC_VMLOG << "Quit NamingServiceThread=" << fiber_self();
                         return 0;
                     }
                     PMLOG(FATAL) << "Fail to sleep";

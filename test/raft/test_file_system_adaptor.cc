@@ -279,7 +279,7 @@ protected:
         ssize_t left = piece_data.size();
         if (_error == 0) {
             while (left >= (size_t)_align_size) {
-                BRAFT_VLOG << "current data size: " << left
+                BRAFT_VMLOG << "current data size: " << left
                           << " align_size: " << _align_size
                           << " error: " << _error;
                 size_t cut_size = piece_data.cutn(&_portal, _align_size);
@@ -322,7 +322,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_write_file_adaptor) 
         remain_size -= align_size/2;
         
         ssize_t nwrite = file->write(tmp_buf, offset);
-        BRAFT_VLOG << "write into adaptor No_" << times << ", offset: " << offset
+        BRAFT_VMLOG << "write into adaptor No_" << times << ", offset: " << offset
                   << ", size: " << tmp_buf.size()
                   << ", data: " << tmp_buf
                   << ", nwrite: " << nwrite;

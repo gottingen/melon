@@ -115,7 +115,7 @@ bool JsonLoader::Reader::get_next_json(mutil::IOBuf* json1) {
                     if (!_quoted) {
                         ++_brace_depth;
                     } else {
-                        VLOG(1) << "Quoted left brace";
+                        VMLOG(1) << "Quoted left brace";
                     }                        
                     break;
                 case '}':
@@ -131,7 +131,7 @@ bool JsonLoader::Reader::get_next_json(mutil::IOBuf* json1) {
                             return false;
                         }
                     } else {
-                        VLOG(1) << "Quoted right brace";
+                        VMLOG(1) << "Quoted right brace";
                     }
                     break;
                 case '"':
@@ -194,7 +194,7 @@ void JsonLoader::load_messages(
     out_msgs->clear();
     mutil::IOBuf request_json;
     while (ctx->get_next_json(&request_json)) {
-        VLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
+        VMLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
                 << request_json << '\'';
         std::string error;
         google::protobuf::Message* request = _request_prototype->New();
@@ -206,7 +206,7 @@ void JsonLoader::load_messages(
             continue;
         }
         out_msgs->push_back(request);
-        LOG_IF(INFO, (out_msgs->size() % 10000) == 0)
+        MLOG_IF(INFO, (out_msgs->size() % 10000) == 0)
             << "Loaded " << out_msgs->size() << " jsons";
     }
 }

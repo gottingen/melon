@@ -177,11 +177,11 @@ void ContentionProfiler::dump_and_destroy(SampledContention* c) {
 }
 
 void ContentionProfiler::flush_to_disk(bool ending) {
-    BT_VLOG << "flush_to_disk(ending=" << ending << ")";
+    BT_VMLOG << "flush_to_disk(ending=" << ending << ")";
     
     // Serialize contentions in _dedup_map into _disk_buf.
     if (!_dedup_map.empty()) {
-        BT_VLOG << "dedup_map=" << _dedup_map.size();
+        BT_VMLOG << "dedup_map=" << _dedup_map.size();
         mutil::IOBufBuilder os;
         for (ContentionMap::const_iterator
                  it = _dedup_map.begin(); it != _dedup_map.end(); ++it) {
@@ -200,7 +200,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     // Append /proc/self/maps to the end of the contention file, required by
     // pprof.pl, otherwise the functions in sys libs are not interpreted.
     if (ending) {
-        BT_VLOG << "Append /proc/self/maps";
+        BT_VMLOG << "Append /proc/self/maps";
         // Failures are not critical, don't return directly.
         mutil::IOPortal mem_maps;
         const mutil::fd_guard fd(open("/proc/self/maps", O_RDONLY));
@@ -253,7 +253,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
             PMLOG(ERROR) << "Fail to write into " << _filename;
             return;
         }
-        BT_VLOG << "Write " << nw << " bytes into " << _filename;
+        BT_VMLOG << "Write " << nw << " bytes into " << _filename;
     } while (!_disk_buf.empty() && ending);
 }
 

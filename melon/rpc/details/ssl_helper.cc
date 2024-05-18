@@ -675,7 +675,7 @@ static void SSLLockCallback(int mode, int n, const char* file, int line) {
     (void)file;
     (void)line;
     // Following log is too anonying even for verbose logs.
-    // RPC_VLOG << "[" << file << ':' << line << "] SSL"
+    // RPC_VMLOG << "[" << file << ':' << line << "] SSL"
     //          << (mode & CRYPTO_LOCK ? "locks" : "unlocks")
     //          << " thread=" << CRYPTO_thread_id();
     if (mode & CRYPTO_LOCK) {

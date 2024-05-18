@@ -83,7 +83,7 @@ namespace melon::raft {
                 ++removed_spaces;
             }
         }
-        LOG_IF(WARNING, removed_spaces) << "Removed " << removed_spaces
+        MLOG_IF(WARNING, removed_spaces) << "Removed " << removed_spaces
                                         << " spaces from `" << *uri << '\'';
         return protocol;
     }

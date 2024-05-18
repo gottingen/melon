@@ -43,7 +43,7 @@ void CountdownEvent::signal(int sig, bool flush) {
     if (prev > sig) {
         return;
     }
-    LOG_IF(ERROR, prev < sig) << "Counter is over decreased";
+    MLOG_IF(ERROR, prev < sig) << "Counter is over decreased";
     butex_wake_all(saved_butex, flush);
 }
 
@@ -64,10 +64,10 @@ int CountdownEvent::wait() {
 
 void CountdownEvent::add_count(int v) {
     if (v <= 0) {
-        LOG_IF(ERROR, v < 0) << "Invalid count=" << v;
+        MLOG_IF(ERROR, v < 0) << "Invalid count=" << v;
         return;
     }
-    LOG_IF(ERROR, _wait_was_invoked) 
+    MLOG_IF(ERROR, _wait_was_invoked)
             << "Invoking add_count() after wait() was invoked";
     ((mutil::atomic<int>*)_butex)->fetch_add(v, mutil::memory_order_release);
 }
@@ -80,7 +80,7 @@ void CountdownEvent::reset(int v) {
     const int prev_counter =
             ((mutil::atomic<int>*)_butex)
                 ->exchange(v, mutil::memory_order_release);
-    LOG_IF(ERROR, _wait_was_invoked && prev_counter)
+    MLOG_IF(ERROR, _wait_was_invoked && prev_counter)
         << "Invoking reset() while count=" << prev_counter;
     _wait_was_invoked = false;
 }

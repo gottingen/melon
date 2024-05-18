@@ -105,7 +105,7 @@ private:
 };
 
 void MyVLogSite() {
-    VLOG(3) << "This is a VLOG!";
+    VMLOG(3) << "This is a VMLOG!";
 }
 
 void CheckContent(const melon::Controller& cntl, const char* name) {

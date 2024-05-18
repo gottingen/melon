@@ -187,7 +187,7 @@ ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket* socket,
         MCHECK(!sendbuf.empty());
         Socket::WriteOptions wopt;
         wopt.ignore_eovercrowded = true;
-        LOG_IF(WARNING, socket->Write(&sendbuf, &wopt) != 0)
+        MLOG_IF(WARNING, socket->Write(&sendbuf, &wopt) != 0)
             << "Fail to send redis reply";
         if(ctx->parser.ParsedArgsSize() == 0) {
             ctx->arena.clear();
@@ -260,7 +260,7 @@ void ProcessRedisResponse(InputMessageBase* msg_base) {
     Controller* cntl = NULL;
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         return;
     }

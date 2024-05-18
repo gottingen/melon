@@ -121,7 +121,7 @@ void Stream::BeforeRecycle(Socket *) {
     fiber_session_list_reset(&_writable_wait_list, ECONNRESET);
     if (_connected) {
         // Send CLOSE frame
-        RPC_VLOG << "Send close frame";
+        RPC_VMLOG << "Send close frame";
         MCHECK(_host_socket != NULL);
         policy::SendStreamClose(_host_socket,
                                 _remote_settings.stream_id(), id());
@@ -240,7 +240,7 @@ void Stream::SetConnected(const StreamSettings* remote_settings) {
         MCHECK(_remote_settings.IsInitialized());
     }
     MCHECK(_host_socket != NULL);
-    RPC_VLOG << "stream=" << id() << " is connected to stream_id=" 
+    RPC_VMLOG << "stream=" << id() << " is connected to stream_id="
              << _remote_settings.stream_id() << " at host_socket=" << *_host_socket;
     _connected = true;
     _connect_meta.ec = 0;
@@ -278,7 +278,7 @@ int Stream::AppendIfNotFull(const mutil::IOBuf &data,
             const size_t saved_produced = _produced;
             const size_t saved_remote_consumed = _remote_consumed;
             lck.unlock();
-            RPC_VLOG << "Stream=" << _id << " is full" 
+            RPC_VMLOG << "Stream=" << _id << " is full"
                      << "_produced=" << saved_produced
                      << " _remote_consumed=" << saved_remote_consumed
                      << " gap=" << saved_produced - saved_remote_consumed
@@ -473,16 +473,16 @@ int Stream::OnReceived(const StreamFrameMeta& fm, mutil::IOBuf *buf, Socket* soc
         }
         break;
     case FRAME_TYPE_RST:
-        RPC_VLOG << "stream=" << id() << " received rst frame";
+        RPC_VMLOG << "stream=" << id() << " received rst frame";
         Close();
         break;
     case FRAME_TYPE_CLOSE:
-        RPC_VLOG << "stream=" << id() << " received close frame";
+        RPC_VMLOG << "stream=" << id() << " received close frame";
         // TODO:: See the comments in Consume
         Close();
         break;
     case FRAME_TYPE_UNKNOWN:
-        RPC_VLOG << "Received unknown frame";
+        RPC_VMLOG << "Received unknown frame";
         return -1;
     }
     return 0;
@@ -617,7 +617,7 @@ void Stream::StartIdleTimer() {
             _start_idle_timer_us + _options.idle_timeout_ms * 1000);
     const int rc = fiber_timer_add(&_idle_timer, due_time, OnIdleTimeout,
                                      (void*)(_consumer_queue.value));
-    LOG_IF(WARNING, rc != 0) << "Fail to add timer";
+    MLOG_IF(WARNING, rc != 0) << "Fail to add timer";
 }
 
 void Stream::StopIdleTimer() {

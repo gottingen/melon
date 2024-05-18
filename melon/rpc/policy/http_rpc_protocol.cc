@@ -288,7 +288,7 @@ void ProcessHttpResponse(InputMessageBase* msg) {
     Controller* cntl = NULL;
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         return;
     }
@@ -913,7 +913,7 @@ HttpResponseSender::~HttpResponseSender() {
         }
     } else {
         // TODO(gejun): Support snappy (grpc)
-        LOG_IF(ERROR, cntl->response_compress_type() != COMPRESS_TYPE_NONE)
+        MLOG_IF(ERROR, cntl->response_compress_type() != COMPRESS_TYPE_NONE)
             << "Unknown compress_type=" << cntl->response_compress_type()
             << ", skip compression.";
     }

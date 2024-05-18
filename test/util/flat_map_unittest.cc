@@ -666,7 +666,7 @@ TEST_F(FlatMapTest, erase_hinted_during_iteration) {
     const size_t old_keys_out_size = keys_out.size();
     std::sort(keys_out.begin(), keys_out.end());
     keys_out.resize(std::unique(keys_out.begin(), keys_out.end()) - keys_out.begin());
-    LOG_IF(INFO, keys_out.size() != old_keys_out_size)
+    MLOG_IF(INFO, keys_out.size() != old_keys_out_size)
         << "Iterated " << old_keys_out_size - keys_out.size()
         << " duplicated elements";
     ASSERT_EQ(m1.size(), keys_out.size());

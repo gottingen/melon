@@ -76,7 +76,7 @@ int ReadJPaasHostPort(int container_port) {
     const uid_t uid = getuid();
     struct passwd* pw = getpwuid(uid);
     if (pw == NULL) {
-        RPC_VLOG << "Fail to get password file entry of uid=" << uid;
+        RPC_VMLOG << "Fail to get password file entry of uid=" << uid;
         return -1;
     }
     char JPAAS_LOG_PATH[64];
@@ -87,7 +87,7 @@ int ReadJPaasHostPort(int container_port) {
     ssize_t nr = 0;
     mutil::ScopedFILE fp(fopen(JPAAS_LOG_PATH, "r"));
     if (!fp) {
-        RPC_VLOG << "Fail to open `" << JPAAS_LOG_PATH << '\'';
+        RPC_VMLOG << "Fail to open `" << JPAAS_LOG_PATH << '\'';
         return -1;
     }
     int host_port = -1;
@@ -104,7 +104,7 @@ int ReadJPaasHostPort(int container_port) {
         }
     }
     free(line);
-    RPC_VLOG_IF(host_port < 0) << "No entry starting with `" << prefix << "' found";
+    RPC_VMLOG_IF(host_port < 0) << "No entry starting with `" << prefix << "' found";
     return host_port;
 }
 
@@ -116,7 +116,7 @@ void SetTrackMeAddress(mutil::EndPoint pt) {
         // accessible from outside.
         const int jpaas_port = ReadJPaasHostPort(pt.port);
         if (jpaas_port > 0) {
-            RPC_VLOG << "Use jpaas_host_port=" << jpaas_port
+            RPC_VMLOG << "Use jpaas_host_port=" << jpaas_port
                      << " instead of jpaas_container_port=" << pt.port;
             pt.port = jpaas_port;
         }
@@ -126,7 +126,7 @@ void SetTrackMeAddress(mutil::EndPoint pt) {
 
 static void HandleTrackMeResponse(Controller* cntl, TrackMeResponse* res) {
     if (cntl->Failed()) {
-        RPC_VLOG << "Fail to access " << FLAGS_trackme_server << ", " << cntl->ErrorText();
+        RPC_VMLOG << "Fail to access " << FLAGS_trackme_server << ", " << cntl->ErrorText();
     } else {
         BugInfo cur_info;
         cur_info.severity = res->severity();
@@ -172,7 +172,7 @@ static void HandleTrackMeResponse(Controller* cntl, TrackMeResponse* res) {
             new_interval = std::min(new_interval, TRACKME_MAX_INTERVAL);
             if (new_interval != s_trackme_interval) {
                 s_trackme_interval = new_interval;
-                RPC_VLOG << "Update s_trackme_interval to " << new_interval;
+                RPC_VMLOG << "Update s_trackme_interval to " << new_interval;
             }
         }
     }

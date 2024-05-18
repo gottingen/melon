@@ -103,7 +103,7 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
         }
         SocketUniquePtr ptr;
         if (Socket::Address((SocketId)fm.stream_id(), &ptr) != 0) {
-            RPC_VLOG_IF(fm.frame_type() != FRAME_TYPE_RST 
+            RPC_VMLOG_IF(fm.frame_type() != FRAME_TYPE_RST
                             && fm.frame_type() != FRAME_TYPE_CLOSE
                             && fm.frame_type() != FRAME_TYPE_FEEDBACK)
                    << "Fail to find stream=" << fm.stream_id();

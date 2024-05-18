@@ -264,7 +264,7 @@ RedisCommandFormatV(mutil::IOBuf* outbuf, const char* fmt, va_list ap) {
         FlushComponent(&nocount_buf, &compbuf, &ncomponent);
     }
 
-    LOG_IF(ERROR, nargs == 0) << "You must call RedisCommandNoFormat() "
+    MLOG_IF(ERROR, nargs == 0) << "You must call RedisCommandNoFormat() "
         "to replace RedisCommandFormatV without any args (to avoid potential "
         "formatting of conversion specifiers)";
     

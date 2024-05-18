@@ -121,7 +121,7 @@ DEFINE_bool(crash_on_fatal_log, false,
 DEFINE_bool(print_stack_on_check, true,
             "Print the stack trace when a MCHECK was failed");
 
-DEFINE_int32(v, 0, "Show all VLOG(m) messages for m <= this."
+DEFINE_int32(v, 0, "Show all VMLOG(m) messages for m <= this."
              " Overridable by --vmodule.");
 DEFINE_string(vmodule, "", "per-module verbose level."
               " Argument is a comma-separated list of MODULE_NAME=LOG_LEVEL."
@@ -1539,11 +1539,11 @@ std::wstring GetLogFileFullPath() {
 #endif
 
 
-// ----------- VLOG stuff -----------------
+// ----------- VMLOG stuff -----------------
 struct VLogSite;
 struct VModuleList;
 
-extern const int VLOG_UNINITIALIZED = std::numeric_limits<int>::max();
+extern const int VMLOG_UNINITIALIZED = std::numeric_limits<int>::max();
 
 static pthread_mutex_t vlog_site_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 static VLogSite* vlog_site_list = NULL;

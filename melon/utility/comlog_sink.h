@@ -63,7 +63,7 @@ struct ComlogSinkOptions {
     // default: 2048
     int max_log_length;
 
-    // Print VLOG(n) as WARNING instead of TRACE since many online servers
+    // Print VMLOG(n) as WARNING instead of TRACE since many online servers
     // disable TRACE logs.
     // default: true;
     bool print_vlog_as_warning;

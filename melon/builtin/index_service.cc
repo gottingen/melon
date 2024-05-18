@@ -155,7 +155,7 @@ namespace melon {
            << Path("/version", html_addr)
            << " : Version of this server, set by Server::set_version()" << NL
            << Path("/health", html_addr) << " : Test healthy" << NL
-           << Path("/vlog", html_addr) << " : List all VLOG callsites" << NL
+           << Path("/vlog", html_addr) << " : List all VMLOG callsites" << NL
            << Path("/sockets", html_addr) << " : Check status of a Socket" << NL
            << Path("/fibers", html_addr) << " : Check status of a fiber" << NL
            << Path("/ids", html_addr) << " : Check status of a fiber_session" << NL

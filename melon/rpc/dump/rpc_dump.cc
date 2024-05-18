@@ -158,13 +158,13 @@ namespace melon {
         ++_cur_req_count;
         if (_cur_req_count >= _max_requests_in_one_file) {
             // Reach the limit of #request in a file.
-            RPC_VLOG << "Write because _cur_req_count=" << _cur_req_count;
+            RPC_VMLOG << "Write because _cur_req_count=" << _cur_req_count;
         } else if (_unwritten_buf.size() >= UNWRITTEN_BUFSIZE) {
             // Too much unwritten data
-            RPC_VLOG << "Write because _unwritten_buf=" << _unwritten_buf.size();
+            RPC_VMLOG << "Write because _unwritten_buf=" << _unwritten_buf.size();
         } else if (mutil::gettimeofday_us() >= _sched_write_time) {
             // Not write for a while.
-            RPC_VLOG << "Write because timeout";
+            RPC_VMLOG << "Write because timeout";
         } else {
             return;
         }

@@ -604,7 +604,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // start snapshot timer
         if (_snapshot_executor && _options.snapshot_interval_s > 0) {
-            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term << " start snapshot_timer";
             _snapshot_timer.start();
         }
@@ -796,7 +796,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check state
         if (_state > STATE_TRANSFERRING) {
-            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term << " stop stepdown_timer"
                        << " state is " << state2str(_state);
             return;
@@ -1666,7 +1666,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         // cancel follower election timer
         if (_state == STATE_FOLLOWER) {
-            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term << " stop election_timer";
             _election_timer.stop();
         }
@@ -1683,7 +1683,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _current_term++;
         _voted_id = _server_id;
 
-        BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+        BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                    << " term " << _current_term << " start vote_timer";
         _vote_timer.start();
         _pre_vote_ctx.reset(this);
@@ -1769,7 +1769,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 // in lock
     void NodeImpl::step_down(const int64_t term, bool wakeup_a_candidate,
                              const mutil::Status &status) {
-        BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+        BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                    << " term " << _current_term
                    << " stepdown from " << state2str(_state)
                    << " new_term " << term
@@ -1938,7 +1938,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 continue;
             }
 
-            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term
                        << " add replicator " << *iter;
             //TODO: check return code
@@ -2022,7 +2022,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 st.set_error(EBUSY, "is transferring leadership");
             }
             lck.unlock();
-            BRAFT_VLOG << "node " << _group_id << ":" << _server_id << " can't apply : " << st;
+            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id << " can't apply : " << st;
             for (size_t i = 0; i < size; ++i) {
                 tasks[i].entry->Release();
                 if (tasks[i].done) {
@@ -2034,7 +2034,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         for (size_t i = 0; i < size; ++i) {
             if (tasks[i].expected_term != -1 && tasks[i].expected_term != _current_term) {
-                BRAFT_VLOG << "node " << _group_id << ":" << _server_id
+                BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
                            << " can't apply taks whose expected_term=" << tasks[i].expected_term
                            << " doesn't match current_term=" << _current_term;
                 if (tasks[i].done) {
@@ -3088,7 +3088,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::AppendEntriesCache::clear() {
-        BRAFT_VLOG << "node " << _node->_group_id << ":" << _node->_server_id
+        BRAFT_VMLOG << "node " << _node->_group_id << ":" << _node->_server_id
                    << " clear append entries cache";
         stop_timer();
         HandleAppendEntriesFromCacheArg *arg = new HandleAppendEntriesFromCacheArg;
@@ -3308,7 +3308,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::ConfigurationCtx::reset(mutil::Status *st) {
         // reset() should be called only once
         if (_stage == STAGE_NONE) {
-            BRAFT_VLOG << "node " << _node->node_id()
+            BRAFT_VMLOG << "node " << _node->node_id()
                        << " reset ConfigurationCtx when stage is STAGE_NONE already";
             return;
         }

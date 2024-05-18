@@ -57,12 +57,12 @@ namespace melon {
             // Finally, the ns fiber will never exit. So need to check the stop status of
             // the fiber here and exit the fiber in time.
             if (fiber_stopped(fiber_self())) {
-                RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
+                RPC_VMLOG << "Quit NamingServiceThread=" << fiber_self();
                 return 0;
             }
             if (fiber_usleep(GetNamingServiceAccessIntervalMs() * 1000UL) < 0) {
                 if (errno == ESTOP) {
-                    RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
+                    RPC_VMLOG << "Quit NamingServiceThread=" << fiber_self();
                     return 0;
                 }
                 PMLOG(FATAL) << "Fail to sleep";

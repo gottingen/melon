@@ -249,7 +249,7 @@ namespace melon::lb {
         const size_t ret = _db_hash_ring.ModifyWithForeground(AddBatch, add_nodes, &executed);
         MCHECK(ret % _num_replicas == 0);
         const size_t n = ret / _num_replicas;
-        LOG_IF(ERROR, n != servers.size())
+        MLOG_IF(ERROR, n != servers.size())
         << "Fail to AddServersInBatch, expected " << servers.size()
         << " actually " << n;
         return n;
@@ -268,7 +268,7 @@ namespace melon::lb {
         const size_t ret = _db_hash_ring.ModifyWithForeground(RemoveBatch, servers, &executed);
         MCHECK(ret % _num_replicas == 0);
         const size_t n = ret / _num_replicas;
-        LOG_IF(ERROR, n != servers.size())
+        MLOG_IF(ERROR, n != servers.size())
         << "Fail to RemoveServersInBatch, expected " << servers.size()
         << " actually " << n;
         return n;

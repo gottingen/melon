@@ -572,7 +572,7 @@ namespace melon::raft {
                     TruncatePrefixClosure *tpc =
                             dynamic_cast<TruncatePrefixClosure *>(done);
                     if (tpc) {
-                        BRAFT_VLOG << "Truncating storage to first_index_kept="
+                        BRAFT_VMLOG << "Truncating storage to first_index_kept="
                                    << tpc->first_index_kept();
                         ret = log_manager->_log_storage->truncate_prefix(
                                 tpc->first_index_kept());
@@ -616,7 +616,7 @@ namespace melon::raft {
     }
 
     void LogManager::set_snapshot(const SnapshotMeta *meta) {
-        BRAFT_VLOG << "Set snapshot last_included_index="
+        BRAFT_VMLOG << "Set snapshot last_included_index="
                    << meta->last_included_index()
                    << " last_included_term=" << meta->last_included_term();
         std::unique_lock<raft_mutex_t> lck(_mutex);

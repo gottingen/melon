@@ -874,7 +874,7 @@ namespace melon::var {
     void get_work_dir(std::ostream &os, void *) {
         mutil::FilePath path;
         const bool rc = mutil::GetCurrentDirectory(&path);
-        LOG_IF(WARNING, !rc) << "Fail to GetCurrentDirectory";
+        MLOG_IF(WARNING, !rc) << "Fail to GetCurrentDirectory";
         os << path.value();
     }
 

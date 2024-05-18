@@ -140,7 +140,7 @@ SocketMap::SocketMap()
 }
 
 SocketMap::~SocketMap() {
-    RPC_VLOG << "Destroying SocketMap=" << this;
+    RPC_VMLOG << "Destroying SocketMap=" << this;
     if (_has_close_idle_thread) {
         fiber_stop(_close_idle_thread);
         fiber_join(_close_idle_thread, NULL);

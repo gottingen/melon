@@ -668,7 +668,7 @@ const char* RtmpContext::state2str(State s) {
 void RtmpContext::SetState(const mutil::EndPoint& remote_side, State new_state) {
     const State old_state = _state;
     _state = new_state;
-    RPC_VLOG << remote_side << ": " << state2str(old_state)
+    RPC_VMLOG << remote_side << ": " << state2str(old_state)
              << " -> " << state2str(new_state);
 }
 
@@ -783,7 +783,7 @@ mutil::Status
 RtmpUnsentMessage::AppendAndDestroySelf(mutil::IOBuf* out, Socket* s) {
     std::unique_ptr<RtmpUnsentMessage> destroy_self(this);
     if (s == NULL) { // abandoned
-        RPC_VLOG << "Socket=NULL";
+        RPC_VMLOG << "Socket=NULL";
         return mutil::Status::OK();
     }
     RtmpContext* ctx = static_cast<RtmpContext*>(s->parsing_context());
@@ -1191,7 +1191,7 @@ ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(mutil::IOBuf* source, Socket* s
     mutil::IOBuf tmp;
     adobe_hs::C1 c1;
     if (c1.Load(c0c1_buf + RTMP_HANDSHAKE_SIZE0)) {
-        RPC_VLOG << socket->remote_side() << ": Loaded C1 with schema"
+        RPC_VMLOG << socket->remote_side() << ": Loaded C1 with schema"
                  << (c1.schema() == adobe_hs::SCHEMA0 ? "0" : "1");
         tmp.push_back(RTMP_DEFAULT_VERSION);
         {
@@ -1222,7 +1222,7 @@ ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(mutil::IOBuf* source, Socket* s
             tmp.append(buf, RTMP_HANDSHAKE_SIZE2);
         }
     } else {
-        RPC_VLOG << socket->remote_side() << ": Fallback to simple handshaking";
+        RPC_VMLOG << socket->remote_side() << ": Fallback to simple handshaking";
         // Send back S0 S1 S2
         char buf[9];
         char* q = buf;
@@ -1278,7 +1278,7 @@ ParseResult RtmpContext::WaitForS0S1(mutil::IOBuf* source, Socket* socket) {
     if (!_only_check_simple_s0s1) {
         adobe_hs::S1 s1;
         if (s1.Load(s0s1_buf + RTMP_HANDSHAKE_SIZE0, adobe_hs::SCHEMA1)) {
-            RPC_VLOG << socket->remote_side() << ": Loaded S1 with schema1";
+            RPC_VMLOG << socket->remote_side() << ": Loaded S1 with schema1";
             adobe_hs::C2 c2;
             if (!c2.Generate(s1.digest_blk.digest())) {
                 MLOG(ERROR) << socket->remote_side() << ": Fail to generate c2";
@@ -1288,7 +1288,7 @@ ParseResult RtmpContext::WaitForS0S1(mutil::IOBuf* source, Socket* socket) {
             tmp.append(s0s1_buf + RTMP_HANDSHAKE_SIZE0, RTMP_HANDSHAKE_SIZE1);
             done_adobe_hs = true;
         } else {
-            RPC_VLOG << socket->remote_side() << ": Fallback to simple handshaking";
+            RPC_VMLOG << socket->remote_side() << ": Fallback to simple handshaking";
         }
     }
     if (!done_adobe_hs) {
@@ -1602,8 +1602,8 @@ ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader& bh,
     source->pop_front(header_len);
     source->cutn(&_r.msg_body, cur_chunk_size);
     ctx->AddReceivedBytes(socket, header_len + cur_chunk_size);
-    const int vlvl = RPC_VLOG_LEVEL + 2;
-    VLOG(vlvl) << socket->remote_side()
+    const int vlvl = RPC_VMLOG_LEVEL + 2;
+    VMLOG(vlvl) << socket->remote_side()
               << ": Chunk{chunk_stream_id=" << bh.chunk_stream_id
               << " fmt=" << bh.fmt
               << " body_size=" << cur_chunk_size << '}';
@@ -1818,8 +1818,8 @@ bool RtmpChunkStream::OnMessage(const RtmpBasicHeader& bh,
     const int vlvl = ((mh.message_type != RTMP_MESSAGE_AUDIO &&
                                 mh.message_type != RTMP_MESSAGE_VIDEO &&
                                 mh.message_type != RTMP_MESSAGE_ACK) ?
-                               (RPC_VLOG_LEVEL + 1) : (RPC_VLOG_LEVEL + 2));
-    VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
+                               (RPC_VMLOG_LEVEL + 1) : (RPC_VMLOG_LEVEL + 2));
+    VMLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
                         << "] Message{timestamp=" << mh.timestamp
                         << " type=" << messagetype2str(mh.message_type)
                         << " body_size=" << mh.message_length << '}';
@@ -1843,7 +1843,7 @@ bool RtmpChunkStream::OnSetChunkSize(
     }
     const uint32_t old_size = connection_context()->_chunk_size_in;
     connection_context()->_chunk_size_in = new_size;
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] SetChunkSize: " << old_size << " -> " << new_size;
     return true;
 }
@@ -1878,7 +1878,7 @@ bool RtmpChunkStream::OnAck(
     uint32_t bytes_received = ReadBigEndian4Bytes(buf);
     // TODO(gejun): No usage right now.
     (void)bytes_received;
-    //RPC_VLOG << socket->remote_side() << ": Ack=" << bytes_received;
+    //RPC_VMLOG << socket->remote_side() << ": Ack=" << bytes_received;
     return true;
 }
 
@@ -1894,7 +1894,7 @@ bool RtmpChunkStream::OnWindowAckSize(
     const uint32_t old_size = connection_context()->_window_ack_size;
     const uint32_t new_size = ReadBigEndian4Bytes(buf);
     connection_context()->_window_ack_size = new_size;
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] WindowAckSize: " << old_size << " -> " << new_size;
     return true;
 }
@@ -1910,7 +1910,7 @@ bool RtmpChunkStream::OnSetPeerBandwidth(
     msg_body->cutn(buf, sizeof(buf));
     const uint32_t new_size = ReadBigEndian4Bytes(buf);
     const RtmpLimitType limit_type = (RtmpLimitType)buf[4];
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] SetPeerBandwidth=" << new_size
              << " limit_type=" << limit_type;
     return true;
@@ -2034,7 +2034,7 @@ bool RtmpChunkStream::OnSetBufferLength(const RtmpMessageHeader& mh,
     }
     const uint32_t stream_id = ReadBigEndian4Bytes(event_data.data());
     const uint32_t bl_ms = ReadBigEndian4Bytes(event_data.data() + 4);
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] SetBufferLength{stream_id=" << stream_id
              << " buffer_length_ms=" << bl_ms << '}';
     if (stream_id == RTMP_CONTROL_MESSAGE_STREAM_ID) {
@@ -2107,8 +2107,8 @@ bool RtmpChunkStream::OnBufferEmpty(const RtmpMessageHeader& mh,
         return false;
     }
     const uint32_t tmp = ReadBigEndian4Bytes(event_data.data());
-    const int vlvl = RPC_VLOG_LEVEL + 1;
-    VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
+    const int vlvl = RPC_VMLOG_LEVEL + 1;
+    VMLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
                         << "] BufferEmpty(" << tmp << ')';
     return true;
 }
@@ -2122,8 +2122,8 @@ bool RtmpChunkStream::OnBufferReady(const RtmpMessageHeader& mh,
         return false;
     }
     const uint32_t tmp = ReadBigEndian4Bytes(event_data.data());
-    const int vlvl = RPC_VLOG_LEVEL + 1;
-    VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
+    const int vlvl = RPC_VMLOG_LEVEL + 1;
+    VMLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id
                         << "] BufferReady(" << tmp << ')';
     return true;
 }
@@ -2144,8 +2144,8 @@ bool RtmpChunkStream::OnAudioMessage(
     msg.type = (FlvSoundType)(first_byte & 0x1);
     msg_body->swap(msg.data);
 
-    const int vlvl = RPC_VLOG_LEVEL + 1;
-    VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
+    const int vlvl = RPC_VMLOG_LEVEL + 1;
+    VMLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
     mutil::intrusive_ptr<RtmpStreamBase> stream;
     if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
         MLOG_EVERY_SECOND(WARNING) << socket->remote_side()
@@ -2176,8 +2176,8 @@ bool RtmpChunkStream::OnVideoMessage(
     }
     msg_body->swap(msg.data);
 
-    const int vlvl = RPC_VLOG_LEVEL + 1;
-    VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
+    const int vlvl = RPC_VMLOG_LEVEL + 1;
+    VMLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
     mutil::intrusive_ptr<RtmpStreamBase> stream;
     if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
         MLOG_EVERY_SECOND(WARNING) << socket->remote_side()
@@ -2203,7 +2203,7 @@ bool RtmpChunkStream::OnDataMessageAMF0(
             return false;
         }
     }
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] DataMessage{timestamp=" << mh.timestamp
              << " name=" << name << '}';
 
@@ -2269,7 +2269,7 @@ bool RtmpChunkStream::OnCommandMessageAMF0(
         RTMP_ERROR(socket, mh) << "Fail to read commandName";
         return false;
     }
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] Command{timestamp=" << mh.timestamp
              << " name=" << command_name << '}';
     pthread_once(&s_cmd_handlers_init_once, InitCommandHandlers);
@@ -2340,7 +2340,7 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
         RTMP_ERROR(socket, mh) << "Fail to read connect.CommandObjects";
         return false;
     }
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] connect{" << req->ShortDebugString() << '}';
 
     TemporaryArrayBuilder<SocketMessagePtr<RtmpUnsentMessage>, 5> msgs;
@@ -2438,7 +2438,7 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
         socket->SetFailed(EFAILEDSOCKET, "Fail to respond connect");
         return false;
     }
-    RPC_VLOG << socket->remote_side() << ": respond connect, props={"
+    RPC_VMLOG << socket->remote_side() << ": respond connect, props={"
              << response.ShortDebugString()
              << "} info={" << info.ShortDebugString() << '}';
     return true;
@@ -2447,7 +2447,7 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
 bool RtmpChunkStream::OnBWDone(const RtmpMessageHeader& mh,
                                AMFInputStream*,
                                Socket* socket) {
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] ignore onBWDone";
     return true;
 }
@@ -2560,7 +2560,7 @@ bool RtmpChunkStream::OnStatus(const RtmpMessageHeader& mh,
         RTMP_WARNING(socket, mh) << "Fail to find stream_id=" << mh.stream_id;
         return false;
     }
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] onStatus{" << info.ShortDebugString() << '}';
     static_cast<RtmpClientStream*>(stream.get())->OnStatus(info);
     return true;
@@ -2601,7 +2601,7 @@ bool RtmpChunkStream::OnCreateStream(const RtmpMessageHeader& mh,
             Str2RtmpPublishType(publish_type_field->AsString(), &publish_type);
         }
     }
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] createStream{transaction_id=" << transaction_id << '}';
     std::string error_text;
     mutil::intrusive_ptr<RtmpServerStream> stream(
@@ -2778,7 +2778,7 @@ bool RtmpChunkStream::OnPlay(const RtmpMessageHeader& mh,
             return false;
         }
     }
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] play{transaction_id=" << transaction_id
              << " stream_name=" << play_opt.stream_name
              << " start=" << play_opt.start
@@ -2904,7 +2904,7 @@ bool RtmpChunkStream::OnPlay(const RtmpMessageHeader& mh,
     // of pause). play automatically unpauses
     if (stream->_paused) {
         stream->_paused = false;
-        RPC_VLOG << "Trigger unpause";
+        RPC_VMLOG << "Trigger unpause";
         stream->OnPause(false, 0);
     }
     // Call user's callback.
@@ -3091,7 +3091,7 @@ bool RtmpChunkStream::OnPublish(const RtmpMessageHeader& mh,
         return false;
     }
 
-    RPC_VLOG << socket->remote_side() << "[" << mh.stream_id
+    RPC_VMLOG << socket->remote_side() << "[" << mh.stream_id
              << "] publish{transaction_id=" << transaction_id
              << " stream_name=" << publish_name
              << " type=" << RtmpPublishType2Str(publish_type) << '}';
@@ -3491,7 +3491,7 @@ void OnServerStreamCreated::Run(bool error,
     Controller* cntl = NULL;
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         return;
     }

@@ -43,7 +43,7 @@ public:
     // an error with the entire file (e.g. "not found").
     virtual void AddError(const std::string& filename, int line,
                           int /*column*/, const std::string& message) {
-        LOG_AT(ERROR, filename.c_str(), line) << message;
+        MLOG_AT(ERROR, filename.c_str(), line) << message;
     }
 };
 
@@ -142,7 +142,7 @@ int RpcPress::init(const PressOptions* options) {
             return -1;
         }
         _output_json = fopen(_options.output.c_str(), "w");
-        LOG_IF(ERROR, !_output_json) << "Fail to open " << _options.output;
+        MLOG_IF(ERROR, !_output_json) << "Fail to open " << _options.output;
     }
 
     int ret = _pbrpc_client->init();

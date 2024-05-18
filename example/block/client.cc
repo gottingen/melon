@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        LOG_IF(INFO, !FLAGS_log_each_request)
+        MLOG_IF(INFO, !FLAGS_log_each_request)
                 << "Sending Request to " << FLAGS_group
                 << " (" << FLAGS_conf << ')'
                 << " at qps=" << g_latency_recorder.qps(1)

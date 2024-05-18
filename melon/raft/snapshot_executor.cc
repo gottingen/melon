@@ -147,7 +147,7 @@ namespace melon::raft {
             lck.unlock();
 
             _log_manager->clear_bufferred_logs();
-            LOG_IF(INFO, _node != NULL) << "node " << _node->node_id()
+            MLOG_IF(INFO, _node != NULL) << "node " << _node->node_id()
                                         << " the gap between fsm applied index " << saved_fsm_applied_index
                                         << " and last_snapshot_index " << saved_last_snapshot_index
                                         << " is less than " << FLAGS_raft_do_snapshot_min_index_gap
@@ -191,7 +191,7 @@ namespace melon::raft {
         if (st.ok()) {
             if (meta.last_included_index() <= _last_snapshot_index) {
                 ret = ESTALE;
-                LOG_IF(WARNING, _node != NULL) << "node " << _node->node_id()
+                MLOG_IF(WARNING, _node != NULL) << "node " << _node->node_id()
                                                << " discards an stale snapshot "
                                                << " last_included_index " << meta.last_included_index()
                                                << " last_snapshot_index " << _last_snapshot_index;

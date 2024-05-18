@@ -185,7 +185,7 @@ namespace melon {
         } else {
             path_out->postfix.push_back('/');
         }
-        VLOG(RPC_VLOG_LEVEL + 1) << "orig_path=" << path
+        VMLOG(RPC_VMLOG_LEVEL + 1) << "orig_path=" << path
                                  << " first_part=" << first_part
                                  << " second_part=" << second_part
                                  << " path=" << DebugPrinter(*path_out);
@@ -295,7 +295,7 @@ namespace melon {
         info.status = status;
         info.path = path;
         info.ownership = SERVER_DOESNT_OWN_SERVICE;
-        RPC_VLOG << "Mapped `" << path << "' to `" << md->full_name() << '\'';
+        RPC_VMLOG << "Mapped `" << path << "' to `" << md->full_name() << '\'';
         return true;
     }
 
@@ -348,14 +348,14 @@ namespace melon {
         }
         std::sort(_sorted_paths.begin(), _sorted_paths.end(),
                   CompareItemInPathList());
-        if (VLOG_IS_ON(RPC_VLOG_LEVEL + 1)) {
+        if (VMLOG_IS_ON(RPC_VMLOG_LEVEL + 1)) {
             std::ostringstream os;
             os << "_sorted_paths(" << _service_name << "):";
             for (PathList::const_iterator it = _sorted_paths.begin();
                  it != _sorted_paths.end(); ++it) {
                 os << ' ' << (*it)->path;
             }
-            VLOG(RPC_VLOG_LEVEL + 1) << os.str();
+            VMLOG(RPC_VMLOG_LEVEL + 1) << os.str();
         }
     }
 
@@ -434,7 +434,7 @@ namespace melon {
             do {
                 const RestfulMethodPath &rpath = (*it)->path;
                 if (!sub_path.starts_with(rpath.prefix)) {
-                    VLOG(RPC_VLOG_LEVEL + 1)
+                    VMLOG(RPC_VMLOG_LEVEL + 1)
                     << "sub_path=" << sub_path << " does not match prefix="
                     << rpath.prefix << " full_path=" << full_path
                     << " candidate=" << DebugPrinter(rpath);
@@ -462,14 +462,14 @@ namespace melon {
                 if (left.ends_with(rpath.postfix)) {
                     left.remove_suffix(rpath.postfix.size());
                     if (!left.empty() && !rpath.has_wildcard) {
-                        VLOG(RPC_VLOG_LEVEL + 1)
+                        VMLOG(RPC_VMLOG_LEVEL + 1)
                         << "Unmatched extra=" << left
                         << " sub_path=" << sub_path
                         << " full_path=" << full_path
                         << " candidate=" << DebugPrinter(rpath);
                     } else {
                         matched = true;
-                        VLOG(RPC_VLOG_LEVEL + 1)
+                        VMLOG(RPC_VMLOG_LEVEL + 1)
                         << "Matched sub_path=" << sub_path
                         << " full_path=" << full_path
                         << " with restful_path=" << DebugPrinter(rpath);
@@ -477,7 +477,7 @@ namespace melon {
                     }
                 }
                 if (it == _sorted_paths.begin()) {
-                    VLOG(RPC_VLOG_LEVEL + 1)
+                    VMLOG(RPC_VMLOG_LEVEL + 1)
                     << "Hit beginning, sub_path=" << sub_path
                     << " full_path=" << full_path
                     << " candidate=" << DebugPrinter(rpath);

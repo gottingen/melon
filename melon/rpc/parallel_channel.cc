@@ -586,7 +586,7 @@ void ParallelChannel::CallMethod(
         if (!cntl->FailedInline()) {
             cntl->SetFailed(EINVAL, "Fail to lock call_id=%" PRId64, cid.value);
         }
-        LOG_IF(ERROR, cntl->is_used_by_rpc())
+        MLOG_IF(ERROR, cntl->is_used_by_rpc())
             << "Controller=" << cntl << " was used by another RPC before. "
             "Did you forget to Reset() it before reuse?";
         // Have to run done in-place.

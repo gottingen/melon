@@ -76,7 +76,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
     SocketUniquePtr ptr;
     const int rc = Socket::AddressFailedAsWell(id, &ptr);
     if (rc < 0) {
-        RPC_VLOG << "SocketId=" << id
+        RPC_VMLOG << "SocketId=" << id
                  << " was abandoned during health checking";
         return;
     }
@@ -114,12 +114,12 @@ void OnAppHealthCheckDone::Run() {
     SocketUniquePtr ptr;
     const int rc = Socket::AddressFailedAsWell(id, &ptr);
     if (rc < 0) {
-        RPC_VLOG << "SocketId=" << id
+        RPC_VMLOG << "SocketId=" << id
                 << " was abandoned during health checking";
         return;
     }
     if (!cntl.Failed() || ptr->Failed()) {
-        LOG_IF(INFO, !cntl.Failed()) << "Succeeded to call "
+        MLOG_IF(INFO, !cntl.Failed()) << "Succeeded to call "
             << ptr->remote_side() << FLAGS_health_check_path;
         // if ptr->Failed(), previous SetFailed would trigger next round
         // of hc, just return here.
@@ -127,7 +127,7 @@ void OnAppHealthCheckDone::Run() {
                     1, mutil::memory_order_relaxed);
         return;
     }
-    RPC_VLOG << "Fail to check path=" << FLAGS_health_check_path
+    RPC_VMLOG << "Fail to check path=" << FLAGS_health_check_path
         << ", " << cntl.ErrorText();
 
     int64_t sleep_time_ms =
@@ -162,7 +162,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
     const int rc = Socket::AddressFailedAsWell(_id, &ptr);
     MCHECK(rc != 0);
     if (rc < 0) {
-        RPC_VLOG << "SocketId=" << _id
+        RPC_VMLOG << "SocketId=" << _id
                  << " was abandoned before health checking";
         return false;
     }

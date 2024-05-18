@@ -66,7 +66,7 @@ namespace melon::naming {
                     return -1;
                 }
                 // Drop path and other stuff.
-                RPC_VLOG << "Drop content=`" << end << "' after port=" << port
+                RPC_VMLOG << "Drop content=`" << end << "' after port=" << port
                          << " in `" << dns_name << '\'';
                 // NOTE: Don't ever change *end which is const.
             }
@@ -133,7 +133,7 @@ namespace melon::naming {
             }
             _aux_buf_len *= 2;
             _aux_buf.reset(new char[_aux_buf_len]);
-            RPC_VLOG << "Resized _aux_buf to " << _aux_buf_len
+            RPC_VMLOG << "Resized _aux_buf to " << _aux_buf_len
                      << ", dns_name=" << dns_name;
         } while (1);
         if (ret != 0) {

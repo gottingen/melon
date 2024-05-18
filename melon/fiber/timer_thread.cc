@@ -313,7 +313,7 @@ void TimerThread::run() {
     run_worker_startfn();
 
     int64_t last_sleep_time = mutil::gettimeofday_us();
-    BT_VLOG << "Started TimerThread=" << pthread_self();
+    BT_VMLOG << "Started TimerThread=" << pthread_self();
 
     // min heap of tasks (ordered by run_time)
     std::vector<Task*> tasks;
@@ -391,7 +391,7 @@ void TimerThread::run() {
             }
         }
         if (pull_again) {
-            BT_VLOG << "pull again, tasks=" << tasks.size();
+            BT_VMLOG << "pull again, tasks=" << tasks.size();
             continue;
         }
 
@@ -427,7 +427,7 @@ void TimerThread::run() {
         futex_wait_private(&_nsignals, expected_nsignals, ptimeout);
         last_sleep_time = mutil::gettimeofday_us();
     }
-    BT_VLOG << "Ended TimerThread=" << pthread_self();
+    BT_VMLOG << "Ended TimerThread=" << pthread_self();
 }
 
 void TimerThread::stop_and_join() {

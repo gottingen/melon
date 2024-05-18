@@ -41,7 +41,7 @@ namespace melon::raft {
                                          const LocalFileMeta &meta) {
         Map::value_type value(filename, meta);
         std::pair<Map::iterator, bool> ret = _file_map.insert(value);
-        LOG_IF(WARNING, !ret.second)
+        MLOG_IF(WARNING, !ret.second)
         << "file=" << filename << " already exists in snapshot";
         return ret.second ? 0 : -1;
     }
@@ -372,7 +372,7 @@ namespace melon::raft {
                     // if it's not allowed to read partly or it's allowed but
                     // throughput is throttled to 0, try again.
                     if (!read_partly || new_max_count == 0) {
-                        BRAFT_VLOG << "Read file throttled, path: " << path();
+                        BRAFT_VMLOG << "Read file throttled, path: " << path();
                         ret = EAGAIN;
                     }
                 }
@@ -556,7 +556,7 @@ namespace melon::raft {
                 writer = NULL;
                 break;
             }
-            BRAFT_VLOG << "Create writer success, path: " << snapshot_path;
+            BRAFT_VMLOG << "Create writer success, path: " << snapshot_path;
         } while (0);
 
         return writer;

@@ -580,7 +580,7 @@ Acceptor* Server::BuildAcceptor() {
             !is_http_protocol(protocols[i].name) &&
             !whitelist.erase(protocols[i].name)) {
             // the protocol is not allowed to serve.
-            RPC_VLOG << "Skip protocol=" << protocols[i].name;
+            RPC_VMLOG << "Skip protocol=" << protocols[i].name;
             continue;
         }
         // `process_request' is required at server side
@@ -1591,7 +1591,7 @@ int Server::RemoveService(google::protobuf::Service* service) {
     const google::protobuf::ServiceDescriptor* sd = service->GetDescriptor();
     ServiceProperty* ss = _fullname_service_map.seek(sd->full_name());
     if (ss == NULL) {
-        RPC_VLOG << "Fail to find service=" << sd->full_name().c_str();
+        RPC_VMLOG << "Fail to find service=" << sd->full_name().c_str();
         return -1;
     }
     RemoveMethodsOf(service);
@@ -1615,7 +1615,7 @@ int Server::RemoveService(google::protobuf::Service* service) {
 
 void Server::ClearServices() {
     if (status() != READY) {
-        LOG_IF(ERROR, status() != UNINITIALIZED)
+        MLOG_IF(ERROR, status() != UNINITIALIZED)
             << "Can't clear services from Server[" << version()
             << "] which is " << status_str(status());
         return;
@@ -1715,7 +1715,7 @@ void Server::PutPidFileIfNeeded() {
     if (_options.pid_file.empty()) {
         return;
     }
-    RPC_VLOG << "pid_file = " << _options.pid_file;
+    RPC_VMLOG << "pid_file = " << _options.pid_file;
     // Recursively create directory
     for (size_t pos = _options.pid_file.find('/'); pos != std::string::npos;
             pos = _options.pid_file.find('/', pos + 1)) {

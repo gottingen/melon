@@ -70,7 +70,7 @@ namespace melon::raft {
             return -1;
         }
 
-        BRAFT_VLOG << "begin read offset " << offset << " count " << size
+        BRAFT_VMLOG << "begin read offset " << offset << " count " << size
                    << ", buffer_offset " << _buffer_offset
                    << " buffer_size " << _buffer_size;
         if (offset < _buffer_offset || offset > off_t(_buffer_offset + _buffer_size)) {
@@ -118,7 +118,7 @@ namespace melon::raft {
             return -1;
         }
 
-        BRAFT_VLOG << "begin write offset " << offset << ", data_size " << data.size()
+        BRAFT_VMLOG << "begin write offset " << offset << ", data_size " << data.size()
                    << ", buffer_offset " << _buffer_offset
                    << ", buffer_size " << _buffer_size;
         if (offset < _buffer_offset + _buffer_size) {
@@ -132,7 +132,7 @@ namespace melon::raft {
         } else if (offset > _buffer_offset + _buffer_size) {
             // passby hole
             MCHECK(_buffer_size == 0);
-            BRAFT_VLOG << "seek to new offset " << offset << " as there is hole";
+            BRAFT_VMLOG << "seek to new offset " << offset << " as there is hole";
             seek(offset);
         }
         const size_t saved_size = data.size();

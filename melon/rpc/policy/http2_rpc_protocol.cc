@@ -599,7 +599,7 @@ H2ParseResult H2Context::OnHeaders(
         sctx = FindStream(frame_head.stream_id);
         if (sctx == NULL) {
             if (is_client_side()) {
-                RPC_VLOG << "Fail to find stream_id=" << frame_head.stream_id;
+                RPC_VMLOG << "Fail to find stream_id=" << frame_head.stream_id;
                 // Ignore the message without closing the socket.
                 H2StreamContext tmp_sctx(false);
                 tmp_sctx.Init(this, frame_head.stream_id);
@@ -658,7 +658,7 @@ H2ParseResult H2Context::OnContinuation(
     H2StreamContext* sctx = FindStream(frame_head.stream_id);
     if (sctx == NULL) {
         if (is_client_side()) {
-            RPC_VLOG << "Fail to find stream_id=" << frame_head.stream_id;
+            RPC_VMLOG << "Fail to find stream_id=" << frame_head.stream_id;
             // Ignore the message without closing the socket.
             H2StreamContext tmp_sctx(false);
             tmp_sctx.Init(this, frame_head.stream_id);
@@ -784,7 +784,7 @@ H2ParseResult H2Context::OnResetStream(
     const H2Error h2_error = static_cast<H2Error>(LoadUint32(it));
     H2StreamContext* sctx = FindStream(frame_head.stream_id);
     if (sctx == NULL) {
-        RPC_VLOG << "Fail to find stream_id=" << frame_head.stream_id;
+        RPC_VMLOG << "Fail to find stream_id=" << frame_head.stream_id;
         return MakeH2Message(NULL);
     }
     return sctx->OnResetStream(h2_error, frame_head);
@@ -833,7 +833,7 @@ H2ParseResult H2StreamContext::OnEndStream() {
 #endif
     H2StreamContext* sctx = _conn_ctx->RemoveStreamAndDeferWU(stream_id());
     if (sctx == NULL) {
-        RPC_VLOG << "Fail to find stream_id=" << stream_id();
+        RPC_VMLOG << "Fail to find stream_id=" << stream_id();
         return MakeH2Message(NULL);
     }
     MCHECK_EQ(sctx, this);
@@ -1022,7 +1022,7 @@ H2ParseResult H2Context::OnWindowUpdate(
     } else {
         H2StreamContext* sctx = FindStream(frame_head.stream_id);
         if (sctx == NULL) {
-            RPC_VLOG << "Fail to find stream_id=" << frame_head.stream_id;
+            RPC_VMLOG << "Fail to find stream_id=" << frame_head.stream_id;
             return MakeH2Message(NULL);
         }
         if (!AddWindowSize(&sctx->_remote_window_left, inc)) {
@@ -1187,7 +1187,7 @@ H2StreamContext::~H2StreamContext() {
 void H2StreamContext::SetState(H2StreamState state) {
     const H2StreamState old_state = _state;
     _state = state;
-    RPC_VLOG << "stream_id=" << stream_id() << " changed from "
+    RPC_VMLOG << "stream_id=" << stream_id() << " changed from "
              << H2StreamState2Str(old_state) << " to "
              << H2StreamState2Str(state);
 }
@@ -1539,7 +1539,7 @@ H2UnsentRequest::AppendAndDestroySelf(mutil::IOBuf* out, Socket* socket) {
         // The RPC should be failed and retried.
         // Note that the socket should not be SetFailed() which may affect
         // other RPC successfully sent requests and waiting for responses.
-        RPC_VLOG << "Fail to allocate stream_id on " << *socket
+        RPC_VMLOG << "Fail to allocate stream_id on " << *socket
                  << " h2req=" << (StreamUserData*)this;
         return mutil::Status(EH2RUNOUTSTREAMS, "Fail to allocate stream_id");
     }
