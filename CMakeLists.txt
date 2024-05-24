@@ -174,6 +174,7 @@ install(DIRECTORY ${PROJECT_NAME}
         PATTERN "*.inc"
         PATTERN "*.h"
         PATTERN "*.hpp"
+        PATTERN "*.proto"
         )
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/example DESTINATION share/melon)
 
