@@ -38,10 +38,10 @@ namespace melon::naming {
         bool IsValid() const;
     };
 
-// ONE DiscoveryClient corresponds to ONE service instance.
-// If your program has multiple service instances to register,
-// you need multiple DiscoveryClient.
-// Note: Cancel to the server is automatically called in dtor.
+    // ONE DiscoveryClient corresponds to ONE service instance.
+    // If your program has multiple service instances to register,
+    // you need multiple DiscoveryClient.
+    // Note: Cancel to the server is automatically called in dtor.
     class DiscoveryClient {
     public:
         DiscoveryClient();

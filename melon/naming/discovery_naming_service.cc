@@ -338,7 +338,7 @@ namespace melon::naming {
         return 0;
     }
 
-// ========== DiscoveryNamingService =============
+    // ========== DiscoveryNamingService =============
 
     int DiscoveryNamingService::GetServers(const char *service_name,
                                            std::vector<ServerNode> *servers) {

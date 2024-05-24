@@ -59,7 +59,7 @@ namespace melon::naming {
                                             std::vector<ServerNode> *servers) {
         servers->clear();
 
-        if (_channel == NULL) {
+        if (_channel == nullptr) {
             mutil::StringPiece tmpname(service_name_cstr);
             size_t pos = tmpname.find("://");
             mutil::StringPiece proto;
@@ -103,7 +103,7 @@ namespace melon::naming {
 
         Controller cntl;
         cntl.http_request().uri() = _path;
-        _channel->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        _channel->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
             MLOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
                          << cntl.ErrorText();
