@@ -32,19 +32,16 @@ enum PeerStatus {
 };
 
 message SnsPeer {
-  optional int64       servlet_id              = 1;
-  required string      servlet_name            = 2;
-  required string      zone                    = 3;
-  optional int64       zone_id                 = 4;
-  required string      app_name                = 5;
-  optional int64       app_id                  = 6;
-  optional string      color                   = 7;
-  optional PeerStatus  status                  = 8;
-  optional bool        deleted                 = 9;
-  optional uint32      ctime                   = 10;
-  optional uint32      mtime                   = 11;
-  required string      env                     = 12;
-  required string      address                 = 13;
+  required string      servlet_name            = 1;
+  required string      zone                    = 2;
+  required string      app_name                = 3;
+  optional string      color                   = 4;
+  optional PeerStatus  status                  = 5;
+  optional bool        deleted                 = 6;
+  optional uint32      ctime                   = 7;
+  optional uint32      mtime                   = 8;
+  required string      env                     = 9;
+  required string      address                 = 10;
 }
 
 message SnsRequest {

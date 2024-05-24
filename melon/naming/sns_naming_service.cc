@@ -127,7 +127,7 @@ namespace melon::naming {
             MLOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
         }
-        if (response.errcode() != melon::Errno::OK || response.errcode() != melon::Errno::AlreadyExists) {
+        if (response.errcode() != melon::Errno::OK && response.errcode() != melon::Errno::AlreadyExists) {
             MLOG(ERROR) << "Fail to register peer: " << response.errmsg();
             return -1;
         }
