@@ -28,6 +28,7 @@
 #include "melon/naming/remote_file_naming_service.h"
 #include "melon/naming/consul_naming_service.h"
 #include "melon/naming/discovery_naming_service.h"
+#include "melon/naming/sns_naming_service.h"
 #include "melon/naming/nacos_naming_service.h"
 
 // Load Balancers
@@ -116,6 +117,7 @@ namespace melon {
         melon::naming::RemoteFileNamingService rfns;
         melon::naming::ConsulNamingService cns;
         melon::naming::DiscoveryNamingService dcns;
+        melon::naming::SnsNamingService sns;
         melon::naming::NacosNamingService nns;
 
         melon::lb::RoundRobinLoadBalancer rr_lb;
@@ -342,6 +344,7 @@ namespace melon {
         NamingServiceExtension()->RegisterOrDie("remotefile", &g_ext->rfns);
         NamingServiceExtension()->RegisterOrDie("consul", &g_ext->cns);
         NamingServiceExtension()->RegisterOrDie("discovery", &g_ext->dcns);
+        NamingServiceExtension()->RegisterOrDie("sns", &g_ext->sns);
         NamingServiceExtension()->RegisterOrDie("nacos", &g_ext->nns);
 
         // Load Balancers

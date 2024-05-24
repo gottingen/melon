@@ -17,9 +17,29 @@
 syntax="proto2";
 package melon;
 option java_package = "com.melon";
-option java_outer_classname="BaiduRpcErrno";
 
 enum Errno {
+    OK = 0;
+    Cancelled = 1;
+    Unknown = 2;
+    InvalidArgument = 3;
+    DeadlineExceeded = 4;
+    NotFound = 5;
+    AlreadyExists = 6;
+    PermissionDenied = 7;
+    ResourceExhausted = 8;
+    FailedPrecondition = 9;
+    Aborted = 10;
+    OutOfRange = 11;
+    Unimplemented = 13;
+    Internal = 14;
+    Unavailable = 15;
+    DataLoss = 16;
+    Unauthenticated = 17;
+    TryAgain = 18;
+    AlreadyStopped = 19;
+    ResourceBusy = 20;
+    IOError = 21;
     // Errno caused by client
     ENOSERVICE              = 1001;  // Service not found
     ENOMETHOD               = 1002;  // Method not found

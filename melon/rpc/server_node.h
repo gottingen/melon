@@ -24,7 +24,7 @@ namespace melon {
 
 // Representing a server inside a NamingService.
 struct ServerNode {
-    ServerNode() {}
+    ServerNode()  = default;
     
     explicit ServerNode(const mutil::EndPoint& pt) : addr(pt) {}
 

@@ -78,6 +78,7 @@ set(PROTO_FILES
         melon/proto/idl_options.proto
         melon/proto/rpc/rtmp.proto
         melon/proto/rpc/rpc_dump.proto
+        melon/proto/rpc/sns.proto
         melon/proto/rpc/get_favicon.proto
         melon/proto/rpc/span.proto
         melon/proto/rpc/builtin_service.proto
