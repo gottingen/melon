@@ -16,7 +16,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/rpc/reloadable_flags.h>
-#include "melon/raft/lease.h"
+#include <melon/raft/lease.h>
 
 namespace melon::raft {
 

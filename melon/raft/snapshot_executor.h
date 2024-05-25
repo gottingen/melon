@@ -13,19 +13,17 @@
 // limitations under the License.
 //
 
-
-#ifndef  MELON_RAFT_SNAPSHOT_EXECUTOR_H_
-#define  MELON_RAFT_SNAPSHOT_EXECUTOR_H_
+#pragma once
 
 #include <melon/rpc/controller.h>
 
-#include "melon/raft/raft.h"
-#include "melon/raft/util.h"
-#include "melon/raft/snapshot.h"
-#include "melon/raft/storage.h"
-#include "melon/proto/raft/raft.pb.h"
-#include "melon/raft/fsm_caller.h"
-#include "melon/raft/log_manager.h"
+#include <melon/raft/raft.h>
+#include <melon/raft/util.h>
+#include <melon/raft/snapshot.h>
+#include <melon/raft/storage.h>
+#include <melon/proto/raft/raft.pb.h>
+#include <melon/raft/fsm_caller.h>
+#include <melon/raft/log_manager.h>
 
 namespace melon::raft {
     class NodeImpl;
@@ -182,5 +180,3 @@ namespace melon::raft {
               usercode_in_pthread(false) {}
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_SNAPSHOT_EXECUTOR_H_

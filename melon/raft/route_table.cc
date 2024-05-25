@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/raft/route_table.h"
+#include <melon/raft/route_table.h>
 
 #include <gflags/gflags.h>
 #include <melon/utility/memory/singleton.h>
@@ -21,7 +21,7 @@
 #include <melon/utility/containers/flat_map.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
-#include "melon/proto/raft/cli.pb.h"
+#include <melon/proto/raft/cli.pb.h>
 
 namespace melon::raft {
     namespace rtb {

@@ -13,9 +13,7 @@
 // limitations under the License.
 //
 
-
-#ifndef MELON_RAFT_RAFT_CONFIGURATION_H_
-#define MELON_RAFT_RAFT_CONFIGURATION_H_
+#pragma once
 
 #include <string>
 #include <ostream>
@@ -29,7 +27,7 @@
 namespace melon::raft {
 
     typedef std::string GroupId;
-// GroupId with version, format: {group_id}_{index}
+    // GroupId with version, format: {group_id}_{index}
     typedef std::string VersionedGroupId;
 
     enum Role {
@@ -305,5 +303,3 @@ namespace melon::raft {
     std::ostream &operator<<(std::ostream &os, const Configuration &a);
 
 }  //  namespace melon::raft
-
-#endif // MELON_RAFT_RAFT_CONFIGURATION_H_

@@ -13,12 +13,10 @@
 // limitations under the License.
 //
 
+#pragma once
 
-#ifndef  MELON_RAFT_CONFIGURATION_MANAGER_H_
-#define  MELON_RAFT_CONFIGURATION_MANAGER_H_
-
-#include "melon/raft/configuration.h"         // Configuration
-#include "melon/raft/log_entry.h"             // LogId
+#include <melon/raft/configuration.h>         // Configuration
+#include <melon/raft/log_entry.h>             // LogId
 
 namespace melon::raft {
 
@@ -27,9 +25,9 @@ namespace melon::raft {
         Configuration conf;
         Configuration old_conf;
 
-        ConfigurationEntry() {}
+        ConfigurationEntry() = default;
 
-        ConfigurationEntry(const LogEntry &entry) {
+        explicit ConfigurationEntry(const LogEntry &entry) {
             id = entry.id;
             conf = *(entry.peers);
             if (entry.old_peers) {
@@ -53,9 +51,9 @@ namespace melon::raft {
 // Manager the history of configuration changing
     class ConfigurationManager {
     public:
-        ConfigurationManager() {}
+        ConfigurationManager()  = default;
 
-        ~ConfigurationManager() {}
+        ~ConfigurationManager()  = default;
 
         // add new configuration at index
         int add(const ConfigurationEntry &entry);
@@ -79,5 +77,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_CONFIGURATION_MANAGER_H_

@@ -13,16 +13,15 @@
 // limitations under the License.
 //
 
-#ifndef  MELON_RAFT_BALLOT_BOX_H_
-#define  MELON_RAFT_BALLOT_BOX_H_
+#pragma once
 
 #include <stdint.h>                             // int64_t
 #include <set>                                  // std::set
 #include <deque>
 #include <melon/utility/atomicops.h>                     // mutil::atomic
-#include "melon/raft/raft.h"
-#include "melon/raft/util.h"
-#include "melon/raft/ballot.h"
+#include <melon/raft/raft.h>
+#include <melon/raft/util.h>
+#include <melon/raft/ballot.h>
 
 namespace melon::raft {
 
@@ -101,5 +100,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_BALLOT_BOX_H_

@@ -13,26 +13,24 @@
 // limitations under the License.
 //
 
-#ifndef MELON_RAFT_RAFT_NODE_H_
-#define MELON_RAFT_RAFT_NODE_H_
-
+#pragma once
 #include <set>
 #include <melon/utility/atomic_ref_count.h>
 #include <melon/utility/memory/ref_counted.h>
 #include <melon/utility/iobuf.h>
 #include <melon/fiber/execution_queue.h>
 #include <melon/rpc/server.h>
-#include "melon/raft/raft.h"
-#include "melon/raft/log_manager.h"
-#include "melon/raft/ballot_box.h"
-#include "melon/raft/storage.h"
-#include "melon/raft/raft_service.h"
-#include "melon/raft/fsm_caller.h"
-#include "melon/raft/replicator.h"
-#include "melon/raft/util.h"
-#include "melon/raft/closure_queue.h"
-#include "melon/raft/configuration_manager.h"
-#include "melon/raft/repeated_timer_task.h"
+#include <melon/raft/raft.h>
+#include <melon/raft/log_manager.h>
+#include <melon/raft/ballot_box.h>
+#include <melon/raft/storage.h>
+#include <melon/raft/raft_service.h>
+#include <melon/raft/fsm_caller.h>
+#include <melon/raft/replicator.h>
+#include <melon/raft/util.h>
+#include <melon/raft/closure_queue.h>
+#include <melon/raft/configuration_manager.h>
+#include <melon/raft/repeated_timer_task.h>
 
 namespace melon::raft {
 
@@ -637,6 +635,4 @@ namespace melon::raft {
         FollowerLease _follower_lease;
     };
 
-}
-
-#endif  // MELON_RAFT_RAFT_NODE_H_
+}  // namespace melon::raft

@@ -14,9 +14,9 @@
 //
 
 #include <melon/utility/time.h>
-#include "melon/raft/log_entry.h"
-#include "melon/raft/memory_log.h"
-#include "melon/raft/memory_log.h"
+#include <melon/raft/log_entry.h>
+#include <melon/raft/memory_log.h>
+#include <melon/raft/memory_log.h>
 
 namespace melon::raft {
 

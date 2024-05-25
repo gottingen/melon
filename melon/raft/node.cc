@@ -19,18 +19,18 @@
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
 
-#include "melon/proto/raft/errno.pb.h"
-#include "melon/raft/util.h"
-#include "melon/raft/raft.h"
-#include "melon/raft/node.h"
-#include "melon/raft/log.h"
-#include "melon/raft/raft_meta.h"
-#include "melon/raft/snapshot.h"
-#include "melon/raft/file_service.h"
-#include "melon/raft/builtin_service_impl.h"
-#include "melon/raft/node_manager.h"
-#include "melon/raft/snapshot_executor.h"
-#include "melon/proto/raft/errno.pb.h"
+#include <melon/proto/raft/errno.pb.h>
+#include <melon/raft/util.h>
+#include <melon/raft/raft.h>
+#include <melon/raft/node.h>
+#include <melon/raft/log.h>
+#include <melon/raft/raft_meta.h>
+#include <melon/raft/snapshot.h>
+#include <melon/raft/file_service.h>
+#include <melon/raft/builtin_service_impl.h>
+#include <melon/raft/node_manager.h>
+#include <melon/raft/snapshot_executor.h>
+#include <melon/proto/raft/errno.pb.h>
 
 namespace melon::raft {
 
@@ -62,8 +62,6 @@ namespace melon::raft {
     DEFINE_int32(raft_rpc_channel_connect_timeout_ms, 200,
                  "Timeout in milliseconds for establishing connections of RPCs");
     MELON_VALIDATE_GFLAG(raft_rpc_channel_connect_timeout_ms, melon::PositiveInteger);
-
-    DECLARE_bool(raft_enable_leader_lease);
 
     DEFINE_bool(raft_enable_witness_to_leader, false,
                 "enable witness temporarily to become leader when leader down accidently");

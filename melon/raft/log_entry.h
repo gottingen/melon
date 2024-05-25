@@ -14,15 +14,14 @@
 //
 
 
-#ifndef  MELON_RAFT_LOG_ENTRY_H_
-#define  MELON_RAFT_LOG_ENTRY_H_
+#pragma once
 
 #include <melon/utility/iobuf.h>                         // mutil::IOBuf
 #include <melon/utility/memory/ref_counted.h>            // mutil::RefCountedThreadSafe
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>  // fmix64
-#include "melon/raft/configuration.h"
-#include "melon/proto/raft/raft.pb.h"
-#include "melon/raft/util.h"
+#include <melon/raft/configuration.h>
+#include <melon/proto/raft/raft.pb.h>
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -99,5 +98,3 @@ mutil::Status parse_configuration_meta(const mutil::IOBuf& data, LogEntry* entry
 mutil::Status serialize_configuration_meta(const LogEntry* entry, mutil::IOBuf& data);
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_LOG_ENTRY_H_

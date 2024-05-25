@@ -12,16 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
-
-#ifndef  MELON_RAFT_FILE_READER_H_
-#define  MELON_RAFT_FILE_READER_H_
-
+#pragma once
 #include <set>                              // std::set
 #include <melon/utility/memory/ref_counted.h>        // mutil::RefCountedThreadsafe
 #include <melon/utility/iobuf.h>                     // mutil::IOBuf
-#include "melon/raft/macros.h"
-#include "melon/raft/file_system_adaptor.h"
+#include <melon/raft/macros.h>
+#include <melon/raft/file_system_adaptor.h>
 
 namespace melon::raft {
 
@@ -105,5 +101,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif  //BRAFT_FILE_READER_H

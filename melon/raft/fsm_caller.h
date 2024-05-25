@@ -13,18 +13,16 @@
 // limitations under the License.
 //
 
-
-#ifndef  MELON_RAFT_FSM_CALLER_H_
-#define  MELON_RAFT_FSM_CALLER_H_
+#pragma once
 
 #include <melon/utility/macros.h>                        // MELON_CACHELINE_ALIGNMENT
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/execution_queue.h>
-#include "melon/raft/ballot_box.h"
-#include "melon/raft/closure_queue.h"
-#include "melon/raft/macros.h"
-#include "melon/raft/log_entry.h"
-#include "melon/raft/lease.h"
+#include <melon/raft/ballot_box.h>
+#include <melon/raft/closure_queue.h>
+#include <melon/raft/macros.h>
+#include <melon/raft/log_entry.h>
+#include <melon/raft/lease.h>
 
 namespace melon::raft {
 
@@ -237,5 +235,3 @@ namespace melon::raft {
     };
 
 };
-
-#endif  // MELON_RAFT_FSM_CALLER_H_

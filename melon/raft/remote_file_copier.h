@@ -18,13 +18,11 @@
 
 #include <melon/rpc/channel.h>
 #include <melon/fiber/countdown_event.h>
-#include "melon/proto/raft/file_service.pb.h"
-#include "melon/raft/util.h"
-#include "melon/raft/snapshot_throttle.h"
+#include <melon/proto/raft/file_service.pb.h>
+#include <melon/raft/util.h>
+#include <melon/raft/snapshot_throttle.h>
 
 namespace melon::raft {
-
-    DECLARE_bool(raft_enable_throttle_when_install_snapshot);
 
     struct CopyOptions {
         CopyOptions();

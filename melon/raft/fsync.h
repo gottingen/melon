@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
-#ifndef  MELON_RAFT_FSYNC_H_
-#define  MELON_RAFT_FSYNC_H_
+#pragma once
 
 #include <unistd.h>
 #include <fcntl.h>
-#include <gflags/gflags.h>
-#include "melon/raft/storage.h"
+#include <melon/raft/storage.h>
+#include <melon/raft/config.h>
 
 namespace melon::raft {
-
-    DECLARE_bool(raft_use_fsync_rather_than_fdatasync);
 
     inline int raft_fsync(int fd) {
         if (FLAGS_raft_use_fsync_rather_than_fdatasync) {
@@ -43,4 +39,3 @@ namespace melon::raft {
 
 }  //  namespace melon::raft
 
-#endif  // MELON_RAFT_FSYNC_H_

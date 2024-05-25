@@ -43,7 +43,7 @@ namespace melon {
         virtual void ResetServers(const std::vector<ServerNode> &servers) = 0;
     };
 
-// Mapping a name to ServerNodes.
+    // Mapping a name to ServerNodes.
     class NamingService : public Describable, public Destroyable {
     public:
         // Implement this method to get servers associated with `service_name'

@@ -14,11 +14,10 @@
 //
 
 
-#ifndef  BRAFT_ROUTE_TABLE_H
-#define  BRAFT_ROUTE_TABLE_H
+#pragma once
 
-#include "melon/raft/configuration.h"                 // Configuration
-#include "melon/raft/raft.h"
+#include <melon/raft/configuration.h>                 // Configuration
+#include <melon/raft/raft.h>
 
 // Maintain routes to raft groups
 
@@ -50,5 +49,3 @@ namespace melon::raft {
 
     }  // namespace rtb
 }  // namespace melon::raft
-
-#endif  //BRAFT_ROUTE_TABLE_H

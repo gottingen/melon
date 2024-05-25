@@ -13,12 +13,10 @@
 // limitations under the License.
 //
 
-
-#ifndef  MELON_RAFT_SNAPSHOT_THROTTLE_H_
-#define  MELON_RAFT_SNAPSHOT_THROTTLE_H_
+#pragma once
 
 #include <melon/utility/memory/ref_counted.h>                // mutil::RefCountedThreadSafe
-#include "melon/raft/util.h"
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -97,5 +95,3 @@ namespace melon::raft {
     }
 
 } //  namespace melon::raft
-
-#endif  // MELON_RAFT_SNAPSHOT_THROTTLE_H_

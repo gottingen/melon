@@ -13,12 +13,9 @@
 // limitations under the License.
 //
 
+#pragma once
 
-
-#ifndef  MELON_RAFT_CLI_H_
-#define  MELON_RAFT_CLI_H_
-
-#include "melon/raft/raft.h"
+#include <melon/raft/raft.h>
 
 namespace melon::raft {
     namespace cli {
@@ -60,5 +57,3 @@ namespace melon::raft {
 
     }  // namespace cli
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_CLI_H_

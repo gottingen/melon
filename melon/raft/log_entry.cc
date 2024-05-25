@@ -13,8 +13,8 @@
 // limitations under the License.
 //
 
-#include "melon/raft/log_entry.h"
-#include "melon/proto/raft/local_storage.pb.h"
+#include <melon/raft/log_entry.h>
+#include <melon/proto/raft/local_storage.pb.h>
 
 namespace melon::raft {
 

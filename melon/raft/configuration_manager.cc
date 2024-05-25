@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/raft/configuration_manager.h"
+#include <melon/raft/configuration_manager.h>
 
 namespace melon::raft {
 

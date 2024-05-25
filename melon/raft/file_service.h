@@ -14,13 +14,12 @@
 //
 
 
-#ifndef  MELON_RAFT_FILE_SERVICE_H_
-#define  MELON_RAFT_FILE_SERVICE_H_
+#pragma once
 
 #include <melon/utility/memory/singleton.h>
-#include "melon/proto/raft/file_service.pb.h"
-#include "melon/raft/file_reader.h"
-#include "melon/raft/util.h"
+#include <melon/proto/raft/file_service.pb.h>
+#include <melon/raft/file_reader.h>
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -65,5 +64,3 @@ namespace melon::raft {
     }
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_FILE_SERVICE_H_

@@ -53,7 +53,7 @@ namespace melon {
         std::shared_ptr<SocketSSLContext> ssl_ctx;
     };
 
-// A dedicated thread to map a name to ServerIds
+    // A dedicated thread to map a name to ServerIds
     class NamingServiceThread : public SharedObject, public Describable {
         struct ServerNodeWithId {
             ServerNode node;

@@ -14,9 +14,10 @@
 #include <melon/utility/files/dir_reader_posix.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/logging.h>
-#include "melon/raft/util.h"
-#include "melon/raft/log.h"
-#include "melon/raft/storage.h"
+#include <melon/raft/util.h>
+#include <melon/raft/log.h>
+#include <melon/raft/storage.h>
+#include <melon/raft/config.h>
 
 namespace melon::raft {
 DECLARE_bool(raft_trace_append_entry_latency);

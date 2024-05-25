@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/raft/ballot.h"
+#include <melon/raft/ballot.h>
 
 namespace melon::raft {
 

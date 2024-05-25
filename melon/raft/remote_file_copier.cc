@@ -13,8 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/raft/remote_file_copier.h"
-
+#include <melon/raft/remote_file_copier.h>
 #include <gflags/gflags.h>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/utility/strings/string_number_conversions.h>
@@ -22,8 +21,9 @@
 #include <melon/utility/file_util.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/controller.h>
-#include "melon/raft/util.h"
-#include "melon/raft/snapshot.h"
+#include <melon/raft/util.h>
+#include <melon/raft/snapshot.h>
+#include <melon/raft/config.h>
 
 namespace melon::raft {
 
@@ -38,8 +38,6 @@ namespace melon::raft {
                 "enable throttle when install snapshot, for both leader and follower");
     MELON_VALIDATE_GFLAG(raft_enable_throttle_when_install_snapshot,
                         ::melon::PassValidate);
-
-    DECLARE_int32(raft_rpc_channel_connect_timeout_ms);
 
     RemoteFileCopier::RemoteFileCopier()
             : _reader_id(0), _throttle(NULL) {}

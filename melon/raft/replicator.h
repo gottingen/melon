@@ -13,18 +13,16 @@
 // limitations under the License.
 //
 
-
-#ifndef  MELON_RAFT_REPLICATOR_H_
-#define  MELON_RAFT_REPLICATOR_H_
+#pragma once
 
 #include <melon/fiber/fiber.h>                            // fiber_session
 #include <melon/rpc/channel.h>                  // melon::Channel
 
-#include "melon/raft/storage.h"                       // SnapshotStorage
-#include "melon/raft/raft.h"                          // Closure
-#include "melon/raft/configuration.h"                 // Configuration
-#include "melon/proto/raft/raft.pb.h"                       // AppendEntriesRequest
-#include "melon/raft/log_manager.h"                   // LogManager
+#include <melon/raft/storage.h>                       // SnapshotStorage
+#include <melon/raft/raft.h>                          // Closure
+#include <melon/raft/configuration.h>                 // Configuration
+#include <melon/proto/raft/raft.pb.h>                       // AppendEntriesRequest
+#include <melon/raft/log_manager.h>                   // LogManager
 
 namespace melon::raft {
 
@@ -415,5 +413,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_REPLICATOR_H_

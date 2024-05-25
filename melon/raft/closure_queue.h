@@ -13,11 +13,9 @@
 // limitations under the License.
 //
 
+#pragma once
 
-#ifndef  MELON_RAFT_CLOSURE_QUEUE_H_
-#define  MELON_RAFT_CLOSURE_QUEUE_H_
-
-#include "melon/raft/util.h"
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -56,5 +54,3 @@ namespace melon::raft {
     };
 
 } //  namespace melon::raft
-
-#endif  // MELON_RAFT_CLOSURE_QUEUE_H_

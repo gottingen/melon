@@ -14,10 +14,9 @@
 //
 
 
-#ifndef MELON_RAFT_LEASE_H_
-#define MELON_RAFT_LEASE_H_
+#pragma once
 
-#include "melon/raft/util.h"
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -95,5 +94,3 @@ namespace melon::raft {
     };
 
 } // namespace melon::raft
-
-#endif // MELON_RAFT_LEASE_H_

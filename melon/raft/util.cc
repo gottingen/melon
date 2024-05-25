@@ -13,13 +13,13 @@
 // limitations under the License.
 //
 
-#include "melon/raft/util.h"
+#include <melon/raft/util.h>
 #include <gflags/gflags.h>
 #include <stdlib.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/raw_pack.h>                     // mutil::RawPacker
 #include <melon/utility/file_util.h>
-#include "melon/raft/raft.h"
+#include <melon/raft/raft.h>
 
 namespace melon::var {
 

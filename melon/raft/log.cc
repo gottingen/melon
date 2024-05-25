@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/raft/log.h"
+#include <melon/raft/log.h>
 
 #include <gflags/gflags.h>
 #include <melon/utility/files/dir_reader_posix.h>            // mutil::DirReaderPosix
@@ -24,11 +24,12 @@
 #include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
 #include <melon/rpc/reloadable_flags.h>             //
 
-#include "melon/proto/raft/local_storage.pb.h"
-#include "melon/raft/log_entry.h"
-#include "melon/raft/protobuf_file.h"
-#include "melon/raft/util.h"
-#include "melon/raft/fsync.h"
+#include <melon/proto/raft/local_storage.pb.h>
+#include <melon/raft/log_entry.h>
+#include <melon/raft/protobuf_file.h>
+#include <melon/raft/util.h>
+#include <melon/raft/fsync.h>
+#include <melon/raft/config.h>
 
 //#define BRAFT_SEGMENT_OPEN_PATTERN "log_inprogress_%020ld"
 //#define BRAFT_SEGMENT_CLOSED_PATTERN "log_%020ld_%020ld"
@@ -41,7 +42,6 @@ namespace melon::raft {
     using ::mutil::RawPacker;
     using ::mutil::RawUnpacker;
 
-    DECLARE_bool(raft_trace_append_entry_latency);
     DEFINE_int32(raft_max_segment_size, 8 * 1024 * 1024 /*8M*/,
                  "Max size of one segment file");
     MELON_VALIDATE_GFLAG(raft_max_segment_size, melon::PositiveInteger);

@@ -24,8 +24,8 @@
 #include <melon/utility/class_name.h>
 #include <melon/rpc/extension.h>
 #include <melon/utility/strings/string_piece.h>
-#include "melon/raft/configuration.h"
-#include "melon/raft/configuration_manager.h"
+#include <melon/raft/configuration.h>
+#include <melon/raft/configuration_manager.h>
 
 namespace google {
     namespace protobuf {
@@ -34,12 +34,6 @@ namespace google {
 }  // namespace google
 
 namespace melon::raft {
-
-    DECLARE_bool(raft_sync);
-    DECLARE_bool(raft_sync_meta);
-    DECLARE_int32(raft_sync_per_bytes);
-    DECLARE_int32(raft_sync_policy);
-    DECLARE_bool(raft_create_parent_directories);
 
     struct LogEntry;
 
@@ -84,7 +78,7 @@ namespace melon::raft {
             }
         }
         MLOG_IF(WARNING, removed_spaces) << "Removed " << removed_spaces
-                                        << " spaces from `" << *uri << '\'';
+                                         << " spaces from `" << *uri << '\'';
         return protocol;
     }
 
@@ -103,7 +97,7 @@ namespace melon::raft {
                                                mutil::FilePath(tmp_path), &e);
             if (!rc) {
                 MLOG(ERROR) << "Fail to rename `" << target_path.value()
-                           << " to `" << tmp_path.value() << "' : " << e;
+                            << " to `" << tmp_path.value() << "' : " << e;
                 return -1;
             }
             if (!mutil::DeleteFile(tmp_path, true)) {
@@ -112,7 +106,7 @@ namespace melon::raft {
             }
         } else {
             MLOG(INFO) << "Target path not exist, so no need to gc, path: "
-                      << target_path.value();
+                       << target_path.value();
         }
         return 0;
     }
@@ -163,8 +157,8 @@ namespace melon::raft {
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri) const {
             MCHECK(false) << mutil::class_name_str(*this)
-                         << " didn't implement gc_instance interface while deleting"
-                            " raft log in " << uri;
+                          << " didn't implement gc_instance interface while deleting"
+                             " raft log in " << uri;
             mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
@@ -200,8 +194,8 @@ namespace melon::raft {
         virtual mutil::Status gc_instance(const std::string &uri,
                                           const VersionedGroupId &vgid) const {
             MCHECK(false) << mutil::class_name_str(*this)
-                         << " didn't implement gc_instance interface while deleting"
-                            " raft stable meta in " << uri;
+                          << " didn't implement gc_instance interface while deleting"
+                             " raft stable meta in " << uri;
             mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
@@ -306,21 +300,21 @@ namespace melon::raft {
 
         virtual int set_filter_before_copy_remote() {
             MCHECK(false) << mutil::class_name_str(*this)
-                         << " doesn't support filter before copy remote";
+                          << " doesn't support filter before copy remote";
             return -1;
         }
 
         virtual int set_file_system_adaptor(FileSystemAdaptor *fs) {
             (void) fs;
             MCHECK(false) << mutil::class_name_str(*this)
-                         << " doesn't support file system adaptor";
+                          << " doesn't support file system adaptor";
             return -1;
         }
 
         virtual int set_snapshot_throttle(SnapshotThrottle *st) {
             (void) st;
             MCHECK(false) << mutil::class_name_str(*this)
-                         << " doesn't support snapshot throttle";
+                          << " doesn't support snapshot throttle";
             return -1;
         }
 
@@ -357,8 +351,8 @@ namespace melon::raft {
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri) const {
             MCHECK(false) << mutil::class_name_str(*this)
-                         << " didn't implement gc_instance interface while deleting"
-                            " raft snapshot in " << uri;
+                          << " didn't implement gc_instance interface while deleting"
+                             " raft snapshot in " << uri;
             mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;

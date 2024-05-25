@@ -13,14 +13,11 @@
 // limitations under the License.
 //
 
-
-#ifndef  MELON_RAFT_NODE_MANAGER_H_
-#define  MELON_RAFT_NODE_MANAGER_H_
-
+#pragma once
 #include <melon/utility/memory/singleton.h>
 #include <melon/utility/containers/doubly_buffered_data.h>
-#include "melon/raft/raft.h"
-#include "melon/raft/util.h"
+#include <melon/raft/raft.h>
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -90,4 +87,3 @@ namespace melon::raft {
 
 }   //  namespace melon::raft
 
-#endif  // MELON_RAFT_NODE_MANAGER_H_

@@ -13,11 +13,9 @@
 // limitations under the License.
 //
 
+#pragma once
 
-#ifndef  MELON_RAFT_BALLOT_H_
-#define  MELON_RAFT_BALLOT_H_
-
-#include "melon/raft/configuration.h"
+#include <melon/raft/configuration.h>
 
 namespace melon::raft {
 
@@ -83,5 +81,3 @@ namespace melon::raft {
     };
 
 };
-
-#endif  // MELON_RAFT_BALLOT_H_

@@ -19,11 +19,12 @@
 #include <melon/utility/time.h>                          // mutil::gettimeofday_us
 #include <melon/rpc/controller.h>                     // melon::Controller
 #include <melon/rpc/reloadable_flags.h>               // MELON_VALIDATE_GFLAG
-#include "melon/raft/replicator.h"
-#include "melon/raft/node.h"                          // NodeImpl
-#include "melon/raft/ballot_box.h"                    // BallotBox
-#include "melon/raft/log_entry.h"                     // LogEntry
-#include "melon/raft/snapshot_throttle.h"             // SnapshotThrottle
+#include <melon/raft/replicator.h>
+#include <melon/raft/node.h>                          // NodeImpl
+#include <melon/raft/ballot_box.h>                    // BallotBox
+#include <melon/raft/log_entry.h>                     // LogEntry
+#include <melon/raft/snapshot_throttle.h>             // SnapshotThrottle
+#include <melon/raft/config.h>
 
 namespace melon::raft {
 
@@ -44,12 +45,6 @@ namespace melon::raft {
                  "Interval of retry to append entries or install snapshot");
     MELON_VALIDATE_GFLAG(raft_retry_replicate_interval_ms,
                         melon::PositiveInteger);
-
-    DECLARE_bool(raft_enable_witness_to_leader);
-    DECLARE_int64(raft_append_entry_high_lat_us);
-    DECLARE_bool(raft_trace_append_entry_latency);
-
-    DECLARE_int32(raft_rpc_channel_connect_timeout_ms);
 
     static melon::var::LatencyRecorder g_send_entries_latency("raft_send_entries");
     static melon::var::LatencyRecorder g_normalized_send_entries_latency(

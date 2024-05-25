@@ -14,17 +14,16 @@
 //
 
 
-#ifndef MELON_RAFT_MEMORY_LOG_H_
-#define MELON_RAFT_MEMORY_LOG_H_
+#pragma once
 
 #include <vector>
 #include <deque>
 #include <melon/utility/atomicops.h>
 #include <melon/utility/iobuf.h>
 #include <melon/utility/logging.h>
-#include "melon/raft/log_entry.h"
-#include "melon/raft/storage.h"
-#include "melon/raft/util.h"
+#include <melon/raft/log_entry.h>
+#include <melon/raft/storage.h>
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -96,4 +95,3 @@ namespace melon::raft {
 
 } //  namespace melon::raft
 
-#endif // MELON_RAFT_MEMORY_LOG_H_

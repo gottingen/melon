@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-#include "melon/raft/configuration.h"
+#include <melon/raft/configuration.h>
 #include <melon/utility/logging.h>
 #include <melon/utility/string_splitter.h>
 

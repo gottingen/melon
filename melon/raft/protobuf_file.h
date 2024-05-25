@@ -19,7 +19,7 @@
 
 #include <string>
 #include <google/protobuf/message.h>
-#include "melon/raft/file_system_adaptor.h"
+#include <melon/raft/file_system_adaptor.h>
 
 namespace melon::raft {
 

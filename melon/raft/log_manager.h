@@ -14,19 +14,18 @@
 //
 
 
-#ifndef  MELON_RAFT_LOG_MANAGER_H_
-#define  MELON_RAFT_LOG_MANAGER_H_
+#pragma once
 
 #include <melon/utility/macros.h>                        // MELON_CACHELINE_ALIGNMENT
 #include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
 #include <deque>                                // std::deque
 #include <melon/fiber/execution_queue.h>            // fiber::ExecutionQueueId
 
-#include "melon/raft/raft.h"                          // Closure
-#include "melon/raft/util.h"                          // raft_mutex_t
-#include "melon/raft/log_entry.h"                     // LogEntry
-#include "melon/raft/configuration_manager.h"         // ConfigurationManager
-#include "melon/raft/storage.h"                       // Storage
+#include <melon/raft/raft.h>                          // Closure
+#include <melon/raft/util.h>                          // raft_mutex_t
+#include <melon/raft/log_entry.h>                     // LogEntry
+#include <melon/raft/configuration_manager.h>         // ConfigurationManager
+#include <melon/raft/storage.h>                       // Storage
 
 namespace melon::raft {
 
@@ -240,5 +239,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_LOG_MANAGER_H_

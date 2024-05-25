@@ -13,11 +13,9 @@
 // limitations under the License.
 //
 
+#pragma once
 
-#ifndef MELON_RAFT_RAFT_SERVICE_H_
-#define MELON_RAFT_RAFT_SERVICE_H_
-
-#include "melon/proto/raft/raft.pb.h"
+#include <melon/proto/raft/raft.pb.h>
 
 namespace melon::raft {
 
@@ -57,6 +55,4 @@ namespace melon::raft {
         mutil::EndPoint _addr;
     };
 
-}
-
-#endif // MELON_RAFT_RAFT_SERVICE_H_
+}  //  namespace melon::raft

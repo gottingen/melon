@@ -13,12 +13,10 @@
 // limitations under the License.
 //
 
-
-#ifndef  MELON_RAFT_REPEATED_TIMER_TASK_H_
-#define  MELON_RAFT_REPEATED_TIMER_TASK_H_
+#pragma once
 
 #include <melon/fiber/unstable.h>
-#include "melon/raft/macros.h"
+#include <melon/raft/macros.h>
 
 namespace melon::raft {
 
@@ -88,5 +86,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif  // MELON_RAFT_REPEATED_TIMER_TASK_H_

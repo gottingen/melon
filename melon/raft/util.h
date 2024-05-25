@@ -13,8 +13,7 @@
 // limitations under the License.
 //
 
-#ifndef MELON_RAFT_RAFT_UTIL_H_
-#define MELON_RAFT_RAFT_UTIL_H_
+#pragma once
 
 #include <zlib.h>
 #include <net/if.h>
@@ -39,8 +38,8 @@
 #include <melon/fiber/unstable.h>
 #include <melon/fiber/countdown_event.h>
 #include <melon/var/var.h>
-#include "melon/raft/macros.h"
-#include "melon/raft/raft.h"
+#include <melon/raft/macros.h>
+#include <melon/raft/raft.h>
 
 namespace melon::var {
     namespace detail {
@@ -324,5 +323,3 @@ namespace melon::raft {
     };
 
 }  //  namespace melon::raft
-
-#endif // MELON_RAFT_RAFT_UTIL_H_

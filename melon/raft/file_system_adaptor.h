@@ -14,9 +14,7 @@
 //
 
 
-#ifndef  MELON_RAFT_FILE_SYSTEM_ADAPTOR_H_
-#define  MELON_RAFT_FILE_SYSTEM_ADAPTOR_H_
-
+#pragma once
 #include <fcntl.h>
 #include <melon/utility/file_util.h>
 #include <melon/utility/files/file.h>                        // mutil::File
@@ -24,8 +22,8 @@
 #include <melon/utility/memory/ref_counted.h>                // mutil::RefCountedThreadSafe
 #include <melon/utility/memory/singleton.h>                  // Singleton
 #include <google/protobuf/message.h>                // google::protobuf::Message
-#include "melon/raft/util.h"
-#include "melon/raft/fsync.h"
+#include <melon/raft/util.h>
+#include <melon/raft/fsync.h>
 
 #ifndef O_CLOEXEC
 #define O_CLOEXEC   02000000    /*  define close_on_exec if not defined in fcntl.h*/  
@@ -330,6 +328,4 @@ namespace melon::raft {
                               mutil::File::Error *error = NULL);
 
 } //  namespace melon::raft
-
-#endif  // #define  MELON_RAFT_FILE_SYSTEM_ADAPTOR_H_
 

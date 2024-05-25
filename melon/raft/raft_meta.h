@@ -13,15 +13,13 @@
 // limitations under the License.
 //
 
-
-#ifndef MELON_RAFT_RAFT_META_H_
-#define MELON_RAFT_RAFT_META_H_
+#pragma once
 
 #include <melon/utility/memory/ref_counted.h>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 #include <melon/fiber/execution_queue.h>
-#include "melon/raft/storage.h"
+#include <melon/raft/storage.h>
 
 namespace melon::raft {
 
@@ -202,6 +200,4 @@ namespace melon::raft {
         leveldb::DB *_db;
     };
 
-}
-
-#endif  // MELON_RAFT_RAFT_META_H_
+}  // namespace melon::raft
