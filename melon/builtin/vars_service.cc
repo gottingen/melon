@@ -27,11 +27,6 @@
 #include "melon/builtin/common.h"
 #include "melon/builtin/vars_service.h"
 
-namespace melon::var {
-    DECLARE_bool(quote_vector);
-}
-
-
 namespace melon {
 
     // TODO(gejun): parameterize.

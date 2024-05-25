@@ -134,8 +134,8 @@ SocketMapOptions::SocketMapOptions()
 }
 
 SocketMap::SocketMap()
-    : _exposed_in_bvar(false)
-    , _this_map_bvar(NULL)
+    : _exposed_in_var(false)
+    , _this_map_var(NULL)
     , _has_close_idle_thread(false) {
 }
 
@@ -165,8 +165,8 @@ SocketMap::~SocketMap() {
         }
     }
 
-    delete _this_map_bvar;
-    _this_map_bvar = NULL;
+    delete _this_map_var;
+    _this_map_var = NULL;
 
     delete _options.socket_creator;
     _options.socket_creator = NULL;
@@ -212,12 +212,12 @@ void SocketMap::PrintSocketMap(std::ostream& os, void* arg) {
     static_cast<SocketMap*>(arg)->Print(os);
 }
 
-void SocketMap::ShowSocketMapInBvarIfNeed() {
+void SocketMap::ShowSocketMapInVarIfNeed() {
     if (FLAGS_show_socketmap_in_vars &&
-        !_exposed_in_bvar.exchange(true, mutil::memory_order_release)) {
+        !_exposed_in_var.exchange(true, mutil::memory_order_release)) {
         char namebuf[32];
         int len = snprintf(namebuf, sizeof(namebuf), "rpc_socketmap_%p", this);
-        _this_map_bvar = new melon::var::PassiveStatus<std::string>(
+        _this_map_var = new melon::var::PassiveStatus<std::string>(
             mutil::StringPiece(namebuf, len), PrintSocketMap, this);
     }
 }
@@ -225,7 +225,7 @@ void SocketMap::ShowSocketMapInBvarIfNeed() {
 int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
                       const std::shared_ptr<SocketSSLContext>& ssl_ctx,
                       bool use_rdma) {
-    ShowSocketMapInBvarIfNeed();
+    ShowSocketMapInVarIfNeed();
 
     std::unique_lock<mutil::Mutex> mu(_mutex);
     SingleConnection* sc = _map.seek(key);
@@ -276,7 +276,7 @@ void SocketMap::Remove(const SocketMapKey& key, SocketId expected_id) {
 void SocketMap::RemoveInternal(const SocketMapKey& key,
                                SocketId expected_id,
                                bool remove_orphan) {
-    ShowSocketMapInBvarIfNeed();
+    ShowSocketMapInVarIfNeed();
 
     std::unique_lock<mutil::Mutex> mu(_mutex);
     SingleConnection* sc = _map.seek(key);

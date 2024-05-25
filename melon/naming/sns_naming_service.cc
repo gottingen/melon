@@ -33,9 +33,9 @@ namespace melon::naming {
     DEFINE_string(sns_server, "", "The address of sns api");
     DEFINE_int32(sns_timeout_ms, 3000, "Timeout for discovery requests");
     DEFINE_string(sns_env, "prod", "Environment of services");
-    DEFINE_string(sns_status, "1", "Status of services. 1 for ready, 2 for not ready, 3 for all");
+    DEFINE_string(sns_status, "1", "Status of services. 1 for normal, 2 for slow, 3 for full, 4 for dead");
     DEFINE_string(sns_zone, "", "Zone of services");
-    DEFINE_string(sns_coloe, "", "Zone of services");
+    DEFINE_string(sns_color, "", "Zone of services");
     DEFINE_int32(sns_renew_interval_s, 30, "The interval between two consecutive renews");
     DEFINE_int32(sns_reregister_threshold, 3, "The renew error threshold beyond"
                                               " which Register would be called again");
@@ -218,7 +218,7 @@ namespace melon::naming {
             FLAGS_sns_env.empty() ||
             FLAGS_sns_status.empty() ||
             FLAGS_sns_zone.empty() ||
-            FLAGS_sns_coloe.empty()) {
+            FLAGS_sns_color.empty()) {
             MLOG_ONCE(ERROR) << "Invalid parameters";
             return -1;
         }
@@ -238,7 +238,7 @@ namespace melon::naming {
             request.add_env(env_sp.field());
             ++env_sp;
         }
-        auto color_sp = mutil::StringSplitter(FLAGS_sns_coloe, ',');
+        auto color_sp = mutil::StringSplitter(FLAGS_sns_color, ',');
         while (color_sp) {
             request.add_color(color_sp.field());
             ++color_sp;

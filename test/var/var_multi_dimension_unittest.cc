@@ -394,23 +394,23 @@ TEST_F(MultiDimensionTest, get_description) {
 }
 
 TEST_F(MultiDimensionTest, mlatencyrecorder) {
-    std::string old_bvar_dump_interval;
-    std::string old_mbvar_dump;
-    std::string old_bvar_latency_p1;
-    std::string old_bvar_latency_p2;
-    std::string old_bvar_latency_p3;
+    std::string old_var_dump_interval;
+    std::string old_mvar_dump;
+    std::string old_var_latency_p1;
+    std::string old_var_latency_p2;
+    std::string old_var_latency_p3;
 
-    google::GetCommandLineOption("bvar_dump_interval", &old_bvar_dump_interval);
-    google::GetCommandLineOption("mbvar_dump", &old_mbvar_dump);
-    google::GetCommandLineOption("bvar_latency_p1", &old_bvar_latency_p1);
-    google::GetCommandLineOption("bvar_latency_p2", &old_bvar_latency_p2);
-    google::GetCommandLineOption("bvar_latency_p3", &old_bvar_latency_p3);
+    google::GetCommandLineOption("var_dump_interval", &old_var_dump_interval);
+    google::GetCommandLineOption("mvar_dump", &old_mvar_dump);
+    google::GetCommandLineOption("var_latency_p1", &old_var_latency_p1);
+    google::GetCommandLineOption("var_latency_p2", &old_var_latency_p2);
+    google::GetCommandLineOption("var_latency_p3", &old_var_latency_p3);
 
-    google::SetCommandLineOption("bvar_dump_interval", "1");
-    google::SetCommandLineOption("mbvar_dump", "true");
-    google::SetCommandLineOption("bvar_latency_p1", "60");
-    google::SetCommandLineOption("bvar_latency_p2", "70");
-    google::SetCommandLineOption("bvar_latency_p3", "80");
+    google::SetCommandLineOption("var_dump_interval", "1");
+    google::SetCommandLineOption("mvar_dump", "true");
+    google::SetCommandLineOption("var_latency_p1", "60");
+    google::SetCommandLineOption("var_latency_p2", "70");
+    google::SetCommandLineOption("var_latency_p3", "80");
 
     melon::var::MultiDimension<melon::var::LatencyRecorder> my_mlatencyrecorder("client_request_count_mlatencyrecorder", labels);
     std::list<std::string> labels_value = {"tc", "get", "200"};
@@ -423,11 +423,11 @@ TEST_F(MultiDimensionTest, mlatencyrecorder) {
     ASSERT_LE(7, my_latencyrecorder->qps());
     ASSERT_EQ(7, my_latencyrecorder->count());
 
-    google::SetCommandLineOption("bvar_dump_interval", old_bvar_dump_interval.c_str());
-    google::SetCommandLineOption("mbvar_dump", old_mbvar_dump.c_str());
-    google::SetCommandLineOption("bvar_latency_p1", old_bvar_latency_p1.c_str());
-    google::SetCommandLineOption("bvar_latency_p2", old_bvar_latency_p2.c_str());
-    google::SetCommandLineOption("bvar_latency_p3", old_bvar_latency_p3.c_str());
+    google::SetCommandLineOption("var_dump_interval", old_var_dump_interval.c_str());
+    google::SetCommandLineOption("mvar_dump", old_mvar_dump.c_str());
+    google::SetCommandLineOption("var_latency_p1", old_var_latency_p1.c_str());
+    google::SetCommandLineOption("var_latency_p2", old_var_latency_p2.c_str());
+    google::SetCommandLineOption("var_latency_p3", old_var_latency_p3.c_str());
 }
 
 TEST_F(MultiDimensionTest, mstatus) {

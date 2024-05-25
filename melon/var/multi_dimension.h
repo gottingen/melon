@@ -72,11 +72,11 @@ namespace melon::var {
         // Implement this method to print the variable into ostream.
         void describe(std::ostream &os);
 
-        // Dump real bvar pointer
+        // Dump real var pointer
         size_t dump(Dumper *dumper, const DumpOptions *options);
 
-        // Get real bvar pointer object
-        // Return real bvar pointer on success, NULL otherwise.
+        // Get real var pointer object
+        // Return real var pointer on success, NULL otherwise.
         T *get_stats(const key_type &labels_value) {
             return get_stats_impl(labels_value, READ_OR_INSERT);
         }
@@ -87,7 +87,7 @@ namespace melon::var {
         // Remove all stat
         void clear_stats();
 
-        // True if bvar pointer exists
+        // True if var pointer exists
         bool has_stats(const key_type &labels_value);
 
         // Get number of stats
@@ -97,15 +97,15 @@ namespace melon::var {
         void list_stats(std::vector<key_type> *names);
 
 #ifdef UNIT_TEST
-        // Get real bvar pointer object
-        // Return real bvar pointer if labels_name exist, NULL otherwise.
+        // Get real var pointer object
+        // Return real var pointer if labels_name exist, NULL otherwise.
         // CAUTION!!! Just For Debug!!!
         T* get_stats_read_only(const key_type& labels_value) {
             return get_stats_impl(labels_value);
         }
 
-        // Get real bvar pointer object
-        // Return real bvar pointer if labels_name exist, otherwise(not exist) create bvar pointer.
+        // Get real var pointer object
+        // Return real var pointer if labels_name exist, otherwise(not exist) create var pointer.
         // CAUTION!!! Just For Debug!!!
         T* get_stats_read_or_insert(const key_type& labels_value, bool* do_write = NULL) {
             return get_stats_impl(labels_value, READ_OR_INSERT, do_write);

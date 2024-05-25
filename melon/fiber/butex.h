@@ -24,46 +24,47 @@
 
 namespace fiber {
 
-// Create a butex which is a futex-like 32-bit primitive for synchronizing
-// fibers/pthreads.
-// Returns a pointer to 32-bit data, NULL on failure.
-// NOTE: all butexes are private(not inter-process).
-void* butex_create();
+    // Create a butex which is a futex-like 32-bit primitive for synchronizing
+    // fibers/pthreads.
+    // Returns a pointer to 32-bit data, NULL on failure.
+    // NOTE: all butexes are private(not inter-process).
+    void *butex_create();
 
-// Check width of user type before casting.
-template <typename T> T* butex_create_checked() {
-    MELON_CASSERT(sizeof(T) == sizeof(int), sizeof_T_must_equal_int);
-    return static_cast<T*>(butex_create());
-}
+    // Check width of user type before casting.
+    template<typename T>
+    T *butex_create_checked() {
+        MELON_CASSERT(sizeof(T) == sizeof(int), sizeof_T_must_equal_int);
+        return static_cast<T *>(butex_create());
+    }
 
-// Destroy the butex.
-void butex_destroy(void* butex);
+    // Destroy the butex.
+    void butex_destroy(void *butex);
 
-// Wake up at most 1 thread waiting on |butex|.
-// Returns # of threads woken up.
-int butex_wake(void* butex, bool nosignal = false);
+    // Wake up at most 1 thread waiting on |butex|.
+    // Returns # of threads woken up.
+    int butex_wake(void *butex, bool nosignal = false);
 
-// Wake up all threads waiting on |butex|.
-// Returns # of threads woken up.
-int butex_wake_all(void* butex, bool nosignal = false);
+    // Wake up all threads waiting on |butex|.
+    // Returns # of threads woken up.
+    int butex_wake_all(void *butex, bool nosignal = false);
 
-// Wake up all threads waiting on |butex| except a fiber whose identifier
-// is |excluded_fiber|. This function does not yield.
-// Returns # of threads woken up.
-int butex_wake_except(void* butex, fiber_t excluded_fiber);
+    // Wake up all threads waiting on |butex| except a fiber whose identifier
+    // is |excluded_fiber|. This function does not yield.
+    // Returns # of threads woken up.
+    int butex_wake_except(void *butex, fiber_t excluded_fiber);
 
-// Wake up at most 1 thread waiting on |butex1|, let all other threads wait
-// on |butex2| instead.
-// Returns # of threads woken up.
-int butex_requeue(void* butex1, void* butex2);
+    // Wake up at most 1 thread waiting on |butex1|, let all other threads wait
+    // on |butex2| instead.
+    // Returns # of threads woken up.
+    int butex_requeue(void *butex1, void *butex2);
 
-// Atomically wait on |butex| if *butex equals |expected_value|, until the
-// butex is woken up by butex_wake*, or CLOCK_REALTIME reached |abstime| if
-// abstime is not NULL.
-// About |abstime|:
-//   Different from FUTEX_WAIT, butex_wait uses absolute time.
-// Returns 0 on success, -1 otherwise and errno is set.
-int butex_wait(void* butex, int expected_value, const timespec* abstime);
+    // Atomically wait on |butex| if *butex equals |expected_value|, until the
+    // butex is woken up by butex_wake*, or CLOCK_REALTIME reached |abstime| if
+    // abstime is not NULL.
+    // About |abstime|:
+    //   Different from FUTEX_WAIT, butex_wait uses absolute time.
+    // Returns 0 on success, -1 otherwise and errno is set.
+    int butex_wait(void *butex, int expected_value, const timespec *abstime);
 
 }  // namespace fiber
 

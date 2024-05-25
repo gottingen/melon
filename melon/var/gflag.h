@@ -22,7 +22,7 @@
 
 namespace melon::var {
 
-// Expose important gflags as bvar so that they're monitored.
+// Expose important gflags as var so that they're monitored.
     class GFlag : public Variable {
     public:
         GFlag(const mutil::StringPiece &gflag_name);

@@ -23,7 +23,7 @@
 
 namespace melon {
 
-static pthread_once_t s_viz_min_buf_once = PTHREAD_ONCE_INIT; 
+static pthread_once_t s_viz_min_buf_once = PTHREAD_ONCE_INIT;
 static mutil::IOBuf* s_viz_min_buf = NULL;
 static void InitVizMinBuf() {
     s_viz_min_buf = new mutil::IOBuf;
@@ -36,7 +36,7 @@ const mutil::IOBuf& viz_min_js_iobuf() {
 
 // viz.js is huge. We separate the creation of gzip version from uncompress
 // version so that at most time we only keep gzip version in memory.
-static pthread_once_t s_viz_min_buf_gzip_once = PTHREAD_ONCE_INIT; 
+static pthread_once_t s_viz_min_buf_gzip_once = PTHREAD_ONCE_INIT;
 static mutil::IOBuf* s_viz_min_buf_gzip = NULL;
 static void InitVizMinBufGzip() {
     mutil::IOBuf viz_min;

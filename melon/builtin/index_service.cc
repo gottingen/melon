@@ -23,6 +23,7 @@
 #include "melon/builtin/status_service.h"
 #include "melon/builtin/common.h"
 #include "melon/rpc/details/tcmalloc_extension.h"
+#include <melon/builtin/config.h>
 
 namespace melon {
 
@@ -31,10 +32,6 @@ namespace melon {
         info->path = "/index?as_more";
         info->tab_name = "more";
     }
-
-    DECLARE_bool(enable_rpcz);
-    DECLARE_bool(enable_dir_service);
-    DECLARE_bool(enable_threads_service);
 
     // Set in ProfilerLinker.
     bool cpu_profiler_enabled = false;

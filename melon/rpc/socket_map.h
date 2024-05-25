@@ -174,7 +174,7 @@ private:
     static void* RunWatchConnections(void*);
     void Print(std::ostream& os);
     static void PrintSocketMap(std::ostream& os, void* arg);
-    void ShowSocketMapInBvarIfNeed();
+    void ShowSocketMapInVarIfNeed();
 
 private:
     struct SingleConnection {
@@ -190,8 +190,8 @@ private:
     SocketMapOptions _options;
     mutil::Mutex _mutex;
     Map _map;
-    mutil::atomic<bool> _exposed_in_bvar;
-    melon::var::PassiveStatus<std::string>* _this_map_bvar;
+    mutil::atomic<bool> _exposed_in_var;
+    melon::var::PassiveStatus<std::string>* _this_map_var;
     bool _has_close_idle_thread;
     fiber_t _close_idle_thread;
 };

@@ -31,7 +31,7 @@
 #include <gtest/gtest.h>
 
 namespace melon::var {
-DECLARE_bool(bvar_log_dumpped);
+DECLARE_bool(var_log_dumpped);
 }
 
 namespace {
@@ -199,7 +199,7 @@ TEST_F(VariableTest, dump) {
     MyDumper d;
 
     // Nothing to dump yet.
-    melon::var::FLAGS_bvar_log_dumpped = true;
+    melon::var::FLAGS_var_log_dumpped = true;
     ASSERT_EQ(0, melon::var::Variable::dump_exposed(&d, NULL));
     ASSERT_TRUE(d._list.empty());
 

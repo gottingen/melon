@@ -28,36 +28,36 @@ namespace melon::var {
 
     constexpr uint64_t MAX_LABELS_COUNT = 10;
 
-    DECLARE_bool(bvar_abort_on_same_name);
+    DECLARE_bool(var_abort_on_same_name);
 
-    extern bool s_bvar_may_abort;
+    extern bool s_var_may_abort;
 
-    DEFINE_int32(bvar_max_multi_dimension_metric_number, 1024, "Max number of multi dimension");
-    DEFINE_int32(bvar_max_dump_multi_dimension_metric_number, 1024,
+    DEFINE_int32(var_max_multi_dimension_metric_number, 1024, "Max number of multi dimension");
+    DEFINE_int32(var_max_dump_multi_dimension_metric_number, 1024,
                  "Max number of multi dimension metric number to dump by prometheus rpc service");
 
-    static bool validator_bvar_max_multi_dimension_metric_number(const char *, int32_t v) {
+    static bool validator_var_max_multi_dimension_metric_number(const char *, int32_t v) {
         if (v < 1) {
-            MLOG(ERROR) << "Invalid bvar_max_multi_dimension_metric_number=" << v;
+            MLOG(ERROR) << "Invalid var_max_multi_dimension_metric_number=" << v;
             return false;
         }
         return true;
     }
 
-    static bool validator_bvar_max_dump_multi_dimension_metric_number(const char *, int32_t v) {
+    static bool validator_var_max_dump_multi_dimension_metric_number(const char *, int32_t v) {
         if (v < 0) {
-            MLOG(ERROR) << "Invalid bvar_max_dump_multi_dimension_metric_number=" << v;
+            MLOG(ERROR) << "Invalid var_max_dump_multi_dimension_metric_number=" << v;
             return false;
         }
         return true;
     }
 
 
-    const bool ALLOW_UNUSED dummp_bvar_max_multi_dimension_metric_number = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_max_multi_dimension_metric_number, validator_bvar_max_multi_dimension_metric_number);
+    const bool ALLOW_UNUSED dummp_var_max_multi_dimension_metric_number = ::google::RegisterFlagValidator(
+            &FLAGS_var_max_multi_dimension_metric_number, validator_var_max_multi_dimension_metric_number);
 
-    const bool ALLOW_UNUSED dummp_bvar_max_dump_multi_dimension_metric_number = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_max_dump_multi_dimension_metric_number, validator_bvar_max_dump_multi_dimension_metric_number);
+    const bool ALLOW_UNUSED dummp_var_max_dump_multi_dimension_metric_number = ::google::RegisterFlagValidator(
+            &FLAGS_var_max_dump_multi_dimension_metric_number, validator_var_max_dump_multi_dimension_metric_number);
 
     class MVarEntry {
     public:
@@ -77,7 +77,7 @@ namespace melon::var {
         }
     };
 
-// We have to initialize global map on need because bvar is possibly used
+// We have to initialize global map on need because var is possibly used
 // before main().
     static pthread_once_t s_mvar_map_once = PTHREAD_ONCE_INIT;
     static MVarMapWithLock *s_mvar_map = NULL;
@@ -161,9 +161,9 @@ namespace melon::var {
         }
         to_underscored_name(&_name, name);
 
-        if (count_exposed() > (size_t) FLAGS_bvar_max_multi_dimension_metric_number) {
+        if (count_exposed() > (size_t) FLAGS_var_max_multi_dimension_metric_number) {
             MLOG(ERROR) << "Too many metric seen, overflow detected, max metric count:"
-                       << FLAGS_bvar_max_multi_dimension_metric_number;
+                       << FLAGS_var_max_multi_dimension_metric_number;
             return -1;
         }
 
@@ -178,13 +178,13 @@ namespace melon::var {
             }
         }
 
-        RELEASE_ASSERT_VERBOSE(!FLAGS_bvar_abort_on_same_name,
+        RELEASE_ASSERT_VERBOSE(!FLAGS_var_abort_on_same_name,
                                "Abort due to name conflict");
-        if (!s_bvar_may_abort) {
+        if (!s_var_may_abort) {
             // Mark name conflict occurs, If this conflict happens before
-            // initialization of bvar_abort_on_same_name, the validator will
+            // initialization of var_abort_on_same_name, the validator will
             // abort the program if needed.
-            s_bvar_may_abort = true;
+            s_var_may_abort = true;
         }
 
         MLOG(WARNING) << "Already exposed `" << _name << "' whose describe is`"
@@ -258,10 +258,10 @@ namespace melon::var {
             if (entry) {
                 n += entry->var->dump(dumper, &opt);
             }
-            if (n > static_cast<size_t>(FLAGS_bvar_max_dump_multi_dimension_metric_number)) {
+            if (n > static_cast<size_t>(FLAGS_var_max_dump_multi_dimension_metric_number)) {
                 MLOG(WARNING) << "truncated because of \
 		            exceed max dump multi dimension label number["
-                             << FLAGS_bvar_max_dump_multi_dimension_metric_number
+                             << FLAGS_var_max_dump_multi_dimension_metric_number
                              << "]";
                 break;
             }

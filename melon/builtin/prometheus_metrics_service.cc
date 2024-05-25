@@ -24,13 +24,7 @@
 #include "melon/builtin/prometheus_metrics_service.h"
 #include "melon/builtin/common.h"
 #include "melon/var/var.h"
-
-namespace melon::var {
-    DECLARE_int32(bvar_latency_p1);
-    DECLARE_int32(bvar_latency_p2);
-    DECLARE_int32(bvar_latency_p3);
-    DECLARE_int32(bvar_max_dump_multi_dimension_metric_number);
-}
+#include <melon/var/config.h>
 
 namespace melon {
 
@@ -60,7 +54,7 @@ namespace melon {
         bool DumpLatencyRecorderSuffix(const mutil::StringPiece &name,
                                        const mutil::StringPiece &desc);
 
-        // 6 is the number of bvars in LatencyRecorder that indicating percentiles
+        // 6 is the number of vars in LatencyRecorder that indicating percentiles
         static const int NPERCENTILES = 6;
 
         struct SummaryItems {
@@ -111,9 +105,9 @@ namespace melon {
     PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const mutil::StringPiece &name,
                                                           const mutil::StringPiece &desc) {
         static std::string latency_names[] = {
-                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p1),
-                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p2),
-                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p3),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p1),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p2),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p3),
                 "_latency_999", "_latency_9999", "_max_latency"
         };
         MCHECK(NPERCENTILES == arraysize(latency_names));
@@ -166,13 +160,13 @@ namespace melon {
         *_os << "# HELP " << si->metric_name << '\n'
              << "# TYPE " << si->metric_name << " summary\n"
              << si->metric_name << "{quantile=\""
-             << (double) (melon::var::FLAGS_bvar_latency_p1) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_var_latency_p1) / 100 << "\"} "
              << si->latency_percentiles[0] << '\n'
              << si->metric_name << "{quantile=\""
-             << (double) (melon::var::FLAGS_bvar_latency_p2) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_var_latency_p2) / 100 << "\"} "
              << si->latency_percentiles[1] << '\n'
              << si->metric_name << "{quantile=\""
-             << (double) (melon::var::FLAGS_bvar_latency_p3) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_var_latency_p3) / 100 << "\"} "
              << si->latency_percentiles[2] << '\n'
              << si->metric_name << "{quantile=\"0.999\"} "
              << si->latency_percentiles[3] << '\n'
@@ -212,7 +206,7 @@ namespace melon {
         }
         os.move_to(*output);
 
-        if (melon::var::FLAGS_bvar_max_dump_multi_dimension_metric_number > 0) {
+        if (melon::var::FLAGS_var_max_dump_multi_dimension_metric_number > 0) {
             PrometheusMetricsDumper dumper_md(&os, g_server_info_prefix);
             const int ndump_md = melon::var::MVariable::dump_exposed(&dumper_md, NULL);
             if (ndump_md < 0) {

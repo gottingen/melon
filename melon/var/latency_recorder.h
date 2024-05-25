@@ -75,7 +75,7 @@ namespace melon::var {
     } // namespace detail
 
 // Specialized structure to record latency.
-// It's not a Variable, but it contains multiple bvar inside.
+// It's not a Variable, but it contains multiple var inside.
     class LatencyRecorder : public detail::LatencyRecorderBase {
         typedef detail::LatencyRecorderBase Base;
     public:
@@ -156,7 +156,7 @@ namespace melon::var {
         // E.g. 0.99 means 99%-ile
         int64_t latency_percentile(double ratio) const;
 
-        // Get name of a sub-bvar.
+        // Get name of a sub-var.
         const std::string &latency_name() const { return _latency_window.name(); }
 
         const std::string &latency_percentiles_name() const { return _latency_percentiles.name(); }

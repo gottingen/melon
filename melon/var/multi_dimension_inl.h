@@ -20,9 +20,9 @@
 
 namespace melon::var {
 
-    DECLARE_int32(bvar_latency_p1);
-    DECLARE_int32(bvar_latency_p2);
-    DECLARE_int32(bvar_latency_p3);
+    DECLARE_int32(var_latency_p1);
+    DECLARE_int32(var_latency_p2);
+    DECLARE_int32(var_latency_p3);
 
     static const std::string ALLOW_UNUSED
     METRIC_TYPE_COUNTER = "counter";
@@ -89,7 +89,7 @@ namespace melon::var {
     void MultiDimension<T>::delete_stats(const key_type &labels_value) {
         if (is_valid_lables_value(labels_value)) {
             // Because there are two copies(foreground and background) in DBD, we need to use an empty tmp_metric,
-            // get the deleted value of second copy into tmp_metric, which can prevent the bvar object from being deleted twice.
+            // get the deleted value of second copy into tmp_metric, which can prevent the var object from being deleted twice.
             op_value_type tmp_metric = NULL;
             auto erase_fn = [&labels_value, &tmp_metric](MetricMap &bg) {
                 auto it = bg.seek(labels_value);
@@ -112,8 +112,8 @@ namespace melon::var {
     void MultiDimension<T>::delete_stats() {
         // Because there are two copies(foreground and background) in DBD, we need to use an empty tmp_map,
         // swap two copies with empty, and get the value of second copy into tmp_map,
-        // then traversal tmp_map and delete bvar object,
-        // which can prevent the bvar object from being deleted twice.
+        // then traversal tmp_map and delete var object,
+        // which can prevent the var object from being deleted twice.
         MetricMap tmp_map;
         MCHECK_EQ(0, tmp_map.init(8192, 80));
         auto clear_fn = [&tmp_map](MetricMap &map) {
@@ -195,8 +195,8 @@ namespace melon::var {
         }
 
         // Because DBD has two copies(foreground and background) MetricMap, both copies need to be modify,
-        // In order to avoid new duplicate bvar object, need use cache_metric to cache the new bvar object,
-        // In this way, when modifying the second copy, can directly use the cache_metric bvar object.
+        // In order to avoid new duplicate var object, need use cache_metric to cache the new var object,
+        // In this way, when modifying the second copy, can directly use the cache_metric var object.
         op_value_type cache_metric = NULL;
         auto insert_fn = [&labels_value, &cache_metric, &do_write](MetricMap &bg) {
             auto bg_metric = bg.seek(labels_value);
@@ -242,12 +242,12 @@ namespace melon::var {
         }
         size_t n = 0;
         for (auto &label_name: label_names) {
-            T *bvar = get_stats_impl(label_name);
-            if (!bvar) {
+            T *var = get_stats_impl(label_name);
+            if (!var) {
                 continue;
             }
             std::ostringstream oss;
-            bvar->describe(oss, options->quote_string);
+            var->describe(oss, options->quote_string);
             std::ostringstream oss_key;
             make_dump_key(oss_key, label_name);
             if (!dumper->dump(oss_key.str(), oss.str())) {
@@ -268,8 +268,8 @@ namespace melon::var {
         }
         size_t n = 0;
         for (auto &label_name: label_names) {
-            melon::var::LatencyRecorder *bvar = get_stats_impl(label_name);
-            if (!bvar) {
+            melon::var::LatencyRecorder *var = get_stats_impl(label_name);
+            if (!var) {
                 continue;
             }
 
@@ -280,29 +280,29 @@ namespace melon::var {
             // latency
             std::ostringstream oss_latency_key;
             make_dump_key(oss_latency_key, label_name, "_latency");
-            if (dumper->dump(oss_latency_key.str(), std::to_string(bvar->latency()))) {
+            if (dumper->dump(oss_latency_key.str(), std::to_string(var->latency()))) {
                 n++;
             }
             // latency_percentiles
             // p1/p2/p3
-            int latency_percentiles[3]{FLAGS_bvar_latency_p1, FLAGS_bvar_latency_p2, FLAGS_bvar_latency_p3};
+            int latency_percentiles[3]{FLAGS_var_latency_p1, FLAGS_var_latency_p2, FLAGS_var_latency_p3};
             for (auto lp: latency_percentiles) {
                 std::ostringstream oss_lp_key;
                 make_dump_key(oss_lp_key, label_name, "_latency", lp);
-                if (dumper->dump(oss_lp_key.str(), std::to_string(bvar->latency_percentile(lp / 100.0)))) {
+                if (dumper->dump(oss_lp_key.str(), std::to_string(var->latency_percentile(lp / 100.0)))) {
                     n++;
                 }
             }
             // 999
             std::ostringstream oss_p999_key;
             make_dump_key(oss_p999_key, label_name, "_latency", 999);
-            if (dumper->dump(oss_p999_key.str(), std::to_string(bvar->latency_percentile(0.999)))) {
+            if (dumper->dump(oss_p999_key.str(), std::to_string(var->latency_percentile(0.999)))) {
                 n++;
             }
             // 9999
             std::ostringstream oss_p9999_key;
             make_dump_key(oss_p9999_key, label_name, "_latency", 9999);
-            if (dumper->dump(oss_p9999_key.str(), std::to_string(bvar->latency_percentile(0.9999)))) {
+            if (dumper->dump(oss_p9999_key.str(), std::to_string(var->latency_percentile(0.9999)))) {
                 n++;
             }
 
@@ -313,7 +313,7 @@ namespace melon::var {
             // max_latency
             std::ostringstream oss_max_latency_key;
             make_dump_key(oss_max_latency_key, label_name, "_max_latency");
-            if (dumper->dump(oss_max_latency_key.str(), std::to_string(bvar->max_latency()))) {
+            if (dumper->dump(oss_max_latency_key.str(), std::to_string(var->max_latency()))) {
                 n++;
             }
 
@@ -324,7 +324,7 @@ namespace melon::var {
             // qps
             std::ostringstream oss_qps_key;
             make_dump_key(oss_qps_key, label_name, "_qps");
-            if (dumper->dump(oss_qps_key.str(), std::to_string(bvar->qps()))) {
+            if (dumper->dump(oss_qps_key.str(), std::to_string(var->qps()))) {
                 n++;
             }
 
@@ -335,7 +335,7 @@ namespace melon::var {
             // count
             std::ostringstream oss_count_key;
             make_dump_key(oss_count_key, label_name, "_count");
-            if (dumper->dump(oss_count_key.str(), std::to_string(bvar->count()))) {
+            if (dumper->dump(oss_count_key.str(), std::to_string(var->count()))) {
                 n++;
             }
         }

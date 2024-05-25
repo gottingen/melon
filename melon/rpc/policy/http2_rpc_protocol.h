@@ -115,17 +115,17 @@ enum H2StreamState {
 const char* H2StreamState2Str(H2StreamState);
 
 #ifndef NDEBUG
-struct H2Bvars {
+struct H2Vars {
     melon::var::Adder<int> h2_unsent_request_count;
     melon::var::Adder<int> h2_stream_context_count;
 
-    H2Bvars()
+    H2Vars()
         : h2_unsent_request_count("h2_unsent_request_count")
         , h2_stream_context_count("h2_stream_context_count") {
     }
 };
-inline H2Bvars* get_h2_bvars() {
-    return mutil::get_leaky_singleton<H2Bvars>();
+inline H2Vars* get_h2_vars() {
+    return mutil::get_leaky_singleton<H2Vars>();
 }
 #endif
 
@@ -170,12 +170,12 @@ private:
         , _stream_id(0)
         , _cntl(c) {
 #ifndef NDEBUG
-        get_h2_bvars()->h2_unsent_request_count << 1;
+        get_h2_vars()->h2_unsent_request_count << 1;
 #endif
     }
     ~H2UnsentRequest() {
 #ifndef NDEBUG
-        get_h2_bvars()->h2_unsent_request_count << -1;
+        get_h2_vars()->h2_unsent_request_count << -1;
 #endif
     }
     H2UnsentRequest(const H2UnsentRequest&);

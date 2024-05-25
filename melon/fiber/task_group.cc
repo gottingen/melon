@@ -140,7 +140,7 @@ static double get_cumulated_cputime_from_this(void* arg) {
 void TaskGroup::run_main_task() {
     melon::var::PassiveStatus<double> cumulated_cputime(
         get_cumulated_cputime_from_this, this);
-    std::unique_ptr<melon::var::PerSecond<melon::var::PassiveStatus<double> > > usage_bvar;
+    std::unique_ptr<melon::var::PerSecond<melon::var::PassiveStatus<double> > > usage_var;
 
     TaskGroup* dummy = this;
     fiber_t tid;
@@ -151,7 +151,7 @@ void TaskGroup::run_main_task() {
         if (_cur_meta->tid != _main_tid) {
             TaskGroup::task_runner(1/*skip remained*/);
         }
-        if (FLAGS_show_per_worker_usage_in_vars && !usage_bvar) {
+        if (FLAGS_show_per_worker_usage_in_vars && !usage_var) {
             char name[32];
 #if defined(OS_MACOSX)
             snprintf(name, sizeof(name), "fiber_worker_usage_%" PRIu64,
@@ -160,7 +160,7 @@ void TaskGroup::run_main_task() {
             snprintf(name, sizeof(name), "fiber_worker_usage_%ld",
                      (long)syscall(SYS_gettid));
 #endif
-            usage_bvar.reset(new melon::var::PerSecond<melon::var::PassiveStatus<double> >
+            usage_var.reset(new melon::var::PerSecond<melon::var::PassiveStatus<double> >
                              (name, &cumulated_cputime, 1));
         }
     }

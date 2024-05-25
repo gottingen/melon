@@ -37,7 +37,7 @@ struct TimerThreadOptions {
     // If this field is not empty, some var for reporting stats of TimerThread
     // will be exposed with this prefix.
     // Default: ""
-    std::string bvar_prefix;
+    std::string var_prefix;
 
     // Constructed with default options.
     TimerThreadOptions();

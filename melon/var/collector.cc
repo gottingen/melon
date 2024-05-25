@@ -25,10 +25,10 @@ namespace melon::var {
 
     // TODO: Do we need to expose this flag? Dumping thread may dump different
     // kind of samples, users are unlikely to make good decisions on this value.
-    DEFINE_int32(bvar_collector_max_pending_samples, 1000,
+    DEFINE_int32(var_collector_max_pending_samples, 1000,
                  "Destroy unprocessed samples when they're too many");
 
-    DEFINE_int32(bvar_collector_expected_per_second, 1000,
+    DEFINE_int32(var_collector_expected_per_second, 1000,
                  "Expected number of samples to be collected per second");
 
     // CAUTION: Don't change this value unless you know exactly what it means.
@@ -51,7 +51,7 @@ namespace melon::var {
         }
     };
 
-    // A thread and a special bvar to collect samples submitted.
+    // A thread and a special var to collect samples submitted.
     class Collector : public melon::var::Reducer<Collected *, CombineCollected> {
     public:
         Collector();
@@ -75,13 +75,13 @@ namespace melon::var {
                                 int64_t interval_us);
 
         static void *run_grab_thread(void *arg) {
-            mutil::PlatformThread::SetName("bvar_collector_grabber");
+            mutil::PlatformThread::SetName("var_collector_grabber");
             static_cast<Collector *>(arg)->grab_thread();
             return NULL;
         }
 
         static void *run_dump_thread(void *arg) {
-            mutil::PlatformThread::SetName("bvar_collector_dumper");
+            mutil::PlatformThread::SetName("var_collector_dumper");
             static_cast<Collector *>(arg)->dump_thread();
             return NULL;
         }
@@ -157,15 +157,15 @@ namespace melon::var {
 
         // vars
         melon::var::PassiveStatus<int64_t> pending_sampled_data(
-                "bvar_collector_pending_samples", get_pending_count, this);
+                "var_collector_pending_samples", get_pending_count, this);
         double busy_seconds = 0;
         melon::var::PassiveStatus<double> busy_seconds_var(deref_value<double>, &busy_seconds);
         melon::var::PerSecond<melon::var::PassiveStatus<double> > busy_seconds_second(
-                "bvar_collector_grab_thread_usage", &busy_seconds_var);
+                "var_collector_grab_thread_usage", &busy_seconds_var);
 
         melon::var::PassiveStatus<int64_t> ngrab_var(deref_value<int64_t>, &_ngrab);
         melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > ngrab_second(
-                "bvar_collector_grab_second", &ngrab_var);
+                "var_collector_grab_second", &ngrab_var);
 
         // Maps for calculating speed limit.
         typedef std::map<CollectorSpeedLimit *, size_t> GrapMap;
@@ -226,7 +226,7 @@ namespace melon::var {
                         // FIXME: equal probabilities to drop.
                         ++_ngrab;
                         if (_ngrab >= _ndrop + _ndump +
-                                      FLAGS_bvar_collector_max_pending_samples) {
+                                      FLAGS_var_collector_max_pending_samples) {
                             ++_ndrop;
                             p->destroy();
                         } else {
@@ -307,11 +307,11 @@ namespace melon::var {
                 // use the default interval which may make the calculated
                 // sampling_range larger.
             }
-            new_sampling_range = FLAGS_bvar_collector_expected_per_second
+            new_sampling_range = FLAGS_var_collector_expected_per_second
                                  * interval_us * COLLECTOR_SAMPLING_BASE / (1000000L * round_ngrab);
         } else {
             // NOTE: the multiplications are unlikely to overflow.
-            new_sampling_range = FLAGS_bvar_collector_expected_per_second
+            new_sampling_range = FLAGS_var_collector_expected_per_second
                                  * interval_us * old_sampling_range / (1000000L * round_ngrab);
             // Don't grow or shrink too fast.
             if (interval_us < 1000000L) {
@@ -343,7 +343,7 @@ namespace melon::var {
                     1, mutil::memory_order_relaxed);
             if (before_add == 0) {
                 sl->first_sample_real_us = mutil::gettimeofday_us();
-            } else if (before_add >= FLAGS_bvar_collector_expected_per_second) {
+            } else if (before_add >= FLAGS_var_collector_expected_per_second) {
                 mutil::get_leaky_singleton<Collector>()->wakeup_grab_thread();
             }
         }
@@ -358,7 +358,7 @@ namespace melon::var {
         double busy_seconds = 0;
         melon::var::PassiveStatus<double> busy_seconds_var(deref_value<double>, &busy_seconds);
         melon::var::PerSecond<melon::var::PassiveStatus<double> > busy_seconds_second(
-                "bvar_collector_dump_thread_usage", &busy_seconds_var);
+                "var_collector_dump_thread_usage", &busy_seconds_var);
 
         melon::var::PassiveStatus<int64_t> ndumped_var(deref_value<int64_t>, &_ndump);
         melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > ndumped_second(

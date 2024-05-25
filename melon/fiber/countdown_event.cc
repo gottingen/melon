@@ -20,84 +20,84 @@
 
 namespace fiber {
 
-CountdownEvent::CountdownEvent(int initial_count) {
-    RELEASE_ASSERT_VERBOSE(initial_count >= 0,
-                           "Invalid initial_count=%d",
-                           initial_count);
-    _butex = butex_create_checked<int>();
-    *_butex = initial_count;
-    _wait_was_invoked = false;
-}
-
-CountdownEvent::~CountdownEvent() {
-    butex_destroy(_butex);
-}
-
-void CountdownEvent::signal(int sig, bool flush) {
-    // Have to save _butex, *this is probably defreferenced by the wait thread
-    // which sees fetch_sub
-    void* const saved_butex = _butex;
-    const int prev = ((mutil::atomic<int>*)_butex)
-        ->fetch_sub(sig, mutil::memory_order_release);
-    // DON'T touch *this ever after
-    if (prev > sig) {
-        return;
+    CountdownEvent::CountdownEvent(int initial_count) {
+        RELEASE_ASSERT_VERBOSE(initial_count >= 0,
+                               "Invalid initial_count=%d",
+                               initial_count);
+        _butex = butex_create_checked<int>();
+        *_butex = initial_count;
+        _wait_was_invoked = false;
     }
-    MLOG_IF(ERROR, prev < sig) << "Counter is over decreased";
-    butex_wake_all(saved_butex, flush);
-}
 
-int CountdownEvent::wait() {
-    _wait_was_invoked = true;
-    for (;;) {
-        const int seen_counter = 
-            ((mutil::atomic<int>*)_butex)->load(mutil::memory_order_acquire);
-        if (seen_counter <= 0) {
-            return 0;
+    CountdownEvent::~CountdownEvent() {
+        butex_destroy(_butex);
+    }
+
+    void CountdownEvent::signal(int sig, bool flush) {
+        // Have to save _butex, *this is probably defreferenced by the wait thread
+        // which sees fetch_sub
+        void *const saved_butex = _butex;
+        const int prev = ((mutil::atomic<int> *) _butex)
+                ->fetch_sub(sig, mutil::memory_order_release);
+        // DON'T touch *this ever after
+        if (prev > sig) {
+            return;
         }
-        if (butex_wait(_butex, seen_counter, NULL) < 0 &&
-            errno != EWOULDBLOCK && errno != EINTR) {
-            return errno;
+        MLOG_IF(ERROR, prev < sig) << "Counter is over decreased";
+        butex_wake_all(saved_butex, flush);
+    }
+
+    int CountdownEvent::wait() {
+        _wait_was_invoked = true;
+        for (;;) {
+            const int seen_counter =
+                    ((mutil::atomic<int> *) _butex)->load(mutil::memory_order_acquire);
+            if (seen_counter <= 0) {
+                return 0;
+            }
+            if (butex_wait(_butex, seen_counter, NULL) < 0 &&
+                errno != EWOULDBLOCK && errno != EINTR) {
+                return errno;
+            }
         }
     }
-}
 
-void CountdownEvent::add_count(int v) {
-    if (v <= 0) {
-        MLOG_IF(ERROR, v < 0) << "Invalid count=" << v;
-        return;
+    void CountdownEvent::add_count(int v) {
+        if (v <= 0) {
+            MLOG_IF(ERROR, v < 0) << "Invalid count=" << v;
+            return;
+        }
+        MLOG_IF(ERROR, _wait_was_invoked)
+        << "Invoking add_count() after wait() was invoked";
+        ((mutil::atomic<int> *) _butex)->fetch_add(v, mutil::memory_order_release);
     }
-    MLOG_IF(ERROR, _wait_was_invoked)
-            << "Invoking add_count() after wait() was invoked";
-    ((mutil::atomic<int>*)_butex)->fetch_add(v, mutil::memory_order_release);
-}
 
-void CountdownEvent::reset(int v) {
-    if (v < 0) {
-        MLOG(ERROR) << "Invalid count=" << v;
-        return;
-    }
-    const int prev_counter =
-            ((mutil::atomic<int>*)_butex)
-                ->exchange(v, mutil::memory_order_release);
-    MLOG_IF(ERROR, _wait_was_invoked && prev_counter)
+    void CountdownEvent::reset(int v) {
+        if (v < 0) {
+            MLOG(ERROR) << "Invalid count=" << v;
+            return;
+        }
+        const int prev_counter =
+                ((mutil::atomic<int> *) _butex)
+                        ->exchange(v, mutil::memory_order_release);
+        MLOG_IF(ERROR, _wait_was_invoked && prev_counter)
         << "Invoking reset() while count=" << prev_counter;
-    _wait_was_invoked = false;
-}
+        _wait_was_invoked = false;
+    }
 
-int CountdownEvent::timed_wait(const timespec& duetime) {
-    _wait_was_invoked = true;
-    for (;;) {
-        const int seen_counter = 
-            ((mutil::atomic<int>*)_butex)->load(mutil::memory_order_acquire);
-        if (seen_counter <= 0) {
-            return 0;
-        }
-        if (butex_wait(_butex, seen_counter, &duetime) < 0 &&
-            errno != EWOULDBLOCK && errno != EINTR) {
-            return errno;
+    int CountdownEvent::timed_wait(const timespec &duetime) {
+        _wait_was_invoked = true;
+        for (;;) {
+            const int seen_counter =
+                    ((mutil::atomic<int> *) _butex)->load(mutil::memory_order_acquire);
+            if (seen_counter <= 0) {
+                return 0;
+            }
+            if (butex_wait(_butex, seen_counter, &duetime) < 0 &&
+                errno != EWOULDBLOCK && errno != EINTR) {
+                return errno;
+            }
         }
     }
-}
 
 }  // namespace fiber

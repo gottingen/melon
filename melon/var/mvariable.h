@@ -113,7 +113,7 @@ namespace melon::var {
         std::string _name;
         std::list<std::string> _labels;
 
-        // mbvar uses bvar, bvar uses TLS, thus copying/assignment need to copy TLS stuff as well,
+        // mvar uses var, var uses TLS, thus copying/assignment need to copy TLS stuff as well,
         // which is heavy. We disable copying/assignment now.
         DISALLOW_COPY_AND_ASSIGN(MVariable);
     };

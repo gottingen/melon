@@ -117,7 +117,7 @@ namespace melon::var {
             }
             return sampling_range;
         }
-        // Slower, only runs before -bvar_collector_expected_per_second samples are
+        // Slower, only runs before -var_collector_expected_per_second samples are
         // collected to calculate a more reasonable sampling_range for the type.
         extern size_t is_collectable_before_first_time_grabbed(CollectorSpeedLimit *);
         return is_collectable_before_first_time_grabbed(speed_limit);

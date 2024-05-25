@@ -357,7 +357,7 @@ TEST_F(HttpTest, process_request_failed_socket) {
     melon::policy::HttpContext* msg = MakePostRequestMessage("/EchoService/Echo");
     _socket->SetFailed();
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(0ll, _server._nerror_var.get_value());
     CheckResponseCode(true, 0);
 }
 
@@ -365,12 +365,12 @@ TEST_F(HttpTest, reject_get_to_pb_services_with_required_fields) {
     melon::policy::HttpContext* msg = MakeGetRequestMessage("/EchoService/Echo");
     _server._status = melon::Server::RUNNING;
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(0ll, _server._nerror_var.get_value());
     const melon::Server::MethodProperty* mp =
         _server.FindMethodPropertyByFullName("test.EchoService.Echo");
     ASSERT_TRUE(mp);
     ASSERT_TRUE(mp->status);
-    ASSERT_EQ(1ll, mp->status->_nerror_bvar.get_value());
+    ASSERT_EQ(1ll, mp->status->_nerror_var.get_value());
     CheckResponseCode(false, melon::HTTP_STATUS_BAD_REQUEST);
 }
 
@@ -378,14 +378,14 @@ TEST_F(HttpTest, process_request_logoff) {
     melon::policy::HttpContext* msg = MakePostRequestMessage("/EchoService/Echo");
     _server._status = melon::Server::READY;
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::HTTP_STATUS_SERVICE_UNAVAILABLE);
 }
 
 TEST_F(HttpTest, process_request_wrong_method) {
     melon::policy::HttpContext* msg = MakePostRequestMessage("/NO_SUCH_METHOD");
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::HTTP_STATUS_NOT_FOUND);
 }
 

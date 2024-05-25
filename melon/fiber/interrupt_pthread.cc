@@ -19,19 +19,19 @@
 
 namespace fiber {
 
-// TODO: Make sure SIGURG is not used by user.
-// This empty handler is simply for triggering EINTR in blocking syscalls.
-void do_nothing_handler(int) {}
+    // TODO: Make sure SIGURG is not used by user.
+    // This empty handler is simply for triggering EINTR in blocking syscalls.
+    void do_nothing_handler(int) {}
 
-static pthread_once_t register_sigurg_once = PTHREAD_ONCE_INIT;
+    static pthread_once_t register_sigurg_once = PTHREAD_ONCE_INIT;
 
-static void register_sigurg() {
-    signal(SIGURG, do_nothing_handler);
-}
+    static void register_sigurg() {
+        signal(SIGURG, do_nothing_handler);
+    }
 
-int interrupt_pthread(pthread_t th) {
-    pthread_once(&register_sigurg_once, register_sigurg);
-    return pthread_kill(th, SIGURG);
-}
+    int interrupt_pthread(pthread_t th) {
+        pthread_once(&register_sigurg_once, register_sigurg);
+        return pthread_kill(th, SIGURG);
+    }
 
 }  // namespace fiber

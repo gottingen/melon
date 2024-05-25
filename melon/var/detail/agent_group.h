@@ -49,8 +49,8 @@ namespace melon::var {
             typedef Agent agent_type;
 
             // TODO: We should remove the template parameter and unify AgentGroup
-            // of all bvar with a same one, to reuse the memory between different
-            // type of bvar. The unified AgentGroup allocates small structs in-place
+            // of all var with a same one, to reuse the memory between different
+            // type of var. The unified AgentGroup allocates small structs in-place
             // and large structs on heap, thus keeping batch efficiencies on small
             // structs and improving memory usage on large structs.
             const static size_t RAW_BLOCK_SIZE = 4096;

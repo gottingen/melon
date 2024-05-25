@@ -65,9 +65,9 @@ uint32_t cast_func(void* arg) {
 mutil::atomic<uint32_t> g_timeout(0);
 mutil::atomic<uint32_t> g_error(0);
 mutil::atomic<uint32_t> g_succ(0);
-melon::var::PassiveStatus<uint32_t> g_timeout_bvar(cast_func, &g_timeout);
-melon::var::PassiveStatus<uint32_t> g_error_bvar(cast_func, &g_error);
-melon::var::PassiveStatus<uint32_t> g_succ_bvar(cast_func, &g_succ);
+melon::var::PassiveStatus<uint32_t> g_timeout_var(cast_func, &g_timeout);
+melon::var::PassiveStatus<uint32_t> g_error_var(cast_func, &g_error);
+melon::var::PassiveStatus<uint32_t> g_succ_var(cast_func, &g_succ);
 melon::var::LatencyRecorder g_latency_rec;
 
 void LoadCaseSet(test::TestCaseSet* case_set, const std::string& file_path) {
@@ -106,9 +106,9 @@ void HandleEchoResponse(
 }
 
 void Expose() {
-    g_timeout_bvar.expose_as("cl", "timeout");
-    g_error_bvar.expose_as("cl", "failed");
-    g_succ_bvar.expose_as("cl", "succ");
+    g_timeout_var.expose_as("cl", "timeout");
+    g_error_var.expose_as("cl", "failed");
+    g_succ_var.expose_as("cl", "succ");
     g_latency_rec.expose("cl");
 }
 

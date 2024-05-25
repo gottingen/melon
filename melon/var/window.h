@@ -27,7 +27,7 @@
 
 namespace melon::var {
 
-    DECLARE_int32(bvar_dump_interval);
+    DECLARE_int32(var_dump_interval);
 
     enum SeriesFrequency {
         SERIES_IN_WINDOW = 0,
@@ -81,7 +81,7 @@ namespace melon::var {
             };
 
             WindowBase(R *var, time_t window_size)
-                    : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_bvar_dump_interval),
+                    : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
                       _sampler(var->get_sampler()), _series_sampler(NULL) {
                 MCHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
@@ -163,7 +163,7 @@ namespace melon::var {
 
     // Get data within a time window.
     // The time unit is 1 second fixed.
-    // Window relies on other bvar which should be constructed before this window
+    // Window relies on other var which should be constructed before this window
     // and destructs after this window.
 
     // R must:
@@ -200,7 +200,7 @@ namespace melon::var {
         typedef typename R::value_type value_type;
         typedef typename R::sampler_type sampler_type;
     public:
-        // If window_size is non-positive or absent, use FLAGS_bvar_dump_interval.
+        // If window_size is non-positive or absent, use FLAGS_var_dump_interval.
         PerSecond(R *var) : Base(var, -1) {}
 
         PerSecond(R *var, time_t window_size) : Base(var, window_size) {}
@@ -285,7 +285,7 @@ namespace melon::var {
             typedef typename WindowType::WindowExVar WindowExVar;
 
             WindowExAdapter(time_t window_size)
-                    : _window_size(window_size > 0 ? window_size : FLAGS_bvar_dump_interval),
+                    : _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
                       _window_ex_var(_window_size) {
             }
 
@@ -321,7 +321,7 @@ namespace melon::var {
 
     // Get data within a time window.
     // The time unit is 1 second fixed.
-    // Window not relies on other bvar.
+    // Window not relies on other var.
 
     // R must:
     // - window_size must be a constant

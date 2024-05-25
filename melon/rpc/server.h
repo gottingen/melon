@@ -718,10 +718,10 @@ friend class Controller;
     fiber_keytable_pool_t* _keytable_pool;
 
     // mutable is required for `ServerPrivateAccessor' to change this var
-    mutable melon::var::Adder<int64_t> _nerror_bvar;
-    mutable melon::var::PerSecond<melon::var::Adder<int64_t> > _eps_bvar;
+    mutable melon::var::Adder<int64_t> _nerror_var;
+    mutable melon::var::PerSecond<melon::var::Adder<int64_t> > _eps_var;
     MELON_CACHELINE_ALIGNMENT mutable int32_t _concurrency;
-    melon::var::PassiveStatus<int32_t> _concurrency_bvar;
+    melon::var::PassiveStatus<int32_t> _concurrency_var;
 
     bool _has_progressive_read_method;
 };

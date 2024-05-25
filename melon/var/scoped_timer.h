@@ -19,7 +19,7 @@
 
 #include "melon/utility/time.h"
 
-// Accumulate microseconds spent by scopes into bvar, useful for debugging.
+// Accumulate microseconds spent by scopes into var, useful for debugging.
 // Example:
 //   melon::var::Adder<int64_t> g_function1_spent;
 //   ...
@@ -30,18 +30,18 @@
 //     ...
 //   }
 // To check how many microseconds the function spend in last second, you
-// can wrap the bvar within PerSecond and make it viewable from /vars
+// can wrap the var within PerSecond and make it viewable from /vars
 //   melon::var::PerSecond<melon::var::Adder<int64_t> > g_function1_spent_second(
 //     "function1_spent_second", &g_function1_spent);
 namespace melon::var {
     template<typename T>
     class ScopedTimer {
     public:
-        explicit ScopedTimer(T &bvar)
-                : _start_time(mutil::cpuwide_time_us()), _bvar(&bvar) {}
+        explicit ScopedTimer(T &var)
+                : _start_time(mutil::cpuwide_time_us()), _var(&var) {}
 
         ~ScopedTimer() {
-            *_bvar << (mutil::cpuwide_time_us() - _start_time);
+            *_var << (mutil::cpuwide_time_us() - _start_time);
         }
 
         void reset() { _start_time = mutil::cpuwide_time_us(); }
@@ -50,7 +50,7 @@ namespace melon::var {
         DISALLOW_COPY_AND_ASSIGN(ScopedTimer);
 
         int64_t _start_time;
-        T *_bvar;
+        T *_var;
     };
 } // namespace melon::var
 

@@ -63,11 +63,11 @@ friend class Server;
 
     std::unique_ptr<ConcurrencyLimiter> _cl;
     mutil::atomic<int> _nconcurrency;
-    melon::var::Adder<int64_t>  _nerror_bvar;
+    melon::var::Adder<int64_t>  _nerror_var;
     melon::var::LatencyRecorder _latency_rec;
-    melon::var::PassiveStatus<int>  _nconcurrency_bvar;
-    melon::var::PerSecond<melon::var::Adder<int64_t>> _eps_bvar;
-    melon::var::PassiveStatus<int32_t> _max_concurrency_bvar;
+    melon::var::PassiveStatus<int>  _nconcurrency_var;
+    melon::var::PerSecond<melon::var::Adder<int64_t>> _eps_var;
+    melon::var::PassiveStatus<int32_t> _max_concurrency_var;
 };
 
 class ConcurrencyRemover {
@@ -100,7 +100,7 @@ inline void MethodStatus::OnResponded(int error_code, int64_t latency) {
     if (0 == error_code) {
         _latency_rec << latency;
     } else {
-        _nerror_bvar << 1;
+        _nerror_var << 1;
     }
     if (NULL != _cl) {
         _cl->OnResponded(error_code, latency);

@@ -36,21 +36,21 @@ DEFINE_bool(rtmp_server_close_connection_on_error, true,
             " RtmpConnectRequest.stream_multiplexing to true are not affected"
             " by this flag");
 
-struct RtmpBvars {
+struct RtmpVars {
     melon::var::Adder<int> client_count;
     melon::var::Adder<int> client_stream_count;
     melon::var::Adder<int> retrying_client_stream_count;
     melon::var::Adder<int> server_stream_count;
 
-    RtmpBvars()
+    RtmpVars()
         : client_count("rtmp_client_count")
         , client_stream_count("rtmp_client_stream_count")
         , retrying_client_stream_count("rtmp_retrying_client_stream_count")
         , server_stream_count("rtmp_server_stream_count") {
     }
 };
-inline RtmpBvars* get_rtmp_bvars() {
-    return mutil::get_leaky_singleton<RtmpBvars>();
+inline RtmpVars* get_rtmp_vars() {
+    return mutil::get_leaky_singleton<RtmpVars>();
 }
 
 namespace policy {
@@ -995,10 +995,10 @@ class RtmpClientImpl : public SharedObject {
 friend class RtmpClientStream;
 public:
     RtmpClientImpl() {
-        get_rtmp_bvars()->client_count << 1;
+        get_rtmp_vars()->client_count << 1;
     }
     ~RtmpClientImpl() {
-        get_rtmp_bvars()->client_count << -1;
+        get_rtmp_vars()->client_count << -1;
         RPC_VMLOG << "Destroying RtmpClientImpl=" << this;
     }
 
@@ -1617,12 +1617,12 @@ RtmpClientStream::RtmpClientStream()
     , _from_socketmap(true)
     , _created_stream_with_play_or_publish(false)
     , _state(STATE_UNINITIALIZED) {
-    get_rtmp_bvars()->client_stream_count << 1;
+    get_rtmp_vars()->client_stream_count << 1;
     _self_ref.reset(this);
 }
 
 RtmpClientStream::~RtmpClientStream() {
-    get_rtmp_bvars()->client_stream_count << -1;
+    get_rtmp_vars()->client_stream_count << -1;
 }
 
 void RtmpClientStream::Destroy() {
@@ -2223,14 +2223,14 @@ RtmpRetryingClientStream::RtmpRetryingClientStream()
     , _last_retry_start_time_us(0)
     , _create_timer_id(0)
     , _sub_stream_creator(NULL) {
-    get_rtmp_bvars()->retrying_client_stream_count << 1;
+    get_rtmp_vars()->retrying_client_stream_count << 1;
     _self_ref.reset(this);
 }
 
 RtmpRetryingClientStream::~RtmpRetryingClientStream() {
     delete _sub_stream_creator;
     _sub_stream_creator = NULL;
-    get_rtmp_bvars()->retrying_client_stream_count << -1;
+    get_rtmp_vars()->retrying_client_stream_count << -1;
 }
 
 void RtmpRetryingClientStream::CallOnStopIfNeeded() {
@@ -2561,7 +2561,7 @@ mutil::EndPoint RtmpRetryingClientStream::local_side() const {
 
 // =========== RtmpService ===============
 void RtmpService::OnPingResponse(const mutil::EndPoint&, uint32_t) {
-    // TODO: put into some bvars?
+    // TODO: put into some vars?
 }
 
 RtmpServerStream::RtmpServerStream()
@@ -2569,11 +2569,11 @@ RtmpServerStream::RtmpServerStream()
     , _client_supports_stream_multiplexing(false)
     , _is_publish(false)
     , _onfail_id(INVALID_FIBER_ID) {
-    get_rtmp_bvars()->server_stream_count << 1;
+    get_rtmp_vars()->server_stream_count << 1;
 }
 
 RtmpServerStream::~RtmpServerStream() {
-    get_rtmp_bvars()->server_stream_count << -1;
+    get_rtmp_vars()->server_stream_count << -1;
 }
 
 void RtmpServerStream::Destroy() {

@@ -36,7 +36,7 @@
 // mutex from all the common scenarios. Saying that you can use them freely 
 // without concerning about the overhead. Except that the mutex is very 
 // frequently acquired (>1M/s) with very little contention, in which case, the
-// overhead of timers and bvars is noticable.
+// overhead of timers and vars is noticable.
 // 
 // There are two kinds of special Mutex:
 //  - MutexWithRecorder: Create a mutex along with a shared IntRecorder which

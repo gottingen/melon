@@ -21,36 +21,37 @@
 
 namespace fiber {
 
-// A synchronization primitive to wait for multiple signallers.
-class CountdownEvent {
-public:
-    CountdownEvent(int initial_count = 1);
-    ~CountdownEvent();
+    // A synchronization primitive to wait for multiple signallers.
+    class CountdownEvent {
+    public:
+        CountdownEvent(int initial_count = 1);
 
-    // Increase current counter by |v|
-    void add_count(int v = 1);
+        ~CountdownEvent();
 
-    // Reset the counter to |v|
-    void reset(int v = 1);
+        // Increase current counter by |v|
+        void add_count(int v = 1);
 
-    // Decrease the counter by |sig|
-    // when flush is true, after signal we need to call fiber_flush
-    void signal(int sig = 1, bool flush = false);
+        // Reset the counter to |v|
+        void reset(int v = 1);
 
-    // Block current thread until the counter reaches 0.
-    // Returns 0 on success, error code otherwise.
-    // This method never returns EINTR.
-    int wait();
+        // Decrease the counter by |sig|
+        // when flush is true, after signal we need to call fiber_flush
+        void signal(int sig = 1, bool flush = false);
 
-    // Block the current thread until the counter reaches 0 or duetime has expired
-    // Returns 0 on success, error code otherwise. ETIMEDOUT is for timeout.
-    // This method never returns EINTR.
-    int timed_wait(const timespec& duetime);
+        // Block current thread until the counter reaches 0.
+        // Returns 0 on success, error code otherwise.
+        // This method never returns EINTR.
+        int wait();
 
-private:
-    int *_butex;
-    bool _wait_was_invoked;
-};
+        // Block the current thread until the counter reaches 0 or duetime has expired
+        // Returns 0 on success, error code otherwise. ETIMEDOUT is for timeout.
+        // This method never returns EINTR.
+        int timed_wait(const timespec &duetime);
+
+    private:
+        int *_butex;
+        bool _wait_was_invoked;
+    };
 
 }  // namespace fiber
 

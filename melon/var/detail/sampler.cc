@@ -105,7 +105,7 @@ namespace melon::var {
             void run();
 
             static void *sampling_thread(void *arg) {
-                mutil::PlatformThread::SetName("bvar_sampler");
+                mutil::PlatformThread::SetName("var_sampler");
                 static_cast<SamplerCollector *>(arg)->run();
                 return NULL;
             }
@@ -122,14 +122,14 @@ namespace melon::var {
         };
 
 #ifndef UNIT_TEST
-        static PassiveStatus<double> *s_cumulated_time_bvar = NULL;
-        static melon::var::PerSecond<melon::var::PassiveStatus<double> > *s_sampling_thread_usage_bvar = NULL;
+        static PassiveStatus<double> *s_cumulated_time_var = NULL;
+        static melon::var::PerSecond<melon::var::PassiveStatus<double> > *s_sampling_thread_usage_var = NULL;
 #endif
 
-        DEFINE_int32(bvar_sampler_thread_start_delay_us, 10000, "bvar sampler thread start delay us");
+        DEFINE_int32(var_sampler_thread_start_delay_us, 10000, "var sampler thread start delay us");
 
         void SamplerCollector::run() {
-            ::usleep(FLAGS_bvar_sampler_thread_start_delay_us);
+            ::usleep(FLAGS_var_sampler_thread_start_delay_us);
 
 #ifndef UNIT_TEST
             // NOTE:
@@ -137,14 +137,14 @@ namespace melon::var {
             //   may be abandoned at any time after forking.
             // * They can't created inside the constructor of SamplerCollector as well,
             //   which results in deadlock.
-            if (s_cumulated_time_bvar == NULL) {
-                s_cumulated_time_bvar =
+            if (s_cumulated_time_var == NULL) {
+                s_cumulated_time_var =
                         new PassiveStatus<double>(get_cumulated_time, this);
             }
-            if (s_sampling_thread_usage_bvar == NULL) {
-                s_sampling_thread_usage_bvar =
+            if (s_sampling_thread_usage_var == NULL) {
+                s_sampling_thread_usage_var =
                         new melon::var::PerSecond<melon::var::PassiveStatus<double> >(
-                                "bvar_sampler_collector_usage", s_cumulated_time_bvar, 10);
+                                "var_sampler_collector_usage", s_cumulated_time_var, 10);
             }
 #endif
 
@@ -185,7 +185,7 @@ namespace melon::var {
                 } else {
                     if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                         consecutive_nosleep = 0;
-                        MLOG(WARNING) << "bvar is busy at sampling for "
+                        MLOG(WARNING) << "var is busy at sampling for "
                                      << WARN_NOSLEEP_THRESHOLD << " seconds!";
                     }
                 }
@@ -196,12 +196,12 @@ namespace melon::var {
 
         Sampler::~Sampler() {}
 
-        DEFINE_bool(bvar_enable_sampling, true, "is enable bvar sampling");
+        DEFINE_bool(var_enable_sampling, true, "is enable var sampling");
 
         void Sampler::schedule() {
             // since the SamplerCollector is initialized before the program starts
             // flags will not take effect if used in the SamplerCollector constructor
-            if (FLAGS_bvar_enable_sampling) {
+            if (FLAGS_var_enable_sampling) {
                 *mutil::get_leaky_singleton<SamplerCollector>() << this;
             }
         }

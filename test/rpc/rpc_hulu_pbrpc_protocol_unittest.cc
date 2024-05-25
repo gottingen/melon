@@ -228,7 +228,7 @@ TEST_F(HuluTest, process_request_failed_socket) {
     melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     _socket->SetFailed();
     ProcessMessage(melon::policy::ProcessHuluRequest, msg, false);
-    ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(0ll, _server._nerror_var.get_value());
     CheckResponseCode(true, 0);
 }
 
@@ -239,7 +239,7 @@ TEST_F(HuluTest, process_request_logoff) {
     melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     _server._status = melon::Server::READY;
     ProcessMessage(melon::policy::ProcessHuluRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::ELOGOFF);
 }
 
@@ -249,7 +249,7 @@ TEST_F(HuluTest, process_request_wrong_method) {
     meta.set_method_index(10);
     melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     ProcessMessage(melon::policy::ProcessHuluRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::ENOMETHOD);
 }
 

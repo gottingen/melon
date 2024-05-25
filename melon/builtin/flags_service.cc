@@ -35,10 +35,10 @@ namespace melon {
 
     DEFINE_bool(immutable_flags, false, "gflags on /flags page can't be modified");
 
-// Replace some characters with html replacements. If the input string does
-// not need to be changed, return its const reference directly, otherwise put
-// the replaced string in backing string and return its const reference.
-// TODO(gejun): Make this function more general.
+    // Replace some characters with html replacements. If the input string does
+    // not need to be changed, return its const reference directly, otherwise put
+    // the replaced string in backing string and return its const reference.
+    // TODO(gejun): Make this function more general.
     static std::string HtmlReplace(const std::string &s) {
         std::string b;
         size_t last_pos = 0;

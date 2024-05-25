@@ -35,7 +35,7 @@ public:
     }
 
     void AddError() {
-        _server->_nerror_bvar << 1;
+        _server->_nerror_var << 1;
     }
 
     // Returns true if the `max_concurrency' limit is not reached.

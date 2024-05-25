@@ -1166,7 +1166,7 @@ H2StreamContext::H2StreamContext(bool read_body_progressively)
     , _correlation_id(INVALID_FIBER_ID.value) {
     header().set_version(2, 0);
 #ifndef NDEBUG
-    get_h2_bvars()->h2_stream_context_count << 1;
+    get_h2_vars()->h2_stream_context_count << 1;
 #endif
 }
 
@@ -1179,7 +1179,7 @@ void H2StreamContext::Init(H2Context* conn_ctx, int stream_id) {
 
 H2StreamContext::~H2StreamContext() {
 #ifndef NDEBUG
-    get_h2_bvars()->h2_stream_context_count << -1;
+    get_h2_vars()->h2_stream_context_count << -1;
 #endif
 }
 

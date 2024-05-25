@@ -67,11 +67,11 @@ namespace melon {
         }
         os << "non_service_error: ";
         if (use_html) {
-            os << "<span id=\"value-" << server->_nerror_bvar.name() << "\">";
+            os << "<span id=\"value-" << server->_nerror_var.name() << "\">";
         }
-        os << server->_nerror_bvar.get_value();
+        os << server->_nerror_var.get_value();
         if (use_html) {
-            os << "</span></p><div class=\"detail\"><div id=\"" << server->_nerror_bvar.name()
+            os << "</span></p><div class=\"detail\"><div id=\"" << server->_nerror_var.name()
                << "\" class=\"flot-placeholder\"></div></div>";
         }
         os << '\n';

@@ -680,7 +680,7 @@ TEST_F(BuiltinServiceTest, bad_method) {
 }
 
 TEST_F(BuiltinServiceTest, vars) {
-    // Start server to show bvars inside 
+    // Start server to show vars inside
     ASSERT_EQ(0, _server.Start("127.0.0.1:9798", nullptr));
     melon::VarsService service;
     melon::VarsRequest req;

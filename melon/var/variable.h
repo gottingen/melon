@@ -82,14 +82,14 @@ namespace melon::var {
         bool test_only;
     };
 
-    // Base class of all bvar.
+    // Base class of all var.
     //
     // About thread-safety:
-    //   bvar is thread-compatible:
+    //   var is thread-compatible:
     //     Namely you can create/destroy/expose/hide or do whatever you want to
-    //     different bvar simultaneously in different threads.
-    //   bvar is NOT thread-safe:
-    //     You should not operate one bvar from different threads simultaneously.
+    //     different var simultaneously in different threads.
+    //   var is NOT thread-safe:
+    //     You should not operate one var from different threads simultaneously.
     //     If you need to, protect the ops with locks. Similarly with ordinary
     //     variables, const methods are thread-safe, namely you can call
     //     describe()/get_description()/get_value() etc from diferent threads
@@ -204,7 +204,7 @@ namespace melon::var {
     private:
         std::string _name;
 
-        // bvar uses TLS, thus copying/assignment need to copy TLS stuff as well,
+        // var uses TLS, thus copying/assignment need to copy TLS stuff as well,
         // which is heavy. We disable copying/assignment now.
         DISALLOW_COPY_AND_ASSIGN(Variable);
     };

@@ -37,9 +37,9 @@ static int cast_cl(void* arg) {
 
 MethodStatus::MethodStatus()
     : _nconcurrency(0)
-    , _nconcurrency_bvar(cast_int, &_nconcurrency)
-    , _eps_bvar(&_nerror_bvar)
-    , _max_concurrency_bvar(cast_cl, &_cl)
+    , _nconcurrency_var(cast_int, &_nconcurrency)
+    , _eps_var(&_nerror_var)
+    , _max_concurrency_var(cast_cl, &_cl)
 {
 }
 
@@ -47,20 +47,20 @@ MethodStatus::~MethodStatus() {
 }
 
 int MethodStatus::Expose(const mutil::StringPiece& prefix) {
-    if (_nconcurrency_bvar.expose_as(prefix, "concurrency") != 0) {
+    if (_nconcurrency_var.expose_as(prefix, "concurrency") != 0) {
         return -1;
     }
-    if (_nerror_bvar.expose_as(prefix, "error") != 0) {
+    if (_nerror_var.expose_as(prefix, "error") != 0) {
         return -1;
     }
-    if (_eps_bvar.expose_as(prefix, "eps") != 0) {
+    if (_eps_var.expose_as(prefix, "eps") != 0) {
         return -1;
     }
     if (_latency_rec.expose(prefix) != 0) {
         return -1;
     }
     if (_cl) {
-        if (_max_concurrency_bvar.expose_as(prefix, "max_concurrency") != 0) {
+        if (_max_concurrency_var.expose_as(prefix, "max_concurrency") != 0) {
             return -1;
         }
     }
@@ -77,7 +77,7 @@ void OutputTextValue(std::ostream& os,
 template <typename T>
 void OutputValue(std::ostream& os,
                  const char* prefix,
-                 const std::string& bvar_name,
+                 const std::string& var_name,
                  const T& value,
                  const DescribeOptions& options,
                  bool expand) {
@@ -86,9 +86,9 @@ void OutputValue(std::ostream& os,
         if (expand) {
             os << " default_expand";
         }
-        os << "\">" << prefix << "<span id=\"value-" << bvar_name << "\">"
+        os << "\">" << prefix << "<span id=\"value-" << var_name << "\">"
            << value
-           << "</span></p><div class=\"detail\"><div id=\"" << bvar_name
+           << "</span></p><div class=\"detail\"><div id=\"" << var_name
            << "\" class=\"flot-placeholder\"></div></div>\n";
     } else {
         return OutputTextValue(os, prefix, value);
@@ -106,10 +106,10 @@ void MethodStatus::Describe(
                 options, expand);
 
     // errorous requests
-    OutputValue(os, "error: ", _nerror_bvar.name(), _nerror_bvar.get_value(),
+    OutputValue(os, "error: ", _nerror_var.name(), _nerror_var.get_value(),
                 options, false);
-    OutputValue(os, "eps: ", _eps_bvar.name(),
-                _eps_bvar.get_value(1), options, false);
+    OutputValue(os, "eps: ", _eps_var.name(),
+                _eps_var.get_value(1), options, false);
 
     // latencies
     OutputValue(os, "latency: ", _latency_rec.latency_name(),
@@ -136,10 +136,10 @@ void MethodStatus::Describe(
                 _latency_rec.max_latency(), options, false);
 
     // Concurrency
-    OutputValue(os, "concurrency: ", _nconcurrency_bvar.name(),
+    OutputValue(os, "concurrency: ", _nconcurrency_var.name(),
                 _nconcurrency, options, false);
     if (_cl) {
-        OutputValue(os, "max_concurrency: ", _max_concurrency_bvar.name(),
+        OutputValue(os, "max_concurrency: ", _max_concurrency_var.name(),
                     MaxConcurrency(), options, false);
     }
 }

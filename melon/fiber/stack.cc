@@ -26,14 +26,15 @@
 #include "melon/fiber/types.h"                        // FIBER_STACKTYPE_*
 #include "melon/fiber/stack.h"
 
-DEFINE_int32(stack_size_small, 32768, "size of small stacks");
-DEFINE_int32(stack_size_normal, 1048576, "size of normal stacks");
-DEFINE_int32(stack_size_large, 8388608, "size of large stacks");
-DEFINE_int32(guard_page_size, 4096, "size of guard page, allocate stacks by malloc if it's 0(not recommended)");
-DEFINE_int32(tc_stack_small, 32, "maximum small stacks cached by each thread");
-DEFINE_int32(tc_stack_normal, 8, "maximum normal stacks cached by each thread");
 
 namespace fiber {
+
+    DEFINE_int32(stack_size_small, 32768, "size of small stacks");
+    DEFINE_int32(stack_size_normal, 1048576, "size of normal stacks");
+    DEFINE_int32(stack_size_large, 8388608, "size of large stacks");
+    DEFINE_int32(guard_page_size, 4096, "size of guard page, allocate stacks by malloc if it's 0(not recommended)");
+    DEFINE_int32(tc_stack_small, 32, "maximum small stacks cached by each thread");
+    DEFINE_int32(tc_stack_normal, 8, "maximum normal stacks cached by each thread");
 
 MELON_CASSERT(FIBER_STACKTYPE_PTHREAD == STACK_TYPE_PTHREAD, must_match);
 MELON_CASSERT(FIBER_STACKTYPE_SMALL == STACK_TYPE_SMALL, must_match);
@@ -45,7 +46,7 @@ static mutil::static_atomic<int64_t> s_stack_count = MUTIL_STATIC_ATOMIC_INIT(0)
 static int64_t get_stack_count(void*) {
     return s_stack_count.load(mutil::memory_order_relaxed);
 }
-static melon::var::PassiveStatus<int64_t> bvar_stack_count(
+static melon::var::PassiveStatus<int64_t> var_stack_count(
     "fiber_stack_count", get_stack_count, NULL);
 
 int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) {

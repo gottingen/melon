@@ -33,7 +33,7 @@ TEST_F(FileDumperTest, filters) {
     melon::var::Adder<int> a3("a_error");
     melon::var::Adder<int> a4("process_*");
     melon::var::Adder<int> a5("default");
-    google::SetCommandLineOption("bvar_dump_interval", "1");
-    google::SetCommandLineOption("bvar_dump", "true");
+    google::SetCommandLineOption("var_dump_interval", "1");
+    google::SetCommandLineOption("var_dump", "true");
     sleep(2);
 }

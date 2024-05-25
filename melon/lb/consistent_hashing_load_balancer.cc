@@ -30,7 +30,7 @@ namespace melon::policy {
 }  // namespace melon::policy
 namespace melon::lb {
 
-// TODO: or 160?
+    // TODO: or 160?
     DEFINE_int32(chash_num_replicas, 100,
                  "default number of replicas per server in chash");
 

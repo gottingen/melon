@@ -21,9 +21,9 @@
 
 namespace fiber {
 
-// Make blocking ops in the pthread returns -1 and EINTR.
-// Returns what pthread_kill returns.
-int interrupt_pthread(pthread_t th);
+    // Make blocking ops in the pthread returns -1 and EINTR.
+    // Returns what pthread_kill returns.
+    int interrupt_pthread(pthread_t th);
 
 }  // namespace fiber
 
