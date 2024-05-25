@@ -9,10 +9,10 @@
 #include <algorithm>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #if defined(ARCH_CPU_ARM_FAMILY) && (defined(OS_ANDROID) || defined(OS_LINUX))
-#include "melon/utility/file_util.h"
+#include <melon/utility/file_util.h>
 #include "melon/utility/lazy_instance.h"
 #endif
 

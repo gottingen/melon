@@ -4,10 +4,10 @@
 
 #include "melon/utility/threading/watchdog.h"
 
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
 

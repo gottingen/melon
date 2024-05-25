@@ -12,10 +12,10 @@
 #include <algorithm>
 #include <limits>
 
-#include "melon/utility/file_util.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/file_util.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
+#include <melon/utility/build_config.h>
 #include <gtest/gtest.h>
 
 #if defined(OS_POSIX)

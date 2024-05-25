@@ -4,7 +4,7 @@
 
 #include "melon/utility/memory/scoped_vector.h"
 
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/memory/scoped_ptr.h>
 #include <gtest/gtest.h>
 
 namespace {

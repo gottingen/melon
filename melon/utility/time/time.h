@@ -27,7 +27,7 @@
 
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #if defined(OS_MACOSX)
 #include <CoreFoundation/CoreFoundation.h>

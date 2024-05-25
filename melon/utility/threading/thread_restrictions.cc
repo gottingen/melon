@@ -7,7 +7,7 @@
 #if ENABLE_THREAD_RESTRICTIONS
 
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/threading/thread_local.h"
 
 namespace mutil {

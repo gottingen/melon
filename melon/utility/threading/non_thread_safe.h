@@ -9,7 +9,7 @@
 // non dll-interface class 'Bar' used as base for dll-interface class 'Foo'.
 // There is a specific macro to do it: NON_EXPORTED_BASE(), defined in
 // compiler_specific.h
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 
 // See comment at top of thread_checker.h
 #if (!defined(NDEBUG) || defined(DMCHECK_ALWAYS_ON))

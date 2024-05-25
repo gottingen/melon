@@ -5,8 +5,8 @@
 // The purpose of this file is to supply the macro definintions necessary
 // to make third_party/dmg_fp/dtoa.cc threadsafe.
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/synchronization/lock.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/synchronization/lock.h>
 
 // We need two locks because they're sometimes grabbed at the same time.
 // A single lock would lead to an attempted recursive grab.

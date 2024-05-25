@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/files/scoped_file.h"
+#include <melon/utility/files/scoped_file.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 #if defined(OS_POSIX)
 #include <unistd.h>

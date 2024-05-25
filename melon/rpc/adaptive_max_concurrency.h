@@ -1,101 +1,106 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
-#define MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_
+#pragma once
 
-
-
-#include "melon/utility/strings/string_piece.h"
-#include "melon/proto/rpc/options.pb.h"
+#include <melon/utility/strings/string_piece.h>
+#include <melon/proto/rpc/options.pb.h>
 
 namespace melon {
 
 // timeout concurrency limiter config
-struct TimeoutConcurrencyConf {
-    int64_t timeout_ms;
-    int max_concurrency;
-};
+    struct TimeoutConcurrencyConf {
+        int64_t timeout_ms;
+        int max_concurrency;
+    };
 
-class AdaptiveMaxConcurrency{
-public:
-    explicit AdaptiveMaxConcurrency();
-    explicit AdaptiveMaxConcurrency(int max_concurrency);
-    explicit AdaptiveMaxConcurrency(const mutil::StringPiece& value);
-    explicit AdaptiveMaxConcurrency(const TimeoutConcurrencyConf& value);
+    class AdaptiveMaxConcurrency {
+    public:
+        explicit AdaptiveMaxConcurrency();
 
-    // Non-trivial destructor to prevent AdaptiveMaxConcurrency from being
-    // passed to variadic arguments without explicit type conversion.
-    // eg:
-    // printf("%d", options.max_concurrency)                  // compile error
-    // printf("%s", options.max_concurrency.value().c_str()) // ok
-    ~AdaptiveMaxConcurrency() {}
+        explicit AdaptiveMaxConcurrency(int max_concurrency);
 
-    void operator=(int max_concurrency);
-    void operator=(const mutil::StringPiece& value);
-    void operator=(const TimeoutConcurrencyConf& value);
+        explicit AdaptiveMaxConcurrency(const mutil::StringPiece &value);
 
-    // 0  for type="unlimited"
-    // >0 for type="constant"
-    // <0 for type="user-defined"
-    operator int() const { return _max_concurrency; }
-    operator TimeoutConcurrencyConf() const { return _timeout_conf; }
+        explicit AdaptiveMaxConcurrency(const TimeoutConcurrencyConf &value);
 
-    // "unlimited" for type="unlimited"
-    // "10" "20" "30" for type="constant"
-    // "user-defined" for type="user-defined"
-    const std::string& value() const { return _value; }
+        // Non-trivial destructor to prevent AdaptiveMaxConcurrency from being
+        // passed to variadic arguments without explicit type conversion.
+        // eg:
+        // printf("%d", options.max_concurrency)                  // compile error
+        // printf("%s", options.max_concurrency.value().c_str()) // ok
+        ~AdaptiveMaxConcurrency() {}
 
-    // "unlimited", "constant" or "user-defined"
-    const std::string& type() const;
+        void operator=(int max_concurrency);
 
-    // Get strings filled with "unlimited" and "constant"
-    static const std::string& UNLIMITED();
-    static const std::string& CONSTANT();
+        void operator=(const mutil::StringPiece &value);
 
-private:
-    std::string _value;
-    int _max_concurrency;
-    TimeoutConcurrencyConf
-        _timeout_conf;  // TODO std::varient for different type
-};
+        void operator=(const TimeoutConcurrencyConf &value);
 
-inline std::ostream& operator<<(std::ostream& os, const AdaptiveMaxConcurrency& amc) {
-    return os << amc.value();
-}
+        // 0  for type="unlimited"
+        // >0 for type="constant"
+        // <0 for type="user-defined"
+        operator int() const { return _max_concurrency; }
 
-bool operator==(const AdaptiveMaxConcurrency& adaptive_concurrency,
-                       const mutil::StringPiece& concurrency);
+        operator TimeoutConcurrencyConf() const { return _timeout_conf; }
 
-inline bool operator==(const mutil::StringPiece& concurrency,
-                       const AdaptiveMaxConcurrency& adaptive_concurrency) {
-    return adaptive_concurrency == concurrency;
-}
+        // "unlimited" for type="unlimited"
+        // "10" "20" "30" for type="constant"
+        // "user-defined" for type="user-defined"
+        const std::string &value() const { return _value; }
 
-inline bool operator!=(const AdaptiveMaxConcurrency& adaptive_concurrency,
-                       const mutil::StringPiece& concurrency) {
-    return !(adaptive_concurrency == concurrency);
-}
+        // "unlimited", "constant" or "user-defined"
+        const std::string &type() const;
 
-inline bool operator!=(const mutil::StringPiece& concurrency,
-                  const AdaptiveMaxConcurrency& adaptive_concurrency) {
-    return !(adaptive_concurrency == concurrency);
-}
+        // Get strings filled with "unlimited" and "constant"
+        static const std::string &UNLIMITED();
+
+        static const std::string &CONSTANT();
+
+    private:
+        std::string _value;
+        int _max_concurrency;
+        TimeoutConcurrencyConf
+                _timeout_conf;  // TODO std::varient for different type
+    };
+
+    inline std::ostream &operator<<(std::ostream &os, const AdaptiveMaxConcurrency &amc) {
+        return os << amc.value();
+    }
+
+    bool operator==(const AdaptiveMaxConcurrency &adaptive_concurrency,
+                    const mutil::StringPiece &concurrency);
+
+    inline bool operator==(const mutil::StringPiece &concurrency,
+                           const AdaptiveMaxConcurrency &adaptive_concurrency) {
+        return adaptive_concurrency == concurrency;
+    }
+
+    inline bool operator!=(const AdaptiveMaxConcurrency &adaptive_concurrency,
+                           const mutil::StringPiece &concurrency) {
+        return !(adaptive_concurrency == concurrency);
+    }
+
+    inline bool operator!=(const mutil::StringPiece &concurrency,
+                           const AdaptiveMaxConcurrency &adaptive_concurrency) {
+        return !(adaptive_concurrency == concurrency);
+    }
 
 }  // namespace melon
-
-
-#endif // MELON_RPC_ADAPTIVE_MAX_CONCURRENCY_H_

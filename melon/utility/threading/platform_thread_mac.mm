@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 
 #import <Foundation/Foundation.h>
 #include <mach/mach.h>
@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/threading/thread_id_name_manager.h"
 //#include "melon/utility/tracked_objects.h"
 

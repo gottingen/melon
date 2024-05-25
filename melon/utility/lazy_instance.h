@@ -37,13 +37,13 @@
 
 #include <new>  // For placement new.
 
-#include "melon/utility/atomicops.h"
+#include <melon/utility/atomicops.h>
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
 #include "melon/utility/debug/leak_annotations.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/memory/aligned_memory.h"
-#include "melon/utility/third_party/dynamic_annotations/dynamic_annotations.h"
+#include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h>
 #include "melon/utility/threading/thread_restrictions.h"
 
 // LazyInstance uses its own struct initializer-list style static

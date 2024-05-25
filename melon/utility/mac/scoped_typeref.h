@@ -6,8 +6,8 @@
 #define MUTIL_MAC_SCOPED_TYPEREF_H_
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/compiler_specific.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/compiler_specific.h>
+#include <melon/utility/logging.h>
 #include "melon/utility/memory/scoped_policy.h"
 
 namespace mutil {

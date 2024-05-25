@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #if defined(COMPILER_MSVC)
 // MSDN says to #include <intrin.h>, but that breaks the VS2005 build.
@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #include "melon/utility/location.h"
-#include "melon/utility/strings/string_number_conversions.h"
+#include <melon/utility/strings/string_number_conversions.h>
 #include "melon/utility/strings/stringprintf.h"
 
 namespace tracked_objects {

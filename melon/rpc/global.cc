@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -20,56 +24,56 @@
 #include <fcntl.h>                               // O_RDONLY
 #include <signal.h>
 
-#include "melon/utility/build_config.h"                  // OS_LINUX
+#include <melon/utility/build_config.h>                  // OS_LINUX
 // Naming services
-#include "melon/naming/file_naming_service.h"
-#include "melon/naming/list_naming_service.h"
-#include "melon/naming/domain_naming_service.h"
-#include "melon/naming/remote_file_naming_service.h"
-#include "melon/naming/consul_naming_service.h"
-#include "melon/naming/discovery_naming_service.h"
-#include "melon/naming/sns_naming_service.h"
-#include "melon/naming/nacos_naming_service.h"
+#include <melon/naming/file_naming_service.h>
+#include <melon/naming/list_naming_service.h>
+#include <melon/naming/domain_naming_service.h>
+#include <melon/naming/remote_file_naming_service.h>
+#include <melon/naming/consul_naming_service.h>
+#include <melon/naming/discovery_naming_service.h>
+#include <melon/naming/sns_naming_service.h>
+#include <melon/naming/nacos_naming_service.h>
 
 // Load Balancers
-#include "melon/lb/round_robin_load_balancer.h"
-#include "melon/lb/weighted_round_robin_load_balancer.h"
-#include "melon/lb/randomized_load_balancer.h"
-#include "melon/lb/weighted_randomized_load_balancer.h"
-#include "melon/lb/locality_aware_load_balancer.h"
-#include "melon/lb/consistent_hashing_load_balancer.h"
-#include "melon/rpc/policy/hasher.h"
-#include "melon/rpc/policy/dynpart_load_balancer.h"
+#include <melon/lb/round_robin_load_balancer.h>
+#include <melon/lb/weighted_round_robin_load_balancer.h>
+#include <melon/lb/randomized_load_balancer.h>
+#include <melon/lb/weighted_randomized_load_balancer.h>
+#include <melon/lb/locality_aware_load_balancer.h>
+#include <melon/lb/consistent_hashing_load_balancer.h>
+#include <melon/rpc/policy/hasher.h>
+#include <melon/rpc/policy/dynpart_load_balancer.h>
 
 // Compress handlers
-#include "melon/rpc/compress.h"
-#include "melon/compress/gzip_compress.h"
-#include "melon/compress/snappy_compress.h"
+#include <melon/rpc/compress.h>
+#include <melon/compress/gzip_compress.h>
+#include <melon/compress/snappy_compress.h>
 
 // Protocols
-#include "melon/rpc/protocol.h"
-#include "melon/rpc/policy/melon_rpc_protocol.h"
-#include "melon/rpc/policy/baidu_rpc_protocol.h"
-#include "melon/rpc/policy/http_rpc_protocol.h"
-#include "melon/rpc/policy/http2_rpc_protocol.h"
-#include "melon/rpc/policy/hulu_pbrpc_protocol.h"
-#include "melon/rpc/policy/memcache_binary_protocol.h"
-#include "melon/rpc/policy/streaming_rpc_protocol.h"
-#include "melon/rpc/policy/mongo_protocol.h"
-#include "melon/rpc/policy/redis_protocol.h"
-#include "melon/rpc/policy/rtmp_protocol.h"
+#include <melon/rpc/protocol.h>
+#include <melon/rpc/policy/melon_rpc_protocol.h>
+#include <melon/rpc/policy/baidu_rpc_protocol.h>
+#include <melon/rpc/policy/http_rpc_protocol.h>
+#include <melon/rpc/policy/http2_rpc_protocol.h>
+#include <melon/rpc/policy/hulu_pbrpc_protocol.h>
+#include <melon/rpc/policy/memcache_binary_protocol.h>
+#include <melon/rpc/policy/streaming_rpc_protocol.h>
+#include <melon/rpc/policy/mongo_protocol.h>
+#include <melon/rpc/policy/redis_protocol.h>
+#include <melon/rpc/policy/rtmp_protocol.h>
 
 // Concurrency Limiters
-#include "melon/rpc/concurrency_limiter.h"
-#include "melon/rpc/policy/auto_concurrency_limiter.h"
-#include "melon/rpc/policy/constant_concurrency_limiter.h"
-#include "melon/rpc/policy/timeout_concurrency_limiter.h"
+#include <melon/rpc/concurrency_limiter.h>
+#include <melon/rpc/policy/auto_concurrency_limiter.h>
+#include <melon/rpc/policy/constant_concurrency_limiter.h>
+#include <melon/rpc/policy/timeout_concurrency_limiter.h>
 
-#include "melon/rpc/input_messenger.h"     // get_or_new_client_side_messenger
-#include "melon/rpc/socket_map.h"          // SocketMapList
-#include "melon/rpc/server.h"
-#include "melon/rpc/trackme.h"             // TrackMe
-#include "melon/rpc/details/usercode_backup_pool.h"
+#include <melon/rpc/input_messenger.h>     // get_or_new_client_side_messenger
+#include <melon/rpc/socket_map.h>          // SocketMapList
+#include <melon/rpc/server.h>
+#include <melon/rpc/trackme.h>             // TrackMe
+#include <melon/rpc/details/usercode_backup_pool.h>
 
 #if defined(OS_LINUX)
 
@@ -77,8 +81,8 @@
 
 #endif
 
-#include "melon/utility/fd_guard.h"
-#include "melon/utility/files/file_watcher.h"
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/files/file_watcher.h>
 
 extern "C" {
 // defined in gperftools/malloc_extension_c.h
@@ -95,7 +99,7 @@ namespace melon {
     MELON_VALIDATE_GFLAG(free_memory_to_system_interval, PassValidate);
 
     namespace policy {
-// Defined in http_rpc_protocol.cpp
+        // Defined in http_rpc_protocol.cpp
         void InitCommonStrings();
     }
 

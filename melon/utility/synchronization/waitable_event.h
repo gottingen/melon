@@ -16,7 +16,7 @@
 #include <list>
 #include <utility>
 #include "melon/utility/memory/ref_counted.h"
-#include "melon/utility/synchronization/lock.h"
+#include <melon/utility/synchronization/lock.h>
 #endif
 
 namespace mutil {

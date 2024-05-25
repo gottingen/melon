@@ -7,7 +7,7 @@
 #include "melon/utility/callback_helpers.h"
 #include "melon/utility/callback_internal.h"
 #include "melon/utility/memory/ref_counted.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/memory/scoped_ptr.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

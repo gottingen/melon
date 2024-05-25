@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include <gtest/gtest.h>
 
 #if defined(OS_ANDROID)

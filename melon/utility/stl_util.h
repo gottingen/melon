@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 

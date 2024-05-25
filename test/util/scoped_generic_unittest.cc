@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "melon/utility/scoped_generic.h"
+#include <melon/utility/scoped_generic.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

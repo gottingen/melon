@@ -5,7 +5,7 @@
 #ifndef MUTIL_STRINGS_SAFE_SPRINTF_H_
 #define MUTIL_STRINGS_SAFE_SPRINTF_H_
 
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #include <stddef.h>
 #include <stdint.h>

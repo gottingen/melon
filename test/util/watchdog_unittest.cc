@@ -4,10 +4,10 @@
 
 #include "melon/utility/threading/watchdog.h"
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/synchronization/spin_wait.h"
-#include "melon/utility/threading/platform_thread.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/threading/platform_thread.h>
+#include <melon/utility/time/time.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

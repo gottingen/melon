@@ -37,7 +37,7 @@
 #ifndef MUTIL_MEMORY_LINKED_PTR_H_
 #define MUTIL_MEMORY_LINKED_PTR_H_
 
-#include "melon/utility/logging.h"  // for MCHECK macros
+#include <melon/utility/logging.h>  // for MCHECK macros
 
 // This is used internally by all instances of linked_ptr<>.  It needs to be
 // a non-template class because different types of linked_ptr<> can refer to

@@ -10,7 +10,7 @@
 
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 

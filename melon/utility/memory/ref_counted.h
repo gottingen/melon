@@ -9,9 +9,9 @@
 
 #include "melon/utility/atomic_ref_count.h"
 #include "melon/utility/base_export.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #ifndef NDEBUG
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #endif
 #include "melon/utility/threading/thread_collision_warner.h"
 

@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -21,55 +25,55 @@
 #include <sys/stat.h>                               // mkdir
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>             // ServiceDescriptor
-#include "melon/proto/idl_options.pb.h"                         // option(idl_support)
-#include "melon/fiber/unstable.h"                       // fiber_keytable_pool_init
-#include "melon/utility/macros.h"                            // ARRAY_SIZE
-#include "melon/utility/fd_guard.h"                          // fd_guard
-#include "melon/utility/logging.h"                           // MCHECK
-#include "melon/utility/time.h"
-#include "melon/utility/class_name.h"
-#include "melon/utility/string_printf.h"
-#include "melon/rpc/log.h"
-#include "melon/rpc/compress.h"
-#include "melon/rpc/global.h"
-#include "melon/rpc/socket_map.h"                   // SocketMapList
-#include "melon/rpc/acceptor.h"                     // Acceptor
-#include "melon/rpc/details/ssl_helper.h"           // CreateServerSSLContext
-#include "melon/rpc/protocol.h"                     // ListProtocols
-#include "melon/builtin/bad_method_service.h"   // BadMethodService
-#include "melon/builtin/get_favicon_service.h"
-#include "melon/builtin/get_js_service.h"
-#include "melon/builtin/grpc_health_check_service.h"  // GrpcHealthCheckService
-#include "melon/builtin/version_service.h"
-#include "melon/builtin/health_service.h"
-#include "melon/builtin/list_service.h"
-#include "melon/builtin/status_service.h"
-#include "melon/builtin/protobufs_service.h"
-#include "melon/builtin/threads_service.h"
-#include "melon/builtin/vlog_service.h"
-#include "melon/builtin/index_service.h"        // IndexService
-#include "melon/builtin/connections_service.h"  // ConnectionsService
-#include "melon/builtin/flags_service.h"        // FlagsService
-#include "melon/builtin/vars_service.h"         // VarsService
-#include "melon/builtin/rpcz_service.h"         // RpczService
-#include "melon/builtin/dir_service.h"          // DirService
-#include "melon/builtin/pprof_service.h"        // PProfService
-#include "melon/builtin/fibers_service.h"     // FibersService
-#include "melon/builtin/ids_service.h"          // IdsService
-#include "melon/builtin/sockets_service.h"      // SocketsService
-#include "melon/builtin/hotspots_service.h"     // HotspotsService
-#include "melon/builtin/prometheus_metrics_service.h"
-#include "melon/builtin/memory_service.h"
-#include "melon/rpc/details/method_status.h"
-#include "melon/rpc/load_balancer.h"
-#include "melon/naming/naming_service.h"
-#include "melon/rpc/simple_data_pool.h"
-#include "melon/rpc/server.h"
-#include "melon/rpc/trackme.h"
-#include "melon/rpc/restful.h"
-#include "melon/rpc/rtmp/rtmp.h"
-#include "melon/builtin/common.h"               // GetProgramName
-#include "melon/rpc/details/tcmalloc_extension.h"
+#include <melon/proto/idl_options.pb.h>                         // option(idl_support)
+#include <melon/fiber/unstable.h>                       // fiber_keytable_pool_init
+#include <melon/utility/macros.h>                            // ARRAY_SIZE
+#include <melon/utility/fd_guard.h>                          // fd_guard
+#include <melon/utility/logging.h>                           // MCHECK
+#include <melon/utility/time.h>
+#include <melon/utility/class_name.h>
+#include <melon/utility/string_printf.h>
+#include <melon/rpc/log.h>
+#include <melon/rpc/compress.h>
+#include <melon/rpc/global.h>
+#include <melon/rpc/socket_map.h>                   // SocketMapList
+#include <melon/rpc/acceptor.h>                     // Acceptor
+#include <melon/rpc/details/ssl_helper.h>           // CreateServerSSLContext
+#include <melon/rpc/protocol.h>                     // ListProtocols
+#include <melon/builtin/bad_method_service.h>   // BadMethodService
+#include <melon/builtin/get_favicon_service.h>
+#include <melon/builtin/get_js_service.h>
+#include <melon/builtin/grpc_health_check_service.h>  // GrpcHealthCheckService
+#include <melon/builtin/version_service.h>
+#include <melon/builtin/health_service.h>
+#include <melon/builtin/list_service.h>
+#include <melon/builtin/status_service.h>
+#include <melon/builtin/protobufs_service.h>
+#include <melon/builtin/threads_service.h>
+#include <melon/builtin/vlog_service.h>
+#include <melon/builtin/index_service.h>        // IndexService
+#include <melon/builtin/connections_service.h>  // ConnectionsService
+#include <melon/builtin/flags_service.h>        // FlagsService
+#include <melon/builtin/vars_service.h>         // VarsService
+#include <melon/builtin/rpcz_service.h>         // RpczService
+#include <melon/builtin/dir_service.h>          // DirService
+#include <melon/builtin/pprof_service.h>        // PProfService
+#include <melon/builtin/fibers_service.h>     // FibersService
+#include <melon/builtin/ids_service.h>          // IdsService
+#include <melon/builtin/sockets_service.h>      // SocketsService
+#include <melon/builtin/hotspots_service.h>     // HotspotsService
+#include <melon/builtin/prometheus_metrics_service.h>
+#include <melon/builtin/memory_service.h>
+#include <melon/rpc/details/method_status.h>
+#include <melon/rpc/load_balancer.h>
+#include <melon/naming/naming_service.h>
+#include <melon/rpc/simple_data_pool.h>
+#include <melon/rpc/server.h>
+#include <melon/rpc/trackme.h>
+#include <melon/rpc/restful.h>
+#include <melon/rpc/rtmp/rtmp.h>
+#include <melon/builtin/common.h>               // GetProgramName
+#include <melon/rpc/details/tcmalloc_extension.h>
 #include <melon/fiber/key.h>
 #include <melon/fiber/config.h>
 

@@ -4,9 +4,9 @@
 
 #include "melon/utility/threading/simple_thread.h"
 
-#include "melon/utility/logging.h"
-#include "melon/utility/strings/string_number_conversions.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/strings/string_number_conversions.h>
+#include <melon/utility/threading/platform_thread.h>
 #include "melon/utility/threading/thread_restrictions.h"
 
 namespace mutil {

@@ -6,7 +6,7 @@
 #define MUTIL_DEBUG_LEAK_ANNOTATIONS_H_
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 // This file defines macros which can be used to annotate intentional memory
 // leaks. Support for annotations is implemented in LeakSanitizer. Annotated

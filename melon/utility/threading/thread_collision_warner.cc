@@ -4,8 +4,8 @@
 
 #include "melon/utility/threading/thread_collision_warner.h"
 
-#include "melon/utility/logging.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
 

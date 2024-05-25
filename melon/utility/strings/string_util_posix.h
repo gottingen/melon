@@ -10,7 +10,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 

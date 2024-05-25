@@ -46,9 +46,9 @@
 
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/compiler_specific.h"
-#include "melon/utility/threading/platform_thread.h"
-#include "melon/utility/synchronization/lock.h"
+#include <melon/utility/compiler_specific.h>
+#include <melon/utility/threading/platform_thread.h>
+#include <melon/utility/synchronization/lock.h>
 #include "melon/utility/synchronization/waitable_event.h"
 
 namespace mutil {

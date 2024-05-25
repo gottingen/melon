@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/memory/weak_ptr.h"
 
 ///////////////////////////////////////////////////////////////////////////////

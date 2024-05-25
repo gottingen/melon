@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/threading/thread_restrictions.h"
 
 namespace mutil {

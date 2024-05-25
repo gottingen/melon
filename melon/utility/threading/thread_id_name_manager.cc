@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/memory/singleton.h"
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 
 namespace mutil {
 namespace {

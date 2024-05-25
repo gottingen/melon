@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/compiler_specific.h"
-#include "melon/utility/memory/scoped_ptr.h"
-#include "melon/utility/synchronization/lock.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/compiler_specific.h>
+#include <melon/utility/memory/scoped_ptr.h>
+#include <melon/utility/synchronization/lock.h>
+#include <melon/utility/threading/platform_thread.h>
 #include "melon/utility/threading/simple_thread.h"
 #include "melon/utility/threading/thread_collision_warner.h"
 #include <gtest/gtest.h>

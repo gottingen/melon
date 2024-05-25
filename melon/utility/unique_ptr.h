@@ -13,7 +13,7 @@
 #ifndef MUTIL_UNIQUE_PTR_H
 #define MUTIL_UNIQUE_PTR_H
 
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #if defined(MUTIL_CXX11_ENABLED)
 
@@ -22,8 +22,8 @@
 #elif !defined(MELON_NO_EMULATED_UNIQUE_PTR)
 
 #include <algorithm>                // std::swap until C++11
-#include "melon/utility/type_traits.h"
-#include "melon/utility/macros.h"            // MELON_CASSERT
+#include <melon/utility/type_traits.h>
+#include <melon/utility/macros.h>            // MELON_CASSERT
 
 namespace std {
 

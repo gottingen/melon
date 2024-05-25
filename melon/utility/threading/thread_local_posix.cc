@@ -6,7 +6,7 @@
 
 #include <pthread.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 #if !defined(OS_ANDROID)
 

@@ -8,7 +8,7 @@
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
 #include <gtest/gtest.h>
-#include "melon/utility/crc32c.h"
+#include <melon/utility/crc32c.h>
 
 namespace mutil {
 namespace crc32c {

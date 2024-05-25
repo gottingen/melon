@@ -7,10 +7,10 @@
 
 #include <memory>
 
-#include "melon/utility/atomicops.h"
+#include <melon/utility/atomicops.h>
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 
 // A helper class alongside macros to be used to verify assumptions about thread
 // safety of a class.

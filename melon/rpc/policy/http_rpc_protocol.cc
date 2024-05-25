@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -22,27 +26,27 @@
 #include <melon/json2pb/json_to_pb.h>                    // JsonToProtoMessage
 #include <string>
 
-#include "melon/rpc/policy/http_rpc_protocol.h"
-#include "melon/utility/unique_ptr.h"                       // std::unique_ptr
-#include "melon/utility/string_splitter.h"                  // StringMultiSplitter
-#include "melon/utility/string_printf.h"
-#include "melon/utility/time.h"
-#include "melon/utility/sys_byteorder.h"
-#include "melon/rpc/compress.h"
-#include "melon/proto/rpc/errno.pb.h"                     // ENOSERVICE, ENOMETHOD
-#include "melon/rpc/controller.h"                   // Controller
-#include "melon/rpc/server.h"                       // Server
-#include "melon/rpc/details/server_private_accessor.h"
-#include "melon/rpc/span.h"
-#include "melon/rpc/socket.h"                       // Socket
-#include "melon/rpc/dump/rpc_dump.h"                     // SampledRequest
-#include "melon/rpc/http/http_status_code.h"             // HTTP_STATUS_*
-#include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/builtin/index_service.h"        // IndexService
-#include "melon/compress/gzip_compress.h"
-#include "melon/rpc/policy/http2_rpc_protocol.h"
-#include "melon/rpc/details/usercode_backup_pool.h"
-#include "melon/rpc/grpc/grpc.h"
+#include <melon/rpc/policy/http_rpc_protocol.h>
+#include <melon/utility/unique_ptr.h>                       // std::unique_ptr
+#include <melon/utility/string_splitter.h>                  // StringMultiSplitter
+#include <melon/utility/string_printf.h>
+#include <melon/utility/time.h>
+#include <melon/utility/sys_byteorder.h>
+#include <melon/rpc/compress.h>
+#include <melon/proto/rpc/errno.pb.h>                     // ENOSERVICE, ENOMETHOD
+#include <melon/rpc/controller.h>                   // Controller
+#include <melon/rpc/server.h>                       // Server
+#include <melon/rpc/details/server_private_accessor.h>
+#include <melon/rpc/span.h>
+#include <melon/rpc/socket.h>                       // Socket
+#include <melon/rpc/dump/rpc_dump.h>                     // SampledRequest
+#include <melon/rpc/http/http_status_code.h>             // HTTP_STATUS_*
+#include <melon/rpc/details/controller_private_accessor.h>
+#include <melon/builtin/index_service.h>        // IndexService
+#include <melon/compress/gzip_compress.h>
+#include <melon/rpc/policy/http2_rpc_protocol.h>
+#include <melon/rpc/details/usercode_backup_pool.h>
+#include <melon/rpc/grpc/grpc.h>
 #include <melon/fiber/key.h>
 
 

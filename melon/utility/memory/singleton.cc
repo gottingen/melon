@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/memory/singleton.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
 namespace internal {

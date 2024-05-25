@@ -4,7 +4,7 @@
 
 #include "melon/utility/synchronization/cancellation_flag.h"
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 

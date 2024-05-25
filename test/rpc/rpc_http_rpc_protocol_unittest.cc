@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -34,25 +38,25 @@
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/policy/http_rpc_protocol.h>
 #include <melon/utility/base64.h>
-#include "melon/rpc/http/http_method.h"
-#include "melon/utility/iobuf.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/files/scoped_file.h"
-#include "melon/utility/fd_guard.h"
-#include "melon/utility/file_util.h"
-#include "melon/rpc/socket.h"
-#include "melon/rpc/acceptor.h"
-#include "melon/rpc/server.h"
-#include "melon/rpc/channel.h"
-#include "melon/rpc/policy/most_common_message.h"
+#include <melon/rpc/http/http_method.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/logging.h>
+#include <melon/utility/files/scoped_file.h>
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/file_util.h>
+#include <melon/rpc/socket.h>
+#include <melon/rpc/acceptor.h>
+#include <melon/rpc/server.h>
+#include <melon/rpc/channel.h>
+#include <melon/rpc/policy/most_common_message.h>
 #include "echo.pb.h"
-#include "melon/rpc/policy/http_rpc_protocol.h"
-#include "melon/rpc/policy/http2_rpc_protocol.h"
+#include <melon/rpc/policy/http_rpc_protocol.h>
+#include <melon/rpc/policy/http2_rpc_protocol.h>
 #include "melon/json2pb/pb_to_json.h"
 #include "melon/json2pb/json_to_pb.h"
-#include "melon/rpc/details/method_status.h"
-#include "melon/rpc/dump/rpc_dump.h"
-#include "melon/fiber/unstable.h"
+#include <melon/rpc/details/method_status.h>
+#include <melon/rpc/dump/rpc_dump.h>
+#include <melon/fiber/unstable.h>
 
 namespace melon {
 DECLARE_bool(rpc_dump);

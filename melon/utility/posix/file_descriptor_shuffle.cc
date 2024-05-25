@@ -9,7 +9,7 @@
 #include <ostream>
 
 #include "melon/utility/posix/eintr_wrapper.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 

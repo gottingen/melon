@@ -4,7 +4,7 @@
 
 #include "melon/utility/threading/thread_id_name_manager.h"
 
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 #include <gtest/gtest.h>
 
 typedef testing::Test ThreadIdNameManagerTest;

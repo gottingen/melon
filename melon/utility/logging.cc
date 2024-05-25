@@ -1,22 +1,26 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 // Date: 2012-10-08 23:53:50
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 #include <gflags/gflags.h>
 DEFINE_bool(log_as_json, false, "Print log as a valid JSON");
@@ -64,22 +68,22 @@ typedef pthread_mutex_t* MutexHandle;
 #include <ostream>
 #include <string>
 
-#include "melon/utility/file_util.h"
+#include <melon/utility/file_util.h>
 #include "melon/utility/debug/alias.h"
 #include "melon/utility/debug/debugger.h"
 #include "melon/utility/debug/stack_trace.h"
 #include "melon/utility/posix/eintr_wrapper.h"
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 #include "melon/utility/strings/stringprintf.h"
 #include "melon/utility/strings/utf_string_conversions.h"
-#include "melon/utility/synchronization/condition_variable.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/synchronization/condition_variable.h>
+#include <melon/utility/threading/platform_thread.h>
 #include "melon/utility/threading/simple_thread.h"
-#include "melon/utility/object_pool.h"
+#include <melon/utility/object_pool.h>
 
 #if defined(OS_POSIX)
-#include "melon/utility/errno.h"
-#include "melon/utility/fd_guard.h"
+#include <melon/utility/errno.h>
+#include <melon/utility/fd_guard.h>
 #endif
 #if defined(OS_LINUX)
 #include <fcntl.h>
@@ -93,14 +97,14 @@ typedef pthread_mutex_t* MutexHandle;
 #include <vector>
 #include <deque>
 #include <limits>
-#include "melon/utility/atomicops.h"
-#include "melon/utility/thread_local.h"
-#include "melon/utility/scoped_lock.h"                        // MELON_SCOPED_LOCK
-#include "melon/utility/string_splitter.h"
-#include "melon/utility/time.h"
-#include "melon/utility/containers/doubly_buffered_data.h"
+#include <melon/utility/atomicops.h>
+#include <melon/utility/thread_local.h>
+#include <melon/utility/scoped_lock.h>                        // MELON_SCOPED_LOCK
+#include <melon/utility/string_splitter.h>
+#include <melon/utility/time.h>
+#include <melon/utility/containers/doubly_buffered_data.h>
 #include "melon/utility/memory/singleton.h"
-#include "melon/utility/endpoint.h"
+#include <melon/utility/endpoint.h>
 
 extern "C" {
 uint64_t MELON_WEAK fiber_self();

@@ -1,49 +1,49 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-
-#ifndef MELON_RPC_CONTROLLER_H_
-#define MELON_RPC_CONTROLLER_H_
-
-
+#pragma once
 
 #include <functional>                          // std::function
 #include <gflags/gflags.h>                     // Users often need gflags
 #include <string>
-#include "melon/utility/intrusive_ptr.hpp"             // mutil::intrusive_ptr
-#include "melon/fiber/errno.h"                     // Redefine errno
-#include "melon/utility/endpoint.h"                    // mutil::EndPoint
-#include "melon/utility/iobuf.h"                       // mutil::IOBuf
-#include "melon/fiber/types.h"                     // fiber_session_t
-#include "melon/proto/rpc/options.pb.h"                   // CompressType
-#include "melon/proto/rpc/errno.pb.h"                     // error code
-#include "melon/rpc/http/http_header.h"                  // HttpHeader
-#include "melon/rpc/authenticator.h"                // AuthContext
-#include "melon/rpc/socket_id.h"                    // SocketId
-#include "melon/rpc/stream.h"                       // StreamId
-#include "melon/rpc/stream_creator.h"               // StreamCreator
-#include "melon/rpc/protocol.h"                     // Protocol
-#include "melon/rpc/traceprintf.h"
-#include "melon/rpc/reloadable_flags.h"
-#include "melon/rpc/closure_guard.h"                // User often needs this
-#include "melon/rpc/callback.h"
-#include "melon/rpc/progressive_attachment.h"       // ProgressiveAttachment
-#include "melon/rpc/progressive_reader.h"           // ProgressiveReader
-#include "melon/rpc/grpc/grpc.h"
-#include "melon/rpc/kvmap.h"
+#include <melon/utility/intrusive_ptr.hpp>             // mutil::intrusive_ptr
+#include <melon/fiber/errno.h>                     // Redefine errno
+#include <melon/utility/endpoint.h>                    // mutil::EndPoint
+#include <melon/utility/iobuf.h>                       // mutil::IOBuf
+#include <melon/fiber/types.h>                     // fiber_session_t
+#include <melon/proto/rpc/options.pb.h>                   // CompressType
+#include <melon/proto/rpc/errno.pb.h>                     // error code
+#include <melon/rpc/http/http_header.h>                  // HttpHeader
+#include <melon/rpc/authenticator.h>                // AuthContext
+#include <melon/rpc/socket_id.h>                    // SocketId
+#include <melon/rpc/stream.h>                       // StreamId
+#include <melon/rpc/stream_creator.h>               // StreamCreator
+#include <melon/rpc/protocol.h>                     // Protocol
+#include <melon/rpc/traceprintf.h>
+#include <melon/rpc/reloadable_flags.h>
+#include <melon/rpc/closure_guard.h>                // User often needs this
+#include <melon/rpc/callback.h>
+#include <melon/rpc/progressive_attachment.h>       // ProgressiveAttachment
+#include <melon/rpc/progressive_reader.h>           // ProgressiveReader
+#include <melon/rpc/grpc/grpc.h>
+#include <melon/rpc/kvmap.h>
 
 // EAUTH is defined in MAC
 #ifndef EAUTH
@@ -937,33 +937,33 @@ namespace melon {
         AfterRpcRespFnType _after_rpc_resp_fn;
     };
 
-// Advises the RPC system that the caller desires that the RPC call be
-// canceled. If the call is canceled, the "done" callback will still be
-// called and the Controller will indicate that the call failed at that
-// time.
+    // Advises the RPC system that the caller desires that the RPC call be
+    // canceled. If the call is canceled, the "done" callback will still be
+    // called and the Controller will indicate that the call failed at that
+    // time.
     void StartCancel(CallId id);
 
-// Suspend until the RPC finishes.
+    // Suspend until the RPC finishes.
     void Join(CallId id);
 
-// Get a global closure for doing nothing. Used in semi-synchronous
-// RPC calls. Example:
-//   stub1.method1(&cntl1, &request1, &response1, melon::DoNothing());
-//   stub2.method2(&cntl2, &request2, &response2, melon::DoNothing());
-//   ...
-//   melon::Join(cntl1.call_id());
-//   melon::Join(cntl2.call_id());
+    // Get a global closure for doing nothing. Used in semi-synchronous
+    // RPC calls. Example:
+    //   stub1.method1(&cntl1, &request1, &response1, melon::DoNothing());
+    //   stub2.method2(&cntl2, &request2, &response2, melon::DoNothing());
+    //   ...
+    //   melon::Join(cntl1.call_id());
+    //   melon::Join(cntl2.call_id());
     google::protobuf::Closure *DoNothing();
 
-// Convert non-web symbols to web equivalence.
+    // Convert non-web symbols to web equivalence.
     void WebEscape(const std::string &source, std::string *output);
 
     std::string WebEscape(const std::string &source);
 
-// True if Ctrl-C is ever pressed.
+    // True if Ctrl-C is ever pressed.
     bool IsAskedToQuit();
 
-// Send Ctrl-C to current process.
+    // Send Ctrl-C to current process.
     void AskToQuit();
 
     std::ostream &operator<<(std::ostream &os, const Controller::LogPrefixDummy &p);
@@ -989,5 +989,3 @@ namespace melon {
 #define CLOGE(cntl) MLOG(ERROR) << (cntl)->LogPrefix()
 #define CLOGF(cntl) MLOG(FATAL) << (cntl)->LogPrefix()
 #define CVMLOG(v, cntl) VMLOG(v) << (cntl)->LogPrefix()
-
-#endif  // MELON_RPC_CONTROLLER_H_

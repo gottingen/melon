@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <algorithm>   // for min()
 
-#include "melon/utility/atomicops.h"
+#include <melon/utility/atomicops.h>
 #include <gtest/gtest.h>
 
 // Number of bits in a size_t.

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/debug/debugger.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -35,18 +35,18 @@
 #include <ostream>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/posix/eintr_wrapper.h"
 #include "melon/utility/safe_strerror_posix.h"
-#include "melon/utility/strings/string_piece.h"
+#include <melon/utility/strings/string_piece.h>
 
 #if defined(USE_SYMBOLIZE)
 #include "melon/utility/third_party/symbolize/symbolize.h"
 #endif
 
 #if defined(OS_ANDROID)
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 #endif
 
 namespace mutil {

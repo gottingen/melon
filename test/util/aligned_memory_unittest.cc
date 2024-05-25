@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/memory/aligned_memory.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/memory/scoped_ptr.h>
 #include <gtest/gtest.h>
 
 #define EXPECT_ALIGNED(ptr, align) \

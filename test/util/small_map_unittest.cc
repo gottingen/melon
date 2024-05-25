@@ -10,8 +10,8 @@
 #include <functional>
 #include <map>
 
-#include "melon/utility/containers/hash_tables.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/containers/hash_tables.h>
+#include <melon/utility/logging.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

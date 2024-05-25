@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/debug/leak_tracker.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/memory/scoped_ptr.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

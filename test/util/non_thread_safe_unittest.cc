@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/threading/non_thread_safe.h"
 #include "melon/utility/threading/simple_thread.h"
 #include <gtest/gtest.h>

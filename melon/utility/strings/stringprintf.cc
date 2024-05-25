@@ -7,7 +7,7 @@
 #include <errno.h>
 
 #include "melon/utility/scoped_clear_errno.h"
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 #include "melon/utility/strings/utf_string_conversions.h"
 
 // gcc7 reports that the first arg to vsnprintfT in StringAppendVT is NULL,

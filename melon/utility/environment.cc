@@ -6,8 +6,8 @@
 
 #include <vector>
 
-#include "melon/utility/strings/string_piece.h"
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_piece.h>
+#include <melon/utility/strings/string_util.h>
 #include "melon/utility/strings/utf_string_conversions.h"
 
 #if defined(OS_POSIX)

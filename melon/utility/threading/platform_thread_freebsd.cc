@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 
 #include <errno.h>
 #include <sched.h>
 
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/safe_strerror_posix.h"
 #include "melon/utility/threading/thread_id_name_manager.h"
 #include "melon/utility/threading/thread_restrictions.h"

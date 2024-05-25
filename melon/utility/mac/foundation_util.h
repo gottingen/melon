@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "melon/utility/base_export.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/mac/scoped_cftyperef.h"
 
 #if defined(__OBJC__)

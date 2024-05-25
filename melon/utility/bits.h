@@ -8,7 +8,7 @@
 #define MUTIL_BITS_H_
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 namespace bits {

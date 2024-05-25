@@ -9,8 +9,8 @@
 
 #include <limits>
 
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include <gtest/gtest.h>
 
 // Death tests on Android are currently very flaky. No need to add more flaky

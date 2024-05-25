@@ -8,14 +8,14 @@
 #include <algorithm>
 #include <vector>
 
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
-#include "melon/utility/synchronization/condition_variable.h"
-#include "melon/utility/synchronization/lock.h"
+#include <melon/utility/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
+#include <melon/utility/synchronization/condition_variable.h>
+#include <melon/utility/synchronization/lock.h>
 #include "melon/utility/synchronization/spin_wait.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 #include "melon/utility/threading/thread_collision_warner.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/time/time.h>
 #include <gtest/gtest.h>
 #include <gtest/gtest.h>
 

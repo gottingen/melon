@@ -11,7 +11,7 @@
 #include "melon/utility/basictypes.h"
 #include "melon/utility/memory/aligned_memory.h"
 #include "melon/utility/strings/string16.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 namespace mutil {
 

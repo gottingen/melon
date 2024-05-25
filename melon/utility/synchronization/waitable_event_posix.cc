@@ -5,12 +5,12 @@
 #include <algorithm>
 #include <vector>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/synchronization/waitable_event.h"
-#include "melon/utility/synchronization/condition_variable.h"
-#include "melon/utility/synchronization/lock.h"
+#include <melon/utility/synchronization/condition_variable.h>
+#include <melon/utility/synchronization/lock.h>
 #include "melon/utility/threading/thread_restrictions.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/time/time.h>
 
 // -----------------------------------------------------------------------------
 // A WaitableEvent on POSIX is implemented as a wait-list. Currently we don't

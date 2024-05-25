@@ -11,7 +11,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/posix/eintr_wrapper.h"
 
 // See the comments in dir_reader_posix.h about this.

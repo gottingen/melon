@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/move.h"
 #include "melon/utility/stl_util.h"
 

@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 
 namespace mutil {
 

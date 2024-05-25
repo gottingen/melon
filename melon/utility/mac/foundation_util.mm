@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "melon/utility/files/file_path.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/logging.h>
 #include "melon/utility/mac/bundle_locations.h"
 //#include "melon/utility/mac/mac_logging.h"
 #include "melon/utility/strings/sys_string_conversions.h"

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -19,12 +19,12 @@
 #include <vector>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/logging.h>
 #include "melon/utility/memory/singleton.h"
 #include "melon/utility/strings/utf_string_conversion_utils.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include "melon/utility/third_party/icu/icu_utf.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 // Remove when this entire file is in namespace mutil.
 using mutil::char16;

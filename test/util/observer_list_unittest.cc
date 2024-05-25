@@ -6,9 +6,9 @@
 
 #include <vector>
 
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #include "melon/utility/memory/weak_ptr.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 #include <gtest/gtest.h>
 
 namespace mutil {
