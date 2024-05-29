@@ -36,12 +36,12 @@ add_executable(http_client http_client.cc)
 add_executable(http_server http_server.cc ${PROTO_SRC} ${PROTO_HEADER})
 add_executable(benchmark_http benchmark_http.cc)
 
-target_link_libraries(http_server melon::melon_shared ${MELON_DEPS_LIBS}  Threads::Threads)
-target_include_directories(http_server PRIVATE ${MELON_DEPS_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(http_client  melon::melon_shared ${MELON_DEPS_LIBS} Threads::Threads)
-target_include_directories(http_client PRIVATE ${MELON_DEPS_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(http_server ${MELON_STATIC_LIBRARIES})
+target_include_directories(http_server PRIVATE ${MELON_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(http_client  ${MELON_SHARED_LIBRARIES})
+target_include_directories(http_client PRIVATE ${MELON_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(benchmark_http melon::melon_shared ${MELON_DEPS_LIBS} Threads::Threads)
-target_include_directories(benchmark_http PRIVATE ${MELON_DEPS_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(benchmark_http PRIVATE ${MELON_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 
 file(COPY ${PROJECT_SOURCE_DIR}/key.pem
      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
