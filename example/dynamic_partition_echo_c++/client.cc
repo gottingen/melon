@@ -22,7 +22,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
@@ -86,7 +86,7 @@ static void* sender(void* arg) {
             info->latency_sum += cntl.latency_us();
             ++info->nsuccess;
         } else {
-            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << cntl.latency_us();
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -104,18 +104,18 @@ public:
         // "N/M" : #N partition of M partitions.
         size_t pos = tag.find_first_of('/');
         if (pos == std::string::npos) {
-            MLOG(ERROR) << "Invalid tag=" << tag;
+            LOG(ERROR) << "Invalid tag=" << tag;
             return false;
         }
         char* endptr = NULL;
         out->index = strtol(tag.c_str(), &endptr, 10);
         if (endptr != tag.data() + pos) {
-            MLOG(ERROR) << "Invalid index=" << mutil::StringPiece(tag.data(), pos);
+            LOG(ERROR) << "Invalid index=" << mutil::StringPiece(tag.data(), pos);
             return false;
         }
         out->num_partition_kinds = strtol(tag.c_str() + pos + 1, &endptr, 10);
         if (endptr != tag.c_str() + tag.size()) {
-            MLOG(ERROR) << "Invalid num=" << tag.data() + pos + 1;
+            LOG(ERROR) << "Invalid num=" << tag.data() + pos + 1;
             return false;
         }
         return true;
@@ -142,14 +142,14 @@ int main(int argc, char* argv[]) {
     if (channel.Init(new MyPartitionParser(),
                      FLAGS_server.c_str(), FLAGS_load_balancer.c_str(),
                      &options) != 0) {
-        MLOG(ERROR) << "Fail to init channel";
+        LOG(ERROR) << "Fail to init channel";
         return -1;
     }
     if (FLAGS_attachment_size > 0) {
         g_attachment.resize(FLAGS_attachment_size, 'a');
     }
     if (FLAGS_request_size <= 0) {
-        MLOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
+        LOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
         return -1;
     }
     g_request.resize(FLAGS_request_size, 'r');
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create pthread";
+                LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create fiber";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -183,13 +183,13 @@ int main(int argc, char* argv[]) {
         int64_t latency_sum = 0;
         int64_t nsuccess = 0;
         pthread_mutex_lock(&g_latency_mutex);
-        MCHECK_EQ(g_sender_info.size(), (size_t)FLAGS_thread_num);
+        CHECK_EQ(g_sender_info.size(), (size_t)FLAGS_thread_num);
         for (size_t i = 0; i < g_sender_info.size(); ++i) {
             const SenderInfo& info = g_sender_info[i];
             latency_sum += info.latency_sum;
             nsuccess += info.nsuccess;
             if (FLAGS_dont_fail) {
-                MCHECK(info.nsuccess > last_nsuccess[i]) << "i=" << i;
+                CHECK(info.nsuccess > last_nsuccess[i]) << "i=" << i;
             }
             last_nsuccess[i] = info.nsuccess;
         }
@@ -197,13 +197,13 @@ int main(int argc, char* argv[]) {
 
         const int64_t avg_latency = (latency_sum - last_latency_sum) /
             std::max(nsuccess - last_counter, (int64_t)1);
-        MLOG(INFO) << "Sending EchoRequest at qps=" << nsuccess - last_counter
+        LOG(INFO) << "Sending EchoRequest at qps=" << nsuccess - last_counter
                   << " latency=" << avg_latency;
         last_counter = nsuccess;
         last_latency_sum = latency_sum;
     }
 
-    MLOG(INFO) << "EchoClient is going to quit";
+    LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

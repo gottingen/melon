@@ -608,7 +608,7 @@ inline void WriteBigEndian2Bytes(char** buf, uint16_t val) {
 }
 inline void WriteBigEndian3Bytes(char** buf, uint32_t val) {
     const char* p = (const char*)&val;
-    MCHECK_EQ(p[3], 0);
+    CHECK_EQ(p[3], 0);
     char* out = *buf;
     out[0] = p[2];
     out[1] = p[1];

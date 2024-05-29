@@ -26,6 +26,7 @@
 #include <melon/utility/macros.h>
 #include <melon/rpc/details/controller_private_accessor.h>
 #include <melon/rpc/parallel_channel.h>
+#include <cinttypes>
 
 
 namespace melon {
@@ -157,7 +158,7 @@ public:
                     d->sub_done_map(i) = done_index++;
                 }
             }
-            MCHECK_EQ(ndone, done_index);
+            CHECK_EQ(ndone, done_index);
         }
         return d;
     }
@@ -194,7 +195,7 @@ public:
             _cntl->_error_code = 0;
             _cntl->_error_text.clear();
         } else {
-            MCHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
+            CHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
         }
         OnSubDoneRun(NULL);
     }
@@ -292,7 +293,7 @@ public:
             fiber_attr_t attr = (FLAGS_usercode_in_pthread ?
                                    FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
             if (fiber_start_background(&bh, &attr, RunOnComplete, this) != 0) {
-                MLOG(FATAL) << "Fail to start fiber";
+                LOG(FATAL) << "Fail to start fiber";
                 OnComplete();
             }
         } else {
@@ -392,7 +393,7 @@ public:
             _cntl->OnRPCEnd(mutil::gettimeofday_us());
             user_done->Run();
         }
-        MCHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 
     int sub_done_size() const { return _ndone; }
@@ -465,7 +466,7 @@ int ParallelChannel::AddChannel(ChannelBase* sub_channel,
                                 CallMapper* call_mapper,
                                 ResponseMerger* merger) {
     if (NULL == sub_channel) {
-        MLOG(ERROR) << "Param[sub_channel] is NULL";
+        LOG(ERROR) << "Param[sub_channel] is NULL";
         return -1;
     }
     if (_chans.capacity() == 0) {
@@ -485,7 +486,7 @@ int ParallelChannel::AddChannel(ChannelBase* sub_channel,
                                 const mutil::intrusive_ptr<CallMapper>& call_mapper,
                                 const mutil::intrusive_ptr<ResponseMerger>& merger) {
     if (NULL == sub_channel) {
-        MLOG(ERROR) << "Param[sub_channel] is NULL";
+        LOG(ERROR) << "Param[sub_channel] is NULL";
         return -1;
     }
     if (_chans.capacity() == 0) {
@@ -544,7 +545,7 @@ void ParallelChannel::Reset() {
         std::unique(_chans.begin(), _chans.end(), EqualChannelPtr())
         - _chans.begin();
     for (size_t i = 0; i < uniq_size; ++i) {
-        MCHECK_EQ(_chans[i].ownership, OWNS_CHANNEL);
+        CHECK_EQ(_chans[i].ownership, OWNS_CHANNEL);
         delete _chans[i].chan;
     }
     _chans.clear();
@@ -567,7 +568,7 @@ void* ParallelChannel::RunDoneAndDestroy(void* arg) {
     // Save call_id from the controller which may be deleted after Run().
     const fiber_session_t cid = c->call_id();
     done->Run();
-    MCHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
+    CHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
     return NULL;
 }
 
@@ -586,11 +587,11 @@ void ParallelChannel::CallMethod(
     const CallId cid = cntl->call_id();
     const int rc = fiber_session_lock(cid, NULL);
     if (rc != 0) {
-        MCHECK_EQ(EINVAL, rc);
+        CHECK_EQ(EINVAL, rc);
         if (!cntl->FailedInline()) {
             cntl->SetFailed(EINVAL, "Fail to lock call_id=%" PRId64, cid.value);
         }
-        MLOG_IF(ERROR, cntl->is_used_by_rpc())
+        LOG_IF(ERROR, cntl->is_used_by_rpc())
             << "Controller=" << cntl << " was used by another RPC before. "
             "Did you forget to Reset() it before reuse?";
         // Have to run done in-place.
@@ -697,7 +698,7 @@ void ParallelChannel::CallMethod(
         cntl->_deadline_us = -1;
     }
     d->SaveThreadInfoOfCallsite();
-    MCHECK_EQ(0, fiber_session_unlock(cid));
+    CHECK_EQ(0, fiber_session_unlock(cid));
     // Don't touch `cntl' and `d' again (for async RPC)
     
     for (int i = 0, j = 0; i < nchan; ++i) {
@@ -737,11 +738,11 @@ FAIL:
                 return;
             }
             cntl->_done = NULL;
-            MLOG(FATAL) << "Fail to start fiber";
+            LOG(FATAL) << "Fail to start fiber";
         }
         done->Run();
     }
-    MCHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
+    CHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
 }
 
 int ParallelChannel::Weight() {

@@ -65,7 +65,7 @@
 
 #include "melon/utility/basictypes.h"
 #include "melon/utility/base_export.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/memory/ref_counted.h"
 #include <melon/utility/type_traits.h>
 
@@ -201,11 +201,11 @@ class WeakPtr : public internal::WeakPtrBase {
   T* get() const { return ref_.is_valid() ? ptr_ : NULL; }
 
   T& operator*() const {
-    DMCHECK(get() != NULL);
+    DCHECK(get() != NULL);
     return *get();
   }
   T* operator->() const {
-    DMCHECK(get() != NULL);
+    DCHECK(get() != NULL);
     return get();
   }
 
@@ -264,19 +264,19 @@ class WeakPtrFactory {
   }
 
   WeakPtr<T> GetWeakPtr() {
-    DMCHECK(ptr_);
+    DCHECK(ptr_);
     return WeakPtr<T>(weak_reference_owner_.GetRef(), ptr_);
   }
 
   // Call this method to invalidate all existing weak pointers.
   void InvalidateWeakPtrs() {
-    DMCHECK(ptr_);
+    DCHECK(ptr_);
     weak_reference_owner_.Invalidate();
   }
 
   // Call this method to determine if any weak pointers exist.
   bool HasWeakPtrs() const {
-    DMCHECK(ptr_);
+    DCHECK(ptr_);
     return weak_reference_owner_.HasRefs();
   }
 

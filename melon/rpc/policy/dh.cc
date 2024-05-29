@@ -16,7 +16,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/ssl_compat.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/policy/dh.h>
@@ -41,7 +41,7 @@ int DHWrapper::initialize(bool ensure_128bytes_public_key) {
             DH_get0_key(_pdh, &pub_key, NULL);
             int key_size = BN_num_bytes(pub_key);
             if (key_size != 128) {
-                RPC_VMLOG << "regenerate 128B key, current=" << key_size;
+                RPC_VLOG << "regenerate 128B key, current=" << key_size;
                 clear();
                 continue;
             }
@@ -57,17 +57,17 @@ int DHWrapper::copy_public_key(char* pkey, int* pkey_size) const {
     // copy public key to bytes.
     // sometimes, the key_size is 127, seems ok.
     int key_size = BN_num_bytes(pub_key);
-    MCHECK_GT(key_size, 0);
+    CHECK_GT(key_size, 0);
         
     // maybe the key_size is 127, but dh will write all 128bytes pkey,
     // no need to set/initialize the pkey.
     // @see https://github.com/ossrs/srs/issues/165
     key_size = BN_bn2bin(pub_key, (unsigned char*)pkey);
-    MCHECK_GT(key_size, 0);
+    CHECK_GT(key_size, 0);
         
     // output the size of public key.
     // @see https://github.com/ossrs/srs/issues/165
-    MCHECK_LE(key_size, *pkey_size);
+    CHECK_LE(key_size, *pkey_size);
     *pkey_size = key_size;
     return 0;
 }
@@ -76,13 +76,13 @@ int DHWrapper::copy_shared_key(const void* ppkey, int ppkey_size,
                            void* skey, int* skey_size) const {
     BIGNUM* ppk = BN_bin2bn((const unsigned char*)ppkey, ppkey_size, 0);
     if (ppk == NULL) {
-        MLOG(ERROR) << "Fail to BN_bin2bn";
+        LOG(ERROR) << "Fail to BN_bin2bn";
         return -1;
     }
     // @see https://github.com/ossrs/srs/issues/165
     int key_size = DH_compute_key((unsigned char*)skey, ppk, _pdh);
     if (key_size < 0 || key_size > *skey_size) {
-        MLOG(ERROR) << "Fail to compute shared key";
+        LOG(ERROR) << "Fail to compute shared key";
         BN_free(ppk);
         return -1;
     }
@@ -113,7 +113,7 @@ int DHWrapper::do_initialize() {
     
     // Generate private and public key
     if (!DH_generate_key(_pdh)) {
-        MLOG(ERROR) << "Fail to DH_generate_key";
+        LOG(ERROR) << "Fail to DH_generate_key";
         return -1;
     }
     return 0;

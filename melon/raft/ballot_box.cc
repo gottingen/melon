@@ -37,7 +37,7 @@ namespace melon::raft {
 
     int BallotBox::init(const BallotBoxOptions &options) {
         if (options.waiter == nullptr || options.closure_queue == nullptr) {
-            MLOG(ERROR) << "waiter is nullptr";
+            LOG(ERROR) << "waiter is nullptr";
             return EINVAL;
         }
         _waiter = options.waiter;
@@ -107,10 +107,10 @@ namespace melon::raft {
 
     int BallotBox::reset_pending_index(int64_t new_pending_index) {
         MELON_SCOPED_LOCK(_mutex);
-        MCHECK(_pending_index == 0 && _pending_meta_queue.empty())
+        CHECK(_pending_index == 0 && _pending_meta_queue.empty())
         << "pending_index " << _pending_index << " pending_meta_queue "
         << _pending_meta_queue.size();
-        MCHECK_GT(new_pending_index, _last_committed_index.load(
+        CHECK_GT(new_pending_index, _last_committed_index.load(
                 mutil::memory_order_relaxed));
         _pending_index = new_pending_index;
         _closure_queue->reset_first_index(new_pending_index);
@@ -121,12 +121,12 @@ namespace melon::raft {
                                        Closure *closure) {
         Ballot bl;
         if (bl.init(conf, old_conf) != 0) {
-            MCHECK(false) << "Fail to init ballot";
+            CHECK(false) << "Fail to init ballot";
             return -1;
         }
 
         MELON_SCOPED_LOCK(_mutex);
-        MCHECK(_pending_index > 0);
+        CHECK(_pending_index > 0);
         _pending_meta_queue.push_back(Ballot());
         _pending_meta_queue.back().swap(bl);
         _closure_queue->append_pending_closure(closure);
@@ -137,7 +137,7 @@ namespace melon::raft {
         // FIXME: it seems that lock is not necessary here
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_pending_index != 0 || !_pending_meta_queue.empty()) {
-            MCHECK(last_committed_index < _pending_index)
+            CHECK(last_committed_index < _pending_index)
             << "node changes to leader, pending_index=" << _pending_index
             << ", parameter last_committed_index=" << last_committed_index;
             return -1;

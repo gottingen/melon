@@ -69,7 +69,7 @@ namespace melon::naming {
         if (FLAGS_consul_enable_degrade_to_file_naming_service && !_backup_file_loaded) {
             _backup_file_loaded = true;
             const std::string file(FLAGS_consul_file_naming_service_dir + service_name);
-            MLOG(INFO) << "Load server list from " << file;
+            LOG(INFO) << "Load server list from " << file;
             FileNamingService fns;
             return fns.GetServers(file.c_str(), servers);
         }
@@ -84,7 +84,7 @@ namespace melon::naming {
             opt.connect_timeout_ms = FLAGS_consul_connect_timeout_ms;
             opt.timeout_ms = (FLAGS_consul_blocking_query_wait_secs + 10) * mutil::Time::kMillisecondsPerSecond;
             if (_channel.Init(FLAGS_consul_agent_addr.c_str(), "rr", &opt) != 0) {
-                MLOG(ERROR) << "Fail to init channel to consul at " << FLAGS_consul_agent_addr;
+                LOG(ERROR) << "Fail to init channel to consul at " << FLAGS_consul_agent_addr;
                 return DegradeToOtherServiceIfNeeded(service_name, servers);
             }
             _consul_connected = true;
@@ -107,7 +107,7 @@ namespace melon::naming {
         cntl.http_request().uri() = consul_url;
         _channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to access " << consul_url << ": "
+            LOG(ERROR) << "Fail to access " << consul_url << ": "
                        << cntl.ErrorText();
             return DegradeToOtherServiceIfNeeded(service_name, servers);
         }
@@ -115,13 +115,13 @@ namespace melon::naming {
         const std::string *index = cntl.http_response().GetHeader(kConsulIndex);
         if (index != nullptr) {
             if (*index == _consul_index) {
-                MLOG_EVERY_N(INFO, 100) << "There is no service changed for the list of "
+                LOG_EVERY_N(INFO, 100) << "There is no service changed for the list of "
                                        << service_name
                                        << ", consul_index: " << _consul_index;
                 return -1;
             }
         } else {
-            MLOG(ERROR) << "Failed to parse consul index of " << service_name << ".";
+            LOG(ERROR) << "Failed to parse consul index of " << service_name << ".";
             return -1;
         }
 
@@ -133,7 +133,7 @@ namespace melon::naming {
         MUTIL_RAPIDJSON_NAMESPACE::Document services;
         services.Parse(cntl.response_attachment().to_string().c_str());
         if (!services.IsArray()) {
-            MLOG(ERROR) << "The consul's response for "
+            LOG(ERROR) << "The consul's response for "
                        << service_name << " is not a json array";
             return -1;
         }
@@ -141,7 +141,7 @@ namespace melon::naming {
         for (MUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < services.Size(); ++i) {
             auto itr_service = services[i].FindMember("Service");
             if (itr_service == services[i].MemberEnd()) {
-                MLOG(ERROR) << "No service info in node: "
+                LOG(ERROR) << "No service info in node: "
                            << RapidjsonValueToString(services[i]);
                 continue;
             }
@@ -153,7 +153,7 @@ namespace melon::naming {
                 !itr_address->value.IsString() ||
                 itr_port == service.MemberEnd() ||
                 !itr_port->value.IsUint()) {
-                MLOG(ERROR) << "Service with no valid address or port: "
+                LOG(ERROR) << "Service with no valid address or port: "
                            << RapidjsonValueToString(service);
                 continue;
             }
@@ -162,7 +162,7 @@ namespace melon::naming {
             if (str2endpoint(service["Address"].GetString(),
                              service["Port"].GetUint(),
                              &end_point) != 0) {
-                MLOG(ERROR) << "Service with illegal address or port: "
+                LOG(ERROR) << "Service with illegal address or port: "
                            << RapidjsonValueToString(service);
                 continue;
             }
@@ -178,13 +178,13 @@ namespace melon::naming {
                         if (tag.IsString()) {
                             node.tag = tag.GetString();
                         } else {
-                            MLOG(ERROR) << "First tag returned by consul is not string, service: "
+                            LOG(ERROR) << "First tag returned by consul is not string, service: "
                                        << RapidjsonValueToString(service);
                             continue;
                         }
                     }
                 } else {
-                    MLOG(ERROR) << "Service tags returned by consul is not json array, service: "
+                    LOG(ERROR) << "Service tags returned by consul is not json array, service: "
                                << RapidjsonValueToString(service);
                     continue;
                 }
@@ -193,19 +193,19 @@ namespace melon::naming {
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {
-                RPC_VMLOG << "Duplicated server=" << node;
+                RPC_VLOG << "Duplicated server=" << node;
             }
         }
 
         _consul_index = *index;
 
         if (servers->empty() && !services.Empty()) {
-            MLOG(ERROR) << "All service about " << service_name
+            LOG(ERROR) << "All service about " << service_name
                        << " from consul is invalid, refuse to update servers";
             return -1;
         }
 
-        RPC_VMLOG << "Got " << servers->size()
+        RPC_VLOG << "Got " << servers->size()
                  << (servers->size() > 1 ? " servers" : " server")
                  << " from " << service_name;
         return 0;
@@ -225,7 +225,7 @@ namespace melon::naming {
             // Finally, the ns fiber will never exit. So need to check the stop status of
             // the fiber here and exit the fiber in time.
             if (fiber_stopped(fiber_self())) {
-                RPC_VMLOG << "Quit NamingServiceThread=" << fiber_self();
+                RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                 return 0;
             }
             if (rc == 0) {
@@ -242,15 +242,15 @@ namespace melon::naming {
                 if (fiber_usleep(
                         std::max(FLAGS_consul_retry_interval_ms, 1) * mutil::Time::kMicrosecondsPerMillisecond) < 0) {
                     if (errno == ESTOP) {
-                        RPC_VMLOG << "Quit NamingServiceThread=" << fiber_self();
+                        RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                         return 0;
                     }
-                    PMLOG(FATAL) << "Fail to sleep";
+                    PLOG(FATAL) << "Fail to sleep";
                     return -1;
                 }
             }
         }
-        MCHECK(false);
+        CHECK(false);
         return -1;
     }
 

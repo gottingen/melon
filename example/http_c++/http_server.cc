@@ -21,7 +21,7 @@
 // A server to receive HttpRequest and send back HttpResponse.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
 #include <melon/json2pb/pb_to_json.h>
@@ -79,7 +79,7 @@ public:
         std::string res_str;
         json2pb::ProtoMessageToJson(*req, &req_str, NULL);
         json2pb::ProtoMessageToJson(*res, &res_str, NULL);
-        MLOG(INFO) << "req:" << req_str
+        LOG(INFO) << "req:" << req_str
                     << " res:" << res_str;
     }
 };
@@ -97,7 +97,7 @@ public:
     static void* SendLargeFile(void* raw_args) {
         std::unique_ptr<Args> args(static_cast<Args*>(raw_args));
         if (args->pa == NULL) {
-            MLOG(ERROR) << "ProgressiveAttachment is NULL";
+            LOG(ERROR) << "ProgressiveAttachment is NULL";
             return NULL;
         }
         for (int i = 0; i < 100; ++i) {
@@ -187,7 +187,7 @@ public:
     static void* Predict(void* raw_args) {
         std::unique_ptr<PredictJobArgs> args(static_cast<PredictJobArgs*>(raw_args));
         if (args->pa == NULL) {
-            MLOG(ERROR) << "ProgressiveAttachment is NULL";
+            LOG(ERROR) << "ProgressiveAttachment is NULL";
             return NULL;
         }
         for (int i = 0; i < 100; ++i) {
@@ -233,6 +233,8 @@ int main(int argc, char* argv[]) {
     // Generally you only need one Server.
     melon::Server server;
 
+    turbo::setup_rotating_file_sink("http_server.log", 100, 10, true, 60);
+    //turbo::setup_color_stderr_sink();
     example::HttpServiceImpl http_svc;
     example::FileServiceImpl file_svc;
     example::QueueServiceImpl queue_svc;
@@ -243,12 +245,12 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&http_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add http_svc";
+        LOG(ERROR) << "Fail to add http_svc";
         return -1;
     }
     if (server.AddService(&file_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add file_svc";
+        LOG(ERROR) << "Fail to add file_svc";
         return -1;
     }
     if (server.AddService(&queue_svc,
@@ -256,12 +258,12 @@ int main(int argc, char* argv[]) {
                           "/v1/queue/start   => start,"
                           "/v1/queue/stop    => stop,"
                           "/v1/queue/stats/* => getstats") != 0) {
-        MLOG(ERROR) << "Fail to add queue_svc";
+        LOG(ERROR) << "Fail to add queue_svc";
         return -1;
     }
     if (server.AddService(&sse_svc,
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add sse_svc";
+        LOG(ERROR) << "Fail to add sse_svc";
         return -1;
     }
 
@@ -272,7 +274,7 @@ int main(int argc, char* argv[]) {
     options.mutable_ssl_options()->default_cert.private_key = FLAGS_private_key;
     options.mutable_ssl_options()->ciphers = FLAGS_ciphers;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MLOG(ERROR) << "Fail to start HttpServer";
+        LOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }
 

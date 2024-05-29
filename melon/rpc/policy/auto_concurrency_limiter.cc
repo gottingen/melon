@@ -122,7 +122,7 @@ void AutoConcurrencyLimiter::OnResponded(int error_code, int64_t latency_us) {
             if (sample_window_submitted) {
                 // The following log prints has data-race in extreme cases, 
                 // unless you are in debug, you should not open it.
-                VMLOG(1)
+                VLOG(1)
                     << "Sample window submitted, current max_concurrency:"
                     << _max_concurrency 
                     << ", min_latency_us:" << _min_latency_us

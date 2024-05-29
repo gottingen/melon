@@ -22,7 +22,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/var/var.h>
 #include <melon/rpc/channel.h>
@@ -65,7 +65,7 @@ static void* sender(void* void_args) {
 
     melon::RedisRequest request;
     for (int i = 0; i < FLAGS_batch; ++i) {
-        MCHECK(request.AddCommand("GET %s", kvs[i].first.c_str()));
+        CHECK(request.AddCommand("GET %s", kvs[i].first.c_str()));
     }
     while (!melon::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
@@ -79,14 +79,14 @@ static void* sender(void* void_args) {
         const int64_t elp = cntl.latency_us();
         if (!cntl.Failed()) {
             g_latency_recorder << elp;
-            MCHECK_EQ(response.reply_size(), FLAGS_batch);
+            CHECK_EQ(response.reply_size(), FLAGS_batch);
             for (int i = 0; i < FLAGS_batch; ++i) {
-                MCHECK_EQ(kvs[i].second.c_str(), response.reply(i).data())
+                CHECK_EQ(kvs[i].second.c_str(), response.reply(i).data())
                     << "base=" << args->base_index << " i=" << i;
             }
         } else {
             g_error_count << 1;
-            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << elp;
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     options.max_retry = FLAGS_max_retry;
     options.backup_request_ms = FLAGS_backup_request_ms;
     if (channel.Init(FLAGS_server.c_str(), &options) != 0) {
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -127,23 +127,23 @@ int main(int argc, char* argv[]) {
         if (!request.AddCommand("SET %s_%04d %s_%04d", 
                     FLAGS_key.c_str(), i,
                     FLAGS_value.c_str(), i)) {
-            MLOG(ERROR) << "Fail to SET " << i << "th request";
+            LOG(ERROR) << "Fail to SET " << i << "th request";
             return -1;
         }
     }
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     if (cntl.Failed()) {
-        MLOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
+        LOG(ERROR) << "Fail to access redis, " << cntl.ErrorText();
         return -1;
     }
     if (FLAGS_batch * FLAGS_thread_num != response.reply_size()) {
-        MLOG(ERROR) << "Fail to set";
+        LOG(ERROR) << "Fail to set";
         return -1;
     }
     for (int i = 0; i < FLAGS_batch * FLAGS_thread_num; ++i) {
-        MCHECK_EQ("OK", response.reply(i).data());
+        CHECK_EQ("OK", response.reply(i).data());
     }
-    MLOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num << " values";
+    LOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num << " values";
 
     if (FLAGS_dummy_port >= 0) {
         melon::StartDummyServerAt(FLAGS_dummy_port);
@@ -160,13 +160,13 @@ int main(int argc, char* argv[]) {
         args[i].redis_channel = &channel;
         if (!FLAGS_use_fiber) {
             if (pthread_create(&pids[i], NULL, sender, &args[i]) != 0) {
-                MLOG(ERROR) << "Fail to create pthread";
+                LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         } else {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &args[i]) != 0) {
-                MLOG(ERROR) << "Fail to create fiber";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -175,11 +175,11 @@ int main(int argc, char* argv[]) {
     while (!melon::IsAskedToQuit()) {
         sleep(1);
         
-        MLOG(INFO) << "Accessing redis-server at qps=" << g_latency_recorder.qps(1)
+        LOG(INFO) << "Accessing redis-server at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    MLOG(INFO) << "redis_client is going to quit";
+    LOG(INFO) << "redis_client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

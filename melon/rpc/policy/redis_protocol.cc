@@ -24,7 +24,7 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 #include <melon/rpc/policy/redis_authenticator.h>
-#include <melon/utility/logging.h>                       // LOG()
+#include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
 #include <melon/utility/iobuf.h>                         // mutil::IOBuf
 #include <melon/rpc/controller.h>               // Controller
@@ -90,7 +90,7 @@ int ConsumeCommand(RedisConnContext* ctx,
         if (result == REDIS_CMD_HANDLED) {
             ctx->transaction_handler.reset(NULL);
         } else if (result == REDIS_CMD_BATCHED) {
-            MLOG(ERROR) << "BATCHED should not be returned by a transaction handler.";
+            LOG(ERROR) << "BATCHED should not be returned by a transaction handler.";
             return -1;
         }
     } else {
@@ -103,7 +103,7 @@ int ConsumeCommand(RedisConnContext* ctx,
             result = ch->Run(args, &output, flush_batched);
             if (result == REDIS_CMD_CONTINUE) {
                 if (ctx->batched_size != 0) {
-                    MLOG(ERROR) << "CONTINUE should not be returned in a batched process.";
+                    LOG(ERROR) << "CONTINUE should not be returned in a batched process.";
                     return -1;
                 }
                 ctx->transaction_handler.reset(ch->NewTransactionHandler());
@@ -115,7 +115,7 @@ int ConsumeCommand(RedisConnContext* ctx,
     if (result == REDIS_CMD_HANDLED) {
         if (ctx->batched_size) {
             if ((int)output.size() != (ctx->batched_size + 1)) {
-                MLOG(ERROR) << "reply array size can't be matched with batched size, "
+                LOG(ERROR) << "reply array size can't be matched with batched size, "
                     << " expected=" << ctx->batched_size + 1 << " actual=" << output.size();
                 return -1;
             }
@@ -131,7 +131,7 @@ int ConsumeCommand(RedisConnContext* ctx,
     } else if (result == REDIS_CMD_BATCHED) {
         // just do nothing and wait handler to return OK.
     } else {
-        MLOG(ERROR) << "unknown status=" << result;
+        LOG(ERROR) << "unknown status=" << result;
         return -1;
     }
     return 0;
@@ -188,10 +188,10 @@ ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket* socket,
         }
         mutil::IOBuf sendbuf;
         appender.move_to(sendbuf);
-        MCHECK(!sendbuf.empty());
+        CHECK(!sendbuf.empty());
         Socket::WriteOptions wopt;
         wopt.ignore_eovercrowded = true;
-        MLOG_IF(WARNING, socket->Write(&sendbuf, &wopt) != 0)
+        LOG_IF(WARNING, socket->Write(&sendbuf, &wopt) != 0)
             << "Fail to send redis reply";
         if(ctx->parser.ParsedArgsSize() == 0) {
             ctx->arena.clear();
@@ -209,7 +209,7 @@ ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket* socket,
         // in most cases, and the time decreases to ~0.14s.
         PipelinedInfo pi;
         if (!socket->PopPipelinedInfo(&pi)) {
-            MLOG(WARNING) << "No corresponding PipelinedInfo in socket";
+            LOG(WARNING) << "No corresponding PipelinedInfo in socket";
             return MakeParseError(PARSE_ERROR_TRY_OTHERS);
         }
 
@@ -234,7 +234,7 @@ ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket* socket,
                         !(msg->response.reply(i).type() ==
                               melon::REDIS_REPLY_STATUS &&
                           msg->response.reply(i).data().compare("OK") == 0)) {
-                        MLOG(ERROR) << "Redis Auth failed: " << msg->response;
+                        LOG(ERROR) << "Redis Auth failed: " << msg->response;
                         return MakeParseError(PARSE_ERROR_NO_RESOURCE,
                             "Fail to authenticate with Redis");
                     }
@@ -246,7 +246,7 @@ ParseResult ParseRedisMessage(mutil::IOBuf* source, Socket* socket,
                 continue;
             }
 
-            MCHECK_EQ((uint32_t)msg->response.reply_size(), pi.count);
+            CHECK_EQ((uint32_t)msg->response.reply_size(), pi.count);
             msg->id_wait = pi.id_wait;
             socket->release_parsing_context();
             return MakeMessage(msg);
@@ -264,7 +264,7 @@ void ProcessRedisResponse(InputMessageBase* msg_base) {
     Controller* cntl = NULL;
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         return;
     }
@@ -290,7 +290,7 @@ void ProcessRedisResponse(InputMessageBase* msg_base) {
             }
             ((RedisResponse*)cntl->response())->Swap(&msg->response);
             if (FLAGS_redis_verbose) {
-                MLOG(INFO) << "\n[REDIS RESPONSE] "
+                LOG(INFO) << "\n[REDIS RESPONSE] "
                           << *((RedisResponse*)cntl->response());
             }
         }
@@ -325,7 +325,7 @@ void SerializeRedisRequest(mutil::IOBuf* buf,
     }
     ControllerPrivateAccessor(cntl).set_pipelined_count(rr->command_size());
     if (FLAGS_redis_verbose) {
-        MLOG(INFO) << "\n[REDIS REQUEST] " << *rr;
+        LOG(INFO) << "\n[REDIS REQUEST] " << *rr;
     }
 }
 

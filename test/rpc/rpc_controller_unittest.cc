@@ -24,13 +24,14 @@
 
 #include <gtest/gtest.h>
 #include <google/protobuf/stubs/common.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
+#include <melon/utility/config.h>
 
 class ControllerTest : public ::testing::Test{
 protected:

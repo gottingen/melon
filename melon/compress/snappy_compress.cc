@@ -18,7 +18,7 @@
 //
 
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/compress/snappy_compress.h>
 #include <melon/rpc/protocol.h>
 #include <snappy.h>
@@ -34,7 +34,7 @@ namespace melon::compress {
             mutil::IOBufAsSnappySink sink(*buf);
             return snappy::Compress(&source, &sink);
         }
-        MLOG(WARNING) << "Fail to serialize input pb=" << &res;
+        LOG(WARNING) << "Fail to serialize input pb=" << &res;
         return false;
     }
 
@@ -45,7 +45,7 @@ namespace melon::compress {
         if (snappy::Uncompress(&source, &sink)) {
             return ParsePbFromIOBuf(req, binary_pb);
         }
-        MLOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
+        LOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
         return false;
     }
 

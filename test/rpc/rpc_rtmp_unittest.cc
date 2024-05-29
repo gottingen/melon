@@ -51,10 +51,10 @@ public:
         , _called_on_first_message(0)
         , _nvideomsg(0)
         , _naudiomsg(0) {
-        MLOG(INFO) << __FUNCTION__;
+        LOG(INFO) << __FUNCTION__;
     }
     ~TestRtmpClientStream() {
-        MLOG(INFO) << __FUNCTION__;
+        LOG(INFO) << __FUNCTION__;
         assertions_on_stop();
     }
     void assertions_on_stop() {
@@ -80,13 +80,13 @@ public:
     void OnVideoMessage(melon::RtmpVideoMessage* msg) {
         ++_nvideomsg;
         // video data is ascii in UT, print it out.
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
     void OnAudioMessage(melon::RtmpAudioMessage* msg) {
         ++_naudiomsg;
         // audio data is ascii in UT, print it out.
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
 private:
@@ -103,10 +103,10 @@ public:
         : _called_on_stop(0)
         , _called_on_first_message(0)
         , _called_on_playable(0) {
-        MLOG(INFO) << __FUNCTION__;
+        LOG(INFO) << __FUNCTION__;
     }
     ~TestRtmpRetryingClientStream() {
-        MLOG(INFO) << __FUNCTION__;
+        LOG(INFO) << __FUNCTION__;
         assertions_on_stop();
     }
     void assertions_on_stop() {
@@ -124,12 +124,12 @@ public:
 
     void OnVideoMessage(melon::RtmpVideoMessage* msg) {
         // video data is ascii in UT, print it out.
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
     void OnAudioMessage(melon::RtmpAudioMessage* msg) {
         // audio data is ascii in UT, print it out.
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
 private:
@@ -149,16 +149,16 @@ public:
     };
     PlayingDummyStream(int64_t sleep_ms)
         : _state(STATE_UNPLAYING), _sleep_ms(sleep_ms) {
-        MLOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     ~PlayingDummyStream() {
-        MLOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     void OnPlay(const melon::RtmpPlayOptions& opt,
                 mutil::Status* status,
                 google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got play{stream_name=" << opt.stream_name
                   << " start=" << opt.start
                   << " duration=" << opt.duration
@@ -168,7 +168,7 @@ public:
             return;
         }
         if (_sleep_ms > 0) {
-            MLOG(INFO) << "Sleep " << _sleep_ms
+            LOG(INFO) << "Sleep " << _sleep_ms
                       << " ms before responding play request";
             fiber_usleep(_sleep_ms * 1000L);
         }
@@ -184,13 +184,13 @@ public:
                 fiber_stop(_play_thread);
                 fiber_join(_play_thread, NULL);
             } else {
-                MCHECK(false) << "Impossible";
+                CHECK(false) << "Impossible";
             }
         }
     }
 
     void OnStop() {
-        MLOG(INFO) << "OnStop of PlayingDummyStream=" << this;
+        LOG(INFO) << "OnStop of PlayingDummyStream=" << this;
         if (_state.exchange(STATE_STOPPED) == STATE_PLAYING) {
             fiber_stop(_play_thread);
             fiber_join(_play_thread, NULL);
@@ -211,7 +211,7 @@ private:
 };
 
 void PlayingDummyStream::SendData() {
-    MLOG(INFO) << "Enter SendData of PlayingDummyStream=" << this;
+    LOG(INFO) << "Enter SendData of PlayingDummyStream=" << this;
 
     melon::RtmpVideoMessage vmsg;
     melon::RtmpAudioMessage amsg;
@@ -242,7 +242,7 @@ void PlayingDummyStream::SendData() {
         fiber_usleep(1000000);
     }
 
-    MLOG(INFO) << "Quit SendData of PlayingDummyStream=" << this;
+    LOG(INFO) << "Quit SendData of PlayingDummyStream=" << this;
 }
 
 class PlayingDummyService : public melon::RtmpService {
@@ -266,10 +266,10 @@ public:
         , _called_on_first_message(0)
         , _nvideomsg(0)
         , _naudiomsg(0) {
-        MLOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        LOG(INFO) << __FUNCTION__ << "(" << this << ")";
     }
     ~PublishStream() {
-        MLOG(INFO) << __FUNCTION__ << "(" << this << ")";
+        LOG(INFO) << __FUNCTION__ << "(" << this << ")";
         assertions_on_stop();
     }
     void assertions_on_stop() {
@@ -280,7 +280,7 @@ public:
                    mutil::Status* status,
                    google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got publish{stream_name=" << stream_name
                   << " type=" << melon::RtmpPublishType2Str(publish_type)
                   << '}';
@@ -289,7 +289,7 @@ public:
             return;
         }
         if (_sleep_ms > 0) {
-            MLOG(INFO) << "Sleep " << _sleep_ms
+            LOG(INFO) << "Sleep " << _sleep_ms
                       << " ms before responding play request";
             fiber_usleep(_sleep_ms * 1000L);
         }
@@ -298,19 +298,19 @@ public:
         ++_called_on_first_message;
     }
     void OnStop() {
-        MLOG(INFO) << "OnStop of PublishStream=" << this;
+        LOG(INFO) << "OnStop of PublishStream=" << this;
         ++_called_on_stop;
     }
     void OnVideoMessage(melon::RtmpVideoMessage* msg) {
         ++_nvideomsg;
         // video data is ascii in UT, print it out.
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
     void OnAudioMessage(melon::RtmpAudioMessage* msg) {
         ++_naudiomsg;
         // audio data is ascii in UT, print it out.
-        MLOG(INFO) << remote_side() << "|stream=" << stream_id()
+        LOG(INFO) << remote_side() << "|stream=" << stream_id()
                   << ": Got " << *msg << " data=" << msg->data;
     }
 private:
@@ -555,7 +555,7 @@ TEST(RtmpTest, successfully_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i]->assertions_on_successful_play();
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, fail_to_play_streams) {
@@ -586,7 +586,7 @@ TEST(RtmpTest, fail_to_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i]->assertions_on_failure();
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, successfully_publish_streams) {
@@ -649,7 +649,7 @@ TEST(RtmpTest, successfully_publish_streams) {
     for (int j = 1; j < NSTREAM; j += 2) {
         ASSERT_EQ(REP, created_streams[j]->_naudiomsg);
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, failed_to_publish_streams) {
@@ -688,7 +688,7 @@ TEST(RtmpTest, failed_to_publish_streams) {
         ASSERT_EQ(0, created_streams[i]->_nvideomsg);
         ASSERT_EQ(0, created_streams[i]->_naudiomsg);
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, failed_to_connect_client_streams) {
@@ -710,7 +710,7 @@ TEST(RtmpTest, failed_to_connect_client_streams) {
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_client_streams_before_init) {
@@ -735,7 +735,7 @@ TEST(RtmpTest, destroy_client_streams_before_init) {
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
@@ -759,7 +759,7 @@ TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_client_streams_during_creation) {
@@ -791,7 +791,7 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
         usleep(10*1000);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
@@ -824,7 +824,7 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
         usleep(10*1000);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }
 
 TEST(RtmpTest, retrying_stream) {
@@ -853,10 +853,10 @@ TEST(RtmpTest, retrying_stream) {
         cstreams[i]->Init(sc, opt);
     }
     sleep(3);
-    MLOG(INFO) << "Stopping server";
+    LOG(INFO) << "Stopping server";
     server.Stop(0);
     server.Join();
-    MLOG(INFO) << "Stopped server and sleep for a while";
+    LOG(INFO) << "Stopped server and sleep for a while";
     sleep(3);
     ASSERT_EQ(0, server.Start(8576, &server_opt));
     sleep(3);
@@ -864,5 +864,5 @@ TEST(RtmpTest, retrying_stream) {
         ASSERT_EQ(1, cstreams[i]->_called_on_first_message);
         ASSERT_EQ(2, cstreams[i]->_called_on_playable);
     }
-    MLOG(INFO) << "Quiting program...";
+    LOG(INFO) << "Quiting program...";
 }

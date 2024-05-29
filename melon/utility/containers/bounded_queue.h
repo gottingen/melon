@@ -29,7 +29,7 @@
 #define MUTIL_BOUNDED_QUEUE_H
 
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -48,7 +48,7 @@ namespace mutil {
 //   int Foo::init() {
 //     BoundedQueue<int> tmp(capacity);
 //     if (!tmp.initialized()) {
-//       MLOG(ERROR) << "Fail to create _queue";
+//       LOG(ERROR) << "Fail to create _queue";
 //       return -1;
 //     }
 //     tmp.swap(_queue);
@@ -67,7 +67,7 @@ public:
         , _start(0)
         , _ownership(ownership)
         , _items(mem) {
-        DMCHECK(_items);
+        DCHECK(_items);
     };
     
     // Construct a queue with the given capacity.
@@ -79,7 +79,7 @@ public:
         , _start(0)
         , _ownership(OWNS_STORAGE)
         , _items(malloc(capacity * sizeof(T))) {
-        DMCHECK(_items);
+        DCHECK(_items);
     };
     
     BoundedQueue()

@@ -24,6 +24,7 @@
 
 #include <melon/utility/scoped_lock.h>
 #include <melon/rpc/data_factory.h>
+#include <melon/utility/atomicops.h>
 
 
 namespace melon {

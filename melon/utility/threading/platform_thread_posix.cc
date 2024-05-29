@@ -8,7 +8,7 @@
 #include <sched.h>
 
 #include "melon/utility/lazy_instance.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/safe_strerror_posix.h"
 #include "melon/utility/synchronization/waitable_event.h"
@@ -125,7 +125,7 @@ bool CreateThread(size_t stack_size, bool joinable,
     // Value of |handle| is undefined if pthread_create fails.
     handle = 0;
     errno = err;
-    PMLOG(ERROR) << "pthread_create";
+    PLOG(ERROR) << "pthread_create";
   }
 
   pthread_attr_destroy(&attributes);
@@ -134,7 +134,7 @@ bool CreateThread(size_t stack_size, bool joinable,
   // is set in the handle.
   if (success)
     params.handle_set.Wait();
-  MCHECK_EQ(handle, thread_handle->platform_handle());
+  CHECK_EQ(handle, thread_handle->platform_handle());
 
   return success;
 }
@@ -231,7 +231,7 @@ void PlatformThread::Join(PlatformThreadHandle thread_handle) {
   // the thread referred to by |thread_handle| may still be running long-lived /
   // blocking tasks.
   mutil::ThreadRestrictions::AssertIOAllowed();
-  MCHECK_EQ(0, pthread_join(thread_handle.handle_, NULL));
+  CHECK_EQ(0, pthread_join(thread_handle.handle_, NULL));
 }
 
 }  // namespace mutil

@@ -63,7 +63,7 @@ void benchmark_vector_set(int num_peers) {
     timer.stop();
     ASSERT_EQ(counter, N * num_peers);
     const long elp_set = timer.n_elapsed();
-    MLOG(INFO) << "num_peers=" << num_peers
+    LOG(INFO) << "num_peers=" << num_peers
               << " vector=" << elp_vector / counter
               << " vector_std_find=" << elp_vector_std_find / counter
               << " set=" << elp_set / counter;

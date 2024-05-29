@@ -32,6 +32,7 @@
 #include <melon/fiber/butex.h>
 #include <melon/fiber/fiber.h>
 #include <melon/utility/atomicops.h>
+#include <cinttypes>
 
 namespace {
 DEFINE_int32(thread_num, 1, "#pairs of threads doing ping pong");

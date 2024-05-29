@@ -31,7 +31,7 @@
 #include <melon/utility/thread_local.h>              // thread_atexit
 #include <melon/utility/macros.h>                    // MELON_CACHELINE_ALIGNMENT
 #include <melon/utility/scoped_lock.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace melon::var {
     namespace detail {
@@ -129,13 +129,13 @@ namespace melon::var {
             // Note: May return non-null for unexist id, see notes on ThreadBlock
             inline static Agent *get_or_create_tls_agent(AgentId id) {
                 if (__builtin_expect(id < 0, 0)) {
-                    MCHECK(false) << "Invalid id=" << id;
+                    CHECK(false) << "Invalid id=" << id;
                     return NULL;
                 }
                 if (_s_tls_blocks == NULL) {
                     _s_tls_blocks = new(std::nothrow) std::vector<ThreadBlock *>;
                     if (__builtin_expect(_s_tls_blocks == NULL, 0)) {
-                        MLOG(FATAL) << "Fail to create vector, " << berror();
+                        LOG(FATAL) << "Fail to create vector, " << berror();
                         return NULL;
                     }
                     mutil::thread_atexit(_destroy_tls_blocks);

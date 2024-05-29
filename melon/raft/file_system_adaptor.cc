@@ -74,11 +74,11 @@ namespace melon::raft {
             return -1;
         }
 
-        BRAFT_VMLOG << "begin read offset " << offset << " count " << size
+        BRAFT_VLOG << "begin read offset " << offset << " count " << size
                    << ", buffer_offset " << _buffer_offset
                    << " buffer_size " << _buffer_size;
         if (offset < _buffer_offset || offset > off_t(_buffer_offset + _buffer_size)) {
-            MLOG(WARNING) << "Fail to read from buffered file adaptor with invalid range"
+            LOG(WARNING) << "Fail to read from buffered file adaptor with invalid range"
                          << ", buffer_offset: " << _buffer_offset
                          << ", buffer_size: " << _buffer_size
                          << ", read offset: " << offset
@@ -122,11 +122,11 @@ namespace melon::raft {
             return -1;
         }
 
-        BRAFT_VMLOG << "begin write offset " << offset << ", data_size " << data.size()
+        BRAFT_VLOG << "begin write offset " << offset << ", data_size " << data.size()
                    << ", buffer_offset " << _buffer_offset
                    << ", buffer_size " << _buffer_size;
         if (offset < _buffer_offset + _buffer_size) {
-            MLOG(WARNING) << "Fail to write into buffered file adaptor with invalid range"
+            LOG(WARNING) << "Fail to write into buffered file adaptor with invalid range"
                          << ", offset: " << offset
                          << ", data_size: " << data.size()
                          << ", buffer_offset: " << _buffer_offset
@@ -135,8 +135,8 @@ namespace melon::raft {
             return -1;
         } else if (offset > _buffer_offset + _buffer_size) {
             // passby hole
-            MCHECK(_buffer_size == 0);
-            BRAFT_VMLOG << "seek to new offset " << offset << " as there is hole";
+            CHECK(_buffer_size == 0);
+            BRAFT_VLOG << "seek to new offset " << offset << " as there is hole";
             seek(offset);
         }
         const size_t saved_size = data.size();
@@ -153,7 +153,7 @@ namespace melon::raft {
             _buffer_offset += write_count;
             _buffer_size -= write_count;
             _buffer.pop_front(write_count);
-            MCHECK_EQ(_buffer_size, _buffer.size());
+            CHECK_EQ(_buffer_size, _buffer.size());
         }
         return saved_size;
     }
@@ -298,7 +298,7 @@ namespace melon::raft {
                 continue;
             }
             full_path = full_path.Append(*i);
-            DMLOG(INFO) << "Creating " << full_path.value();
+            DLOG(INFO) << "Creating " << full_path.value();
             if (!fs->create_directory(full_path.value(), error, false)) {
                 return false;
             }

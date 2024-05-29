@@ -4,13 +4,13 @@
 
 #include "melon/utility/synchronization/cancellation_flag.h"
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
 void CancellationFlag::Set() {
 #if !defined(NDEBUG)
-  DMCHECK_EQ(set_on_, PlatformThread::CurrentId());
+  DCHECK_EQ(set_on_, PlatformThread::CurrentId());
 #endif
   mutil::subtle::Release_Store(&flag_, 1);
 }

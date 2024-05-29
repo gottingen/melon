@@ -11,7 +11,7 @@
 
 #include "melon/utility/basictypes.h"
 #include <melon/utility/containers/hash_tables.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/memory/manual_constructor.h"
 
 namespace mutil {
@@ -558,11 +558,11 @@ class SmallMap {
   }
 
   inline NormalMap* map() {
-    MCHECK(UsingFullMap());
+    CHECK(UsingFullMap());
     return map_.get();
   }
   inline const NormalMap* map() const {
-    MCHECK(UsingFullMap());
+    CHECK(UsingFullMap());
     return map_.get();
   }
 

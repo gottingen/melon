@@ -126,7 +126,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for cpu profile for "
+        LOG(INFO) << client_info.str() << " requests for cpu profile for "
                   << sleep_sec << " seconds";
 
         char prof_name[256];
@@ -145,7 +145,7 @@ namespace melon {
             return;
         }
         if (fiber_usleep(sleep_sec * 1000000L) != 0) {
-            PMLOG(WARNING) << "Profiling has been interrupted";
+            PLOG(WARNING) << "Profiling has been interrupted";
         }
         ProfilerStop();
 
@@ -183,7 +183,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for contention profile for "
+        LOG(INFO) << client_info.str() << " requests for contention profile for "
                   << sleep_sec << " seconds";
 
         char prof_name[256];
@@ -196,7 +196,7 @@ namespace melon {
             return;
         }
         if (fiber_usleep(sleep_sec * 1000000L) != 0) {
-            PMLOG(WARNING) << "Profiling has been interrupted";
+            PLOG(WARNING) << "Profiling has been interrupted";
         }
         fiber::ContentionProfilerStop();
 
@@ -236,7 +236,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for heap profile";
+        LOG(INFO) << client_info.str() << " requests for heap profile";
 
         std::string obj;
         malloc_ext->GetHeapSample(&obj);
@@ -266,7 +266,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for growth profile";
+        LOG(INFO) << client_info.str() << " requests for growth profile";
 
         std::string obj;
         malloc_ext->GetHeapGrowthStacks(&obj);
@@ -303,7 +303,7 @@ namespace melon {
         std::stringstream ss;
         const int rc = mutil::read_command_output(ss, cmd.c_str());
         if (rc < 0) {
-            MLOG(ERROR) << "Fail to popen `" << cmd << "'";
+            LOG(ERROR) << "Fail to popen `" << cmd << "'";
             return -1;
         }
         std::string line;
@@ -392,7 +392,7 @@ namespace melon {
             addr_map[lib_info.end_addr] = std::string();
         }
         tm.stop();
-        RPC_VMLOG << "Loaded " << lib_info.path << " in " << tm.m_elapsed() << "ms";
+        RPC_VLOG << "Loaded " << lib_info.path << " in " << tm.m_elapsed() << "ms";
         return 0;
     }
 
@@ -489,11 +489,11 @@ namespace melon {
             }
         }
         tm2.stop();
-        RPC_VMLOG_IF(num_removed) << "Removed " << num_removed << " entries in "
+        RPC_VLOG_IF(num_removed) << "Removed " << num_removed << " entries in "
                                  << tm2.m_elapsed() << "ms";
 
         tm.stop();
-        RPC_VMLOG << "Loaded all symbols in " << tm.m_elapsed() << "ms";
+        RPC_VLOG << "Loaded all symbols in " << tm.m_elapsed() << "ms";
     }
 
     static void FindSymbols(mutil::IOBuf *out, std::vector<uintptr_t> &addr_list) {

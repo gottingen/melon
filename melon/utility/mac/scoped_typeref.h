@@ -7,7 +7,7 @@
 
 #include "melon/utility/basictypes.h"
 #include <melon/utility/compiler_specific.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/memory/scoped_policy.h"
 
 namespace mutil {
@@ -78,7 +78,7 @@ class ScopedTypeRef {
   // by pass-by-pointer create functions. To enforce this, require that the
   // object be reset to NULL before this may be used.
   T* InitializeInto() WARN_UNUSED_RESULT {
-    DMCHECK(!object_);
+    DCHECK(!object_);
     return &object_;
   }
 

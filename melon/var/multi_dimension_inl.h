@@ -72,7 +72,7 @@ namespace melon::var {
     inline
     size_t MultiDimension<T>::init_flatmap(MetricMap &bg) {
         // size = 1 << 13
-        MCHECK_EQ(0, bg.init(8192, 80));
+        CHECK_EQ(0, bg.init(8192, 80));
         return (size_t) 1;
     }
 
@@ -81,7 +81,7 @@ namespace melon::var {
     size_t MultiDimension<T>::count_stats() {
         MetricMapScopedPtr metric_map_ptr;
         if (_metric_map.Read(&metric_map_ptr) != 0) {
-            MLOG(ERROR) << "Fail to read dbd";
+            LOG(ERROR) << "Fail to read dbd";
             return 0;
         }
         return metric_map_ptr->size();
@@ -118,7 +118,7 @@ namespace melon::var {
         // then traversal tmp_map and delete var object,
         // which can prevent the var object from being deleted twice.
         MetricMap tmp_map;
-        MCHECK_EQ(0, tmp_map.init(8192, 80));
+        CHECK_EQ(0, tmp_map.init(8192, 80));
         auto clear_fn = [&tmp_map](MetricMap &map) {
             if (!tmp_map.empty()) {
                 tmp_map.clear();
@@ -127,7 +127,7 @@ namespace melon::var {
             return (size_t) 1;
         };
         int ret = _metric_map.Modify(clear_fn);
-        MCHECK_EQ(1, ret);
+        CHECK_EQ(1, ret);
         for (auto &kv: tmp_map) {
             delete kv.second;
         }
@@ -142,7 +142,7 @@ namespace melon::var {
         names->clear();
         MetricMapScopedPtr metric_map_ptr;
         if (_metric_map.Read(&metric_map_ptr) != 0) {
-            MLOG(ERROR) << "Fail to read dbd";
+            LOG(ERROR) << "Fail to read dbd";
             return;
         }
         names->reserve(metric_map_ptr->size());
@@ -159,7 +159,7 @@ namespace melon::var {
         }
         MetricMapScopedPtr metric_map_ptr;
         if (_metric_map.Read(&metric_map_ptr) != 0) {
-            MLOG(ERROR) << "Fail to read dbd";
+            LOG(ERROR) << "Fail to read dbd";
             return nullptr;
         }
 
@@ -179,7 +179,7 @@ namespace melon::var {
         {
             MetricMapScopedPtr metric_map_ptr;
             if (_metric_map.Read(&metric_map_ptr) != 0) {
-                MLOG(ERROR) << "Fail to read dbd";
+                LOG(ERROR) << "Fail to read dbd";
                 return nullptr;
             }
 
@@ -191,7 +191,7 @@ namespace melon::var {
             }
 
             if (metric_map_ptr->size() > MAX_MULTI_DIMENSION_STATS_COUNT) {
-                MLOG(ERROR) << "Too many stats seen, overflow detected, max stats count:"
+                LOG(ERROR) << "Too many stats seen, overflow detected, max stats count:"
                            << MAX_MULTI_DIMENSION_STATS_COUNT;
                 return nullptr;
             }
@@ -382,7 +382,7 @@ namespace melon::var {
     inline
     bool MultiDimension<T>::is_valid_lables_value(const key_type &labels_value) const {
         if (count_labels() != labels_value.size()) {
-            MLOG(ERROR) << "Invalid labels count";
+            LOG(ERROR) << "Invalid labels count";
             return false;
         }
         return true;

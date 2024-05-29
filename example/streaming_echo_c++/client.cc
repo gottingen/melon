@@ -21,7 +21,7 @@
 // A client sending requests to server in batch every 1 second.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/stream.h>
 #include "echo.pb.h"
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), NULL) != 0) {
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -57,30 +57,30 @@ int main(int argc, char* argv[]) {
     melon::Controller cntl;
     melon::StreamId stream;
     if (melon::StreamCreate(&stream, cntl, NULL) != 0) {
-        MLOG(ERROR) << "Fail to create stream";
+        LOG(ERROR) << "Fail to create stream";
         return -1;
     }
-    MLOG(INFO) << "Created Stream=" << stream;
+    LOG(INFO) << "Created Stream=" << stream;
     example::EchoRequest request;
     example::EchoResponse response;
     request.set_message("I'm a RPC to connect stream");
     stub.Echo(&cntl, &request, &response, NULL);
     if (cntl.Failed()) {
-        MLOG(ERROR) << "Fail to connect stream, " << cntl.ErrorText();
+        LOG(ERROR) << "Fail to connect stream, " << cntl.ErrorText();
         return -1;
     }
     
     while (!melon::IsAskedToQuit()) {
         mutil::IOBuf msg1;
         msg1.append("abcdefghijklmnopqrstuvwxyz");
-        MCHECK_EQ(0, melon::StreamWrite(stream, msg1));
+        CHECK_EQ(0, melon::StreamWrite(stream, msg1));
         mutil::IOBuf msg2;
         msg2.append("0123456789");
-        MCHECK_EQ(0, melon::StreamWrite(stream, msg2));
+        CHECK_EQ(0, melon::StreamWrite(stream, msg2));
         sleep(1);
     }
 
-    MCHECK_EQ(0, melon::StreamClose(stream));
-    MLOG(INFO) << "EchoClient is going to quit";
+    CHECK_EQ(0, melon::StreamClose(stream));
+    LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

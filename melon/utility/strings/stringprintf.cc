@@ -92,7 +92,7 @@ static void StringAppendVT(StringType* dst,
       // That should be plenty, don't try anything larger.  This protects
       // against huge allocations when using vsnprintfT implementations that
       // return -1 for reasons other than overflow without setting errno.
-      DMLOG(WARNING) << "Unable to printf the requested string due to size.";
+      DLOG(WARNING) << "Unable to printf the requested string due to size.";
       return;
     }
 

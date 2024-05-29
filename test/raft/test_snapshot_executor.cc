@@ -210,11 +210,11 @@ void MockSnapshotCopier::join() {
 SnapshotReader* MockSnapshotCopier::get_reader() { return _reader; }
 
 void MockSnapshotCopier::start() {
-    MLOG(INFO) << "In MockSnapshotCopier::start()";
+    LOG(INFO) << "In MockSnapshotCopier::start()";
     _reader = _storage->open();
     if (fiber_start_background(
                 &_tid, NULL, start_copy, this) != 0) {
-        MLOG(INFO) << "Fail to start fiber.";
+        LOG(INFO) << "Fail to start fiber.";
     } 
 }
 
@@ -368,9 +368,9 @@ TEST_F(SnapshotExecutorTest, interrupt_installing) {
     fiber_join(tid, NULL);
     ASSERT_TRUE(arg.cntl.Failed());
     if (arg.cntl.Failed()) {
-        MLOG(ERROR) << "error: " << arg.cntl.ErrorText();
+        LOG(ERROR) << "error: " << arg.cntl.ErrorText();
     } else {
-        MLOG(INFO) << "success.";
+        LOG(INFO) << "success.";
     }
     ASSERT_EQ(ECANCELED, arg.cntl.ErrorCode());
     ASSERT_EQ(0, storage1.close(reader));
@@ -423,12 +423,12 @@ TEST_F(SnapshotExecutorTest, retry_install_snapshot) {
     }
     size_t suc = 0;
     for (size_t i = 0; i < N; ++i) {
-        MLOG(INFO) << "Try number: " << i << "------------------------";
+        LOG(INFO) << "Try number: " << i << "------------------------";
         if (args[i].cntl.Failed()) {
-            MLOG(ERROR) << "Result, Error: " << args[i].cntl.ErrorText();
+            LOG(ERROR) << "Result, Error: " << args[i].cntl.ErrorText();
         } else {
             suc += 1;
-            MLOG(INFO) << "Result, Success.";
+            LOG(INFO) << "Result, Success.";
         }
     }
     ASSERT_EQ(1, suc);
@@ -491,12 +491,12 @@ TEST_F(SnapshotExecutorTest, retry_request_with_throttle) {
     }
     size_t suc = 0;
     for (size_t i = 0; i < N; ++i) {
-        MLOG(INFO) << "Try number: " << i << "------------------------";
+        LOG(INFO) << "Try number: " << i << "------------------------";
         if (args[i].cntl.Failed()) {
-            MLOG(ERROR) << "Result, Error: " << args[i].cntl.ErrorText();
+            LOG(ERROR) << "Result, Error: " << args[i].cntl.ErrorText();
         } else {
             suc += 1;
-            MLOG(INFO) << "Result, Success.";
+            LOG(INFO) << "Result, Success.";
         }
     }
     ASSERT_EQ(0, storage1.close(reader));

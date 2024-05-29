@@ -20,7 +20,7 @@
 
 #include <melon/utility/scoped_lock.h>             // MELON_SCOPED_LOCK
 #include <melon/utility/errno.h>                   // berror
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>
 #include <melon/fiber/sys_futex.h>            // futex_wake_private
@@ -81,13 +81,13 @@ namespace fiber {
         TaskGroup *g = c->create_group(tag);
         TaskStatistics stat;
         if (NULL == g) {
-            MLOG(ERROR) << "Fail to create TaskGroup in pthread=" << pthread_self();
+            LOG(ERROR) << "Fail to create TaskGroup in pthread=" << pthread_self();
             return NULL;
         }
         std::string worker_thread_name = mutil::string_printf(
                 "melon_wkr:%d-%d", g->tag(), c->_next_worker_id.fetch_add(1, mutil::memory_order_relaxed));
         mutil::PlatformThread::SetName(worker_thread_name.c_str());
-        BT_VMLOG << "Created worker=" << pthread_self() << " fiber=" << g->main_tid()
+        BT_VLOG << "Created worker=" << pthread_self() << " fiber=" << g->main_tid()
                  << " tag=" << g->tag();
         tls_task_group = g;
         c->_nworkers << 1;
@@ -95,7 +95,7 @@ namespace fiber {
         g->run_main_task();
 
         stat = g->main_stat();
-        BT_VMLOG << "Destroying worker=" << pthread_self() << " fiber="
+        BT_VLOG << "Destroying worker=" << pthread_self() << " fiber="
                  << g->main_tid() << " idle=" << stat.cputime_ns / 1000000.0
                  << "ms uptime=" << g->current_uptime_ns() / 1000000.0 << "ms";
         tls_task_group = NULL;
@@ -108,11 +108,11 @@ namespace fiber {
     TaskGroup *TaskControl::create_group(fiber_tag_t tag) {
         TaskGroup *g = new(std::nothrow) TaskGroup(this);
         if (NULL == g) {
-            MLOG(FATAL) << "Fail to new TaskGroup";
+            LOG(FATAL) << "Fail to new TaskGroup";
             return NULL;
         }
         if (g->init(FLAGS_task_group_runqueue_capacity) != 0) {
-            MLOG(ERROR) << "Fail to init TaskGroup";
+            LOG(ERROR) << "Fail to init TaskGroup";
             delete g;
             return NULL;
         }
@@ -170,11 +170,11 @@ namespace fiber {
 
     int TaskControl::init(int concurrency) {
         if (_concurrency != 0) {
-            MLOG(ERROR) << "Already initialized";
+            LOG(ERROR) << "Already initialized";
             return -1;
         }
         if (concurrency <= 0) {
-            MLOG(ERROR) << "Invalid concurrency=" << concurrency;
+            LOG(ERROR) << "Invalid concurrency=" << concurrency;
             return -1;
         }
         _concurrency = concurrency;
@@ -193,7 +193,7 @@ namespace fiber {
 
         // Make sure TimerThread is ready.
         if (get_or_create_global_timer_thread() == NULL) {
-            MLOG(ERROR) << "Fail to get global_timer_thread";
+            LOG(ERROR) << "Fail to get global_timer_thread";
             return -1;
         }
 
@@ -203,7 +203,7 @@ namespace fiber {
             const int rc = pthread_create(&_workers[i], NULL, worker_thread, arg);
             if (rc) {
                 delete arg;
-                MLOG(ERROR) << "Fail to create _workers[" << i << "], " << berror(rc);
+                LOG(ERROR) << "Fail to create _workers[" << i << "], " << berror(rc);
                 return -1;
             }
         }
@@ -247,7 +247,7 @@ namespace fiber {
                     &_workers[i + old_concurency], NULL, worker_thread, arg);
             if (rc) {
                 delete arg;
-                MLOG(WARNING) << "Fail to create _workers[" << i + old_concurency
+                LOG(WARNING) << "Fail to create _workers[" << i + old_concurency
                               << "], " << berror(rc);
                 _concurrency.fetch_sub(1, mutil::memory_order_release);
                 break;
@@ -259,13 +259,13 @@ namespace fiber {
     }
 
     TaskGroup *TaskControl::choose_one_group(fiber_tag_t tag) {
-        MCHECK(tag >= FIBER_TAG_DEFAULT && tag < FLAGS_task_group_ntags);
+        CHECK(tag >= FIBER_TAG_DEFAULT && tag < FLAGS_task_group_ntags);
         auto &groups = tag_group(tag);
         const auto ngroup = tag_ngroup(tag).load(mutil::memory_order_acquire);
         if (ngroup != 0) {
             return groups[mutil::fast_rand_less_than(ngroup)];
         }
-        MCHECK(false) << "Impossible: ngroup is 0";
+        CHECK(false) << "Impossible: ngroup is 0";
         return NULL;
     }
 
@@ -274,7 +274,7 @@ namespace fiber {
     void TaskControl::stop_and_join() {
         // Close epoll threads so that worker threads are not waiting on epoll(
         // which cannot be woken up by signal_task below)
-        MCHECK_EQ(0, stop_and_join_epoll_threads());
+        CHECK_EQ(0, stop_and_join_epoll_threads());
 
         // Stop workers
         {
@@ -339,11 +339,11 @@ namespace fiber {
 
     int TaskControl::_destroy_group(TaskGroup *g) {
         if (NULL == g) {
-            MLOG(ERROR) << "Param[g] is NULL";
+            LOG(ERROR) << "Param[g] is NULL";
             return -1;
         }
         if (g->_control != this) {
-            MLOG(ERROR) << "TaskGroup=" << g
+            LOG(ERROR) << "TaskGroup=" << g
                         << " does not belong to this TaskControl=" << this;
             return -1;
         }

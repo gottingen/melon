@@ -44,6 +44,7 @@
 #include <melon/rpc/progressive_reader.h>           // ProgressiveReader
 #include <melon/rpc/grpc/grpc.h>
 #include <melon/rpc/kvmap.h>
+#include <melon/utility/time.h>
 
 // EAUTH is defined in MAC
 #ifndef EAUTH
@@ -601,7 +602,7 @@ namespace melon {
         const mutil::IOBuf &response_attachment() const { return _response_attachment; }
 
         // Get the object to write key/value which will be flushed into
-        // MLOG(INFO) when this controller is deleted.
+        // LOG(INFO) when this controller is deleted.
         KVMap &SessionKV();
 
         // Flush SessionKV() into `os'
@@ -983,9 +984,9 @@ namespace melon {
 //     Set cntl->set_request_id(REQUEST_ID);
 //   Standalone http client:
 //     Set header 'X-REQUEST-ID'
-#define CLOGD(cntl) MLOG(DEBUG) << (cntl)->LogPrefix()
-#define CLOGI(cntl) MLOG(INFO) << (cntl)->LogPrefix()
-#define CLOGW(cntl) MLOG(WARNING) << (cntl)->LogPrefix()
-#define CLOGE(cntl) MLOG(ERROR) << (cntl)->LogPrefix()
-#define CLOGF(cntl) MLOG(FATAL) << (cntl)->LogPrefix()
-#define CVMLOG(v, cntl) VMLOG(v) << (cntl)->LogPrefix()
+#define CLOGD(cntl) LOG(DEBUG) << (cntl)->LogPrefix()
+#define CLOGI(cntl) LOG(INFO) << (cntl)->LogPrefix()
+#define CLOGW(cntl) LOG(WARNING) << (cntl)->LogPrefix()
+#define CLOGE(cntl) LOG(ERROR) << (cntl)->LogPrefix()
+#define CLOGF(cntl) LOG(FATAL) << (cntl)->LogPrefix()
+#define CVLOG(v, cntl) VLOG(v) << (cntl)->LogPrefix()

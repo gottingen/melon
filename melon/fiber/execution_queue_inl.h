@@ -24,7 +24,7 @@
 #include <melon/utility/atomicops.h>             // mutil::atomic
 #include <melon/utility/macros.h>                // MELON_CACHELINE_ALIGNMENT
 #include <melon/utility/memory/scoped_ptr.h>     // mutil::scoped_ptr
-#include <melon/utility/logging.h>               // LOG
+#include <turbo/log/logging.h>               // LOG
 #include <melon/utility/time.h>                  // mutil::cpuwide_time_ns
 #include <melon/var/var.h>                  // melon::var::Adder
 #include <melon/fiber/butex.h>              // butex_construct
@@ -99,7 +99,7 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
     void clear_before_return(clear_task_mem clear_func) {
         if (!stop_task) {
             clear_func(this);
-            MCHECK(iterated);
+            CHECK(iterated);
         }
         q = NULL;
         std::unique_lock<mutil::Mutex> lck(mutex);
@@ -107,8 +107,8 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
         const int saved_status = status;
         status = UNEXECUTED;
         lck.unlock();
-        MCHECK_NE(saved_status, UNEXECUTED);
-        MLOG_IF(WARNING, saved_status == EXECUTING)
+        CHECK_NE(saved_status, UNEXECUTED);
+        LOG_IF(WARNING, saved_status == EXECUTING)
                 << "Return a executing node, did you return before "
                    "iterator reached the end?";
     }
@@ -482,7 +482,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         TaskNode* old_head, TaskNode** new_tail, 
         bool has_uniterated) {
 
-    MCHECK(old_head->next == NULL);
+    CHECK(old_head->next == NULL);
     // Try to set _head to NULL to mark that the execute is done.
     TaskNode* new_head = old_head;
     TaskNode* desired = NULL;
@@ -496,7 +496,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         // No one added new tasks.
         return return_when_no_more;
     }
-    MCHECK_NE(new_head, old_head);
+    CHECK_NE(new_head, old_head);
     // Above acquire fence pairs release fence of exchange in Write() to make
     // sure that we see all fields of requests set.
 
@@ -516,7 +516,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         p->next = tail;
         tail = p;
         p = saved_next;
-        MCHECK(p != NULL);
+        CHECK(p != NULL);
     } while (p != old_head);
 
     // Link old list with new list.
@@ -575,10 +575,10 @@ inline int ExecutionQueueBase::dereference() {
             }
             return 0;
         }
-        MLOG(FATAL) << "Invalid id=" << id;
+        LOG(FATAL) << "Invalid id=" << id;
         return -1;
     }
-    MLOG(FATAL) << "Over dereferenced id=" << id;
+    LOG(FATAL) << "Over dereferenced id=" << id;
     return -1;
 }
 

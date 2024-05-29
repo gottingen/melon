@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 #include <melon/utility/files/file_watcher.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace {
 class FileWatcherTest : public ::testing::Test{
@@ -45,16 +45,16 @@ TEST_F(FileWatcherTest, random_op) {
             const mutil::FileWatcher::Change ret = fw.check_and_consume();
             switch (ret) {
             case mutil::FileWatcher::UPDATED:
-                MLOG(INFO) << fw.filepath() << " is updated";
+                LOG(INFO) << fw.filepath() << " is updated";
                 break;
             case mutil::FileWatcher::CREATED:
-                MLOG(INFO) << fw.filepath() << " is created";
+                LOG(INFO) << fw.filepath() << " is created";
                 break;
             case mutil::FileWatcher::DELETED:
-                MLOG(INFO) << fw.filepath() << " is deleted";
+                LOG(INFO) << fw.filepath() << " is deleted";
                 break;
             case mutil::FileWatcher::UNCHANGED:
-                MLOG(INFO) << fw.filepath() << " does not change or still not exist";
+                LOG(INFO) << fw.filepath() << " does not change or still not exist";
                 break;
             }
         }
@@ -62,14 +62,14 @@ TEST_F(FileWatcherTest, random_op) {
         switch (rand() % 2) {
         case 0:
             ASSERT_EQ(0, system("touch dummy_file"));
-            MLOG(INFO) << "action: touch dummy_file";
+            LOG(INFO) << "action: touch dummy_file";
             break;
         case 1:
             ASSERT_EQ(0, system("rm -f dummy_file"));
-            MLOG(INFO) << "action: rm -f dummy_file";
+            LOG(INFO) << "action: rm -f dummy_file";
             break;
         case 2:
-            MLOG(INFO) << "action: (nothing)";
+            LOG(INFO) << "action: (nothing)";
             break;
         }
         

@@ -17,7 +17,7 @@
 //
 //
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/raft/raft.h>
 #include <melon/raft/log_manager.h>
 #include <melon/raft/node.h>
@@ -26,7 +26,7 @@
 #include <melon/raft/log_entry.h>
 #include <melon/proto/raft/errno.pb.h>
 #include <melon/raft/node.h>
-
+#include <cinttypes>
 #include <melon/raft/fsm_caller.h>
 #include <melon/fiber/unstable.h>
 
@@ -45,7 +45,7 @@ namespace melon::raft {
     }
 
     FSMCaller::~FSMCaller() {
-        MCHECK(_after_shutdown == nullptr);
+        CHECK(_after_shutdown == nullptr);
     }
 
     int FSMCaller::run(void *meta, fiber::TaskIterator<ApplyTask> &iter) {
@@ -117,7 +117,7 @@ namespace melon::raft {
                         caller->do_on_error((OnErrorClousre *) iter->done);
                         break;
                     case IDLE:
-                        MCHECK(false) << "Can't reach here";
+                        CHECK(false) << "Can't reach here";
                         break;
                 };
             }
@@ -171,7 +171,7 @@ namespace melon::raft {
                                            &execq_opt,
                                            FSMCaller::run,
                                            this) != 0) {
-            MLOG(ERROR) << "fsm fail to start execution_queue";
+            LOG(ERROR) << "fsm fail to start execution_queue";
             return -1;
         }
         _queue_started = true;
@@ -269,7 +269,7 @@ namespace melon::raft {
         }
         std::vector<Closure *> closure;
         int64_t first_closure_index = 0;
-        MCHECK_EQ(0, _closure_queue->pop_closure_until(committed_index, &closure,
+        CHECK_EQ(0, _closure_queue->pop_closure_until(committed_index, &closure,
                                                       &first_closure_index));
 
         IteratorImpl iter_impl(_fsm, _log_manager, &closure, first_closure_index,
@@ -295,7 +295,7 @@ namespace melon::raft {
             }
             Iterator iter(&iter_impl);
             _fsm->on_apply(iter);
-            MLOG_IF(ERROR, iter.valid())
+            LOG_IF(ERROR, iter.valid())
             << "Node " << _node->node_id()
             << " Iterator is still valid, did you return before iterator "
                " reached the end?";
@@ -322,7 +322,7 @@ namespace melon::raft {
     }
 
     void FSMCaller::do_snapshot_save(SaveSnapshotClosure *done) {
-        MCHECK(done);
+        CHECK(done);
 
         int64_t last_applied_index = _last_applied_index.load(mutil::memory_order_relaxed);
 
@@ -589,7 +589,7 @@ namespace melon::raft {
     void IteratorImpl::set_error_and_rollback(
             size_t ntail, const mutil::Status *st) {
         if (ntail == 0) {
-            MCHECK(false) << "Invalid ntail=" << ntail;
+            CHECK(false) << "Invalid ntail=" << ntail;
             return;
         }
         if (_cur_entry == nullptr || _cur_entry->type != ENTRY_TYPE_DATA) {

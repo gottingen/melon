@@ -22,7 +22,7 @@
 #define  MELON_VAR_REDUCER_H_
 
 #include <limits>                                 // std::numeric_limits
-#include <melon/utility/logging.h>                         // LOG()
+#include <turbo/log/logging.h>                         // LOG()
 #include <melon/utility/type_traits.h>                     // mutil::add_cr_non_integral
 #include <melon/utility/class_name.h>                      // class_name_str
 #include <melon/var/variable.h>                        // Variable
@@ -64,7 +64,7 @@ namespace melon::var {
 // }
 // melon::var::Adder<MyType> my_type_sum;
 // my_type_sum << MyType(1) << MyType(2) << MyType(3);
-// MLOG(INFO) << my_type_sum;  // "MyType{6}"
+// LOG(INFO) << my_type_sum;  // "MyType{6}"
 
 template <typename T, typename Op, typename InvOp = detail::VoidOp>
 class Reducer : public Variable {
@@ -116,7 +116,7 @@ public:
     // Notice that this function walks through threads that ever add values
     // into this reducer. You should avoid calling it frequently.
     T get_value() const {
-        MCHECK(!(mutil::is_same<InvOp, detail::VoidOp>::value) || _sampler == NULL)
+        CHECK(!(mutil::is_same<InvOp, detail::VoidOp>::value) || _sampler == NULL)
             << "You should not call Reducer<" << mutil::class_name_str<T>()
             << ", " << mutil::class_name_str<Op>() << ">::get_value() when a"
             << " Window<> is used because the operator does not have inverse.";
@@ -190,7 +190,7 @@ inline Reducer<T, Op, InvOp>& Reducer<T, Op, InvOp>::operator<<(
     // It's wait-free for most time
     agent_type* agent = _combiner.get_or_create_tls_agent();
     if (__builtin_expect(!agent, 0)) {
-        MLOG(FATAL) << "Fail to create agent";
+        LOG(FATAL) << "Fail to create agent";
         return *this;
     }
     agent->element.modify(_combiner.op(), value);
@@ -201,7 +201,7 @@ inline Reducer<T, Op, InvOp>& Reducer<T, Op, InvOp>::operator<<(
 
 // melon::var::Adder<int> sum;
 // sum << 1 << 2 << 3 << 4;
-// MLOG(INFO) << sum.get_value(); // 10
+// LOG(INFO) << sum.get_value(); // 10
 // Commonly used functors
 namespace detail {
 template <typename Tp>
@@ -237,7 +237,7 @@ public:
 
 // melon::var::Maxer<int> max_value;
 // max_value << 1 << 2 << 3 << 4;
-// MLOG(INFO) << max_value.get_value(); // 4
+// LOG(INFO) << max_value.get_value(); // 4
 namespace detail {
 template <typename Tp> 
 struct MaxTo {
@@ -286,7 +286,7 @@ private:
 
 // melon::var::Miner<int> min_value;
 // min_value << 1 << 2 << 3 << 4;
-// MLOG(INFO) << min_value.get_value(); // 1
+// LOG(INFO) << min_value.get_value(); // 1
 namespace detail {
 
 template <typename Tp> 

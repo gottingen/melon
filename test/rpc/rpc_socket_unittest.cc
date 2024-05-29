@@ -43,6 +43,7 @@
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
+#include <cinttypes>
 #include "health_check.pb.h"
 #if defined(OS_MACOSX)
 #include <sys/event.h>
@@ -310,13 +311,13 @@ public:
     void StartConnect(const melon::Socket*,
                       void (*done)(int err, void* data),
                       void* data) {
-        MLOG(INFO) << "Start application-level connect";
+        LOG(INFO) << "Start application-level connect";
         _done = done;
         _data = data;
         _called_start_connect = true;
     }
     void StopConnect(melon::Socket*) {
-        MLOG(INFO) << "Stop application-level connect";
+        LOG(INFO) << "Stop application-level connect";
     }
     void MakeConnectDone() {
         _done(0, _data);
@@ -680,7 +681,7 @@ TEST_F(SocketTest, health_check) {
     int appended_msg = 0;
     mutil::IOBuf src;
     if (use_my_message) {
-        MLOG(INFO) << "Use MyMessage";
+        LOG(INFO) << "Use MyMessage";
         msg.reset(new MyMessage(buf, 12 + meta_len + len, &appended_msg));
     } else {
         src.append(buf, 12 + meta_len + len);
@@ -869,7 +870,7 @@ TEST_F(SocketTest, multi_threaded_write) {
                 }
                 fiber_usleep(1000);
                 if (mutil::gettimeofday_us() >= start_time + 2000000L) {
-                    MLOG(FATAL) << "Wait too long!";
+                    LOG(FATAL) << "Wait too long!";
                     break;
                 }
                 continue;

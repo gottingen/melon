@@ -7,7 +7,7 @@
 #include <time.h>
 
 #include <melon/utility/compiler_specific.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/strings/stringprintf.h"
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/utility/build_config.h>

@@ -28,7 +28,13 @@
 //        errno = 13 (Access denied)
 //      In most of the anticipated use cases, that's probably the preferred
 //      behavior.
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
+#define RAW_CHECK(condition, message)                                   \
+    do {                                                                \
+        if (!(condition))                                               \
+            LOG(FATAL)<<"Check failed: "<<message; \
+    } while (0)
+
 #define DEBUG_CHECK RAW_CHECK
 #else
 #define DEBUG_CHECK(x, msg) do { if (x) { } } while (0)
@@ -275,7 +281,7 @@ class Buffer {
 bool Buffer::IToASCII(bool sign, bool upcase, int64_t i, int base,
                       char pad, size_t padding, const char* prefix) {
   // Sanity check for parameters. None of these should ever fail, but see
-  // above for the rationale why we can't call MCHECK().
+  // above for the rationale why we can't call CHECK().
   DEBUG_CHECK(base >= 2, "");
   DEBUG_CHECK(base <= 16, "");
   DEBUG_CHECK(!sign || base == 10, "");

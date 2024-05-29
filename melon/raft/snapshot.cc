@@ -28,6 +28,7 @@
 #include <melon/raft/snapshot.h>
 #include <melon/raft/node.h>
 #include <melon/raft/file_service.h>
+#include <cinttypes>
 
 //#define MELON_RAFT_SNAPSHOT_PATTERN "snapshot_%020ld"
 #define MELON_RAFT_SNAPSHOT_PATTERN "snapshot_%020" PRId64
@@ -45,7 +46,7 @@ namespace melon::raft {
                                          const LocalFileMeta &meta) {
         Map::value_type value(filename, meta);
         std::pair<Map::iterator, bool> ret = _file_map.insert(value);
-        MLOG_IF(WARNING, !ret.second)
+        LOG_IF(WARNING, !ret.second)
         << "file=" << filename << " already exists in snapshot";
         return ret.second ? 0 : -1;
     }
@@ -72,7 +73,7 @@ namespace melon::raft {
         }
         ProtoBufFile pb_file(path, fs);
         int ret = pb_file.save(&pb_meta, raft_sync_meta());
-        PMLOG_IF(ERROR, ret != 0) << "Fail to save meta to " << path;
+        PLOG_IF(ERROR, ret != 0) << "Fail to save meta to " << path;
         return ret;
     }
 
@@ -80,7 +81,7 @@ namespace melon::raft {
         ProtoBufFile pb_file(path, fs);
         LocalSnapshotPbMeta pb_meta;
         if (pb_file.load(&pb_meta) != 0) {
-            PMLOG(ERROR) << "Fail to load meta from " << path;
+            PLOG(ERROR) << "Fail to load meta from " << path;
             return -1;
         }
         if (pb_meta.has_meta()) {
@@ -117,7 +118,7 @@ namespace melon::raft {
         LocalSnapshotPbMeta pb_meta;
         mutil::IOBufAsZeroCopyInputStream wrapper(buf);
         if (!pb_meta.ParseFromZeroCopyStream(&wrapper)) {
-            MLOG(ERROR) << "Fail to parse LocalSnapshotPbMeta";
+            LOG(ERROR) << "Fail to parse LocalSnapshotPbMeta";
             return -1;
         }
         if (pb_meta.has_meta()) {
@@ -186,14 +187,14 @@ namespace melon::raft {
     int LocalSnapshotWriter::init() {
         mutil::File::Error e;
         if (!_fs->create_directory(_path, &e, false)) {
-            MLOG(ERROR) << "Fail to create directory " << _path << ", " << e;
+            LOG(ERROR) << "Fail to create directory " << _path << ", " << e;
             set_error(EIO, "CreateDirectory failed with path: %s", _path.c_str());
             return EIO;
         }
         std::string meta_path = _path + "/" MELON_RAFT_SNAPSHOT_META_FILE;
         if (_fs->path_exists(meta_path) &&
             _meta_table.load_from_file(_fs, meta_path) != 0) {
-            MLOG(ERROR) << "Fail to load meta from " << meta_path;
+            LOG(ERROR) << "Fail to load meta from " << meta_path;
             set_error(EIO, "Fail to load metatable from %s", meta_path.c_str());
             return EIO;
         }
@@ -204,7 +205,7 @@ namespace melon::raft {
             std::vector<std::string> to_remove;
             DirReader *dir_reader = _fs->directory_reader(_path);
             if (!dir_reader->is_valid()) {
-                MLOG(ERROR) << "Invalid directory reader, maybe NOEXIST or PERMISSION,"
+                LOG(ERROR) << "Invalid directory reader, maybe NOEXIST or PERMISSION,"
                            << " path: " << _path;
                 set_error(EIO, "Invalid directory reader in path: %s", _path.c_str());
                 delete dir_reader;
@@ -222,7 +223,7 @@ namespace melon::raft {
             for (size_t i = 0; i < to_remove.size(); ++i) {
                 std::string file_path = _path + "/" + to_remove[i];
                 _fs->delete_file(file_path, false);
-                MLOG(WARNING) << "Snapshot file exist but meta not found so delete it,"
+                LOG(WARNING) << "Snapshot file exist but meta not found so delete it,"
                              << " path: " << file_path;
             }
         }
@@ -274,7 +275,7 @@ namespace melon::raft {
     int LocalSnapshotWriter::sync() {
         const int rc = _meta_table.save_to_file(_fs, _path + "/" MELON_RAFT_SNAPSHOT_META_FILE);
         if (rc != 0 && ok()) {
-            MLOG(ERROR) << "Fail to sync, path: " << _path;
+            LOG(ERROR) << "Fail to sync, path: " << _path;
             set_error(rc, "Fail to sync : %s", berror(rc));
         }
         return rc;
@@ -315,7 +316,7 @@ namespace melon::raft {
         mutil::FilePath path(_path);
         int64_t index = 0;
         int ret = sscanf(path.BaseName().value().c_str(), MELON_RAFT_SNAPSHOT_PATTERN, &index);
-        MCHECK_EQ(ret, 1);
+        CHECK_EQ(ret, 1);
         return index;
     }
 
@@ -376,7 +377,7 @@ namespace melon::raft {
                     // if it's not allowed to read partly or it's allowed but
                     // throughput is throttled to 0, try again.
                     if (!read_partly || new_max_count == 0) {
-                        BRAFT_VMLOG << "Read file throttled, path: " << path();
+                        BRAFT_VLOG << "Read file throttled, path: " << path();
                         ret = EAGAIN;
                     }
                 }
@@ -402,7 +403,7 @@ namespace melon::raft {
 
     std::string LocalSnapshotReader::generate_uri_for_copy() {
         if (_addr == mutil::EndPoint()) {
-            MLOG(ERROR) << "Address is not specified, path:" << _path;
+            LOG(ERROR) << "Address is not specified, path:" << _path;
             return std::string();
         }
         if (_reader_id == 0) {
@@ -411,11 +412,11 @@ namespace melon::raft {
                     new SnapshotFileReader(_fs.get(), _path, _snapshot_throttle.get()));
             reader->set_meta_table(_meta_table);
             if (!reader->open()) {
-                MLOG(ERROR) << "Open snapshot=" << _path << " failed";
+                LOG(ERROR) << "Open snapshot=" << _path << " failed";
                 return std::string();
             }
             if (file_service_add(reader.get(), &_reader_id) != 0) {
-                MLOG(ERROR) << "Fail to add reader to file_service, path: " << _path;
+                LOG(ERROR) << "Fail to add reader to file_service, path: " << _path;
                 return std::string();
             }
         }
@@ -426,7 +427,7 @@ namespace melon::raft {
 
     void LocalSnapshotReader::destroy_reader_in_file_service() {
         if (_reader_id != 0) {
-            MCHECK_EQ(0, file_service_remove(_reader_id));
+            CHECK_EQ(0, file_service_remove(_reader_id));
             _reader_id = 0;
         }
     }
@@ -444,7 +445,7 @@ namespace melon::raft {
         }
         if (!_fs->create_directory(
                 _path, &e, FLAGS_raft_create_parent_directories)) {
-            MLOG(ERROR) << "Fail to create " << _path << " : " << e;
+            LOG(ERROR) << "Fail to create " << _path << " : " << e;
             return -1;
         }
         // delete temp snapshot
@@ -452,9 +453,9 @@ namespace melon::raft {
             std::string temp_snapshot_path(_path);
             temp_snapshot_path.append("/");
             temp_snapshot_path.append(_s_temp_path);
-            MLOG(INFO) << "Deleting " << temp_snapshot_path;
+            LOG(INFO) << "Deleting " << temp_snapshot_path;
             if (!_fs->delete_file(temp_snapshot_path, true)) {
-                MLOG(WARNING) << "delete temp snapshot path failed, path " << temp_snapshot_path;
+                LOG(WARNING) << "delete temp snapshot path failed, path " << temp_snapshot_path;
                 return EIO;
             }
         }
@@ -462,7 +463,7 @@ namespace melon::raft {
         // delete old snapshot
         DirReader *dir_reader = _fs->directory_reader(_path);
         if (!dir_reader->is_valid()) {
-            MLOG(WARNING) << "directory reader failed, maybe NOEXIST or PERMISSION. path: " << _path;
+            LOG(WARNING) << "directory reader failed, maybe NOEXIST or PERMISSION. path: " << _path;
             delete dir_reader;
             return EIO;
         }
@@ -487,10 +488,10 @@ namespace melon::raft {
 
                 std::string snapshot_path(_path);
                 mutil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
-                MLOG(INFO) << "Deleting snapshot `" << snapshot_path << "'";
+                LOG(INFO) << "Deleting snapshot `" << snapshot_path << "'";
                 // TODO: Notify Watcher before delete directories.
                 if (!_fs->delete_file(snapshot_path, true)) {
-                    MLOG(WARNING) << "delete old snapshot path failed, path " << snapshot_path;
+                    LOG(WARNING) << "delete old snapshot path failed, path " << snapshot_path;
                     return EIO;
                 }
             }
@@ -508,9 +509,9 @@ namespace melon::raft {
     }
 
     int LocalSnapshotStorage::destroy_snapshot(const std::string &path) {
-        MLOG(INFO) << "Deleting " << path;
+        LOG(INFO) << "Deleting " << path;
         if (!_fs->delete_file(path, true)) {
-            MLOG(WARNING) << "delete old snapshot path failed, path " << path;
+            LOG(WARNING) << "delete old snapshot path failed, path " << path;
             return -1;
         }
         return 0;
@@ -554,13 +555,13 @@ namespace melon::raft {
 
             writer = new LocalSnapshotWriter(snapshot_path, _fs.get());
             if (writer->init() != 0) {
-                MLOG(ERROR) << "Fail to init writer in path " << snapshot_path
+                LOG(ERROR) << "Fail to init writer in path " << snapshot_path
                            << ", " << *writer;
                 delete writer;
                 writer = NULL;
                 break;
             }
-            BRAFT_VMLOG << "Create writer success, path: " << snapshot_path;
+            BRAFT_VLOG << "Create writer success, path: " << snapshot_path;
         } while (0);
 
         return writer;
@@ -573,7 +574,7 @@ namespace melon::raft {
         copier->_fs = _fs.get();
         copier->_throttle = _snapshot_throttle.get();
         if (copier->init(uri) != 0) {
-            MLOG(ERROR) << "Fail to init copier from " << uri
+            LOG(ERROR) << "Fail to init copier from " << uri
                        << " path: " << _path;
             delete copier;
             return NULL;
@@ -631,15 +632,15 @@ namespace melon::raft {
             temp_path.append(_s_temp_path);
             std::string new_path(_path);
             mutil::string_appendf(&new_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, new_index);
-            MLOG(INFO) << "Deleting " << new_path;
+            LOG(INFO) << "Deleting " << new_path;
             if (!_fs->delete_file(new_path, true)) {
-                MLOG(WARNING) << "delete new snapshot path failed, path " << new_path;
+                LOG(WARNING) << "delete new snapshot path failed, path " << new_path;
                 ret = EIO;
                 break;
             }
-            MLOG(INFO) << "Renaming " << temp_path << " to " << new_path;
+            LOG(INFO) << "Renaming " << temp_path << " to " << new_path;
             if (!_fs->rename(temp_path, new_path)) {
-                MLOG(WARNING) << "rename temp snapshot failed, from_path " << temp_path
+                LOG(WARNING) << "rename temp snapshot failed, from_path " << temp_path
                              << " to_path " << new_path;
                 ret = EIO;
                 break;
@@ -648,7 +649,7 @@ namespace melon::raft {
             ref(new_index);
             {
                 MELON_SCOPED_LOCK(_mutex);
-                MCHECK_EQ(old_index, _last_snapshot_index);
+                CHECK_EQ(old_index, _last_snapshot_index);
                 _last_snapshot_index = new_index;
             }
             // unref old_index, ref new_index
@@ -673,7 +674,7 @@ namespace melon::raft {
             LocalSnapshotReader *reader = new LocalSnapshotReader(snapshot_path, _addr,
                                                                   _fs.get(), _snapshot_throttle.get());
             if (reader->init() != 0) {
-                MCHECK(!lck.owns_lock());
+                CHECK(!lck.owns_lock());
                 unref(last_snapshot_index);
                 delete reader;
                 return NULL;
@@ -699,7 +700,7 @@ namespace melon::raft {
 
     int LocalSnapshotStorage::set_file_system_adaptor(FileSystemAdaptor *fs) {
         if (fs == NULL) {
-            MLOG(ERROR) << "file system is NULL, path: " << _path;
+            LOG(ERROR) << "file system is NULL, path: " << _path;
             return -1;
         }
         _fs = fs;
@@ -718,12 +719,12 @@ namespace melon::raft {
     mutil::Status LocalSnapshotStorage::gc_instance(const std::string &uri) const {
         mutil::Status status;
         if (gc_dir(uri) != 0) {
-            MLOG(WARNING) << "Failed to gc snapshot storage from path " << _path;
+            LOG(WARNING) << "Failed to gc snapshot storage from path " << _path;
             status.set_error(EINVAL, "Failed to gc snapshot storage from path %s",
                              uri.c_str());
             return status;
         }
-        MLOG(INFO) << "Succeed to gc snapshot storage from path " << uri;
+        LOG(INFO) << "Succeed to gc snapshot storage from path " << uri;
         return status;
     }
 
@@ -737,7 +738,7 @@ namespace melon::raft {
             _fs(NULL), _throttle(NULL), _writer(NULL), _storage(NULL), _reader(NULL), _cur_session(NULL) {}
 
     LocalSnapshotCopier::~LocalSnapshotCopier() {
-        MCHECK(!_writer);
+        CHECK(!_writer);
     }
 
     void *LocalSnapshotCopier::start_copy(void *arg) {
@@ -766,7 +767,7 @@ namespace melon::raft {
             }
         } while (0);
         if (!ok() && _writer && _writer->ok()) {
-            MLOG(WARNING) << "Fail to copy, error_code " << error_code()
+            LOG(WARNING) << "Fail to copy, error_code " << error_code()
                          << " error_msg " << error_cstr()
                          << " writer path " << _writer->get_path();
             _writer->set_error(error_code(), error_cstr());
@@ -801,16 +802,16 @@ namespace melon::raft {
         _cur_session = NULL;
         lck.unlock();
         if (!session->status().ok()) {
-            MLOG(WARNING) << "Fail to copy meta file : " << session->status();
+            LOG(WARNING) << "Fail to copy meta file : " << session->status();
             set_error(session->status().error_code(), session->status().error_cstr());
             return;
         }
         if (_remote_snapshot._meta_table.load_from_iobuf_as_remote(meta_buf) != 0) {
-            MLOG(WARNING) << "Bad meta_table format";
+            LOG(WARNING) << "Bad meta_table format";
             set_error(-1, "Bad meta_table format");
             return;
         }
-        MCHECK(_remote_snapshot._meta_table.has_meta());
+        CHECK(_remote_snapshot._meta_table.has_meta());
     }
 
     int LocalSnapshotCopier::filter_before_copy(LocalSnapshotWriter *writer,
@@ -831,7 +832,7 @@ namespace melon::raft {
         for (size_t i = 0; i < remote_files.size(); ++i) {
             const std::string &filename = remote_files[i];
             LocalFileMeta remote_meta;
-            MCHECK_EQ(0, _remote_snapshot.get_file_meta(
+            CHECK_EQ(0, _remote_snapshot.get_file_meta(
                     filename, &remote_meta));
             if (!remote_meta.has_checksum()) {
                 // Redownload file if this file doen't have checksum
@@ -844,7 +845,7 @@ namespace melon::raft {
             if (writer->get_file_meta(filename, &local_meta) == 0) {
                 if (local_meta.has_checksum() &&
                     local_meta.checksum() == remote_meta.checksum()) {
-                    MLOG(INFO) << "Keep file=" << filename
+                    LOG(INFO) << "Keep file=" << filename
                               << " checksum=" << remote_meta.checksum()
                               << " in " << writer->get_path();
                     continue;
@@ -865,7 +866,7 @@ namespace melon::raft {
             if (!local_meta.has_checksum() || local_meta.checksum() != remote_meta.checksum()) {
                 continue;
             }
-            MLOG(INFO) << "Found the same file=" << filename
+            LOG(INFO) << "Found the same file=" << filename
                       << " checksum=" << remote_meta.checksum()
                       << " in last_snapshot=" << last_snapshot->get_path();
             if (local_meta.source() == melon::raft::FILE_SOURCE_LOCAL) {
@@ -875,7 +876,7 @@ namespace melon::raft {
                                         + filename;
                 _fs->delete_file(dest_path, false);
                 if (!_fs->link(source_path, dest_path)) {
-                    PMLOG(ERROR) << "Fail to link " << source_path
+                    PLOG(ERROR) << "Fail to link " << source_path
                                 << " to " << dest_path;
                     continue;
                 }
@@ -889,7 +890,7 @@ namespace melon::raft {
         }
 
         if (writer->sync() != 0) {
-            MLOG(ERROR) << "Fail to sync writer on path=" << writer->get_path();
+            LOG(ERROR) << "Fail to sync writer on path=" << writer->get_path();
             return -1;
         }
 
@@ -911,7 +912,7 @@ namespace melon::raft {
         if (_filter_before_copy_remote) {
             SnapshotReader *reader = _storage->open();
             if (filter_before_copy(_writer, reader) != 0) {
-                MLOG(WARNING) << "Fail to filter writer before copying"
+                LOG(WARNING) << "Fail to filter writer before copying"
                                 ", path: " << _writer->get_path()
                              << ", destroy and create a new writer";
                 _writer->set_error(-1, "Fail to filter");
@@ -935,7 +936,7 @@ namespace melon::raft {
 
     void LocalSnapshotCopier::copy_file(const std::string &filename) {
         if (_writer->get_file_meta(filename, NULL) == 0) {
-            MLOG(INFO) << "Skipped downloading " << filename
+            LOG(INFO) << "Skipped downloading " << filename
                       << " path: " << _writer->get_path();
             return;
         }
@@ -953,7 +954,7 @@ namespace melon::raft {
                         _writer->get_path(), sub_path.DirName().value(), _fs, &e);
             }
             if (!rc) {
-                MLOG(ERROR) << "Fail to create directory for " << file_path
+                LOG(ERROR) << "Fail to create directory for " << file_path
                            << " : " << mutil::File::ErrorToString(e);
                 set_error(file_error_to_os_error(e),
                           "Fail to create directory");
@@ -969,7 +970,7 @@ namespace melon::raft {
         scoped_refptr<RemoteFileCopier::Session> session
                 = _copier.start_to_copy_to_file(filename, file_path, NULL);
         if (session == NULL) {
-            MLOG(WARNING) << "Fail to copy " << filename
+            LOG(WARNING) << "Fail to copy " << filename
                          << " path: " << _writer->get_path();
             set_error(-1, "Fail to copy %s", filename.c_str());
             return;
@@ -997,7 +998,7 @@ namespace melon::raft {
     void LocalSnapshotCopier::start() {
         if (fiber_start_background(
                 &_tid, NULL, start_copy, this) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             copy();
         }
     }

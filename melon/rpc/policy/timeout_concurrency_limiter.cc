@@ -109,7 +109,7 @@ void TimeoutConcurrencyLimiter::OnResponded(int error_code,
             if (sample_window_submitted) {
                 // The following log prints has data-race in extreme cases,
                 // unless you are in debug, you should not open it.
-                VMLOG(1) << "Sample window submitted, current avg_latency_us:"
+                VLOG(1) << "Sample window submitted, current avg_latency_us:"
                         << _avg_latency_us;
             }
         }

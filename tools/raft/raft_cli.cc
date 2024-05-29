@@ -31,7 +31,7 @@ DEFINE_string(group, "", "Id of the raft group");
 #define CHECK_FLAG(flagname)                                            \
     do {                                                                \
         if ((FLAGS_ ## flagname).empty()) {                             \
-            MLOG(ERROR) << __FUNCTION__ << " requires --" # flagname ;   \
+            LOG(ERROR) << __FUNCTION__ << " requires --" # flagname ;   \
             return -1;                                                  \
         }                                                               \
     } while (0);                                                        \
@@ -42,12 +42,12 @@ int add_peer() {
     CHECK_FLAG(group);
     Configuration conf;
     if (conf.parse_from(FLAGS_conf) != 0) {
-        MLOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
+        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
         return -1;
     }
     PeerId new_peer;
     if (new_peer.parse(FLAGS_peer) != 0) {
-        MLOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
         return -1;
     }
     CliOptions opt;
@@ -55,7 +55,7 @@ int add_peer() {
     opt.max_retry = FLAGS_max_retry;
     mutil::Status st = add_peer(FLAGS_group, conf, new_peer, opt);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to add_peer : " << st;
+        LOG(ERROR) << "Fail to add_peer : " << st;
         return -1;
     }
     return 0;
@@ -67,12 +67,12 @@ int remove_peer() {
     CHECK_FLAG(group);
     Configuration conf;
     if (conf.parse_from(FLAGS_conf) != 0) {
-        MLOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
+        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
         return -1;
     }
     PeerId removing_peer;
     if (removing_peer.parse(FLAGS_peer) != 0) {
-        MLOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
         return -1;
     }
     CliOptions opt;
@@ -80,7 +80,7 @@ int remove_peer() {
     opt.max_retry = FLAGS_max_retry;
     mutil::Status st = remove_peer(FLAGS_group, conf, removing_peer, opt);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to remove_peer : " << st;
+        LOG(ERROR) << "Fail to remove_peer : " << st;
         return -1;
     }
     return 0;
@@ -92,12 +92,12 @@ int change_peers() {
     CHECK_FLAG(group);
     Configuration new_peers;
     if (new_peers.parse_from(FLAGS_new_peers) != 0) {
-        MLOG(ERROR) << "Fail to parse --new_peers=`" << FLAGS_new_peers << '\'';
+        LOG(ERROR) << "Fail to parse --new_peers=`" << FLAGS_new_peers << '\'';
         return -1;
     }
     Configuration conf;
     if (conf.parse_from(FLAGS_conf) != 0) {
-        MLOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf<< '\'';
+        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf<< '\'';
         return -1;
     }
     CliOptions opt;
@@ -105,7 +105,7 @@ int change_peers() {
     opt.max_retry = FLAGS_max_retry;
     mutil::Status st = change_peers(FLAGS_group, conf, new_peers, opt);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to change_peers : " << st;
+        LOG(ERROR) << "Fail to change_peers : " << st;
         return -1;
     }
     return 0;
@@ -117,12 +117,12 @@ int reset_peer() {
     CHECK_FLAG(group);
     Configuration new_peers;
     if (new_peers.parse_from(FLAGS_new_peers) != 0) {
-        MLOG(ERROR) << "Fail to parse --new_peers=`" << FLAGS_new_peers << '\'';
+        LOG(ERROR) << "Fail to parse --new_peers=`" << FLAGS_new_peers << '\'';
         return -1;
     }
     PeerId target_peer;
     if (target_peer.parse(FLAGS_peer) != 0) {
-        MLOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
         return -1;
     }
     CliOptions opt;
@@ -130,7 +130,7 @@ int reset_peer() {
     opt.max_retry = FLAGS_max_retry;
     mutil::Status st = reset_peer(FLAGS_group, target_peer, new_peers, opt);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to reset_peer : " << st;
+        LOG(ERROR) << "Fail to reset_peer : " << st;
         return -1;
     }
     return 0;
@@ -141,7 +141,7 @@ int snapshot() {
     CHECK_FLAG(group);
     PeerId target_peer;
     if (target_peer.parse(FLAGS_peer) != 0) {
-        MLOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
         return -1;
     }
     CliOptions opt;
@@ -149,7 +149,7 @@ int snapshot() {
     opt.max_retry = FLAGS_max_retry;
     mutil::Status st = snapshot(FLAGS_group, target_peer, opt);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to make snapshot : " << st;
+        LOG(ERROR) << "Fail to make snapshot : " << st;
         return -1;
     }
     return 0;
@@ -161,12 +161,12 @@ int transfer_leader() {
     CHECK_FLAG(group);
     Configuration conf;
     if (conf.parse_from(FLAGS_conf) != 0) {
-        MLOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
+        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
         return -1;
     }
     PeerId target_peer;
     if (target_peer.parse(FLAGS_peer) != 0) {
-        MLOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
         return -1;
     }
     CliOptions opt;
@@ -174,7 +174,7 @@ int transfer_leader() {
     opt.max_retry = FLAGS_max_retry;
     mutil::Status st = transfer_leader(FLAGS_group, conf, target_peer, opt);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to transfer_leader: " << st;
+        LOG(ERROR) << "Fail to transfer_leader: " << st;
         return -1;
     }
     return 0;
@@ -199,7 +199,7 @@ int run_command(const std::string& cmd) {
     if (cmd == "transfer_leader") {
         return transfer_leader();
     }
-    MLOG(ERROR) << "Unknown command `" << cmd << '\'';
+    LOG(ERROR) << "Unknown command `" << cmd << '\'';
     return -1;
 }
 

@@ -20,7 +20,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include "view.pb.h"
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     if (FLAGS_target.empty() &&
         (argc != 2 || 
          google::SetCommandLineOption("target", argv[1]).empty())) {
-        MLOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
+        LOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
         return -1;
     }
     // This keeps ad-hoc creation of channels reuse previous connections.
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     melon::ServerOptions server_opt;
     server_opt.http_master_service = new ViewServiceImpl;
     if (server.Start(FLAGS_port, &server_opt) != 0) {
-        MLOG(ERROR) << "Fail to start ViewServer";
+        LOG(ERROR) << "Fail to start ViewServer";
         return -1;
     }
     server.RunUntilAskedToQuit();

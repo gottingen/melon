@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 #include <melon/utility/build_config.h>
-
+#include <cinttypes>
 #if defined(OS_LINUX)
 #include <syscall.h>                         // SYS_clock_gettime
 #include <unistd.h>                          // syscall
@@ -28,7 +28,7 @@
 
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace {
 
@@ -37,7 +37,7 @@ TEST(BaiduTimeTest, diff_between_gettimeofday_and_REALTIME) {
     timespec time;
     clock_gettime(CLOCK_REALTIME, &time);
     long t2 = mutil::timespec_to_microseconds(time);
-    MLOG(INFO) << "t1=" << t1 << " t2=" << t2;
+    LOG(INFO) << "t1=" << t1 << " t2=" << t2;
 }
 
 const char* clock_desc[] = {

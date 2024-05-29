@@ -21,7 +21,7 @@
 #include <gtest/gtest.h>
 #include <melon/utility/errno.h>
 #include <melon/utility/endpoint.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/containers/flat_map.h>
 #include "melon/utility/details/extended_endpoint.hpp"
 
@@ -44,7 +44,7 @@ TEST(EndPointTest, comparisons) {
 }
 
 TEST(EndPointTest, ip_t) {
-    MLOG(INFO) << "INET_ADDRSTRLEN = " << INET_ADDRSTRLEN;
+    LOG(INFO) << "INET_ADDRSTRLEN = " << INET_ADDRSTRLEN;
     
     mutil::ip_t ip0;
     ASSERT_EQ(0, mutil::str2ip("1.1.1.1", &ip0));
@@ -69,7 +69,7 @@ TEST(EndPointTest, ip_t) {
 }
 
 TEST(EndPointTest, show_local_info) {
-    MLOG(INFO) << "my_ip is " << mutil::my_ip() << std::endl
+    LOG(INFO) << "my_ip is " << mutil::my_ip() << std::endl
               << "my_ip_cstr is " << mutil::my_ip_cstr() << std::endl
               << "my_hostname is " << mutil::my_hostname();
 }
@@ -143,7 +143,7 @@ TEST(EndPointTest, flat_map) {
     }
 
     mutil::BucketInfo info = m.bucket_info();
-    MLOG(INFO) << "bucket info max long=" << info.longest_length
+    LOG(INFO) << "bucket info max long=" << info.longest_length
         << " avg=" << info.average_length << std::endl;
     ASSERT_LT(info.longest_length, 32ul) << "detect hash collision and it's too large.";
 }

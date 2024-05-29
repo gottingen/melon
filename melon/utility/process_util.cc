@@ -29,9 +29,10 @@
 #include <unistd.h>                     // read, gitpid
 #include <sstream>                      // std::ostringstream
 #include <melon/utility/fd_guard.h>             // mutil::fd_guard
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/popen.h>                // read_command_output
 #include <melon/utility/process_util.h>
+#include <melon/utility/macros.h>
 
 namespace mutil {
 
@@ -39,12 +40,12 @@ ssize_t ReadCommandLine(char* buf, size_t len, bool with_args) {
 #if defined(OS_LINUX)
     mutil::fd_guard fd(open("/proc/self/cmdline", O_RDONLY));
     if (fd < 0) {
-        MLOG(ERROR) << "Fail to open /proc/self/cmdline";
+        LOG(ERROR) << "Fail to open /proc/self/cmdline";
         return -1;
     }
     ssize_t nr = read(fd, buf, len);
     if (nr <= 0) {
-        MLOG(ERROR) << "Fail to read /proc/self/cmdline";
+        LOG(ERROR) << "Fail to read /proc/self/cmdline";
         return -1;
     }
 #elif defined(OS_MACOSX)
@@ -53,7 +54,7 @@ ssize_t ReadCommandLine(char* buf, size_t len, bool with_args) {
     char cmdbuf[32];
     snprintf(cmdbuf, sizeof(cmdbuf), "ps -p %ld -o command=", (long)pid);
     if (mutil::read_command_output(oss, cmdbuf) != 0) {
-        MLOG(ERROR) << "Fail to read cmdline";
+        LOG(ERROR) << "Fail to read cmdline";
         return -1;
     }
     const std::string& result = oss.str();
@@ -81,7 +82,7 @@ ssize_t ReadCommandLine(char* buf, size_t len, bool with_args) {
             }
         }
         if ((size_t)nr == len) {
-            MLOG(ERROR) << "buf is not big enough";
+            LOG(ERROR) << "buf is not big enough";
             return -1;
         }
         return nr;

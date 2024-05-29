@@ -429,7 +429,7 @@ TEST(HttpMessageTest, serialize_http_response) {
     ASSERT_EQ("HTTP/1.1 200 OK\r\nContent-Length: 4\r\nFoo: Bar\r\n\r\ndata", response)
         << mutil::ToPrintable(response);
     // Content is cleared.
-    MCHECK(content.empty());
+    CHECK(content.empty());
 
     // NULL content
     header.SetHeader("Content-Length", "100");

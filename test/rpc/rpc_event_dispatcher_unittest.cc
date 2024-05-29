@@ -45,7 +45,7 @@ protected:
 };
 
 TEST_F(EventDispatcherTest, has_epollrdhup) {
-    MLOG(INFO) << melon::has_epollrdhup;
+    LOG(INFO) << melon::has_epollrdhup;
 }
 
 TEST_F(EventDispatcherTest, versioned_ref) {
@@ -102,7 +102,7 @@ struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
                 pthread_mutex_lock(&err_fd_mutex);
                 err_fd.push_back(m->fd());
                 pthread_mutex_unlock(&err_fd_mutex);
-                MLOG(WARNING) << "Another end closed fd=" << m->fd();
+                LOG(WARNING) << "Another end closed fd=" << m->fd();
                 return -1;
             } else if (n > 0) {
                 e->bytes += n;
@@ -118,7 +118,7 @@ struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
                 } else if (errno == EINTR) {
                     continue;
                 } else {
-                    PMLOG(WARNING) << "Fail to read fd=" << m->fd();
+                    PLOG(WARNING) << "Fail to read fd=" << m->fd();
                     return -1;
                 }
             }
@@ -161,7 +161,7 @@ void* client_thread(void* arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                PMLOG(WARNING) << "Fail to write fd=" << m->fd;
+                PLOG(WARNING) << "Fail to write fd=" << m->fd;
                 break;
             }
         } else {
@@ -221,7 +221,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         ASSERT_EQ(0, pthread_create(&cth[i], NULL, client_thread, cm[i]));
     }
     
-    MLOG(INFO) << "Begin to profile... (5 seconds)";
+    LOG(INFO) << "Begin to profile... (5 seconds)";
     ProfilerStart("event_dispatcher.prof");
     mutil::Timer tm;
     tm.start();
@@ -230,7 +230,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
     
     tm.stop();
     ProfilerStop();
-    MLOG(INFO) << "End profiling";
+    LOG(INFO) << "End profiling";
     
     size_t client_bytes = 0;
     size_t server_bytes = 0;
@@ -238,7 +238,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         client_bytes += cm[i]->bytes;
         server_bytes += sm[i]->bytes;
     }
-    MLOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
+    LOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
               << "MB/s server_tp=" << server_bytes / (double)tm.u_elapsed() 
               << "MB/s";
 
@@ -265,7 +265,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
     ASSERT_EQ(NCLIENT, copy1.size());
     const mutil::ResourcePoolInfo info
         = mutil::describe_resources<melon::Socket>();
-    MLOG(INFO) << info;
+    LOG(INFO) << info;
 #ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
     ASSERT_EQ(NCLIENT, info.free_item_num - old_info.free_item_num);
 #endif

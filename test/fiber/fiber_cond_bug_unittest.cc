@@ -30,7 +30,7 @@
 #include <melon/fiber/fiber.h>
 #include "melon/fiber/condition_variable.h"
 #include <melon/fiber/mutex.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/macros.h>
 #include <melon/var/var.h>
 
@@ -56,10 +56,10 @@ void* print_func(void* arg) {
         usleep(1000000);
         for (int i = 0; i < PRODUCER_NUM; i++) {
             if (g_stat[i].loop_count.load() <= last_loop[i]) {
-                MLOG(ERROR) << "producer thread:" << i << " stopped";
+                LOG(ERROR) << "producer thread:" << i << " stopped";
                 return nullptr;
             }
-            MLOG(INFO) << "producer stat idx:" << i
+            LOG(INFO) << "producer stat idx:" << i
                       << " wait:" << g_stat[i].wait_count
                       << " wait_timeout:" << g_stat[i].wait_timeout_count
                       << " wait_success:" << g_stat[i].wait_success_count;
@@ -71,32 +71,32 @@ void* print_func(void* arg) {
 
 void* produce_func(void* arg) {
     const int64_t wait_us = FLAGS_wait_us;
-    MLOG(INFO) << "wait us:" << wait_us;
+    LOG(INFO) << "wait us:" << wait_us;
     int64_t idx = (int64_t)(arg);
     int32_t i = 0;
     while (!fiber_stopped(fiber_self())) {
-        //MLOG(INFO) << "come to a new round " << idx << "round[" << i << "]";
+        //LOG(INFO) << "come to a new round " << idx << "round[" << i << "]";
         {
             Lock lock(g_mutex); 
             while (g_que.size() >= g_capacity && !fiber_stopped(fiber_self())) {
                 g_stat[idx].wait_count << 1;
-                //MLOG(INFO) << "wait begin " << idx;
+                //LOG(INFO) << "wait begin " << idx;
                 int ret = g_cond.wait_for(lock, wait_us);
                 if (ret == ETIMEDOUT) {
                     g_stat[idx].wait_timeout_count << 1;
-                    //MLOG_EVERY_SECOND(INFO) << "wait timeout " << idx;
+                    //LOG_EVERY_N_SEC(INFO, 1) << "wait timeout " << idx;
                 } else {
                     g_stat[idx].wait_success_count << 1;
-                    //MLOG_EVERY_SECOND(INFO) << "wait early " << idx;
+                    //LOG_EVERY_N_SEC(INFO, 1) << "wait early " << idx;
                 }
             }
             g_que.push_back(++i);
-            //MLOG(INFO) << "push back " << idx << " data[" << i << "]";
+            //LOG(INFO) << "push back " << idx << " data[" << i << "]";
         }
         usleep(rand() % 20 + 5);
         g_stat[idx].loop_count.fetch_add(1);
     }
-    MLOG(INFO) << "producer func return, idx:" << idx;
+    LOG(INFO) << "producer func return, idx:" << idx;
     return nullptr;
 }
 
@@ -108,18 +108,18 @@ void* consume_func(void* arg) {
             need_notify = (g_que.size() == g_capacity);
             if (!g_que.empty()) {
                 g_que.pop_front();
-                MLOG_EVERY_SECOND(INFO) << "pop a data";
+                LOG_EVERY_N_SEC(INFO, 1) << "pop a data";
             } else {
-                MLOG_EVERY_SECOND(INFO) << "que is empty";
+                LOG_EVERY_N_SEC(INFO, 1) << "que is empty";
             }
         }
         usleep(rand() % 300 + 500);
         if (need_notify) {
             //g_cond.notify_all();
-            //MLOG(WARNING) << "notify";
+            //LOG(WARNING) << "notify";
         }
     }
-    MLOG(INFO) << "consumer func return";
+    LOG(INFO) << "consumer func return";
     return nullptr;
 }
 

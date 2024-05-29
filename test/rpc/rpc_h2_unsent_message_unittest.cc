@@ -50,7 +50,7 @@ TEST(H2UnsentMessage, request_throughput) {
 
     melon::policy::H2Context* ctx =
         new melon::policy::H2Context(h2_client_sock.get(), NULL);
-    MCHECK_EQ(ctx->Init(), 0);
+    CHECK_EQ(ctx->Init(), 0);
     h2_client_sock->initialize_parsing_context(&ctx);
     ctx->_last_sent_stream_id = 0;
     ctx->_remote_window_left = melon::H2Settings::MAX_WINDOW_SIZE;
@@ -68,7 +68,7 @@ TEST(H2UnsentMessage, request_throughput) {
     int64_t end_us = mutil::gettimeofday_us();
     ProfilerStop();
     int64_t elapsed = end_us - start_us;
-    MLOG(INFO) << "H2UnsentRequest average qps="
+    LOG(INFO) << "H2UnsentRequest average qps="
         << (ntotal * 1000000L) / elapsed << "/s, data throughput="
         << dummy_buf.size() * 1000000L / elapsed << "/s";
 
@@ -85,7 +85,7 @@ TEST(H2UnsentMessage, request_throughput) {
     }
     end_us = mutil::gettimeofday_us();
     elapsed = end_us - start_us;
-    MLOG(INFO) << "H2UnsentResponse average qps="
+    LOG(INFO) << "H2UnsentResponse average qps="
         << (ntotal * 1000000L) / elapsed << "/s, data throughput="
         << dummy_buf.size() * 1000000L / elapsed << "/s";
 }

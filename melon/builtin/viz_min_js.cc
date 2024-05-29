@@ -20,7 +20,7 @@
 
 
 #include <pthread.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/compress/gzip_compress.h>
 #include <melon/builtin/viz_min_js.h>
 
@@ -49,7 +49,7 @@ namespace melon {
         mutil::IOBuf viz_min;
         viz_min.append(viz_min_js());
         s_viz_min_buf_gzip = new mutil::IOBuf;
-        MCHECK(compress::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
+        CHECK(compress::GzipCompress(viz_min, s_viz_min_buf_gzip, NULL));
     }
 
     const mutil::IOBuf &viz_min_js_iobuf_gzip() {

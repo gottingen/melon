@@ -24,7 +24,7 @@
 #include <gflags/gflags.h>
 #include <melon/fiber/butex.h>
 #include <melon/utility/scoped_lock.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/socket_map.h>
 #include <melon/naming/naming_service_thread.h>
@@ -66,7 +66,7 @@ namespace melon {
 
     NamingServiceThread::Actions::Actions(NamingServiceThread *owner)
             : _owner(owner), _wait_id(INVALID_FIBER_ID), _has_wait_error(false), _wait_error(0) {
-        MCHECK_EQ(0, fiber_session_create(&_wait_id, NULL, NULL));
+        CHECK_EQ(0, fiber_session_create(&_wait_id, NULL, NULL));
     }
 
     NamingServiceThread::Actions::~Actions() {
@@ -101,7 +101,7 @@ namespace melon {
         const size_t dedup_size = std::unique(_servers.begin(), _servers.end())
                                   - _servers.begin();
         if (dedup_size != _servers.size()) {
-            MLOG(WARNING) << "Removed " << _servers.size() - dedup_size
+            LOG(WARNING) << "Removed " << _servers.size() - dedup_size
                          << " duplicated servers";
             _servers.resize(dedup_size);
         }
@@ -127,7 +127,7 @@ namespace melon {
             //       Socket. SocketMapKey may be passed through AddWatcher. Make sure
             //       to pick those Sockets with the right settings during OnAddedServers
             const SocketMapKey key(_added[i], _owner->_options.channel_signature);
-            MCHECK_EQ(0, SocketMapInsert(key, &tagged_id.id, _owner->_options.ssl_ctx,
+            CHECK_EQ(0, SocketMapInsert(key, &tagged_id.id, _owner->_options.ssl_ctx,
                                         _owner->_options.use_rdma));
             _added_sockets.push_back(tagged_id);
         }
@@ -137,7 +137,7 @@ namespace melon {
             ServerNodeWithId tagged_id;
             tagged_id.node = _removed[i];
             const SocketMapKey key(_removed[i], _owner->_options.channel_signature);
-            MCHECK_EQ(0, SocketMapFind(key, &tagged_id.id));
+            CHECK_EQ(0, SocketMapFind(key, &tagged_id.id));
             _removed_sockets.push_back(tagged_id);
         }
 
@@ -202,7 +202,7 @@ namespace melon {
             if (!_removed.empty()) {
                 info << " removed " << _removed.size();
             }
-            MLOG(INFO) << info.str();
+            LOG(INFO) << info.str();
         }
 
         EndWait(servers.empty() ? ENODATA : 0);
@@ -230,7 +230,7 @@ namespace melon {
     }
 
     NamingServiceThread::~NamingServiceThread() {
-        RPC_VMLOG << "~NamingServiceThread(" << *this << ')';
+        RPC_VLOG << "~NamingServiceThread(" << *this << ')';
         // Remove from g_nsthread_map first
         if (!_protocol.empty()) {
             const NSKey key(_protocol, _service_name, _options.channel_signature);
@@ -277,7 +277,7 @@ namespace melon {
                                    const std::string &service_name,
                                    const GetNamingServiceThreadOptions *opt_in) {
         if (naming_service == NULL) {
-            MLOG(ERROR) << "Param[naming_service] is NULL";
+            LOG(ERROR) << "Param[naming_service] is NULL";
             return -1;
         }
         _ns = naming_service;
@@ -292,7 +292,7 @@ namespace melon {
         } else {
             int rc = fiber_start_urgent(&_tid, NULL, RunThis, this);
             if (rc) {
-                MLOG(ERROR) << "Fail to create fiber: " << berror(rc);
+                LOG(ERROR) << "Fail to create fiber: " << berror(rc);
                 return rc;
             }
         }
@@ -303,13 +303,13 @@ namespace melon {
         int rc = _actions.WaitForFirstBatchOfServers();
         if (rc == ENODATA && _options.succeed_without_server) {
             if (_options.log_succeed_without_server) {
-                MLOG(WARNING) << '`' << *this << "' is empty! RPC over the channel"
+                LOG(WARNING) << '`' << *this << "' is empty! RPC over the channel"
                                                 " will fail until servers appear";
             }
             rc = 0;
         }
         if (rc) {
-            MLOG(ERROR) << "Fail to WaitForFirstBatchOfServers: " << berror(rc);
+            LOG(ERROR) << "Fail to WaitForFirstBatchOfServers: " << berror(rc);
             return -1;
         }
         return 0;
@@ -338,7 +338,7 @@ namespace melon {
     int NamingServiceThread::AddWatcher(NamingServiceWatcher *watcher,
                                         const NamingServiceFilter *filter) {
         if (watcher == NULL) {
-            MLOG(ERROR) << "Param[watcher] is NULL";
+            LOG(ERROR) << "Param[watcher] is NULL";
             return -1;
         }
         MELON_SCOPED_LOCK(_mutex);
@@ -355,7 +355,7 @@ namespace melon {
 
     int NamingServiceThread::RemoveWatcher(NamingServiceWatcher *watcher) {
         if (watcher == NULL) {
-            MLOG(ERROR) << "Param[watcher] is NULL";
+            LOG(ERROR) << "Param[watcher] is NULL";
             return -1;
         }
         MELON_SCOPED_LOCK(_mutex);
@@ -371,9 +371,9 @@ namespace melon {
     void NamingServiceThread::Run() {
         int rc = _ns->RunNamingService(_service_name.c_str(), &_actions);
         if (rc != 0) {
-            MLOG(WARNING) << "Fail to run naming service: " << berror(rc);
+            LOG(WARNING) << "Fail to run naming service: " << berror(rc);
             if (rc == ENODATA) {
-                MLOG(ERROR) << "RunNamingService should not return ENODATA, "
+                LOG(ERROR) << "RunNamingService should not return ENODATA, "
                               "change it to ESTOP";
                 rc = ESTOP;
             }
@@ -419,12 +419,12 @@ namespace melon {
         char protocol[MAX_PROTOCOL_LEN + 1];
         const char *const service_name = ParseNamingServiceUrl(url, protocol);
         if (service_name == NULL) {
-            MLOG(ERROR) << "Invalid naming service url=" << url;
+            LOG(ERROR) << "Invalid naming service url=" << url;
             return -1;
         }
         const NamingService *source_ns = NamingServiceExtension()->Find(protocol);
         if (source_ns == NULL) {
-            MLOG(ERROR) << "Unknown protocol=" << protocol;
+            LOG(ERROR) << "Unknown protocol=" << protocol;
             return -1;
         }
         const NSKey key(protocol, service_name,
@@ -437,12 +437,12 @@ namespace melon {
                 g_nsthread_map = new(std::nothrow) NamingServiceMap;
                 if (NULL == g_nsthread_map) {
                     mu.unlock();
-                    MLOG(ERROR) << "Fail to new g_nsthread_map";
+                    LOG(ERROR) << "Fail to new g_nsthread_map";
                     return -1;
                 }
                 if (g_nsthread_map->init(64) != 0) {
                     mu.unlock();
-                    MLOG(ERROR) << "Fail to init g_nsthread_map";
+                    LOG(ERROR) << "Fail to init g_nsthread_map";
                     return -1;
                 }
             }
@@ -464,7 +464,7 @@ namespace melon {
                 NamingServiceThread *thr = new(std::nothrow) NamingServiceThread;
                 if (thr == NULL) {
                     mu.unlock();
-                    MLOG(ERROR) << "Fail to new NamingServiceThread";
+                    LOG(ERROR) << "Fail to new NamingServiceThread";
                     return -1;
                 }
                 ptr = thr;
@@ -475,7 +475,7 @@ namespace melon {
         if (new_thread) {
             int rc = nsthread->Start(source_ns->New(), key.protocol, key.service_name, options);
             if (rc != 0) {
-                MLOG(ERROR) << "Fail to start NamingServiceThread";
+                LOG(ERROR) << "Fail to start NamingServiceThread";
                 // Wake up those waiting for first batch of servers.
                 nsthread->EndWait(rc);
                 std::unique_lock<pthread_mutex_t> mu(g_nsthread_map_mutex);

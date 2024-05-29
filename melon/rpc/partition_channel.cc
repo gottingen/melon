@@ -78,11 +78,11 @@ int PartitionChannelBase::Init(int num_partition_kinds,
                                const char* load_balancer_name,
                                const PartitionChannelOptions* options_in) {
     if (num_partition_kinds <= 0) {
-        MLOG(ERROR) << "Parameter[num_partition_kinds] must be positive";
+        LOG(ERROR) << "Parameter[num_partition_kinds] must be positive";
         return -1;
     }
     if (NULL == partition_parser) {
-        MLOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
+        LOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
         return -1;
     }
     PartitionChannelOptions options;
@@ -93,12 +93,12 @@ int PartitionChannelBase::Init(int num_partition_kinds,
     options.log_succeed_without_server = false;
     _subs = new (std::nothrow) SubChannel[num_partition_kinds];
     if (NULL == _subs) {
-        MLOG(ERROR) << "Fail to new Channels[" << num_partition_kinds << "]";
+        LOG(ERROR) << "Fail to new Channels[" << num_partition_kinds << "]";
         return -1;
     }
     for (int i = 0; i < num_partition_kinds; ++i) {
         if (_subs[i].Init("list://", load_balancer_name, &options) != 0) {
-            MLOG(ERROR) << "Fail to init sub channel[" << i << "]";
+            LOG(ERROR) << "Fail to init sub channel[" << i << "]";
             return -1;
         }
     }
@@ -106,7 +106,7 @@ int PartitionChannelBase::Init(int num_partition_kinds,
         if (AddChannel(&_subs[i], DOESNT_OWN_CHANNEL,
                        options.call_mapper.get(),
                        options.response_merger.get()) != 0) {
-            MLOG(ERROR) << "Fail to add sub channel[" << i << "]";
+            LOG(ERROR) << "Fail to add sub channel[" << i << "]";
             return -1;
         }
     }
@@ -114,7 +114,7 @@ int PartitionChannelBase::Init(int num_partition_kinds,
     pchan_options.timeout_ms = options.timeout_ms;
     pchan_options.fail_limit = options.fail_limit;
     if (ParallelChannel::Init(&pchan_options) != 0) {
-        MLOG(ERROR) << "Fail to init PartitionChannel as ParallelChannel";
+        LOG(ERROR) << "Fail to init PartitionChannel as ParallelChannel";
         return -1;
     }
     // Must be last one because it's the marker of initialized().
@@ -130,7 +130,7 @@ void PartitionChannelBase::PartitionServersIntoTemps(
     for (size_t i = 0; i < servers.size(); ++i) {
         Partition part;
         if (!_parser->ParseFromTag(servers[i].tag, &part)) {
-            MLOG(ERROR) << "Fail to parse " << servers[i].tag;
+            LOG(ERROR) << "Fail to parse " << servers[i].tag;
             continue;
         }
         if (part.num_partition_kinds != partition_count()) {
@@ -138,7 +138,7 @@ void PartitionChannelBase::PartitionServersIntoTemps(
             continue;
         }
         if (part.index < 0 || part.index >= partition_count()) {
-            MLOG(ERROR) << "Invalid index=" << part.index << " in tag=`"
+            LOG(ERROR) << "Invalid index=" << part.index << " in tag=`"
                        << servers[i].tag << "'";
             continue;
         }
@@ -157,7 +157,7 @@ size_t PartitionChannelBase::AddServersInBatch(
         if (!_subs[i].tmp.empty()) {
             size_t n = _subs[i].lb()->AddServersInBatch(_subs[i].tmp);
             ntotal += n;
-            RPC_VMLOG << "Added " << n << " servers to channel[" << i << "]";
+            RPC_VLOG << "Added " << n << " servers to channel[" << i << "]";
         }
     }
     return ntotal;
@@ -171,7 +171,7 @@ size_t PartitionChannelBase::RemoveServersInBatch(
         if (!_subs[i].tmp.empty()) {
             size_t n = _subs[i].lb()->RemoveServersInBatch(_subs[i].tmp);
             ntotal += n;
-            RPC_VMLOG << "Removed " << n << " servers from channel[" << i << "]";
+            RPC_VLOG << "Removed " << n << " servers from channel[" << i << "]";
         }
     }
     return ntotal;
@@ -219,11 +219,11 @@ int PartitionChannel::Init(int num_partition_kinds,
     // Force naming services to register.
     GlobalInitializeOrDie();
     if (num_partition_kinds == 0) {
-        MLOG(ERROR) << "Parameter[num_partition_kinds] must be positive";
+        LOG(ERROR) << "Parameter[num_partition_kinds] must be positive";
         return -1;
     }
     if (NULL == partition_parser) {
-        MLOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
+        LOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
         return -1;
     }
     GetNamingServiceThreadOptions ns_opt;
@@ -231,22 +231,22 @@ int PartitionChannel::Init(int num_partition_kinds,
         ns_opt.succeed_without_server = options_in->succeed_without_server;
     }
     if (GetNamingServiceThread(&_nsthread_ptr, ns_url, &ns_opt) != 0) {
-        MLOG(ERROR) << "Fail to get NamingServiceThread";
+        LOG(ERROR) << "Fail to get NamingServiceThread";
         return -1;
     }
     _pchan = new (std::nothrow) PartitionChannelBase;
     if (NULL == _pchan) {
-        MLOG(ERROR) << "Fail to new PartitionChannelBase";
+        LOG(ERROR) << "Fail to new PartitionChannelBase";
         return -1;
     }
     if (_pchan->Init(num_partition_kinds, partition_parser,
                      load_balancer_name, options_in) != 0) {
-        MLOG(ERROR) << "Fail to init PartitionChannelBase";
+        LOG(ERROR) << "Fail to init PartitionChannelBase";
         return -1;
     }
     if (_nsthread_ptr->AddWatcher(
             _pchan, (options_in ?   options_in->ns_filter : NULL)) != 0) {
-        MLOG(ERROR) << "Fail to add PartitionChannelBase as watcher";
+        LOG(ERROR) << "Fail to add PartitionChannelBase as watcher";
         return -1;
     }
     // Must be last one because it's the marker of initialized().
@@ -297,16 +297,16 @@ public:
         for (size_t i = 0; i < servers.size(); ++i) {
             Partition part;
             if (!_parser->ParseFromTag(servers[i].tag, &part)) {
-                MLOG(ERROR) << "Fail to parse " << servers[i].tag;
+                LOG(ERROR) << "Fail to parse " << servers[i].tag;
                 continue;
             }
             if (part.num_partition_kinds <= 0) {
-                MLOG(ERROR) << "Invalid num_partition_kinds=" << part.num_partition_kinds
+                LOG(ERROR) << "Invalid num_partition_kinds=" << part.num_partition_kinds
                            << " in tag=`" << servers[i].tag << "'";
                 continue;
             }
             if (part.index < 0 || part.index >= part.num_partition_kinds) {
-                MLOG(ERROR) << "Invalid index=" << part.index << " in tag=`"
+                LOG(ERROR) << "Invalid index=" << part.index << " in tag=`"
                            << servers[i].tag << "'";
                 continue;
             }
@@ -315,27 +315,27 @@ public:
             if (ppchan == NULL) {
                 pchan = new (std::nothrow) SubPartitionChannel;
                 if (pchan == NULL) {
-                    MLOG(ERROR) << "Fail to new SubPartitionChannel";
+                    LOG(ERROR) << "Fail to new SubPartitionChannel";
                     continue;
                 }
                 if (pchan->Init(part.num_partition_kinds, _parser,
                                 _load_balancer_name.c_str(), &_options) != 0) {
-                    MLOG(ERROR) << "Fail to init SubPartitionChannel=#"
+                    LOG(ERROR) << "Fail to init SubPartitionChannel=#"
                                << part.num_partition_kinds;
                     delete pchan;
                     continue;
                 }
                 if (_schan->AddChannel(pchan, &pchan->handle) != 0) {
-                    MLOG(ERROR) << "Fail to add SubPartitionChannel=#"
+                    LOG(ERROR) << "Fail to add SubPartitionChannel=#"
                                << part.num_partition_kinds;
                     delete pchan;
                     continue;
                 }
                 _part_chan_map[part.num_partition_kinds] = pchan;
-                RPC_VMLOG << "Added partition=" << part.num_partition_kinds;
+                RPC_VLOG << "Added partition=" << part.num_partition_kinds;
             } else {
                 pchan = *ppchan;
-                MCHECK_EQ(part.num_partition_kinds, pchan->partition_count());
+                CHECK_EQ(part.num_partition_kinds, pchan->partition_count());
             }
             
             if (pchan->tmp.capacity() == 0) {
@@ -352,7 +352,7 @@ public:
             if (!it->second->tmp.empty()) {
                 size_t n = it->second->AddServersInBatch(it->second->tmp);
                 it->second->num_servers += n;
-                RPC_VMLOG << "Added " << n << " servers to partition="
+                RPC_VLOG << "Added " << n << " servers to partition="
                          << it->first;
             }
         }
@@ -367,20 +367,20 @@ public:
             if (!partchan->tmp.empty()) {
                 size_t n = partchan->RemoveServersInBatch(partchan->tmp);
                 partchan->num_servers -= n;
-                RPC_VMLOG << "Removed " << n << " servers from partition="
+                RPC_VLOG << "Removed " << n << " servers from partition="
                          << it->first;
                 if (partchan->num_servers <= 0) {
-                    MCHECK_EQ(0, partchan->num_servers);
+                    CHECK_EQ(0, partchan->num_servers);
                     const int npart = partchan->partition_count();
                     _schan->RemoveAndDestroyChannel(partchan->handle);
                     // NOTE: Don't touch partchan again!
-                    RPC_VMLOG << "Removed partition=" << npart;
+                    RPC_VLOG << "Removed partition=" << npart;
                     erased_parts.push_back(it->first);
                 }
             }
         }
         for (size_t i = 0; i < erased_parts.size(); ++i) {
-            MCHECK_EQ(1UL, _part_chan_map.erase(erased_parts[i]));
+            CHECK_EQ(1UL, _part_chan_map.erase(erased_parts[i]));
         }
     }
 
@@ -404,7 +404,7 @@ public:
             _options = *options;
         }
         if (_part_chan_map.init(32, 70) != 0) {
-            MLOG(ERROR) << "Fail to init _part_chan_map";
+            LOG(ERROR) << "Fail to init _part_chan_map";
             return -1;
         }
         return 0;
@@ -451,7 +451,7 @@ int DynamicPartitionChannel::Init(
     const PartitionChannelOptions* options_in) {
     GlobalInitializeOrDie();
     if (NULL == partition_parser) {
-        MLOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
+        LOG(ERROR) << "Parameter[partition_parser] must be non-NULL";
         return -1;
     }
     GetNamingServiceThreadOptions ns_opt;
@@ -459,26 +459,26 @@ int DynamicPartitionChannel::Init(
         ns_opt.succeed_without_server = options_in->succeed_without_server;
     }
     if (GetNamingServiceThread(&_nsthread_ptr, ns_url, &ns_opt) != 0) {
-        MLOG(ERROR) << "Fail to get NamingServiceThread";
+        LOG(ERROR) << "Fail to get NamingServiceThread";
         return -1;
     }
     if (_schan.Init("_dynpart", options_in) != 0) {
-        MLOG(ERROR) << "Fail to init _schan";
+        LOG(ERROR) << "Fail to init _schan";
         return -1;
     }
     _partitioner = new (std::nothrow) Partitioner;
     if (NULL == _partitioner) {
-        MLOG(ERROR) << "Fail to new Partitioner";
+        LOG(ERROR) << "Fail to new Partitioner";
         return -1;
     }
     if (_partitioner->Init(&_schan, partition_parser,
                            load_balancer_name, options_in) != 0) {
-        MLOG(ERROR) << "Fail to init Partitioner";
+        LOG(ERROR) << "Fail to init Partitioner";
         return -1;
     }
     if (_nsthread_ptr->AddWatcher(
             _partitioner, (options_in ? options_in->ns_filter : NULL)) != 0) {
-        MLOG(ERROR) << "Fail to add Partitioner as watcher";
+        LOG(ERROR) << "Fail to add Partitioner as watcher";
         return -1;
     }
     // Must be last one because it's the marker of initialized().

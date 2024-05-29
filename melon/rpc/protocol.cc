@@ -32,7 +32,7 @@ const uint64_t PB_TOTAL_BYETS_LIMITS =
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/text_format.h>
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #include <melon/rpc/protocol.h>
 #include <melon/rpc/controller.h>
@@ -72,18 +72,18 @@ static pthread_mutex_t s_protocol_map_mutex = PTHREAD_MUTEX_INITIALIZER;
 int RegisterProtocol(ProtocolType type, const Protocol& protocol) {
     const size_t index = type;
     if (index >= MAX_PROTOCOL_SIZE) {
-        MLOG(ERROR) << "ProtocolType=" << type << " is out of range";
+        LOG(ERROR) << "ProtocolType=" << type << " is out of range";
         return -1;
     }
     if (!protocol.support_client() && !protocol.support_server()) {
-        MLOG(ERROR) << "ProtocolType=" << type
+        LOG(ERROR) << "ProtocolType=" << type
                    << " neither supports client nor server";
         return -1;
     }
     ProtocolEntry* const protocol_map = get_protocol_map();
     MELON_SCOPED_LOCK(s_protocol_map_mutex);
     if (protocol_map[index].valid.load(mutil::memory_order_relaxed)) {
-        MLOG(ERROR) << "ProtocolType=" << type << " was registered";
+        LOG(ERROR) << "ProtocolType=" << type << " was registered";
         return -1;
     }
     protocol_map[index].protocol = protocol;
@@ -95,7 +95,7 @@ int RegisterProtocol(ProtocolType type, const Protocol& protocol) {
 const Protocol* FindProtocol(ProtocolType type) {
     const size_t index = type;
     if (index >= MAX_PROTOCOL_SIZE) {
-        MLOG(ERROR) << "ProtocolType=" << type << " is out of range";
+        LOG(ERROR) << "ProtocolType=" << type << " is out of range";
         return NULL;
     }
     ProtocolEntry* const protocol_map = get_protocol_map();
@@ -183,7 +183,7 @@ ProtocolType StringToProtocolType(const mutil::StringPiece& name,
                 err << ' ' << protocol_map[i].protocol.name;
             }
         }
-        MLOG(ERROR) << err.str();
+        LOG(ERROR) << err.str();
     }
     return PROTOCOL_UNKNOWN;
 }
@@ -255,10 +255,10 @@ void LogErrorTextAndDelete::operator()(Controller* c) const {
     }
     if (FLAGS_log_error_text && c->ErrorCode()) {
         if (c->ErrorCode() == ECLOSE) {
-            MLOG(WARNING) << "Close connection to " << c->remote_side()
+            LOG(WARNING) << "Close connection to " << c->remote_side()
                          << ": " << c->ErrorText();
         } else {
-            MLOG(WARNING) << "Error to " << c->remote_side()
+            LOG(WARNING) << "Error to " << c->remote_side()
                          << ": " << c->ErrorText();
         }
     }

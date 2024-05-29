@@ -19,7 +19,7 @@
 
 
 #include <google/protobuf/io/gzip_stream.h>    // GzipXXXStream
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/compress/gzip_compress.h>
 #include <melon/rpc/protocol.h>
 
@@ -28,17 +28,17 @@ namespace melon::compress {
 
     static void LogError(const google::protobuf::io::GzipOutputStream &gzip) {
         if (gzip.ZlibErrorMessage()) {
-            MLOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
+            LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
         } else {
-            MLOG(WARNING) << "Fail to decompress.";
+            LOG(WARNING) << "Fail to decompress.";
         }
     }
 
     static void LogError(const google::protobuf::io::GzipInputStream &gzip) {
         if (gzip.ZlibErrorMessage()) {
-            MLOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
+            LOG(WARNING) << "Fail to decompress: " << gzip.ZlibErrorMessage();
         } else {
-            MLOG(WARNING) << "Fail to decompress.";
+            LOG(WARNING) << "Fail to decompress.";
         }
     }
 

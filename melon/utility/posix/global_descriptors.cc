@@ -7,7 +7,7 @@
 #include <vector>
 #include <utility>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -23,7 +23,7 @@ int GlobalDescriptors::Get(Key key) const {
   const int ret = MaybeGet(key);
 
   if (ret == -1)
-    DMLOG(FATAL) << "Unknown global descriptor: " << key;
+    DLOG(FATAL) << "Unknown global descriptor: " << key;
   return ret;
 }
 

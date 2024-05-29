@@ -22,7 +22,7 @@
 
 #include <cstdint>                              // int64_t uint64_t
 #include <melon/utility/macros.h>                         // MELON_CASSERT
-#include <melon/utility/logging.h>                        // LOG
+#include <turbo/log/logging.h>                        // LOG
 #include <melon/var/detail/combiner.h>                // detail::AgentCombiner
 #include <melon/var/variable.h>
 #include <melon/var/window.h>
@@ -87,7 +87,7 @@ namespace melon::var {
 // Example:
 //   IntRecorder latency;
 //   latency << 1 << 3 << 5;
-//   MCHECK_EQ(3, latency.average());
+//   CHECK_EQ(3, latency.average());
     class IntRecorder : public Variable {
     public:
         // Compressing format:
@@ -256,19 +256,19 @@ namespace melon::var {
             // Truncate to be max or min of int. We're using 44 bits to store the
             // sum thus following aggregations are not likely to be over/underflow.
             if (!name().empty()) {
-                MLOG(WARNING) << "Input=" << sample << " to `" << name()
+                LOG(WARNING) << "Input=" << sample << " to `" << name()
                              << "\' " << reason;
             } else if (!_debug_name.empty()) {
-                MLOG(WARNING) << "Input=" << sample << " to `" << _debug_name
+                LOG(WARNING) << "Input=" << sample << " to `" << _debug_name
                              << "\' " << reason;
             } else {
-                MLOG(WARNING) << "Input=" << sample << " to IntRecorder("
+                LOG(WARNING) << "Input=" << sample << " to IntRecorder("
                              << (void *) this << ") " << reason;
             }
         }
         agent_type *agent = _combiner.get_or_create_tls_agent();
         if (MELON_UNLIKELY(!agent)) {
-            MLOG(FATAL) << "Fail to create agent";
+            LOG(FATAL) << "Fail to create agent";
             return *this;
         }
         uint64_t n;

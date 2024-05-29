@@ -23,6 +23,7 @@
 #include <melon/rpc/log.h>
 #include <melon/rpc/restful.h>
 #include <melon/rpc/details/method_status.h>
+#include <turbo/log/vlog_is_on.h>
 
 
 namespace melon {
@@ -86,7 +87,7 @@ namespace melon {
                           RestfulMethodPath *path_out) {
         path.trim_spaces();
         if (path.empty()) {
-            MLOG(ERROR) << "Parameter[path] is empty";
+            LOG(ERROR) << "Parameter[path] is empty";
             return false;
         }
         // Check validity of the path.
@@ -97,12 +98,12 @@ namespace melon {
                 if (star_index < 0) {
                     star_index = (int) (p - path.data());
                 } else {
-                    MLOG(ERROR) << "More than one wildcard in restful_path=`"
+                    LOG(ERROR) << "More than one wildcard in restful_path=`"
                                << path << '\'';
                     return false;
                 }
             } else if (!is_url_char(*p)) {
-                MLOG(ERROR) << "Invalid character=`" << *p << "' (index="
+                LOG(ERROR) << "Invalid character=`" << *p << "' (index="
                            << p - path.data() << ") in path=`" << path << '\'';
                 return false;
             }
@@ -150,7 +151,7 @@ namespace melon {
                 prefix_raw.back() == '/') {
                 path_out->prefix.push_back('/');
             } else {
-                MLOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
+                LOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
                            << path << "' is disallowed for performance concerns";
                 return false;
             }
@@ -160,7 +161,7 @@ namespace melon {
             path_out->prefix.push_back('/');
         } else { // no slashes, has wildcard. Example: abc* => Method
             if (!first_part.empty()) {
-                MLOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
+                LOG(ERROR) << "Pattern A* (A is not ended with /) in path=`"
                            << path << "' is disallowed for performance concerns";
                 return false;
             }
@@ -189,7 +190,7 @@ namespace melon {
         } else {
             path_out->postfix.push_back('/');
         }
-        VMLOG(RPC_VMLOG_LEVEL + 1) << "orig_path=" << path
+        VLOG(RPC_VLOG_LEVEL + 1) << "orig_path=" << path
                                  << " first_part=" << first_part
                                  << " second_part=" << second_part
                                  << " path=" << DebugPrinter(*path_out);
@@ -199,7 +200,7 @@ namespace melon {
     bool ParseRestfulMappings(const mutil::StringPiece &mappings,
                               std::vector<RestfulMapping> *list) {
         if (list == NULL) {
-            MLOG(ERROR) << "Param[list] is NULL";
+            LOG(ERROR) << "Param[list] is NULL";
             return false;
         }
         list->clear();
@@ -227,14 +228,14 @@ namespace melon {
                     // Parse left part of the arrow as url path.
                     mutil::StringPiece path(sp.field(), equal_sign_pos);
                     if (!ParseRestfulPath(path, &m.path)) {
-                        MLOG(ERROR) << "Fail to parse path=`" << path << '\'';
+                        LOG(ERROR) << "Fail to parse path=`" << path << '\'';
                         return false;
                     }
                     // Treat right part of the arrow as method_name.
                     mutil::StringPiece method_name_piece(p + i + 1, n - (i + 1));
                     method_name_piece.trim_spaces();
                     if (method_name_piece.empty()) {
-                        MLOG(ERROR) << "No method name in " << nmappings
+                        LOG(ERROR) << "No method name in " << nmappings
                                    << "-th mapping";
                         return false;
                     }
@@ -247,7 +248,7 @@ namespace melon {
             }
             // If we don't get a valid mapping from the string, issue error.
             if (!added_sth) {
-                MLOG(ERROR) << "Invalid mapping: "
+                LOG(ERROR) << "Invalid mapping: "
                            << mutil::StringPiece(sp.field(), sp.length());
                 return false;
             }
@@ -266,18 +267,18 @@ namespace melon {
                                const std::string &method_name,
                                MethodStatus *status) {
         if (service == NULL) {
-            MLOG(ERROR) << "Param[service] is NULL";
+            LOG(ERROR) << "Param[service] is NULL";
             return false;
         }
         const google::protobuf::MethodDescriptor *md =
                 service->GetDescriptor()->FindMethodByName(method_name);
         if (md == NULL) {
-            MLOG(ERROR) << service->GetDescriptor()->full_name()
+            LOG(ERROR) << service->GetDescriptor()->full_name()
                        << " has no method called `" << method_name << '\'';
             return false;
         }
         if (path.service_name != _service_name) {
-            MLOG(ERROR) << "Impossible: path.service_name does not match name"
+            LOG(ERROR) << "Impossible: path.service_name does not match name"
                           " of this RestfulMap";
             return false;
         }
@@ -286,7 +287,7 @@ namespace melon {
         std::string dedup_key = path.to_string();
         DedupMap::const_iterator it = _dedup_map.find(dedup_key);
         if (it != _dedup_map.end()) {
-            MLOG(ERROR) << "Already mapped `" << it->second.path
+            LOG(ERROR) << "Already mapped `" << it->second.path
                        << "' to `" << it->second.method->full_name() << '\'';
             return false;
         }
@@ -299,7 +300,7 @@ namespace melon {
         info.status = status;
         info.path = path;
         info.ownership = SERVER_DOESNT_OWN_SERVICE;
-        RPC_VMLOG << "Mapped `" << path << "' to `" << md->full_name() << '\'';
+        RPC_VLOG << "Mapped `" << path << "' to `" << md->full_name() << '\'';
         return true;
     }
 
@@ -352,14 +353,14 @@ namespace melon {
         }
         std::sort(_sorted_paths.begin(), _sorted_paths.end(),
                   CompareItemInPathList());
-        if (VMLOG_IS_ON(RPC_VMLOG_LEVEL + 1)) {
+        if (VLOG_IS_ON(RPC_VLOG_LEVEL + 1)) {
             std::ostringstream os;
             os << "_sorted_paths(" << _service_name << "):";
             for (PathList::const_iterator it = _sorted_paths.begin();
                  it != _sorted_paths.end(); ++it) {
                 os << ' ' << (*it)->path;
             }
-            VMLOG(RPC_VMLOG_LEVEL + 1) << os.str();
+            VLOG(RPC_VLOG_LEVEL + 1) << os.str();
         }
     }
 
@@ -414,7 +415,7 @@ namespace melon {
     RestfulMap::FindMethodProperty(const mutil::StringPiece &method_path,
                                    std::string *unresolved_path) const {
         if (_sorted_paths.empty()) {
-            MLOG(ERROR) << "_sorted_paths is empty, method_path=" << method_path;
+            LOG(ERROR) << "_sorted_paths is empty, method_path=" << method_path;
             return NULL;
         }
         const std::string full_path = NormalizeSlashes(method_path);
@@ -438,7 +439,7 @@ namespace melon {
             do {
                 const RestfulMethodPath &rpath = (*it)->path;
                 if (!sub_path.starts_with(rpath.prefix)) {
-                    VMLOG(RPC_VMLOG_LEVEL + 1)
+                    VLOG(RPC_VLOG_LEVEL + 1)
                     << "sub_path=" << sub_path << " does not match prefix="
                     << rpath.prefix << " full_path=" << full_path
                     << " candidate=" << DebugPrinter(rpath);
@@ -466,14 +467,14 @@ namespace melon {
                 if (left.ends_with(rpath.postfix)) {
                     left.remove_suffix(rpath.postfix.size());
                     if (!left.empty() && !rpath.has_wildcard) {
-                        VMLOG(RPC_VMLOG_LEVEL + 1)
+                        VLOG(RPC_VLOG_LEVEL + 1)
                         << "Unmatched extra=" << left
                         << " sub_path=" << sub_path
                         << " full_path=" << full_path
                         << " candidate=" << DebugPrinter(rpath);
                     } else {
                         matched = true;
-                        VMLOG(RPC_VMLOG_LEVEL + 1)
+                        VLOG(RPC_VLOG_LEVEL + 1)
                         << "Matched sub_path=" << sub_path
                         << " full_path=" << full_path
                         << " with restful_path=" << DebugPrinter(rpath);
@@ -481,7 +482,7 @@ namespace melon {
                     }
                 }
                 if (it == _sorted_paths.begin()) {
-                    VMLOG(RPC_VMLOG_LEVEL + 1)
+                    VLOG(RPC_VLOG_LEVEL + 1)
                     << "Hit beginning, sub_path=" << sub_path
                     << " full_path=" << full_path
                     << " candidate=" << DebugPrinter(rpath);

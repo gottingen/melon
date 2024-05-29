@@ -26,7 +26,7 @@
 #include <map>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/utility/endpoint.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace melon::raft {
 
@@ -57,7 +57,7 @@ namespace melon::raft {
             }
         }
 
-        /*intended implicit*/PeerId(const std::string &str) { MCHECK_EQ(0, parse(str)); }
+        /*intended implicit*/PeerId(const std::string &str) { CHECK_EQ(0, parse(str)); }
 
         PeerId(const PeerId &id) : addr(id.addr), idx(id.idx), role(id.role) {}
 

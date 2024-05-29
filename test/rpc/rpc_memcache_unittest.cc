@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/memcache/memcache.h>
 #include <melon/rpc/channel.h>
 #include <gtest/gtest.h>
@@ -43,7 +43,7 @@ static void RemoveMemcached() {
     puts("[Stopping memcached]");
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "kill %d", g_mc_pid);
-    MCHECK(0 == system(cmd));
+    CHECK(0 == system(cmd));
     // Wait for mc to stop
     usleep(50000);
 }

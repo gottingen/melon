@@ -140,7 +140,7 @@ ComlogSinkOptions::ComlogSinkOptions()
     , log_dir("log")
     , max_log_length(2048)
     , print_vlog_as_warning(true)
-    , split_type(COMLOG_SPLIT_TRUNCT)
+    , split_type(COLOG_SPLIT_TRUNCT)
     , cut_size_megabytes(2048)
     , quota_size(0)
     , cut_interval_minutes(60)
@@ -159,7 +159,7 @@ int ComlogSink::SetupFromConfig(const std::string& conf_path_str) {
     mutil::FilePath path(conf_path_str);
     if (com_loadlog(path.DirName().value().c_str(),
                     path.BaseName().value().c_str()) != 0) {
-        MLOG(ERROR) << "Fail to create ComlogSink from `" << conf_path_str << "'";
+        LOG(ERROR) << "Fail to create ComlogSink from `" << conf_path_str << "'";
         return -1;
     }
     _init = true;
@@ -188,15 +188,15 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
     snprintf(dev->host, sizeof(dev->host), "%s", path.DirName().value().c_str());
     if (!is_wf) {
         snprintf(dev->name, sizeof(dev->name), "%s_0", type);
-        COMLOG_SETSYSLOG(*dev);
+        COLOG_SETSYSLOG(*dev);
 
         //snprintf(dev->file, COM_MAXFILENAME, "%s", file);
         snprintf(dev->file, sizeof(dev->file), "%s", path.BaseName().value().c_str());
     } else {
         snprintf(dev->name, sizeof(dev->name), "%s_1", type);
         dev->log_mask = 0;
-        COMLOG_ADDMASK(*dev, COMLOG_WARNING);
-        COMLOG_ADDMASK(*dev, COMLOG_FATAL);
+        COLOG_ADDMASK(*dev, COLOG_WARNING);
+        COLOG_ADDMASK(*dev, COLOG_FATAL);
 
         //snprintf(dev->file, COM_MAXFILENAME, "%s.wf", file);
         snprintf(dev->file, sizeof(dev->file), "%s.wf", path.BaseName().value().c_str());
@@ -210,14 +210,14 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
 
     // set quota conf
     int index = dev->reserved_num;
-    if (dev->splite_type == COMLOG_SPLIT_SIZECUT) {
+    if (dev->splite_type == COLOG_SPLIT_SIZECUT) {
         if (_options.cut_size_megabytes <= 0) {
-            MLOG(ERROR) << "Invalid ComlogSinkOptions.cut_size_megabytes="
+            LOG(ERROR) << "Invalid ComlogSinkOptions.cut_size_megabytes="
                        << _options.cut_size_megabytes;
             return -1;
         }
         if (_options.quota_size < 0) {
-            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_size="
+            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_size="
                        << _options.quota_size;
             return -1;
         }
@@ -226,17 +226,17 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
         snprintf(dev->reservedext[index].value, sizeof(dev->reservedext[index].value),
                  "%d", _options.quota_size);
         index++;
-    } else if (dev->splite_type == COMLOG_SPLIT_DATECUT) {
+    } else if (dev->splite_type == COLOG_SPLIT_DATECUT) {
         if (_options.quota_day < 0) {
-            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_day=" << _options.quota_day;
+            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_day=" << _options.quota_day;
             return -1;
         }
         if (_options.quota_hour < 0) {
-            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_hour=" << _options.quota_hour;
+            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_hour=" << _options.quota_hour;
             return -1;
         }
         if (_options.quota_min < 0) {
-            MLOG(ERROR) << "Invalid ComlogSinkOptions.quota_min=" << _options.quota_min;
+            LOG(ERROR) << "Invalid ComlogSinkOptions.quota_min=" << _options.quota_min;
             return -1;
         }
         if (_options.quota_day > 0) {
@@ -270,7 +270,7 @@ int ComlogSink::SetupDevice(com_device_t* dev, const char* type, const char* fil
     layout_options.shorter_log_level = _options.shorter_log_level;
     ComlogLayout* layout = new (std::nothrow) ComlogLayout(&layout_options);
     if (layout == NULL) {
-        MLOG(FATAL) << "Fail to new layout";
+        LOG(FATAL) << "Fail to new layout";
         return -1;
     }
     dev->layout = layout;
@@ -303,20 +303,20 @@ int ComlogSink::Setup(const ComlogSinkOptions* options) {
             cwd = log_dir;
         } else {
             if (!mutil::GetCurrentDirectory(&cwd)) {
-                MLOG(ERROR) << "Fail to get cwd";
+                LOG(ERROR) << "Fail to get cwd";
                 return -1;
             }
             cwd = cwd.Append(log_dir);
         }
     } else {
         if (!mutil::GetCurrentDirectory(&cwd)) {
-            MLOG(ERROR) << "Fail to get cwd";
+            LOG(ERROR) << "Fail to get cwd";
             return -1;
         }
     }
     mutil::File::Error err;
     if (!mutil::CreateDirectoryAndGetError(cwd, &err)) {
-        MLOG(ERROR) << "Fail to create directory, " << err;
+        LOG(ERROR) << "Fail to create directory, " << err;
         return -1;
     }
     char file[COM_MAXFILENAME];
@@ -326,21 +326,21 @@ int ComlogSink::Setup(const ComlogSinkOptions* options) {
     int dev_num = (_options.enable_wf_device ? 2 : 1);
     _dev = new (std::nothrow) com_device_t[dev_num];
     if (NULL == _dev) {
-        MLOG(FATAL) << "Fail to new com_device_t";
+        LOG(FATAL) << "Fail to new com_device_t";
         return -1;
     }
     if (0 != SetupDevice(&_dev[0], type, file, false)) {
-        MLOG(ERROR) << "Fail to setup first com_device_t";
+        LOG(ERROR) << "Fail to setup first com_device_t";
         return -1;
     }
     if (dev_num == 2) {
         if (0 != SetupDevice(&_dev[1], type, file, true)) {
-            MLOG(ERROR) << "Fail to setup second com_device_t";
+            LOG(ERROR) << "Fail to setup second com_device_t";
             return -1;
         }
     }
     if (com_openlog(_options.process_name.c_str(), _dev, dev_num, NULL) != 0) {
-        MLOG(ERROR) << "Fail to com_openlog";
+        LOG(ERROR) << "Fail to com_openlog";
         return -1;
     }
     _init = true;
@@ -366,14 +366,14 @@ ComlogSink::~ComlogSink() {
 }
 
 int const comlog_levels[LOG_NUM_SEVERITIES] = {
-    COMLOG_TRACE, COMLOG_NOTICE, COMLOG_WARNING, COMLOG_FATAL, COMLOG_FATAL };
+    COLOG_TRACE, COLOG_NOTICE, COLOG_WARNING, COLOG_FATAL, COLOG_FATAL };
 
 bool ComlogSink::OnLogMessage(int severity, const char* file, int line,
                               const mutil::StringPiece& content) {
-    // Print warning for VMLOG since many online servers do not enable COMLOG_TRACE.
+    // Print warning for VLOG since many online servers do not enable COLOG_TRACE.
     int comlog_level = 0;
     if (severity < 0) {
-        comlog_level = _options.print_vlog_as_warning ? COMLOG_WARNING : COMLOG_TRACE;
+        comlog_level = _options.print_vlog_as_warning ? COLOG_WARNING : COLOG_TRACE;
     } else {
         comlog_level = comlog_levels[severity];
     }

@@ -81,7 +81,7 @@ namespace melon::naming {
 
         mutil::ScopedFILE fp(fopen(service_name, "r"));
         if (!fp) {
-            PMLOG(ERROR) << "Fail to open `" << service_name << "'";
+            PLOG(ERROR) << "Fail to open `" << service_name << "'";
             return errno;
         }
         while ((nr = getline(&line, &line_len, fp.get())) != -1) {
@@ -98,7 +98,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
+                LOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;
@@ -107,10 +107,10 @@ namespace melon::naming {
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {
-                RPC_VMLOG << "Duplicated server=" << node;
+                RPC_VLOG << "Duplicated server=" << node;
             }
         }
-        RPC_VMLOG << "Got " << servers->size()
+        RPC_VLOG << "Got " << servers->size()
                  << (servers->size() > 1 ? " servers" : " server");
         free(line);
         return 0;
@@ -121,7 +121,7 @@ namespace melon::naming {
         std::vector<ServerNode> servers;
         mutil::FileWatcher fw;
         if (fw.init(service_name) < 0) {
-            MLOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
+            LOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
             return -1;
         }
         for (;;) {
@@ -137,18 +137,18 @@ namespace melon::naming {
                     break;
                 }
                 if (change < 0) {
-                    MLOG(ERROR) << "`" << service_name << "' was deleted";
+                    LOG(ERROR) << "`" << service_name << "' was deleted";
                 }
                 if (fiber_usleep(100000L/*100ms*/) < 0) {
                     if (errno == ESTOP) {
                         return 0;
                     }
-                    PMLOG(ERROR) << "Fail to sleep";
+                    PLOG(ERROR) << "Fail to sleep";
                     return -1;
                 }
             }
         }
-        MCHECK(false);
+        CHECK(false);
         return -1;
     }
 

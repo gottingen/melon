@@ -79,7 +79,7 @@ namespace melon::var {
             }
             values[n++] = std::make_pair(100, cb->get_number(0.999));
             values[n++] = std::make_pair(101, cb->get_number(0.9999));
-            MCHECK_EQ(n, arraysize(values));
+            CHECK_EQ(n, arraysize(values));
             os << "{\"label\":\"cdf\",\"data\":[";
             for (size_t i = 0; i < n; ++i) {
                 if (i) {
@@ -188,7 +188,7 @@ namespace melon::var {
     int LatencyRecorder::expose(const mutil::StringPiece &prefix1,
                                 const mutil::StringPiece &prefix2) {
         if (prefix2.empty()) {
-            MLOG(ERROR) << "Parameter[prefix2] is empty";
+            LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
         mutil::StringPiece prefix = prefix2;
@@ -196,7 +196,7 @@ namespace melon::var {
         if (prefix.ends_with("latency") || prefix.ends_with("Latency")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
-                MLOG(ERROR) << "Invalid prefix2=" << prefix2;
+                LOG(ERROR) << "Invalid prefix2=" << prefix2;
                 return -1;
             }
         }
@@ -253,7 +253,7 @@ namespace melon::var {
         snprintf(namebuf, sizeof(namebuf), "%d%%,%d%%,%d%%,99.9%%",
                  (int) FLAGS_var_latency_p1, (int) FLAGS_var_latency_p2,
                  (int) FLAGS_var_latency_p3);
-        MCHECK_EQ(0, _latency_percentiles.set_vector_names(namebuf));
+        CHECK_EQ(0, _latency_percentiles.set_vector_names(namebuf));
         return 0;
     }
 

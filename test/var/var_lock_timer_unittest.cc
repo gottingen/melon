@@ -69,13 +69,13 @@ TEST_F(LockTimerTest, MutexWithRecorder) {
         MELON_SCOPED_LOCK(mutex);
     }
     ASSERT_EQ(1u, recorder.get_value().num);
-    MLOG(INFO) << recorder;
+    LOG(INFO) << recorder;
     {
         std::unique_lock<decltype(mutex) > lck(mutex);
         lck.unlock();
         lck.lock();
         ASSERT_EQ(2u, recorder.get_value().num);
-        MLOG(INFO) << recorder;
+        LOG(INFO) << recorder;
         std::condition_variable cond;
         cond.wait_for(lck, std::chrono::milliseconds(10));
     }
@@ -94,7 +94,7 @@ TEST_F(LockTimerTest, MutexWithLatencyRecorder) {
         lck.unlock();
         lck.lock();
         ASSERT_EQ(2u, recorder.count());
-        MLOG(INFO) << recorder;
+        LOG(INFO) << recorder;
         std::condition_variable cond;
         cond.wait_for(lck, std::chrono::milliseconds(10));
     }
@@ -147,7 +147,7 @@ TEST_F(LockTimerTest, signal_lock_time) {
     for (size_t i = 0; i < ARRAY_SIZE(threads); ++i) {
         pthread_join(threads[i], NULL);
     }
-    MLOG(INFO) << r0;
+    LOG(INFO) << r0;
     ASSERT_EQ(OPS_PER_THREAD * ARRAY_SIZE(threads), (size_t)r0.get_value().num);
     LatencyRecorder r1;
     MutexWithLatencyRecorder<pthread_mutex_t> m1(r1);
@@ -158,7 +158,7 @@ TEST_F(LockTimerTest, signal_lock_time) {
     for (size_t i = 0; i < ARRAY_SIZE(threads); ++i) {
         pthread_join(threads[i], NULL);
     }
-    MLOG(INFO) << r1._latency;
+    LOG(INFO) << r1._latency;
     ASSERT_EQ(OPS_PER_THREAD * ARRAY_SIZE(threads), (size_t)r1.count());
 }
 
@@ -198,8 +198,8 @@ TEST_F(LockTimerTest, double_lock_time) {
     }
     ASSERT_EQ(OPS_PER_THREAD * ARRAY_SIZE(threads), (size_t)r0.get_value().num);
     ASSERT_EQ(OPS_PER_THREAD * ARRAY_SIZE(threads), (size_t)r1.count());
-    MLOG(INFO) << r0;
-    MLOG(INFO) << r1._latency;
+    LOG(INFO) << r0;
+    LOG(INFO) << r1._latency;
     r0.reset();
     r1._latency.reset();
     DoubleLockArg<M1, M0> arg1;
@@ -214,8 +214,8 @@ TEST_F(LockTimerTest, double_lock_time) {
     }
     ASSERT_EQ(OPS_PER_THREAD * ARRAY_SIZE(threads), (size_t)r0.get_value().num);
     ASSERT_EQ(OPS_PER_THREAD * ARRAY_SIZE(threads), (size_t)r1.count());
-    MLOG(INFO) << r0;
-    MLOG(INFO) << r1._latency;
+    LOG(INFO) << r0;
+    LOG(INFO) << r1._latency;
 }
 
 TEST_F(LockTimerTest, overhead) {
@@ -231,7 +231,7 @@ TEST_F(LockTimerTest, overhead) {
     }
     timer.stop();
     ProfilerStop();
-    MLOG(INFO) << "The overhead of MutexWithLatencyRecorder is "
+    LOG(INFO) << "The overhead of MutexWithLatencyRecorder is "
               << timer.n_elapsed() / N << "ns";
 
     IntRecorder r1;
@@ -243,7 +243,7 @@ TEST_F(LockTimerTest, overhead) {
     }
     timer.stop();
     ProfilerStop();
-    MLOG(INFO) << "The overhead of MutexWithRecorder is "
+    LOG(INFO) << "The overhead of MutexWithRecorder is "
               << timer.n_elapsed() / N << "ns";
     MutexWithRecorder<DummyMutex> m2;
     ProfilerStart("mutex_with_timer.prof");
@@ -253,7 +253,7 @@ TEST_F(LockTimerTest, overhead) {
     }
     timer.stop();
     ProfilerStop();
-    MLOG(INFO) << "The overhead of timer is "
+    LOG(INFO) << "The overhead of timer is "
               << timer.n_elapsed() / N << "ns";
 }
 } // namespace

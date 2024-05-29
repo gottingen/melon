@@ -34,7 +34,7 @@
 #include <melon/utility/build_config.h>                // OS_MACOSX
 #include <melon/utility/fd_guard.h>                    // fd_guard
 #include <melon/utility/endpoint.h>                    // ip_t
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #include <melon/utility/strings/string_piece.h>
 
@@ -86,7 +86,7 @@ void EndPoint::reset(void) {
 EndPoint::EndPoint(ip_t ip2, int port2) : ip(ip2), port(port2) {
     // Should never construct an extended endpoint by this way
     if (ExtendedEndPoint::is_extended(*this)) {
-        MCHECK(0) << "EndPoint construct with value that points to an extended EndPoint";
+        CHECK(0) << "EndPoint construct with value that points to an extended EndPoint";
         ip = IP_ANY;
         port = 0;
     }
@@ -407,7 +407,7 @@ int tcp_connect(EndPoint point, int* self_port) {
         if (get_local_side(sockfd, &pt) == 0) {
             *self_port = pt.port;
         } else {
-            MCHECK(false) << "Fail to get the local port of sockfd=" << sockfd;
+            CHECK(false) << "Fail to get the local port of sockfd=" << sockfd;
         }
     }
     return sockfd.release();
@@ -432,7 +432,7 @@ int tcp_listen(EndPoint point) {
             return -1;
         }
 #else
-        MLOG(ERROR) << "Missing def of SO_REUSEADDR while -reuse_addr is on";
+        LOG(ERROR) << "Missing def of SO_REUSEADDR while -reuse_addr is on";
         return -1;
 #endif
     }
@@ -442,10 +442,10 @@ int tcp_listen(EndPoint point) {
         const int on = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT,
                        &on, sizeof(on)) != 0) {
-            MLOG(WARNING) << "Fail to setsockopt SO_REUSEPORT of sockfd=" << sockfd;
+            LOG(WARNING) << "Fail to setsockopt SO_REUSEPORT of sockfd=" << sockfd;
         }
 #else
-        MLOG(ERROR) << "Missing def of SO_REUSEPORT while -reuse_port is on";
+        LOG(ERROR) << "Missing def of SO_REUSEPORT while -reuse_port is on";
         return -1;
 #endif
     }

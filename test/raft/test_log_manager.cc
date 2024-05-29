@@ -103,7 +103,7 @@ TEST_F(LogManagerTest, get_should_be_ok_when_disk_thread_stucks) {
     }
 
     stuck = false;
-    MLOG(INFO) << "Stop and join disk thraad";
+    LOG(INFO) << "Stop and join disk thraad";
     ASSERT_EQ(0, lm->stop_disk_thread());
     lm->clear_memory_logs(melon::raft::LogId(N, 1));
     // After clear all the memory logs, all the saved entries should have no
@@ -433,7 +433,7 @@ TEST_F(LogManagerTest, pipelined_append) {
     ASSERT_EQ(melon::raft::LogId(N, 2), conf.id);
     ASSERT_EQ(2u, conf.conf.size());
     ASSERT_EQ(2 * N, lm->last_log_index());
-    MLOG(INFO) << conf.conf;
+    LOG(INFO) << conf.conf;
 
     // It's safe to get entry when disk thread is still running
     for (size_t i = 0; i < 2 * N; ++i) {
@@ -627,7 +627,7 @@ TEST_F(LogManagerTest, check_consistency) {
         ASSERT_EQ(0, lm->init(opt));
         mutil::Status st;
         st = lm->check_consistency();
-        MLOG(INFO) << "st : " << st;
+        LOG(INFO) << "st : " << st;
         ASSERT_FALSE(st.ok()) << st;
     }
 }
@@ -677,5 +677,5 @@ TEST_F(LogManagerTest, set_snapshot_and_get_log_term) {
     lm->set_snapshot(&meta);
     ASSERT_EQ(melon::raft::LogId(N, 1), lm->last_log_id());
     ASSERT_EQ(1L, lm->get_term(N - 1));
-    MLOG(INFO) << "Last_index=" << lm->last_log_index();
+    LOG(INFO) << "Last_index=" << lm->last_log_index();
 }

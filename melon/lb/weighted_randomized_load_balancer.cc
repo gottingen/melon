@@ -38,11 +38,11 @@ namespace melon::lb {
         uint32_t weight = 0;
         if (!mutil::StringToUint(id.tag, &weight) || weight <= 0) {
             if (FLAGS_default_weight_of_wlb > 0) {
-                MLOG(WARNING) << "Invalid weight is set: " << id.tag
+                LOG(WARNING) << "Invalid weight is set: " << id.tag
                              << ". Now, 'weight' has been set to 'FLAGS_default_weight_of_wlb' by default.";
                 weight = FLAGS_default_weight_of_wlb;
             } else {
-                MLOG(ERROR) << "Invalid weight is set: " << id.tag;
+                LOG(ERROR) << "Invalid weight is set: " << id.tag;
                 return false;
             }
         }

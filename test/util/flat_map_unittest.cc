@@ -26,7 +26,7 @@
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/string_printf.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/containers/hash_tables.h>
 #include <melon/utility/containers/flat_map.h>
 #include "melon/utility/containers/pooled_map.h"
@@ -257,7 +257,7 @@ TEST_F(FlatMapTest, to_lower) {
     tm2.start();
     sum += memcmp(input, input2, input_len);
     tm2.stop();
-    MLOG(INFO) << "tm1=" << tm1.n_elapsed()
+    LOG(INFO) << "tm1=" << tm1.n_elapsed()
               << " tm2=" << tm2.n_elapsed()
               << " tm3=" << tm3.n_elapsed() << " " << sum;
 }
@@ -271,7 +271,7 @@ TEST_F(FlatMapTest, __builtin_ctzl_perf) {
         s += __builtin_ctzl(i);
     }
     tm1.stop();
-    MLOG(INFO) << "__builtin_ctzl takes " << tm1.n_elapsed()/(double)N << "ns s=" << s;
+    LOG(INFO) << "__builtin_ctzl takes " << tm1.n_elapsed()/(double)N << "ns s=" << s;
 }
 
 TEST_F(FlatMapTest, case_ignored_map) {
@@ -397,7 +397,7 @@ TEST_F(FlatMapTest, flat_map_of_string) {
         m3[keys[i]] += i;
     }
     tm3.stop();
-    MLOG(INFO) << "inserting strings takes " << tm1.n_elapsed() / N
+    LOG(INFO) << "inserting strings takes " << tm1.n_elapsed() / N
               << " " << tm2.n_elapsed() / N
               << " " << tm3.n_elapsed() / N;
 
@@ -416,7 +416,7 @@ TEST_F(FlatMapTest, flat_map_of_string) {
         sum += m3.find(keys[i])->second;
     }
     tm3.stop();
-    MLOG(INFO) << "finding strings takes " << tm1.n_elapsed()/N
+    LOG(INFO) << "finding strings takes " << tm1.n_elapsed()/N
               << " " << tm2.n_elapsed()/N << " " << tm3.n_elapsed()/N;
 
     tm1.start();
@@ -440,7 +440,7 @@ TEST_F(FlatMapTest, flat_map_of_string) {
     }
     tm1_2.stop();
 
-    MLOG(INFO) << "finding c_strings takes " << tm1.n_elapsed()/N
+    LOG(INFO) << "finding c_strings takes " << tm1.n_elapsed()/N
               << " " << tm2.n_elapsed()/N << " " << tm3.n_elapsed()/N
               << " " << tm1_2.n_elapsed()/N << " sum=" << sum;
     
@@ -486,7 +486,7 @@ TEST_F(FlatMapTest, fast_iterator) {
     }
     tm1.stop();
 
-    MLOG(INFO) << "m1.insert=" << tm1.n_elapsed()/(double)N
+    LOG(INFO) << "m1.insert=" << tm1.n_elapsed()/(double)N
               << "ns m2.insert=" << tm2.n_elapsed()/(double)N;
     tm1.start();
     for (M1::iterator it = m1.begin(); it != m1.end(); ++it);
@@ -495,7 +495,7 @@ TEST_F(FlatMapTest, fast_iterator) {
     tm2.start();
     for (M2::iterator it = m2.begin(); it != m2.end(); ++it);
     tm2.stop();
-    MLOG(INFO) << "m1.iterate=" << tm1.n_elapsed()/(double)N
+    LOG(INFO) << "m1.iterate=" << tm1.n_elapsed()/(double)N
               << "ns m2.iterate=" << tm2.n_elapsed()/(double)N;
 
     M1::iterator it1 = m1.begin();
@@ -555,7 +555,7 @@ static void fill_position_hint_map(PositionHintMap* map,
         keys->push_back(key);
         (*map)[key] = i;
     }
-    MLOG(INFO) << map->bucket_info();
+    LOG(INFO) << map->bucket_info();
 }
 
 struct CountOnPause {
@@ -670,7 +670,7 @@ TEST_F(FlatMapTest, erase_hinted_during_iteration) {
     const size_t old_keys_out_size = keys_out.size();
     std::sort(keys_out.begin(), keys_out.end());
     keys_out.resize(std::unique(keys_out.begin(), keys_out.end()) - keys_out.begin());
-    MLOG_IF(INFO, keys_out.size() != old_keys_out_size)
+    LOG_IF(INFO, keys_out.size() != old_keys_out_size)
         << "Iterated " << old_keys_out_size - keys_out.size()
         << " duplicated elements";
     ASSERT_EQ(m1.size(), keys_out.size());
@@ -814,7 +814,7 @@ TEST_F(FlatMapTest, perf_cmp_with_map_storing_pointers) {
         sum += (m2.seek(r[i]) != NULL);
     }
     tm.stop();
-    MLOG(INFO) << "FlatMap takes " << tm.n_elapsed()/r.size();
+    LOG(INFO) << "FlatMap takes " << tm.n_elapsed()/r.size();
 
     sum = 0;
     tm.start();
@@ -822,7 +822,7 @@ TEST_F(FlatMapTest, perf_cmp_with_map_storing_pointers) {
         sum += (m1.find(r[i]) != m1.end());
     }
     tm.stop();
-    MLOG(INFO) << "std::set takes " << tm.n_elapsed()/r.size();
+    LOG(INFO) << "std::set takes " << tm.n_elapsed()/r.size();
 
     sum = 0;
     tm.start();
@@ -830,7 +830,7 @@ TEST_F(FlatMapTest, perf_cmp_with_map_storing_pointers) {
         sum += (m3.find(r[i]) != m3.end());
     }
     tm.stop();
-    MLOG(INFO) << "std::set takes " << tm.n_elapsed()/r.size() << " sum=" << sum;
+    LOG(INFO) << "std::set takes " << tm.n_elapsed()/r.size() << " sum=" << sum;
 
     for (size_t i = 0; i < ARRAY_SIZE(ptr); ++i) {
         delete ptr[i];
@@ -904,7 +904,7 @@ TEST_F(FlatMapTest, manipulate_uninitialized_map) {
     mutil::FlatMap<int, int> m;
     ASSERT_FALSE(m.initialized());
     for (mutil::FlatMap<int,int>::iterator it = m.begin(); it != m.end(); ++it) {
-        MLOG(INFO) << "nothing";
+        LOG(INFO) << "nothing";
     }
     ASSERT_EQ(NULL, m.seek(1));
     ASSERT_EQ(0u, m.erase(1));
@@ -951,7 +951,7 @@ TEST_F(FlatMapTest, perf_small_string_map) {
         m2["Status-Code"] = "200";
         tm2.stop();
     
-        MLOG(INFO) << "flatmap=" << tm1.n_elapsed()
+        LOG(INFO) << "flatmap=" << tm1.n_elapsed()
                   << " ci_flatmap=" << tm4.n_elapsed()
                   << " map=" << tm2.n_elapsed()
                   << " pooled_map=" << tm3.n_elapsed();
@@ -1075,7 +1075,7 @@ TEST_F(FlatMapTest, random_insert_erase) {
                 }
             }
             
-            MLOG(INFO) << "Check j=" << j;
+            LOG(INFO) << "Check j=" << j;
             // bi-check
             for (int i=0; i<2; ++i) {
                 for (Map::iterator it = ht[i].begin(); it != ht[i].end(); ++it)
@@ -1103,7 +1103,7 @@ TEST_F(FlatMapTest, random_insert_erase) {
     //ASSERT_EQ (ht[0]._pool->alloc_num(), 0ul);
     ASSERT_EQ (n_con + n_cp_con, n_des);
 
-    MLOG(INFO) << "n_con:" << n_con << std::endl
+    LOG(INFO) << "n_con:" << n_con << std::endl
               << "n_cp_con:" << n_cp_con << std::endl
               << "n_con+n_cp_con:" <<  n_con+n_cp_con <<  std::endl
               << "n_des:" << n_des << std::endl
@@ -1140,7 +1140,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
     pooled_map.clear();
     hash_map.clear();
 
-    MLOG(INFO) << "[ value = " << sizeof(T) << " bytes ]";
+    LOG(INFO) << "[ value = " << sizeof(T) << " bytes ]";
     for (size_t pass = 0; pass < NPASS; ++pass) {
         int start = rand();
         keys.clear();
@@ -1180,7 +1180,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
         }
         hash_tm.stop();
         
-        MLOG(INFO) << (random ? "Randomly" : "Sequentially")
+        LOG(INFO) << (random ? "Randomly" : "Sequentially")
                   << " inserting " << keys.size()
                   << " into FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()
@@ -1216,7 +1216,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
         }
         hash_tm.stop();
         
-        MLOG(INFO) << (random ? "Randomly" : "Sequentially")
+        LOG(INFO) << (random ? "Randomly" : "Sequentially")
                   << " erasing " << keys.size()
                   << " from FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()
@@ -1239,7 +1239,7 @@ template <typename T> void perf_seek(const T& value) {
     mutil::Timer id_tm, std_tm, pooled_tm, hash_tm;
     
     id_map.init((size_t)(nkeys[NPASS-1] * 1.5));
-    MLOG(INFO) << "[ value = " << sizeof(T) << " bytes ]";
+    LOG(INFO) << "[ value = " << sizeof(T) << " bytes ]";
     for (size_t pass = 0; pass < NPASS; ++pass) {
         int start = rand();
         keys.clear();
@@ -1294,7 +1294,7 @@ template <typename T> void perf_seek(const T& value) {
         }
         hash_tm.stop();
         
-        MLOG(INFO) << "Seeking " << keys.size()
+        LOG(INFO) << "Seeking " << keys.size()
                   << " from FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()
                   << "/" << std_tm.n_elapsed() / keys.size()

@@ -21,9 +21,9 @@
 #include <limits>                           //std::numeric_limits
 #include <melon/var/detail/sampler.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <gtest/gtest.h>
-
+#include <melon/utility/config.h>
 namespace {
 
 TEST(SamplerTest, linked_list) {

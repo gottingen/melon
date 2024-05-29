@@ -22,7 +22,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/redis/redis.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/policy/redis_authenticator.h>
@@ -50,7 +50,7 @@ static void RemoveRedisServer() {
         puts("[Stopping redis-server]");
         char cmd[256];
         snprintf(cmd, sizeof(cmd), "kill %d", g_redis_pid);
-        MCHECK(0 == system(cmd));
+        CHECK(0 == system(cmd));
         // Wait for redis to stop
         usleep(50000);
     }
@@ -99,7 +99,7 @@ void AssertReplyEqual(const melon::RedisReply& reply1,
     if (&reply1 == &reply2) {
         return;
     }
-    MCHECK_EQ(reply1.type(), reply2.type());
+    CHECK_EQ(reply1.type(), reply2.type());
     switch (reply1.type()) {
     case melon::REDIS_REPLY_ARRAY:
         ASSERT_EQ(reply1.size(), reply2.size());
@@ -362,7 +362,7 @@ TEST_F(RedisTest, auth) {
     // generate a random password
     const std::string passwd1 = GeneratePassword();
     const std::string passwd2 = GeneratePassword();
-    MLOG(INFO) << "Generated passwd1=" << passwd1 << " passwd2=" << passwd2;
+    LOG(INFO) << "Generated passwd1=" << passwd1 << " passwd2=" << passwd2;
 
     // config auth
     {

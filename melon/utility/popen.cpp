@@ -22,8 +22,8 @@
 
 #include <gflags/gflags.h>
 #include <melon/utility/build_config.h>
-#include <melon/utility/logging.h>
-
+#include <turbo/log/logging.h>
+#include <melon/utility/macros.h>
 #if defined(OS_LINUX)
 // clone is a linux specific syscall
 #include <sched.h>
@@ -60,7 +60,7 @@ int launch_child_process(void* args) {
 int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     int pipe_fd[2];
     if (pipe(pipe_fd) != 0) {
-        PMLOG(ERROR) << "Fail to pipe";
+        PLOG(ERROR) << "Fail to pipe";
         return -1;
     }
     int saved_errno = 0;
@@ -73,7 +73,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     char* child_stack = NULL;
     char* child_stack_mem = (char*)malloc(CHILD_STACK_SIZE);
     if (!child_stack_mem) {
-        MLOG(ERROR) << "Fail to alloc stack for the child process";
+        LOG(ERROR) << "Fail to alloc stack for the child process";
         rc = -1;
         goto END;
     }
@@ -82,7 +82,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     cpid = clone(launch_child_process, child_stack,
                  __WCLONE | CLONE_VM | SIGCHLD | CLONE_UNTRACED, &args);
     if (cpid < 0) {
-        PMLOG(ERROR) << "Fail to clone child process";
+        PLOG(ERROR) << "Fail to clone child process";
         rc = -1;
         goto END;
     }
@@ -97,7 +97,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
         } else if (nr == 0) {
             break;
         } else if (errno != EINTR) {
-            MLOG(ERROR) << "Encountered error while reading for the pipe";
+            LOG(ERROR) << "Encountered error while reading for the pipe";
             break;
         }
     }
@@ -173,7 +173,7 @@ int read_command_output_through_popen(std::ostream& os, const char* cmd) {
             if (feof(pipe)) {
                 break;
             } else if (ferror(pipe)) {
-                MLOG(ERROR) << "Encountered error while reading for the pipe";
+                LOG(ERROR) << "Encountered error while reading for the pipe";
                 break;
             }
             // retry;

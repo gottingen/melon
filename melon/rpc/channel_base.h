@@ -23,7 +23,7 @@
 
 #include <stdlib.h>
 #include <ostream>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <google/protobuf/service.h>            // google::protobuf::RpcChannel
 #include <melon/rpc/describable.h>
 
@@ -35,7 +35,7 @@ namespace melon {
                         public Describable {
     public:
         virtual int Weight() {
-            MCHECK(false) << "Not implemented";
+            CHECK(false) << "Not implemented";
             abort();
         };
 

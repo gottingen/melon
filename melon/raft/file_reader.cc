@@ -58,14 +58,14 @@ namespace melon::raft {
         if (_is_reading) {
             // Just let follower retry, if there already a reading request in process.
             lck.unlock();
-            BRAFT_VMLOG << "A courrent read file is in process, path: " << _path;
+            BRAFT_VLOG << "A courrent read file is in process, path: " << _path;
             return EAGAIN;
         }
         int ret = EINVAL;
         if (filename != _current_filename) {
             if (!_eof_reached || offset != 0) {
                 lck.unlock();
-                BRAFT_VMLOG << "Out of order read request, path: " << _path
+                BRAFT_VLOG << "Out of order read request, path: " << _path
                            << " filename: " << filename << " offset: " << offset
                            << " max_count: " << max_count;
                 return EINVAL;

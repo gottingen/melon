@@ -22,10 +22,10 @@
 
 // Redirect LOG() into comlog.
 
-#ifndef MUTIL_COMLOG_SINK_H
-#define MUTIL_COMLOG_SINK_H
+#ifndef MUTIL_COLOG_SINK_H
+#define MUTIL_COLOG_SINK_H
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 struct com_device_t;
 template <typename T> struct DefaultSingletonTraits;
@@ -37,9 +37,9 @@ class Event;
 namespace logging {
 
 enum ComlogSplitType {
-    COMLOG_SPLIT_TRUNCT = 0,
-    COMLOG_SPLIT_SIZECUT = 1,
-    COMLOG_SPLIT_DATECUT = 2,
+    COLOG_SPLIT_TRUNCT = 0,
+    COLOG_SPLIT_SIZECUT = 1,
+    COLOG_SPLIT_DATECUT = 2,
 };
 
 // Options to setup ComlogSink.
@@ -67,19 +67,19 @@ struct ComlogSinkOptions {
     // default: 2048
     int max_log_length;
 
-    // Print VMLOG(n) as WARNING instead of TRACE since many online servers
+    // Print VLOG(n) as WARNING instead of TRACE since many online servers
     // disable TRACE logs.
     // default: true;
     bool print_vlog_as_warning;
 
     // Split Comlog type:
-    //  COMLOG_SPLIT_TRUNCT: rotate the log file every 2G written.
-    //  COMLOG_SPLIT_SIZECUT: move existing logs into a separate file every xxx MB written.
-    //  COMLOG_SPLIT_DATECUT: move existing logs into a separate file periodically.
-    // default: COMLOG_SPLIT_TRUNCT
+    //  COLOG_SPLIT_TRUNCT: rotate the log file every 2G written.
+    //  COLOG_SPLIT_SIZECUT: move existing logs into a separate file every xxx MB written.
+    //  COLOG_SPLIT_DATECUT: move existing logs into a separate file periodically.
+    // default: COLOG_SPLIT_TRUNCT
     ComlogSplitType split_type;
 
-    // [ Effective when split_type is COMLOG_SPLIT_SIZECUT ]
+    // [ Effective when split_type is COLOG_SPLIT_SIZECUT ]
     // Move existing logs into a separate file suffixed with datetime every so many MB written.
     // Default: 2048
     int cut_size_megabytes;
@@ -87,7 +87,7 @@ struct ComlogSinkOptions {
     // Default: 0 (unlimited)
     int quota_size;
 
-    // [ Effective when split_type is COMLOG_SPLIT_DATECUT ]
+    // [ Effective when split_type is COLOG_SPLIT_DATECUT ]
     // Move existing logs into a separate file suffixed with datetime every so many minutes.
     // Example: my_app.log is moved to my_app.log.20160905113104
     // Default: 60
@@ -107,14 +107,14 @@ struct ComlogSinkOptions {
 // The LogSink to flush logs into comlog. Notice that this is a singleton class.
 // [ Setup from a Configure file ]
 //   if (logging::ComlogSink::GetInstance()->SetupFromConfig("log/log.conf") != 0) {
-//       MLOG(ERROR) << "Fail to setup comlog";
+//       LOG(ERROR) << "Fail to setup comlog";
 //       return -1;
 //   }
 //   logging::SetLogSink(ComlogSink::GetInstance());
 //
 // [ Setup from ComlogSinkOptions ]
 //   if (logging::ComlogSink::GetInstance()->Setup(NULL/*default options*/) != 0) {
-//       MLOG(ERROR) << "Fail to setup comlog";
+//       LOG(ERROR) << "Fail to setup comlog";
 //       return -1;
 //   }
 //   logging::SetLogSink(ComlogSink::GetInstance());
@@ -166,4 +166,4 @@ private:
 
 }  // namespace logging
 
-#endif  // MUTIL_COMLOG_SINK_H
+#endif  // MUTIL_COLOG_SINK_H

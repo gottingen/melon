@@ -9,7 +9,7 @@
 
 #include "melon/utility/float_util.h"
 #include "melon/utility/lazy_instance.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -117,7 +117,7 @@ time_t Time::ToTimeT() const {
     return std::numeric_limits<time_t>::max();
   }
   if (std::numeric_limits<int64_t>::max() - kTimeTToMicrosecondsOffset <= us_) {
-    DMLOG(WARNING) << "Overflow when converting mutil::Time with internal " <<
+    DLOG(WARNING) << "Overflow when converting mutil::Time with internal " <<
                      "value " << us_ << " to time_t.";
     return std::numeric_limits<time_t>::max();
   }

@@ -100,7 +100,7 @@ namespace melon {
 #endif
                 files.push_back(p->d_name);
             }
-            MCHECK_EQ(0, closedir(dir));
+            CHECK_EQ(0, closedir(dir));
 
             std::sort(files.begin(), files.end());
             mutil::IOBufBuilder os;

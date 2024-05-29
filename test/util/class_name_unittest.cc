@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 #include <melon/utility/class_name.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 namespace foobar {
@@ -59,7 +59,7 @@ TEST_F(ClassNameTest, class_name_sanity) {
     int array[32];
     ASSERT_EQ("int [32]", mutil::class_name_str(array));
 
-    MLOG(INFO) << mutil::class_name_str(this);
-    MLOG(INFO) << mutil::class_name_str(*this);
+    LOG(INFO) << mutil::class_name_str(this);
+    LOG(INFO) << mutil::class_name_str(*this);
 }
 }

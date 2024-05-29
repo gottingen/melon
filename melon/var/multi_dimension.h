@@ -18,7 +18,7 @@
 //
 
 #pragma once
-#include <melon/utility/logging.h>                           // LOG
+#include <turbo/log/logging.h>                           // LOG
 #include <melon/utility/macros.h>                            // MELON_CASSERT
 #include <melon/utility/scoped_lock.h>                       // MELON_SCOPE_LOCK
 #include <melon/utility/containers/doubly_buffered_data.h>   // DBD

@@ -57,12 +57,12 @@ Stream::Stream()
     , _idle_timer(0)
 {
     _connect_meta.on_connect = NULL;
-    MCHECK_EQ(0, fiber_mutex_init(&_connect_mutex, NULL));
-    MCHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, NULL));
+    CHECK_EQ(0, fiber_mutex_init(&_connect_mutex, NULL));
+    CHECK_EQ(0, fiber_mutex_init(&_congestion_control_mutex, NULL));
 }
 
 Stream::~Stream() {
-    MCHECK(_host_socket == NULL);
+    CHECK(_host_socket == NULL);
     fiber_mutex_destroy(&_connect_mutex);
     fiber_mutex_destroy(&_congestion_control_mutex);
     fiber_session_list_destroy(&_writable_wait_list);
@@ -81,7 +81,7 @@ int Stream::Create(const StreamOptions &options,
     if (options.max_buf_size > 0 && options.min_buf_size > options.max_buf_size) {
         // set 0 if min_buf_size is invalid.
         s->_options.min_buf_size = 0;
-        MLOG(WARNING) << "options.min_buf_size is larger than options.max_buf_size, it will be set to 0.";
+        LOG(WARNING) << "options.min_buf_size is larger than options.max_buf_size, it will be set to 0.";
     }
     if (FLAGS_socket_max_streams_unconsumed_bytes > 0 && s->_options.min_buf_size > 0) {
         s->_cur_buf_size = s->_options.min_buf_size;
@@ -101,7 +101,7 @@ int Stream::Create(const StreamOptions &options,
     q_opt.fiber_attr
         = FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
     if (fiber::execution_queue_start(&s->_consumer_queue, &q_opt, Consume, s) != 0) {
-        MLOG(FATAL) << "Fail to create ExecutionQueue";
+        LOG(FATAL) << "Fail to create ExecutionQueue";
         delete s;
         return -1;
     }
@@ -113,7 +113,7 @@ int Stream::Create(const StreamOptions &options,
         return -1;
     }
     SocketUniquePtr ptr;
-    MCHECK_EQ(0, Socket::Address(fake_sock_id, &ptr));
+    CHECK_EQ(0, Socket::Address(fake_sock_id, &ptr));
     s->_fake_socket_weak_ref = ptr.get();
     s->_id = fake_sock_id;
     *id = s->id();
@@ -125,8 +125,8 @@ void Stream::BeforeRecycle(Socket *) {
     fiber_session_list_reset(&_writable_wait_list, ECONNRESET);
     if (_connected) {
         // Send CLOSE frame
-        RPC_VMLOG << "Send close frame";
-        MCHECK(_host_socket != NULL);
+        RPC_VLOG << "Send close frame";
+        CHECK(_host_socket != NULL);
         policy::SendStreamClose(_host_socket,
                                 _remote_settings.stream_id(), id());
     }
@@ -143,12 +143,12 @@ ssize_t Stream::CutMessageIntoFileDescriptor(int /*fd*/,
                                              mutil::IOBuf **data_list,
                                              size_t size) {
     if (_host_socket == NULL) {
-        MCHECK(false) << "Not connected";
+        CHECK(false) << "Not connected";
         errno = EBADF;
         return -1;
     }
     if (!_remote_settings.writable()) {
-        MLOG(WARNING) << "The remote side of Stream=" << id()
+        LOG(WARNING) << "The remote side of Stream=" << id()
                      << "->" << _remote_settings.stream_id()
                      << "@" << _host_socket->remote_side()
                      << " doesn't have a handler";
@@ -177,7 +177,7 @@ void Stream::WriteToHostSocket(mutil::IOBuf* b) {
 }
 
 ssize_t Stream::CutMessageIntoSSLChannel(SSL*, mutil::IOBuf**, size_t) {
-    MCHECK(false) << "Stream does support SSL";
+    CHECK(false) << "Stream does support SSL";
     errno = EINVAL;
     return -1;
 }
@@ -195,10 +195,10 @@ void* Stream::RunOnConnect(void *arg) {
 
 int Stream::Connect(Socket* ptr, const timespec*,
                     int (*on_connect)(int, int, void *), void *data) {
-    MCHECK_EQ(ptr->id(), _id);
+    CHECK_EQ(ptr->id(), _id);
     fiber_mutex_lock(&_connect_mutex);
     if (_connect_meta.on_connect != NULL) {
-        MCHECK(false) << "Connect is supposed to be called once";
+        CHECK(false) << "Connect is supposed to be called once";
         fiber_mutex_unlock(&_connect_mutex);
         return -1;
     }
@@ -212,7 +212,7 @@ int Stream::Connect(Socket* ptr, const timespec*,
         fiber_mutex_unlock(&_connect_mutex);
         fiber_t tid;
         if (fiber_start_urgent(&tid, &FIBER_ATTR_NORMAL, RunOnConnect, meta) != 0) {
-            MLOG(FATAL) << "Fail to start fiber, " << berror();
+            LOG(FATAL) << "Fail to start fiber, " << berror();
             RunOnConnect(meta);
         }
         return 0;
@@ -232,19 +232,19 @@ void Stream::SetConnected(const StreamSettings* remote_settings) {
         return;
     }
     if (_connected) {
-        MCHECK(false);
+        CHECK(false);
         fiber_mutex_unlock(&_connect_mutex);
         return;
     }
-    MCHECK(_host_socket != NULL);
+    CHECK(_host_socket != NULL);
     if (remote_settings != NULL) {
-        MCHECK(!_remote_settings.IsInitialized());
+        CHECK(!_remote_settings.IsInitialized());
         _remote_settings.MergeFrom(*remote_settings);
     } else {
-        MCHECK(_remote_settings.IsInitialized());
+        CHECK(_remote_settings.IsInitialized());
     }
-    MCHECK(_host_socket != NULL);
-    RPC_VMLOG << "stream=" << id() << " is connected to stream_id="
+    CHECK(_host_socket != NULL);
+    RPC_VLOG << "stream=" << id() << " is connected to stream_id="
              << _remote_settings.stream_id() << " at host_socket=" << *_host_socket;
     _connected = true;
     _connect_meta.ec = 0;
@@ -266,7 +266,7 @@ void Stream::TriggerOnConnectIfNeed() {
         fiber_mutex_unlock(&_connect_mutex);
         fiber_t tid;
         if (fiber_start_urgent(&tid, &FIBER_ATTR_NORMAL, RunOnConnect, meta) != 0) {
-            MLOG(FATAL) << "Fail to start fiber, " << berror();
+            LOG(FATAL) << "Fail to start fiber, " << berror();
             RunOnConnect(meta);
         }
         return;
@@ -282,7 +282,7 @@ int Stream::AppendIfNotFull(const mutil::IOBuf &data,
             const size_t saved_produced = _produced;
             const size_t saved_remote_consumed = _remote_consumed;
             lck.unlock();
-            RPC_VMLOG << "Stream=" << _id << " is full"
+            RPC_VLOG << "Stream=" << _id << " is full"
                      << "_produced=" << saved_produced
                      << " _remote_consumed=" << saved_remote_consumed
                      << " gap=" << saved_produced - saved_remote_consumed
@@ -299,7 +299,7 @@ int Stream::AppendIfNotFull(const mutil::IOBuf &data,
     const int rc = _fake_socket_weak_ref->Write(&copied_data, &wopt);
     if (rc != 0) {
         // Stream may be closed by peer before
-        MLOG(WARNING) << "Fail to write to _fake_socket, " << berror();
+        LOG(WARNING) << "Fail to write to _fake_socket, " << berror();
         MELON_SCOPED_LOCK(_congestion_control_mutex);
         _produced -= data_length;
         return -1;
@@ -311,7 +311,7 @@ int Stream::AppendIfNotFull(const mutil::IOBuf &data,
 }
 
 void Stream::SetRemoteConsumed(size_t new_remote_consumed) {
-    MCHECK(_cur_buf_size > 0);
+    CHECK(_cur_buf_size > 0);
     fiber_session_list_t tmplist;
     fiber_session_list_init(&tmplist, 0, 0);
     fiber_mutex_lock(&_congestion_control_mutex);
@@ -329,7 +329,7 @@ void Stream::SetRemoteConsumed(size_t new_remote_consumed) {
             } else {
                 _cur_buf_size /= 2;
             }
-            MLOG(INFO) << "stream consumers on socket " << _host_socket->id() << " is crowded, " <<  "cut stream " << id() << " buffer to " << _cur_buf_size;
+            LOG(INFO) << "stream consumers on socket " << _host_socket->id() << " is crowded, " <<  "cut stream " << id() << " buffer to " << _cur_buf_size;
         } else if (_produced >= new_remote_consumed + _cur_buf_size && (_options.max_buf_size <= 0 || _cur_buf_size < (size_t)_options.max_buf_size)) {
             if (_options.max_buf_size > 0 && _cur_buf_size * 2 > (size_t)_options.max_buf_size) {
                 _cur_buf_size = _options.max_buf_size;
@@ -371,7 +371,7 @@ int Stream::TriggerOnWritable(fiber_session_t id, void *data, int error_code) {
             : &FIBER_ATTR_NORMAL;
         fiber_t tid;
         if (fiber_start_background(&tid, attr, RunOnWritable, wm) != 0) {
-            MLOG(FATAL) << "Fail to start fiber" << berror();
+            LOG(FATAL) << "Fail to start fiber" << berror();
             RunOnWritable(wm);
         }
     } else {
@@ -396,7 +396,7 @@ void Stream::Wait(void (*on_writable)(StreamId, void*, int), void* arg,
     fiber_session_t wait_id;
     const int rc = fiber_session_create(&wait_id, wm, TriggerOnWritable);
     if (rc != 0) {
-        MCHECK(false) << "Fail to create fiber_session, " << berror(rc);
+        CHECK(false) << "Fail to create fiber_session, " << berror(rc);
         wm->error_code = rc;
         RunOnWritable(wm);
         return;
@@ -404,28 +404,28 @@ void Stream::Wait(void (*on_writable)(StreamId, void*, int), void* arg,
     if (join_id) {
         *join_id = wait_id;
     }
-    MCHECK_EQ(0, fiber_session_lock(wait_id, NULL));
+    CHECK_EQ(0, fiber_session_lock(wait_id, NULL));
     if (due_time != NULL) {
         wm->has_timer = true;
         const int rc = fiber_timer_add(&wm->timer, *due_time,
                                          OnTimedOut, 
                                          reinterpret_cast<void*>(wait_id.value));
         if (rc != 0) {
-            MLOG(ERROR) << "Fail to add timer, " << berror(rc);
-            MCHECK_EQ(0, TriggerOnWritable(wait_id, wm, rc));
+            LOG(ERROR) << "Fail to add timer, " << berror(rc);
+            CHECK_EQ(0, TriggerOnWritable(wait_id, wm, rc));
         }
     }
     fiber_mutex_lock(&_congestion_control_mutex);
     if (_cur_buf_size <= 0 
             || _produced < _remote_consumed + _cur_buf_size) {
         fiber_mutex_unlock(&_congestion_control_mutex);
-        MCHECK_EQ(0, TriggerOnWritable(wait_id, wm, 0));
+        CHECK_EQ(0, TriggerOnWritable(wait_id, wm, 0));
         return;
     } else {
         fiber_session_list_add(&_writable_wait_list, wait_id);
         fiber_mutex_unlock(&_congestion_control_mutex);
     }
-    MCHECK_EQ(0, fiber_session_unlock(wait_id));
+    CHECK_EQ(0, fiber_session_unlock(wait_id));
 }
 
 void Stream::Wait(void (*on_writable)(StreamId, void *, int), void *arg,
@@ -456,7 +456,7 @@ int Stream::OnReceived(const StreamFrameMeta& fm, mutil::IOBuf *buf, Socket* soc
     switch (fm.frame_type()) {
     case FRAME_TYPE_FEEDBACK:
         SetRemoteConsumed(fm.feedback().consumed_size());
-        MCHECK(buf->empty());
+        CHECK(buf->empty());
         break;
     case FRAME_TYPE_DATA:
         if (_pending_buf != NULL) {
@@ -470,23 +470,23 @@ int Stream::OnReceived(const StreamFrameMeta& fm, mutil::IOBuf *buf, Socket* soc
             mutil::IOBuf *tmp = _pending_buf;
             _pending_buf = NULL;
             if (fiber::execution_queue_execute(_consumer_queue, tmp) != 0) {
-                MCHECK(false) << "Fail to push into channel";
+                CHECK(false) << "Fail to push into channel";
                 delete tmp;
                 Close();
             }
         }
         break;
     case FRAME_TYPE_RST:
-        RPC_VMLOG << "stream=" << id() << " received rst frame";
+        RPC_VLOG << "stream=" << id() << " received rst frame";
         Close();
         break;
     case FRAME_TYPE_CLOSE:
-        RPC_VMLOG << "stream=" << id() << " received close frame";
+        RPC_VLOG << "stream=" << id() << " received close frame";
         // TODO:: See the comments in Consume
         Close();
         break;
     case FRAME_TYPE_UNKNOWN:
-        RPC_VMLOG << "Received unknown frame";
+        RPC_VLOG << "Received unknown frame";
         return -1;
     }
     return 0;
@@ -588,7 +588,7 @@ void Stream::SendFeedback() {
 
 int Stream::SetHostSocket(Socket *host_socket) {
     if (_host_socket != NULL) {
-        MCHECK(false) << "SetHostSocket has already been called";
+        CHECK(false) << "SetHostSocket has already been called";
         return -1;
     }
     SocketUniquePtr ptr;
@@ -621,7 +621,7 @@ void Stream::StartIdleTimer() {
             _start_idle_timer_us + _options.idle_timeout_ms * 1000);
     const int rc = fiber_timer_add(&_idle_timer, due_time, OnIdleTimeout,
                                      (void*)(_consumer_queue.value));
-    MLOG_IF(WARNING, rc != 0) << "Fail to add timer";
+    LOG_IF(WARNING, rc != 0) << "Fail to add timer";
 }
 
 void Stream::StopIdleTimer() {
@@ -662,18 +662,18 @@ int Stream::SetFailed(StreamId id) {
 }
 
 void Stream::HandleRpcResponse(mutil::IOBuf* response_buffer) {
-    MCHECK(!_remote_settings.IsInitialized());
-    MCHECK(_host_socket != NULL);
+    CHECK(!_remote_settings.IsInitialized());
+    CHECK(_host_socket != NULL);
     std::unique_ptr<mutil::IOBuf> buf_guard(response_buffer);
     ParseResult pr = policy::ParseMStdMessage(response_buffer, NULL, true, NULL);
     if (!pr.is_ok()) {
-        MCHECK(false);
+        CHECK(false);
         Close();
         return;
     }
     InputMessageBase* msg = pr.message();
     if (msg == NULL) {
-        MCHECK(false);
+        CHECK(false);
         Close();
         return;
     }
@@ -714,7 +714,7 @@ void StreamWait(StreamId stream_id, const timespec *due_time,
             : &FIBER_ATTR_NORMAL;
         fiber_t tid;
         if (fiber_start_background(&tid, attr, Stream::RunOnWritable, wm) != 0) {
-            PMLOG(FATAL) << "Fail to start fiber";
+            PLOG(FATAL) << "Fail to start fiber";
             Stream::RunOnWritable(wm);
         }
         return;
@@ -739,11 +739,11 @@ int StreamClose(StreamId stream_id) {
 int StreamCreate(StreamId *request_stream, Controller &cntl,
                  const StreamOptions* options) {
     if (cntl._request_stream != INVALID_STREAM_ID) {
-        MLOG(ERROR) << "Can't create request stream more than once";
+        LOG(ERROR) << "Can't create request stream more than once";
         return -1;
     }
     if (request_stream == NULL) {
-        MLOG(ERROR) << "request_stream is NULL";
+        LOG(ERROR) << "request_stream is NULL";
         return -1;
     }
     StreamId stream_id;
@@ -752,7 +752,7 @@ int StreamCreate(StreamId *request_stream, Controller &cntl,
         opt = *options;
     }
     if (Stream::Create(opt, NULL, &stream_id) != 0) {
-        MLOG(ERROR) << "Fail to create stream";
+        LOG(ERROR) << "Fail to create stream";
         return -1;
     }
     cntl._request_stream = stream_id;
@@ -764,15 +764,15 @@ int StreamAccept(StreamId* response_stream, Controller &cntl,
                  const StreamOptions* options) {
 
     if (cntl._response_stream != INVALID_STREAM_ID) {
-        MLOG(ERROR) << "Can't create response stream more than once";
+        LOG(ERROR) << "Can't create response stream more than once";
         return -1;
     }
     if (response_stream == NULL) {
-        MLOG(ERROR) << "response_stream is NULL";
+        LOG(ERROR) << "response_stream is NULL";
         return -1;
     }
     if (!cntl.has_remote_stream()) {
-        MLOG(ERROR) << "No stream along with this request";
+        LOG(ERROR) << "No stream along with this request";
         return -1;
     }
     StreamOptions opt;
@@ -781,7 +781,7 @@ int StreamAccept(StreamId* response_stream, Controller &cntl,
     }
     StreamId stream_id;
     if (Stream::Create(opt, cntl._remote_stream_settings, &stream_id) != 0) {
-        MLOG(ERROR) << "Fail to create stream";
+        LOG(ERROR) << "Fail to create stream";
         return -1;
     }
     cntl._response_stream = stream_id;

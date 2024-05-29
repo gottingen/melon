@@ -25,7 +25,7 @@
 #include <melon/rpc/grpc/grpc.h>
 #include <melon/proto/rpc/errno.pb.h>
 #include <melon/rpc/http/http_status_code.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace melon {
 
@@ -223,7 +223,7 @@ namespace melon {
             default:
                 return -1;
         }
-        MCHECK(false) << "Impossible";
+        CHECK(false) << "Impossible";
     }
 
 } // namespace melon

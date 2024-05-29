@@ -173,17 +173,17 @@ std::string UTF16ToUTF8(const string16& utf16) {
 #endif
 
 std::wstring ASCIIToWide(const StringPiece& ascii) {
-  DMCHECK(IsStringASCII(ascii)) << ascii;
+  DCHECK(IsStringASCII(ascii)) << ascii;
   return std::wstring(ascii.begin(), ascii.end());
 }
 
 string16 ASCIIToUTF16(const StringPiece& ascii) {
-  DMCHECK(IsStringASCII(ascii)) << ascii;
+  DCHECK(IsStringASCII(ascii)) << ascii;
   return string16(ascii.begin(), ascii.end());
 }
 
 std::string UTF16ToASCII(const string16& utf16) {
-  DMCHECK(IsStringASCII(utf16)) << UTF16ToUTF8(utf16);
+  DCHECK(IsStringASCII(utf16)) << UTF16ToUTF8(utf16);
   return std::string(utf16.begin(), utf16.end());
 }
 

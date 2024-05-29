@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "melon/utility/basictypes.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/move.h"
 #include "melon/utility/stl_util.h"
 
@@ -71,7 +71,7 @@ class ScopedVector {
   void push_back(T* elem) { v_.push_back(elem); }
 
   void pop_back() {
-    DMCHECK(!empty());
+    DCHECK(!empty());
     delete v_.back();
     v_.pop_back();
   }

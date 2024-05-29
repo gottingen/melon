@@ -22,14 +22,14 @@
 #define  BRAFT_MACROS_H
 
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/var/utils/lock_timer.h>
 
-#define BRAFT_VMLOG_IS_ON     VMLOG_IS_ON(89)
-#define BRAFT_VMLOG           VMLOG(89)
-#define BRAFT_VPLOG          VPMLOG(89)
-#define BRAFT_VMLOG_IF(cond)  VMLOG_IF(89, (cond))
-#define BRAFT_VPLOG_IF(cond) VPMLOG_IF(89, (cond))
+#define BRAFT_VLOG_IS_ON     VLOG_IS_ON(89)
+#define BRAFT_VLOG           VLOG(89)
+#define BRAFT_VPLOG          VPLOG(89)
+#define BRAFT_VLOG_IF(cond)  LOG_IF(INFO, cond).WithVerbosity(89)
+#define BRAFT_VPLOG_IF(cond) VPLOG_IF(89, (cond))
 
 //#define USE_FIBER_MUTEX
 

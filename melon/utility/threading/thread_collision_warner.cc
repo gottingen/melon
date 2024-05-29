@@ -4,13 +4,13 @@
 
 #include "melon/utility/threading/thread_collision_warner.h"
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
 
 void DCheckAsserter::warn() {
-  NOTREACHED() << "Thread Collision";
+  DCHECK(false) << "Thread Collision";
 }
 
 static subtle::Atomic32 CurrentThread() {

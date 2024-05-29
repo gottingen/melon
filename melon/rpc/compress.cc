@@ -19,7 +19,7 @@
 
 
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/compress.h>
 #include <melon/rpc/protocol.h>
 
@@ -32,16 +32,16 @@ namespace melon {
     int RegisterCompressHandler(CompressType type,
                                 CompressHandler handler) {
         if (NULL == handler.Compress || NULL == handler.Decompress) {
-            MLOG(FATAL) << "Invalid parameter: handler function is NULL";
+            LOG(FATAL) << "Invalid parameter: handler function is NULL";
             return -1;
         }
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            MLOG(FATAL) << "CompressType=" << type << " is out of range";
+            LOG(FATAL) << "CompressType=" << type << " is out of range";
             return -1;
         }
         if (s_handler_map[index].Compress != NULL) {
-            MLOG(FATAL) << "CompressType=" << type << " was registered";
+            LOG(FATAL) << "CompressType=" << type << " was registered";
             return -1;
         }
         s_handler_map[index] = handler;
@@ -53,7 +53,7 @@ namespace melon {
     inline const CompressHandler *FindCompressHandler(CompressType type) {
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            MLOG(ERROR) << "CompressType=" << type << " is out of range";
+            LOG(ERROR) << "CompressType=" << type << " is out of range";
             return NULL;
         }
         if (NULL == s_handler_map[index].Compress) {

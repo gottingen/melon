@@ -33,15 +33,15 @@ EventDispatcher::EventDispatcher()
 {
     _epfd = kqueue();
     if (_epfd < 0) {
-        PMLOG(FATAL) << "Fail to create kqueue";
+        PLOG(FATAL) << "Fail to create kqueue";
         return;
     }
-    MCHECK_EQ(0, mutil::make_close_on_exec(_epfd));
+    CHECK_EQ(0, mutil::make_close_on_exec(_epfd));
 
     _wakeup_fds[0] = -1;
     _wakeup_fds[1] = -1;
     if (pipe(_wakeup_fds) != 0) {
-        PMLOG(FATAL) << "Fail to create pipe";
+        PLOG(FATAL) << "Fail to create pipe";
         return;
     }
 }
@@ -61,12 +61,12 @@ EventDispatcher::~EventDispatcher() {
 
 int EventDispatcher::Start(const fiber_attr_t* consumer_thread_attr) {
     if (_epfd < 0) {
-        MLOG(FATAL) << "kqueue was not created";
+        LOG(FATAL) << "kqueue was not created";
         return -1;
     }
     
     if (_tid != 0) {
-        MLOG(FATAL) << "Already started this dispatcher(" << this
+        LOG(FATAL) << "Already started this dispatcher(" << this
                    << ") in fiber=" << _tid;
         return -1;
     }
@@ -88,7 +88,7 @@ int EventDispatcher::Start(const fiber_attr_t* consumer_thread_attr) {
     int rc = fiber_start_background(
         &_tid, &kqueue_thread_attr, RunThis, this);
     if (rc) {
-        MLOG(FATAL) << "Fail to create kqueue thread: " << berror(rc);
+        LOG(FATAL) << "Fail to create kqueue thread: " << berror(rc);
         return -1;
     }
     return 0;
@@ -204,7 +204,7 @@ void EventDispatcher::Run() {
                 // We've checked _stop, no wake-up will be missed.
                 continue;
             }
-            PMLOG(FATAL) << "Fail to kqueue epfd=" << _epfd;
+            PLOG(FATAL) << "Fail to kqueue epfd=" << _epfd;
             break;
         }
         for (int i = 0; i < n; ++i) {

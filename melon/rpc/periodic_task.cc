@@ -44,7 +44,7 @@ static void RunPeriodicTaskThread(void* arg) {
     int rc = fiber_start_background(
         &th, &FIBER_ATTR_NORMAL, PeriodicTaskThread, arg);
     if (rc != 0) {
-        MLOG(ERROR) << "Fail to start PeriodicTaskThread";
+        LOG(ERROR) << "Fail to start PeriodicTaskThread";
         static_cast<PeriodicTask*>(arg)->OnDestroyingTask();
         return;
     }
@@ -52,14 +52,14 @@ static void RunPeriodicTaskThread(void* arg) {
 
 void PeriodicTaskManager::StartTaskAt(PeriodicTask* task, const timespec& abstime) {
     if (task == NULL) {
-        MLOG(ERROR) << "Param[task] is NULL";
+        LOG(ERROR) << "Param[task] is NULL";
         return;
     }
     fiber_timer_t timer_id;
     const int rc = fiber_timer_add(
         &timer_id, abstime, RunPeriodicTaskThread, task);
     if (rc != 0) {
-        MLOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";
+        LOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";
         task->OnDestroyingTask();
         return;
     }

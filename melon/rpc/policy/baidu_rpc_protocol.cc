@@ -23,7 +23,7 @@
 #include <google/protobuf/message.h>            // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include <melon/utility/logging.h>                       // LOG()
+#include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
 #include <melon/utility/iobuf.h>                         // mutil::IOBuf
 #include <melon/utility/raw_pack.h>                      // RawPacker RawUnpacker
@@ -42,6 +42,7 @@
 #include <melon/rpc/details/controller_private_accessor.h>
 #include <melon/rpc/details/server_private_accessor.h>
 #include <melon/fiber/key.h>
+#include <cinttypes>
 
 
 namespace melon {
@@ -79,16 +80,16 @@ static void SerializeBRPCHeaderAndMeta(
         ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 12, meta_size);
         ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
         meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-        MCHECK(!coded_out.HadError());
-        MCHECK_EQ(0, out->append(header_and_meta, sizeof(header_and_meta)));
+        CHECK(!coded_out.HadError());
+        CHECK_EQ(0, out->append(header_and_meta, sizeof(header_and_meta)));
     } else {
         char header[12];
         PackBRPCHeader(header, meta_size, payload_size);
-        MCHECK_EQ(0, out->append(header, sizeof(header)));
+        CHECK_EQ(0, out->append(header, sizeof(header)));
         mutil::IOBufAsZeroCopyOutputStream buf_stream(out);
         ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
         meta.SerializeWithCachedSizes(&coded_out);
-        MCHECK(!coded_out.HadError());
+        CHECK(!coded_out.HadError());
     }
 }
 
@@ -115,14 +116,14 @@ ParseResult ParseBRPCMessage(mutil::IOBuf* source, Socket* socket,
     if (body_size > FLAGS_max_body_size) {
         // We need this log to report the body_size to give users some clues
         // which is not printed in InputMessenger.
-        MLOG(ERROR) << "body_size=" << body_size << " from "
+        LOG(ERROR) << "body_size=" << body_size << " from "
                    << socket->remote_side() << " is too large";
         return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
     } else if (source->length() < sizeof(header_buf) + body_size) {
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
     }
     if (meta_size > body_size) {
-        MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+        LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                    << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -217,7 +218,7 @@ static void SendBRPCResponse(int64_t correlation_id,
             s->FillSettings(meta.mutable_stream_settings());
             s->SetHostSocket(sock);
         } else {
-            MLOG(WARNING) << "Stream=" << response_stream_id
+            LOG(WARNING) << "Stream=" << response_stream_id
                          << " was closed before sending response";
         }
     }
@@ -253,7 +254,7 @@ static void SendBRPCResponse(int64_t correlation_id,
                            accessor.remote_stream_settings()->stream_id(),
                            accessor.response_stream()) != 0) {
             const int errcode = errno;
-            PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+            PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
             cntl->SetFailed(errcode, "Fail to write into %s",
                             sock->description().c_str());
             if(stream_ptr) {
@@ -274,7 +275,7 @@ static void SendBRPCResponse(int64_t correlation_id,
         wopt.ignore_eovercrowded = true;
         if (sock->Write(&res_buf, &wopt) != 0) {
             const int errcode = errno;
-            PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+            PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
             cntl->SetFailed(errcode, "Fail to write into %s",
                             sock->description().c_str());
             return;
@@ -333,7 +334,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
 
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        MLOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
+        LOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
         socket->SetFailed(EREQUEST, "Fail to parse RpcMeta from %s",
                           socket->description().c_str());
         return;
@@ -354,7 +355,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
 
     std::unique_ptr<Controller> cntl(new (std::nothrow) Controller);
     if (NULL == cntl.get()) {
-        MLOG(WARNING) << "Fail to new Controller";
+        LOG(WARNING) << "Fail to new Controller";
         return;
     }
     std::unique_ptr<google::protobuf::Message> req;
@@ -564,7 +565,7 @@ bool VerifyBRPCRequest(const InputMessageBase* msg_base) {
     
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        MLOG(WARNING) << "Fail to parse RpcRequestMeta";
+        LOG(WARNING) << "Fail to parse RpcRequestMeta";
         return false;
     }
     const Authenticator* auth = server->options().auth;
@@ -585,7 +586,7 @@ void ProcessBRPCResponse(InputMessageBase* msg_base) {
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        MLOG(WARNING) << "Fail to parse from response meta";
+        LOG(WARNING) << "Fail to parse from response meta";
         return;
     }
 
@@ -596,7 +597,7 @@ void ProcessBRPCResponse(InputMessageBase* msg_base) {
 
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         if (remote_stream_id != INVALID_STREAM_ID) {
             SendStreamRst(msg->socket(), meta.stream_settings().stream_id());

@@ -20,7 +20,7 @@
 
 
 #include <pthread.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/compress/gzip_compress.h>
 #include <melon/builtin/jquery_min_js.h>
 
@@ -35,7 +35,7 @@ namespace melon {
         s_jquery_min_buf = new mutil::IOBuf;
         s_jquery_min_buf->append(jquery_min_js());
         s_jquery_min_buf_gzip = new mutil::IOBuf;
-        MCHECK(compress::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, NULL));
+        CHECK(compress::GzipCompress(*s_jquery_min_buf, s_jquery_min_buf_gzip, NULL));
     }
 
     const mutil::IOBuf &jquery_min_js_iobuf() {

@@ -91,7 +91,7 @@ namespace melon::var {
             void create_sampling_thread() {
                 const int rc = pthread_create(&_tid, NULL, sampling_thread, this);
                 if (rc != 0) {
-                    MLOG(FATAL) << "Fail to create sampling_thread, " << berror(rc);
+                    LOG(FATAL) << "Fail to create sampling_thread, " << berror(rc);
                 } else {
                     _created = true;
                     if (!registered_atfork) {
@@ -189,7 +189,7 @@ namespace melon::var {
                 } else {
                     if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                         consecutive_nosleep = 0;
-                        MLOG(WARNING) << "var is busy at sampling for "
+                        LOG(WARNING) << "var is busy at sampling for "
                                      << WARN_NOSLEEP_THRESHOLD << " seconds!";
                     }
                 }

@@ -38,6 +38,7 @@
 #include <melon/utility/process_util.h>            // ReadCommandLine
 #include <melon/utility/popen.h>                   // read_command_output
 #include <melon/var/passive_status.h>
+#include <melon/utility/macros.h>
 
 namespace melon::var {
 
@@ -81,7 +82,7 @@ namespace melon::var {
         // see http://man7.org/linux/man-pages/man5/proc.5.html
         mutil::ScopedFILE fp("/proc/self/stat", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/self/stat";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/self/stat";
             return false;
         }
         if (fscanf(fp, "%d %*s %c "
@@ -94,7 +95,7 @@ namespace melon::var {
                    &stat.flags, &stat.minflt, &stat.cminflt, &stat.majflt,
                    &stat.cmajflt, &stat.utime, &stat.stime, &stat.cutime, &stat.cstime,
                    &stat.priority, &stat.nice, &stat.num_threads) != 19) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
@@ -108,7 +109,7 @@ namespace melon::var {
                 "ps -p %ld -o pid,ppid,pgid,sess"
                 ",tpgid,flags,pri,nice | tail -n1", (long)pid);
         if (mutil::read_command_output(oss, cmdbuf) != 0) {
-            MLOG(ERROR) << "Fail to read stat";
+            LOG(ERROR) << "Fail to read stat";
             return -1;
         }
         const std::string& result = oss.str();
@@ -116,7 +117,7 @@ namespace melon::var {
                                   "%d %u %ld %ld",
                    &stat.pid, &stat.ppid, &stat.pgrp, &stat.session,
                    &stat.tpgid, &stat.flags, &stat.priority, &stat.nice) != 8) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
@@ -130,7 +131,7 @@ namespace melon::var {
     class CachedReader {
     public:
         CachedReader() : _mtime_us(0) {
-            MCHECK_EQ(0, pthread_mutex_init(&_mutex, NULL));
+            CHECK_EQ(0, pthread_mutex_init(&_mutex, NULL));
         }
 
         ~CachedReader() {
@@ -214,13 +215,13 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/self/statm", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/self/statm";
+           PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/self/statm";
             return false;
         }
         if (fscanf(fp, "%ld %ld %ld %ld %ld %ld %ld",
                    &m.size, &m.resident, &m.share,
                    &m.trs, &m.lrs, &m.drs, &m.dt) != 7) {
-            PMLOG(WARNING) << "Fail to fscanf /proc/self/statm";
+            PLOG(WARNING) << "Fail to fscanf /proc/self/statm";
             return false;
         }
         return true;
@@ -233,12 +234,12 @@ namespace melon::var {
         char cmdbuf[128];
         snprintf(cmdbuf, sizeof(cmdbuf), "ps -p %ld -o rss=,vsz=", (long)pid);
         if (mutil::read_command_output(oss, cmdbuf) != 0) {
-            MLOG(ERROR) << "Fail to read memory state";
+            LOG(ERROR) << "Fail to read memory state";
             return -1;
         }
         const std::string& result = oss.str();
         if (sscanf(result.c_str(), "%ld %ld", &m.resident, &m.size) != 2) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         // resident and size in Kbytes
@@ -282,27 +283,27 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/loadavg", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/loadavg";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/loadavg";
             return false;
         }
         m = LoadAverage();
         errno = 0;
         if (fscanf(fp, "%lf %lf %lf",
                    &m.loadavg_1m, &m.loadavg_5m, &m.loadavg_15m) != 3) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
 #elif defined(OS_MACOSX)
         std::ostringstream oss;
         if (mutil::read_command_output(oss, "sysctl -n vm.loadavg") != 0) {
-            MLOG(ERROR) << "Fail to read loadavg";
+            LOG(ERROR) << "Fail to read loadavg";
             return -1;
         }
         const std::string& result = oss.str();
         if (sscanf(result.c_str(), "{ %lf %lf %lf }",
                    &m.loadavg_1m, &m.loadavg_5m, &m.loadavg_15m) != 3) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
@@ -338,7 +339,7 @@ namespace melon::var {
         mutil::DirReaderPosix dr("/proc/self/fd");
         int count = 0;
         if (!dr.IsValid()) {
-            PMLOG(WARNING) << "Fail to open /proc/self/fd";
+            PLOG(WARNING) << "Fail to open /proc/self/fd";
             return -1;
         }
         // Have to limit the scaning which consumes a lot of CPU when #fd
@@ -355,13 +356,13 @@ namespace melon::var {
         snprintf(cmdbuf, sizeof(cmdbuf),
                 "lsof -p %ld | grep -v \"txt\" | wc -l", (long)pid);
         if (mutil::read_command_output(oss, cmdbuf) != 0) {
-            MLOG(ERROR) << "Fail to read open files";
+            LOG(ERROR) << "Fail to read open files";
             return -1;
         }
         const std::string& result = oss.str();
         int count = 0;
         if (sscanf(result.c_str(), "%d", &count) != 1) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return -1;
         }
         // skipped . and first column line
@@ -437,7 +438,7 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/self/io", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/self/io";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/self/io";
             return false;
         }
         errno = 0;
@@ -445,7 +446,7 @@ namespace melon::var {
                    &s->rchar, &s->wchar, &s->syscr, &s->syscw,
                    &s->read_bytes, &s->write_bytes, &s->cancelled_write_bytes)
             != 7) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
@@ -456,7 +457,7 @@ namespace melon::var {
         static pid_t pid = getpid();
         rusage_info_current rusage;
         if (proc_pid_rusage(pid, RUSAGE_INFO_CURRENT, (void**)&rusage) != 0) {
-            PMLOG(WARNING) << "Fail to proc_pid_rusage";
+            PLOG(WARNING) << "Fail to proc_pid_rusage";
             return false;
         }
         s->read_bytes = rusage.ri_diskio_bytesread;
@@ -546,7 +547,7 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/diskstats", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/diskstats";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/diskstats";
             return false;
         }
         errno = 0;
@@ -566,7 +567,7 @@ namespace melon::var {
                    &s->io_in_progress,
                    &s->time_spent_io_ms,
                    &s->weighted_time_spent_io_ms) != 14) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
@@ -618,7 +619,7 @@ namespace melon::var {
         ReadVersion() {
             std::ostringstream oss;
             if (mutil::read_command_output(oss, "uname -ap") != 0) {
-                MLOG(ERROR) << "Fail to read kernel version";
+                LOG(ERROR) << "Fail to read kernel version";
                 return;
             }
             content.append(oss.str());
@@ -648,7 +649,7 @@ namespace melon::var {
         bool operator()(rusage *stat) const {
             const int rc = getrusage(RUSAGE_SELF, stat);
             if (rc < 0) {
-                PMLOG(WARNING) << "Fail to getrusage";
+                PLOG(WARNING) << "Fail to getrusage";
                 return false;
             }
             return true;
@@ -878,7 +879,7 @@ namespace melon::var {
     void get_work_dir(std::ostream &os, void *) {
         mutil::FilePath path;
         const bool rc = mutil::GetCurrentDirectory(&path);
-        MLOG_IF(WARNING, !rc) << "Fail to GetCurrentDirectory";
+        LOG_IF(WARNING, !rc) << "Fail to GetCurrentDirectory";
         os << path.value();
     }
 

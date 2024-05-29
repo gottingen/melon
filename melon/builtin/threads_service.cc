@@ -20,13 +20,14 @@
 
 
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/popen.h>
 #include <melon/rpc/controller.h>           // Controller
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/builtin/threads_service.h>
 #include <melon/builtin/common.h>
 #include <melon/utility/string_printf.h>
+#include <cinttypes>
 
 namespace melon {
 
@@ -45,7 +46,7 @@ namespace melon {
         mutil::IOBufBuilder pstack_output;
         const int rc = mutil::read_command_output(pstack_output, cmd.c_str());
         if (rc < 0) {
-            MLOG(ERROR) << "Fail to popen `" << cmd << "'";
+            LOG(ERROR) << "Fail to popen `" << cmd << "'";
             return;
         }
         pstack_output.move_to(resp);

@@ -21,7 +21,7 @@
 // A server to receive EchoRequest and send back EchoResponse asynchronously.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 
@@ -106,10 +106,10 @@ static void* process_thread(void* args) {
 class EchoServiceWithThreadAndSessionLocal : public example::EchoService {
 public:
     EchoServiceWithThreadAndSessionLocal() {
-        MCHECK_EQ(0, fiber_key_create(&_tls2_key, MyThreadLocalData::deleter));
+        CHECK_EQ(0, fiber_key_create(&_tls2_key, MyThreadLocalData::deleter));
     }
     ~EchoServiceWithThreadAndSessionLocal() {
-        MCHECK_EQ(0, fiber_key_delete(_tls2_key));
+        CHECK_EQ(0, fiber_key_delete(_tls2_key));
     };
     void Echo(google::protobuf::RpcController* cntl_base,
               const example::EchoRequest* request,
@@ -126,7 +126,7 @@ public:
         if (sd == NULL) {
             cntl->SetFailed("Require ServerOptions.session_local_data_factory to be"
                             " set with a correctly implemented instance");
-            MLOG(ERROR) << cntl->ErrorText();
+            LOG(ERROR) << cntl->ErrorText();
             return;
         }
         const int expected_value = sd->x + (((uintptr_t)cntl) & 0xFFFFFFFF);
@@ -141,7 +141,7 @@ public:
         if (tls == NULL) {
             cntl->SetFailed("Require ServerOptions.thread_local_data_factory "
                             "to be set with a correctly implemented instance");
-            MLOG(ERROR) << cntl->ErrorText();
+            LOG(ERROR) << cntl->ErrorText();
             return;
         }
         tls->y = expected_value;
@@ -156,7 +156,7 @@ public:
             static_cast<MyThreadLocalData*>(fiber_getspecific(_tls2_key));
         if (tls2 == NULL) {
             tls2 = new MyThreadLocalData;
-            MCHECK_EQ(0, fiber_setspecific(_tls2_key, tls2));
+            CHECK_EQ(0, fiber_setspecific(_tls2_key, tls2));
         }
         tls2->y = expected_value + 1;
         
@@ -164,11 +164,11 @@ public:
         fiber_usleep(10000);
 
         // tls is unchanged after context switching.
-        MCHECK_EQ(tls, melon::thread_local_data());
-        MCHECK_EQ(expected_value, tls->y);
+        CHECK_EQ(tls, melon::thread_local_data());
+        CHECK_EQ(expected_value, tls->y);
 
-        MCHECK_EQ(tls2, fiber_getspecific(_tls2_key));
-        MCHECK_EQ(expected_value + 1, tls2->y);
+        CHECK_EQ(tls2, fiber_getspecific(_tls2_key));
+        CHECK_EQ(expected_value + 1, tls2->y);
 
         // Process the request asynchronously.
         AsyncJob* job = new AsyncJob;
@@ -179,12 +179,12 @@ public:
         job->response = response;
         job->done = done;
         fiber_t th;
-        MCHECK_EQ(0, fiber_start_background(&th, NULL, process_thread, job));
+        CHECK_EQ(0, fiber_start_background(&th, NULL, process_thread, job));
 
         // We don't want to call done->Run() here, release the guard.
         done_guard.release();
         
-        MLOG_EVERY_SECOND(INFO) << "ntls=" << ntls.load(mutil::memory_order_relaxed)
+        LOG_EVERY_N_SEC(INFO, 1) << "ntls=" << ntls.load(mutil::memory_order_relaxed)
                                << " nsd=" << nsd.load(mutil::memory_order_relaxed);
     }
 
@@ -202,8 +202,8 @@ void AsyncJob::run() {
     // This is the major difference between session-local data and thread-local
     // data which was already destroyed upon Echo() exit.
     MySessionLocalData* sd = static_cast<MySessionLocalData*>(cntl->session_local_data());
-    MCHECK_EQ(expected_session_local_data, sd);
-    MCHECK_EQ(expected_session_value, sd->x);
+    CHECK_EQ(expected_session_local_data, sd);
+    CHECK_EQ(expected_session_value, sd->x);
 
     // Echo request and its attachment
     response->set_message(request->message());
@@ -238,19 +238,19 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server. 
     if (server.Start(FLAGS_port, &options) != 0) {
-        MLOG(ERROR) << "Fail to start EchoServer";
+        LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 
     // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
     server.RunUntilAskedToQuit();
-    MCHECK_EQ(ntls, 0);
-    MCHECK_EQ(nsd, 0);
+    CHECK_EQ(ntls, 0);
+    CHECK_EQ(nsd, 0);
     return 0;
 }

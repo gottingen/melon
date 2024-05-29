@@ -26,7 +26,7 @@ namespace melon {
 
 ServerId2SocketIdMapper::ServerId2SocketIdMapper() {
     _tmp.reserve(128);
-    MCHECK_EQ(0, _nref_map.init(128));
+    CHECK_EQ(0, _nref_map.init(128));
 }
 
 ServerId2SocketIdMapper::~ServerId2SocketIdMapper() {
@@ -39,7 +39,7 @@ bool ServerId2SocketIdMapper::AddServer(const ServerId& server) {
 bool ServerId2SocketIdMapper::RemoveServer(const ServerId& server) {
     int* nref = _nref_map.seek(server.id);
     if (nref == NULL) {
-        MLOG(ERROR) << "Unexist SocketId=" << server.id;
+        LOG(ERROR) << "Unexist SocketId=" << server.id;
         return false;
     }
     if (--*nref <= 0) {

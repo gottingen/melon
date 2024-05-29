@@ -23,7 +23,7 @@
 #include <limits>                                 // std::numeric_limits
 #include <math.h>                                 // round
 #include <gflags/gflags_declare.h>
-#include <melon/utility/logging.h>                         // LOG
+#include <turbo/log/logging.h>                         // LOG
 #include <melon/var/detail/sampler.h>
 #include <melon/var/detail/series.h>
 #include <melon/var/variable.h>
@@ -86,7 +86,7 @@ namespace melon::var {
             WindowBase(R *var, time_t window_size)
                     : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
                       _sampler(var->get_sampler()), _series_sampler(NULL) {
-                MCHECK_EQ(0, _sampler->set_window_size(_window_size));
+                CHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
 
             ~WindowBase() {

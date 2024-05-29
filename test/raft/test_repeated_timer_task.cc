@@ -45,7 +45,7 @@ TEST_F(RepeatedTimerTaskTest, sanity) {
     timer.start();
     usleep(100500);
     const int run_times = timer._run_times;
-    MLOG(INFO) << "run_times=" << run_times;
+    LOG(INFO) << "run_times=" << run_times;
     ASSERT_TRUE(run_times >= 8 && run_times <= 11) << run_times;
     timer.stop();
     usleep(10000);

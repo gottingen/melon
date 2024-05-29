@@ -22,7 +22,7 @@
 #include <gflags/gflags.h>                            // DEFINE_int32
 #include <melon/utility/compat.h>
 #include <melon/utility/fd_utility.h>                         // make_close_on_exec
-#include <melon/utility/logging.h>                            // LOG
+#include <turbo/log/logging.h>                            // LOG
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>// fmix32
 #include <melon/fiber/fiber.h>                          // fiber_start_background
 #include <melon/rpc/event_dispatcher.h>
@@ -57,12 +57,12 @@ namespace melon {
                 fiber_attr_t attr =
                         FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
                 attr.tag = (FIBER_TAG_DEFAULT + i) % fiber::FLAGS_task_group_ntags;
-                MCHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
+                CHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
             }
         }
         // This atexit is will be run before g_task_control.stop() because above
         // Start() initializes g_task_control by creating fiber (to run epoll/kqueue).
-        MCHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
+        CHECK_EQ(0, atexit(StopAndJoinGlobalDispatchers));
     }
 
     EventDispatcher &GetGlobalEventDispatcher(int fd, fiber_tag_t tag) {

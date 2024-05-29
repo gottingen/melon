@@ -27,7 +27,7 @@
 #include <melon/utility/macros.h>
 #include <melon/utility/scoped_lock.h>
 #include <melon/utility/fd_utility.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/task_control.h>
@@ -88,11 +88,11 @@ void* process_thread(void* arg) {
                 } else if (errno == EINTR) {
                     continue;
                 } else {
-                    PMLOG(FATAL) << "Fail to read fd=" << m->fd;
+                    PLOG(FATAL) << "Fail to read fd=" << m->fd;
                     return NULL;
                 }
             } else {
-                MLOG(FATAL) << "Another end closed fd=" << m->fd;
+                LOG(FATAL) << "Another end closed fd=" << m->fd;
                 return NULL;
             }
         } while (1);
@@ -133,9 +133,9 @@ void* epoll_thread(void* arg) {
                 continue;
             }
 #if defined(OS_LINUX)
-            PMLOG(FATAL) << "Fail to epoll_wait";
+            PLOG(FATAL) << "Fail to epoll_wait";
 #elif defined(OS_MACOSX)
-            PMLOG(FATAL) << "Fail to kevent";
+            PLOG(FATAL) << "Fail to kevent";
 #endif
             break;
         }
@@ -183,7 +183,7 @@ void* client_thread(void* arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                PMLOG(FATAL) << "Fail to write fd=" << m->fd;
+                PLOG(FATAL) << "Fail to write fd=" << m->fd;
                 return NULL;
             }
         } else {
@@ -291,7 +291,7 @@ TEST(DispatcherTest, dispatch_tasks) {
         all_nfold += em[i]->nfold;
     }
 
-    MLOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
+    LOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
               << "MB/s server_tp=" << server_bytes / (double)tm.u_elapsed()
               << "MB/s nthread=" << all_nthread << " nfold=" << all_nfold;
 

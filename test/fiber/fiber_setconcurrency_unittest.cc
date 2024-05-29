@@ -23,10 +23,10 @@
 #include <melon/utility/atomicops.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/thread_local.h>
 #include <melon/fiber/butex.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/task_control.h>
 
@@ -121,11 +121,11 @@ TEST(FiberTest, setconcurrency_with_running_fiber) {
     for (size_t i = 0; i < tids.size(); ++i) {
         fiber_join(tids[i], NULL);
     }
-    MLOG(INFO) << "All fibers has quit";
+    LOG(INFO) << "All fibers has quit";
     ASSERT_EQ(2*N, nfibers);
     // This is not necessarily true, not all workers need to run sth.
     //ASSERT_EQ(N, npthreads);
-    MLOG(INFO) << "Touched pthreads=" << npthreads;
+    LOG(INFO) << "Touched pthreads=" << npthreads;
 }
 
 void* sleep_proc(void*) {

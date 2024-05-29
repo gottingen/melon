@@ -19,7 +19,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
@@ -102,12 +102,12 @@ int main(int argc, char* argv[]) {
     // options, see `melon/rpc/channel.h'.
     if (FLAGS_server.empty()) {
         if (channel.Init("localhost", FLAGS_port, &coption) != 0) {
-            MLOG(ERROR) << "Fail to initialize channel";
+            LOG(ERROR) << "Fail to initialize channel";
             return -1;
         }
     } else {
         if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &coption) != 0) {
-            MLOG(ERROR) << "Fail to initialize channel";
+            LOG(ERROR) << "Fail to initialize channel";
             return -1;
         }
     }
@@ -126,13 +126,13 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     // Start the server.
     if (server.Start(FLAGS_port, &options) != 0) {
-        MLOG(ERROR) << "Fail to start EchoServer";
+        LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
     

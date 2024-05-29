@@ -54,7 +54,7 @@ namespace melon::raft {
 
     void ClosureQueue::reset_first_index(int64_t first_index) {
         MELON_SCOPED_LOCK(_mutex);
-        MCHECK(_queue.empty());
+        CHECK(_queue.empty());
         _first_index = first_index;
     }
 
@@ -72,7 +72,7 @@ namespace melon::raft {
             return 0;
         }
         if (index > _first_index + (int64_t) _queue.size() - 1) {
-            MCHECK(false) << "Invalid index=" << index
+            CHECK(false) << "Invalid index=" << index
                          << " _first_index=" << _first_index
                          << " _closure_queue_size=" << _queue.size();
             return -1;

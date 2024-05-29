@@ -99,7 +99,7 @@ void SendMongoResponse::Run() {
         Socket::WriteOptions wopt;
         wopt.ignore_eovercrowded = true;
         if (socket->Write(&res_buf, &wopt) != 0) {
-            PMLOG(WARNING) << "Fail to write into " << *socket;
+            PLOG(WARNING) << "Fail to write into " << *socket;
             return;
         }
     }
@@ -153,7 +153,7 @@ ParseResult ParseMongoMessage(mutil::IOBuf* source,
     source->cutn(&msg->meta, sizeof(buf));
     size_t act_body_len = source->cutn(&msg->payload, body_len - sizeof(buf));
     if (act_body_len != body_len - sizeof(buf)) {
-        MCHECK(false);     // Very unlikely, unless memory is corrupted.
+        CHECK(false);     // Very unlikely, unless memory is corrupted.
         return MakeParseError(PARSE_ERROR_TRY_OTHERS);
     }
     return MakeMessage(msg);
@@ -181,7 +181,7 @@ void ProcessMongoRequest(InputMessageBase* msg_base) {
 
     const google::protobuf::ServiceDescriptor* srv_des = MongoService::descriptor();
     if (1 != srv_des->method_count()) {
-        MLOG(WARNING) << "method count:" << srv_des->method_count()
+        LOG(WARNING) << "method count:" << srv_des->method_count()
                      << " of MongoService should be equal to 1!";
     }
 
@@ -192,7 +192,7 @@ void ProcessMongoRequest(InputMessageBase* msg_base) {
     MongoContextMessage *context_msg =
         dynamic_cast<MongoContextMessage*>(socket->parsing_context());
     if (NULL == context_msg) {
-        MLOG(WARNING) << "socket context wasn't set correctly";
+        LOG(WARNING) << "socket context wasn't set correctly";
         return;
     }
 

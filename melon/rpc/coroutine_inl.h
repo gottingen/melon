@@ -86,7 +86,7 @@ public:
 
     // When the coroutine function throws unhandled exception, unhandled_exception() will be called
     void unhandled_exception() {
-        MLOG(ERROR) << "Coroutine throws unhandled exception!";
+        LOG(ERROR) << "Coroutine throws unhandled exception!";
         std::exit(1);
     }
 
@@ -223,7 +223,7 @@ inline void AwaitableDone::Run() {
 template <typename T>
 inline Coroutine::Coroutine(Awaitable<T>&& aw, bool detach) {
     detail::AwaitablePromise<T>* origin_promise = aw.promise();
-    MCHECK(origin_promise);
+    CHECK(origin_promise);
 
     if (!detach) {
         // Create butex for join()
@@ -264,13 +264,13 @@ inline Coroutine::~Coroutine() {
 
 template <typename T>
 inline T Coroutine::join() {
-    MCHECK(_promise != nullptr) << "join() can not be called to detached coroutine!";
-    MCHECK(_waited == false) << "awaitable() or join() can only be called once!";
+    CHECK(_promise != nullptr) << "join() can not be called to detached coroutine!";
+    CHECK(_waited == false) << "awaitable() or join() can only be called once!";
     _waited = true;
     fiber::butex_wait(_butex, 0, nullptr);
     if constexpr (!std::is_same<T, void>::value) {
         auto promise = dynamic_cast<detail::AwaitablePromise<T>*>(_promise);
-        MCHECK(promise != nullptr) << "join type not match";
+        CHECK(promise != nullptr) << "join type not match";
         T ret = promise->value();
         _promise->on_suspend();
         return ret;
@@ -281,10 +281,10 @@ inline T Coroutine::join() {
 
 template <typename T>
 inline Awaitable<T> Coroutine::awaitable() {
-    MCHECK(_promise != nullptr) << "awaitable() can not be called to detached coroutine!";
-    MCHECK(_waited == false) << "awaitable() or join() can only be called once!";
+    CHECK(_promise != nullptr) << "awaitable() can not be called to detached coroutine!";
+    CHECK(_waited == false) << "awaitable() or join() can only be called once!";
     auto promise = dynamic_cast<detail::AwaitablePromise<T>*>(_promise);
-    MCHECK(promise != nullptr) << "awaitable type not match";
+    CHECK(promise != nullptr) << "awaitable type not match";
     _waited = true;
     return Awaitable<T>(promise);
 }

@@ -10,18 +10,18 @@
 #include <limits>
 
 #include "melon/utility/basictypes.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/strings/string_util.h>
 
 namespace mutil {
 
 int RandInt(int min, int max) {
-  DMCHECK_LE(min, max);
+  DCHECK_LE(min, max);
 
   uint64_t range = static_cast<uint64_t>(max) - min + 1;
   int result = min + static_cast<int>(mutil::RandGenerator(range));
-  DMCHECK_GE(result, min);
-  DMCHECK_LE(result, max);
+  DCHECK_GE(result, min);
+  DCHECK_LE(result, max);
   return result;
 }
 
@@ -39,13 +39,13 @@ double BitsToOpenEndedUnitInterval(uint64_t bits) {
   static const int kBits = std::numeric_limits<double>::digits;
   uint64_t random_bits = bits & ((GG_UINT64_C(1) << kBits) - 1);
   double result = ldexp(static_cast<double>(random_bits), -1 * kBits);
-  DMCHECK_GE(result, 0.0);
-  DMCHECK_LT(result, 1.0);
+  DCHECK_GE(result, 0.0);
+  DCHECK_LT(result, 1.0);
   return result;
 }
 
 uint64_t RandGenerator(uint64_t range) {
-  DMCHECK_GT(range, 0u);
+  DCHECK_GT(range, 0u);
   // We must discard random results above this number, as they would
   // make the random generator non-uniform (consider e.g. if
   // MAX_UINT64 was 7 and |range| was 5, then a result of 1 would be twice
@@ -62,7 +62,7 @@ uint64_t RandGenerator(uint64_t range) {
 }
 
 std::string RandBytesAsString(size_t length) {
-  DMCHECK_GT(length, 0u);
+  DCHECK_GT(length, 0u);
   std::string result;
   RandBytes(WriteInto(&result, length + 1), length);
   return result;

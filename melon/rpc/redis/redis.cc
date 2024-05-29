@@ -78,13 +78,13 @@ namespace melon {
 
     bool RedisRequest::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *) {
-        MLOG(WARNING) << "You're not supposed to parse a RedisRequest";
+        LOG(WARNING) << "You're not supposed to parse a RedisRequest";
         return true;
     }
 
     void RedisRequest::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *) const {
-        MLOG(WARNING) << "You're not supposed to serialize a RedisRequest";
+        LOG(WARNING) << "You're not supposed to serialize a RedisRequest";
     }
 
     ::google::protobuf::uint8 *RedisRequest::SerializeWithCachedSizesToArray(
@@ -99,7 +99,7 @@ namespace melon {
     }
 
     void RedisRequest::MergeFrom(const ::google::protobuf::Message &from) {
-        MCHECK_NE(&from, this);
+        CHECK_NE(&from, this);
         const RedisRequest *source = dynamic_cast<const RedisRequest *>(&from);
         if (source == NULL) {
             ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -109,7 +109,7 @@ namespace melon {
     }
 
     void RedisRequest::MergeFrom(const RedisRequest &from) {
-        MCHECK_NE(&from, this);
+        CHECK_NE(&from, this);
         _has_error = _has_error || from._has_error;
         _buf.append(from._buf);
         _ncommand += from._ncommand;
@@ -149,7 +149,7 @@ namespace melon {
             ++_ncommand;
             return true;
         } else {
-            MCHECK(st.ok()) << st;
+            CHECK(st.ok()) << st;
             _has_error = true;
             return false;
         }
@@ -165,7 +165,7 @@ namespace melon {
             ++_ncommand;
             return true;
         } else {
-            MCHECK(st.ok()) << st;
+            CHECK(st.ok()) << st;
             _has_error = true;
             return false;
         }
@@ -183,7 +183,7 @@ namespace melon {
             ++_ncommand;
             return true;
         } else {
-            MCHECK(st.ok()) << st;
+            CHECK(st.ok()) << st;
             _has_error = true;
             return false;
         }
@@ -198,7 +198,7 @@ namespace melon {
             ++_ncommand;
             return true;
         } else {
-            MCHECK(st.ok()) << st;
+            CHECK(st.ok()) << st;
             _has_error = true;
             return false;
         }
@@ -206,7 +206,7 @@ namespace melon {
 
     bool RedisRequest::SerializeTo(mutil::IOBuf *buf) const {
         if (_has_error) {
-            MLOG(ERROR) << "Reject serialization due to error in AddCommand[V]";
+            LOG(ERROR) << "Reject serialization due to error in AddCommand[V]";
             return false;
         }
         *buf = _buf;
@@ -299,13 +299,13 @@ namespace melon {
 
     bool RedisResponse::MergePartialFromCodedStream(
             ::google::protobuf::io::CodedInputStream *) {
-        MLOG(WARNING) << "You're not supposed to parse a RedisResponse";
+        LOG(WARNING) << "You're not supposed to parse a RedisResponse";
         return true;
     }
 
     void RedisResponse::SerializeWithCachedSizes(
             ::google::protobuf::io::CodedOutputStream *) const {
-        MLOG(WARNING) << "You're not supposed to serialize a RedisResponse";
+        LOG(WARNING) << "You're not supposed to serialize a RedisResponse";
     }
 
     ::google::protobuf::uint8 *RedisResponse::SerializeWithCachedSizesToArray(
@@ -318,7 +318,7 @@ namespace melon {
     }
 
     void RedisResponse::MergeFrom(const ::google::protobuf::Message &from) {
-        MCHECK_NE(&from, this);
+        CHECK_NE(&from, this);
         const RedisResponse *source = dynamic_cast<const RedisResponse *>(&from);
         if (source == NULL) {
             ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -328,7 +328,7 @@ namespace melon {
     }
 
     void RedisResponse::MergeFrom(const RedisResponse &from) {
-        MCHECK_NE(&from, this);
+        CHECK_NE(&from, this);
         if (from._nreply == 0) {
             return;
         }
@@ -354,7 +354,7 @@ namespace melon {
         for (int i = !_nreply; i < from._nreply; ++i) {
             new_others[new_other_index++].CopyFromDifferentArena(from.reply(i));
         }
-        DMCHECK_EQ(new_nreply - 1, new_other_index);
+        DCHECK_EQ(new_nreply - 1, new_other_index);
         _other_replies = new_others;
         _nreply = new_nreply;
     }
@@ -415,7 +415,7 @@ namespace melon {
                 _other_replies = (RedisReply *) _arena.allocate(
                         sizeof(RedisReply) * (reply_count - 1));
                 if (_other_replies == NULL) {
-                    MLOG(ERROR) << "Fail to allocate RedisReply[" << reply_count - 1 << "]";
+                    LOG(ERROR) << "Fail to allocate RedisReply[" << reply_count - 1 << "]";
                     return PARSE_ERROR_ABSOLUTELY_WRONG;
                 }
                 for (int i = 0; i < reply_count - 1; ++i) {
@@ -458,7 +458,7 @@ namespace melon {
         std::string lcname = StringToLowerASCII(name);
         auto it = _command_map.find(lcname);
         if (it != _command_map.end()) {
-            MLOG(ERROR) << "redis command name=" << name << " exist";
+            LOG(ERROR) << "redis command name=" << name << " exist";
             return false;
         }
         _command_map[lcname] = handler;
@@ -474,7 +474,7 @@ namespace melon {
     }
 
     RedisCommandHandler *RedisCommandHandler::NewTransactionHandler() {
-        MLOG(ERROR) << "NewTransactionHandler is not implemented";
+        LOG(ERROR) << "NewTransactionHandler is not implemented";
         return NULL;
     }
 

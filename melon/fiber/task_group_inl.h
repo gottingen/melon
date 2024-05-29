@@ -87,7 +87,7 @@ inline void TaskGroup::push_rq(fiber_t tid) {
         //   are busy at creating fibers (proved by test_input_messenger in
         //   melon)
         flush_nosignal_tasks();
-        MLOG_EVERY_SECOND(ERROR) << "_rq is full, capacity=" << _rq.capacity();
+        LOG_EVERY_N_SEC(ERROR, 1) << "_rq is full, capacity=" << _rq.capacity();
         // TODO(gejun): May cause deadlock when all workers are spinning here.
         // A better solution is to pop and run existing fibers, however which
         // make set_remained()-callbacks do context switches and need extensive

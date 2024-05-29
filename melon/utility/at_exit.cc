@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -23,17 +23,17 @@ AtExitManager::AtExitManager() : next_manager_(g_top_manager) {
 // If multiple modules instantiate AtExitManagers they'll end up living in this
 // module... they have to coexist.
 #if !defined(COMPONENT_BUILD)
-  DMCHECK(!g_top_manager);
+  DCHECK(!g_top_manager);
 #endif
   g_top_manager = this;
 }
 
 AtExitManager::~AtExitManager() {
   if (!g_top_manager) {
-    NOTREACHED() << "Tried to ~AtExitManager without an AtExitManager";
+      DCHECK(false) << "Tried to ~AtExitManager without an AtExitManager";
     return;
   }
-  DMCHECK_EQ(this, g_top_manager);
+  DCHECK_EQ(this, g_top_manager);
 
   ProcessCallbacksNow();
   g_top_manager = next_manager_;
@@ -41,9 +41,9 @@ AtExitManager::~AtExitManager() {
 
 // static
 void AtExitManager::RegisterCallback(AtExitCallbackType func, void* param) {
-  DMCHECK(func);
+  DCHECK(func);
   if (!g_top_manager) {
-    NOTREACHED() << "Tried to RegisterCallback without an AtExitManager";
+    DCHECK(false) << "Tried to RegisterCallback without an AtExitManager";
     return;
   }
 
@@ -54,7 +54,7 @@ void AtExitManager::RegisterCallback(AtExitCallbackType func, void* param) {
 // static
 void AtExitManager::ProcessCallbacksNow() {
   if (!g_top_manager) {
-    NOTREACHED() << "Tried to ProcessCallbacksNow without an AtExitManager";
+    DCHECK(false) << "Tried to ProcessCallbacksNow without an AtExitManager";
     return;
   }
 
@@ -68,7 +68,7 @@ void AtExitManager::ProcessCallbacksNow() {
 }
 
 AtExitManager::AtExitManager(bool shadow) : next_manager_(g_top_manager) {
-  DMCHECK(shadow || !g_top_manager);
+  DCHECK(shadow || !g_top_manager);
   g_top_manager = this;
 }
 

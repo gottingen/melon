@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/basictypes.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/threading/non_thread_safe.h"
 #include "melon/utility/threading/simple_thread.h"
@@ -11,7 +11,7 @@
 
 // Duplicated from threading/non_thread_safe.h so that we can be
 // good citizens there and undef the macro.
-#if (!defined(NDEBUG) || defined(DMCHECK_ALWAYS_ON))
+#if (!defined(NDEBUG) || defined(DCHECK_ALWAYS_ON))
 #define ENABLE_NON_THREAD_SAFE 1
 #else
 #define ENABLE_NON_THREAD_SAFE 0
@@ -30,7 +30,7 @@ class NonThreadSafeClass : public NonThreadSafe {
 
   // Verifies that it was called on the same thread as the constructor.
   void DoStuff() {
-    DMCHECK(CalledOnValidThread());
+    DCHECK(CalledOnValidThread());
   }
 
   void DetachFromThread() {

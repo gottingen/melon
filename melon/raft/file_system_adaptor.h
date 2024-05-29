@@ -206,14 +206,14 @@ namespace melon::raft {
         virtual ~BufferedSequentialReadFileAdaptor() {}
 
         virtual ssize_t write(const mutil::IOBuf &data, off_t offset) {
-            MCHECK(false);
+            CHECK(false);
             return -1;
         }
 
         virtual ssize_t read(mutil::IOPortal *portal, off_t offset, size_t size);
 
         virtual bool sync() {
-            MCHECK(false);
+            CHECK(false);
             return false;
         }
 
@@ -249,12 +249,12 @@ namespace melon::raft {
         virtual ssize_t write(const mutil::IOBuf &data, off_t offset);
 
         virtual ssize_t read(mutil::IOPortal *portal, off_t offset, size_t size) {
-            MCHECK(false);
+            CHECK(false);
             return -1;
         }
 
         virtual bool sync() {
-            MCHECK(false);
+            CHECK(false);
             return false;
         }
 
@@ -264,7 +264,7 @@ namespace melon::raft {
         }
 
         virtual ssize_t size() {
-            MCHECK(false);
+            CHECK(false);
             return -1;
         }
 

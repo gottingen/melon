@@ -10,6 +10,7 @@
 #include "melon/raft/log.h"
 #include "melon/raft/configuration.h"
 #include "melon/raft/log_manager.h"
+#include <cinttypes>
 
 class FSMCallerTest : public testing::Test {
 protected:

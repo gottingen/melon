@@ -47,7 +47,7 @@ namespace fiber {
         if (prev > sig) {
             return;
         }
-        MLOG_IF(ERROR, prev < sig) << "Counter is over decreased";
+        LOG_IF(ERROR, prev < sig) << "Counter is over decreased";
         butex_wake_all(saved_butex, flush);
     }
 
@@ -68,23 +68,23 @@ namespace fiber {
 
     void CountdownEvent::add_count(int v) {
         if (v <= 0) {
-            MLOG_IF(ERROR, v < 0) << "Invalid count=" << v;
+            LOG_IF(ERROR, v < 0) << "Invalid count=" << v;
             return;
         }
-        MLOG_IF(ERROR, _wait_was_invoked)
+        LOG_IF(ERROR, _wait_was_invoked)
         << "Invoking add_count() after wait() was invoked";
         ((mutil::atomic<int> *) _butex)->fetch_add(v, mutil::memory_order_release);
     }
 
     void CountdownEvent::reset(int v) {
         if (v < 0) {
-            MLOG(ERROR) << "Invalid count=" << v;
+            LOG(ERROR) << "Invalid count=" << v;
             return;
         }
         const int prev_counter =
                 ((mutil::atomic<int> *) _butex)
                         ->exchange(v, mutil::memory_order_release);
-        MLOG_IF(ERROR, _wait_was_invoked && prev_counter)
+        LOG_IF(ERROR, _wait_was_invoked && prev_counter)
         << "Invoking reset() while count=" << prev_counter;
         _wait_was_invoked = false;
     }

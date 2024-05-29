@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/threading/simple_thread.h"
 #include "melon/utility/threading/thread_local.h"
 #include "melon/utility/synchronization/waitable_event.h"
@@ -38,7 +38,7 @@ class SetThreadLocal : public ThreadLocalTesterBase {
   void set_value(ThreadLocalTesterBase* val) { val_ = val; }
 
   virtual void Run() OVERRIDE {
-    DMCHECK(!done_->IsSignaled());
+    DCHECK(!done_->IsSignaled());
     tlp_->Set(val_);
     done_->Signal();
   }
@@ -58,7 +58,7 @@ class GetThreadLocal : public ThreadLocalTesterBase {
   void set_ptr(ThreadLocalTesterBase** ptr) { ptr_ = ptr; }
 
   virtual void Run() OVERRIDE {
-    DMCHECK(!done_->IsSignaled());
+    DCHECK(!done_->IsSignaled());
     *ptr_ = tlp_->Get();
     done_->Signal();
   }

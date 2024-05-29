@@ -104,7 +104,7 @@ namespace melon::raft {
             for (int i = 0; i < response.new_peers_size(); ++i) {
                 new_conf.add_peer(response.new_peers(i));
             }
-            MLOG(INFO) << "Configuration of replication group `" << group_id
+            LOG(INFO) << "Configuration of replication group `" << group_id
                       << "' changed from " << old_conf
                       << " to " << new_conf;
             return mutil::Status::OK();
@@ -142,7 +142,7 @@ namespace melon::raft {
             for (int i = 0; i < response.new_peers_size(); ++i) {
                 new_conf.add_peer(response.new_peers(i));
             }
-            MLOG(INFO) << "Configuration of replication group `" << group_id
+            LOG(INFO) << "Configuration of replication group `" << group_id
                       << "' changed from " << old_conf
                       << " to " << new_conf;
             return mutil::Status::OK();
@@ -206,7 +206,7 @@ namespace melon::raft {
             PeerId leader_id;
             mutil::Status st = get_leader(group_id, conf, &leader_id);
             BRAFT_RETURN_IF(!st.ok(), st);
-            MLOG(INFO) << "conf=" << conf << " leader=" << leader_id
+            LOG(INFO) << "conf=" << conf << " leader=" << leader_id
                       << " new_peers=" << new_peers;
             melon::Channel channel;
             if (channel.Init(leader_id.addr, NULL) != 0) {
@@ -239,7 +239,7 @@ namespace melon::raft {
             for (int i = 0; i < response.new_peers_size(); ++i) {
                 new_conf.add_peer(response.new_peers(i));
             }
-            MLOG(INFO) << "Configuration of replication group `" << group_id
+            LOG(INFO) << "Configuration of replication group `" << group_id
                       << "' changed from " << old_conf
                       << " to " << new_conf;
             return mutil::Status::OK();
@@ -251,7 +251,7 @@ namespace melon::raft {
             mutil::Status st = get_leader(group_id, conf, &leader_id);
             BRAFT_RETURN_IF(!st.ok(), st);
             if (leader_id == peer) {
-                MLOG(INFO) << "peer " << peer << " is already the leader";
+                LOG(INFO) << "peer " << peer << " is already the leader";
                 return mutil::Status::OK();
             }
             melon::Channel channel;

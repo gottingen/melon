@@ -29,7 +29,7 @@
 #include <melon/fiber/unstable.h>                       // fiber_keytable_pool_init
 #include <melon/utility/macros.h>                            // ARRAY_SIZE
 #include <melon/utility/fd_guard.h>                          // fd_guard
-#include <melon/utility/logging.h>                           // MCHECK
+#include <turbo/log/logging.h>                           // CHECK
 #include <melon/utility/time.h>
 #include <melon/utility/class_name.h>
 #include <melon/utility/string_printf.h>
@@ -316,12 +316,12 @@ namespace melon {
             if (sleep_us < 1000L) {
                 if (++consecutive_nosleep >= 2) {
                     consecutive_nosleep = 0;
-                    MLOG(WARNING) << __FUNCTION__ << " is too busy!";
+                    LOG(WARNING) << __FUNCTION__ << " is too busy!";
                 }
             } else {
                 consecutive_nosleep = 0;
                 if (fiber_usleep(sleep_us) < 0) {
-                    PMLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
+                    PLOG_IF(ERROR, errno != ESTOP) << "Fail to sleep";
                     return NULL;
                 }
             }
@@ -412,107 +412,107 @@ namespace melon {
     int Server::AddBuiltinServices() {
         // Firstly add services shown in tabs.
         if (AddBuiltinService(new(std::nothrow) StatusService)) {
-            MLOG(ERROR) << "Fail to add StatusService";
+            LOG(ERROR) << "Fail to add StatusService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) VarsService)) {
-            MLOG(ERROR) << "Fail to add VarsService";
+            LOG(ERROR) << "Fail to add VarsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) ConnectionsService)) {
-            MLOG(ERROR) << "Fail to add ConnectionsService";
+            LOG(ERROR) << "Fail to add ConnectionsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) FlagsService)) {
-            MLOG(ERROR) << "Fail to add FlagsService";
+            LOG(ERROR) << "Fail to add FlagsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) RpczService)) {
-            MLOG(ERROR) << "Fail to add RpczService";
+            LOG(ERROR) << "Fail to add RpczService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) HotspotsService)) {
-            MLOG(ERROR) << "Fail to add HotspotsService";
+            LOG(ERROR) << "Fail to add HotspotsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) IndexService)) {
-            MLOG(ERROR) << "Fail to add IndexService";
+            LOG(ERROR) << "Fail to add IndexService";
             return -1;
         }
 
         // Add other services.
         if (AddBuiltinService(new(std::nothrow) VersionService(this))) {
-            MLOG(ERROR) << "Fail to add VersionService";
+            LOG(ERROR) << "Fail to add VersionService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) HealthService)) {
-            MLOG(ERROR) << "Fail to add HealthService";
+            LOG(ERROR) << "Fail to add HealthService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) ProtobufsService(this))) {
-            MLOG(ERROR) << "Fail to add ProtobufsService";
+            LOG(ERROR) << "Fail to add ProtobufsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) BadMethodService)) {
-            MLOG(ERROR) << "Fail to add BadMethodService";
+            LOG(ERROR) << "Fail to add BadMethodService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) ListService(this))) {
-            MLOG(ERROR) << "Fail to add ListService";
+            LOG(ERROR) << "Fail to add ListService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) PrometheusMetricsService)) {
-            MLOG(ERROR) << "Fail to add MetricsService";
+            LOG(ERROR) << "Fail to add MetricsService";
             return -1;
         }
         if (FLAGS_enable_threads_service &&
             AddBuiltinService(new(std::nothrow) ThreadsService)) {
-            MLOG(ERROR) << "Fail to add ThreadsService";
+            LOG(ERROR) << "Fail to add ThreadsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) MemoryService)) {
-            MLOG(ERROR) << "Fail to add MemoryService";
+            LOG(ERROR) << "Fail to add MemoryService";
             return -1;
         }
 
 #if !MELON_WITH_GLOG
         if (AddBuiltinService(new(std::nothrow) VLogService)) {
-            MLOG(ERROR) << "Fail to add VLogService";
+            LOG(ERROR) << "Fail to add VLogService";
             return -1;
         }
 #endif
 
         if (AddBuiltinService(new(std::nothrow) PProfService)) {
-            MLOG(ERROR) << "Fail to add PProfService";
+            LOG(ERROR) << "Fail to add PProfService";
             return -1;
         }
         if (FLAGS_enable_dir_service &&
             AddBuiltinService(new(std::nothrow) DirService)) {
-            MLOG(ERROR) << "Fail to add DirService";
+            LOG(ERROR) << "Fail to add DirService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) FibersService)) {
-            MLOG(ERROR) << "Fail to add FibersService";
+            LOG(ERROR) << "Fail to add FibersService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) IdsService)) {
-            MLOG(ERROR) << "Fail to add IdsService";
+            LOG(ERROR) << "Fail to add IdsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) SocketsService)) {
-            MLOG(ERROR) << "Fail to add SocketsService";
+            LOG(ERROR) << "Fail to add SocketsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) GetFaviconService)) {
-            MLOG(ERROR) << "Fail to add GetFaviconService";
+            LOG(ERROR) << "Fail to add GetFaviconService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) GetJsService)) {
-            MLOG(ERROR) << "Fail to add GetJsService";
+            LOG(ERROR) << "Fail to add GetJsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) GrpcHealthCheckService)) {
-            MLOG(ERROR) << "Fail to add GrpcHealthCheckService";
+            LOG(ERROR) << "Fail to add GrpcHealthCheckService";
             return -1;
         }
         return 0;
@@ -535,7 +535,7 @@ namespace melon {
         const bool has_whitelist = !whitelist.empty();
         Acceptor *acceptor = new(std::nothrow) Acceptor(_keytable_pool);
         if (NULL == acceptor) {
-            MLOG(ERROR) << "Fail to new Acceptor";
+            LOG(ERROR) << "Fail to new Acceptor";
             return NULL;
         }
         InputMessageHandler handler;
@@ -550,7 +550,7 @@ namespace melon {
                 !is_http_protocol(protocols[i].name) &&
                 !whitelist.erase(protocols[i].name)) {
                 // the protocol is not allowed to serve.
-                RPC_VMLOG << "Skip protocol=" << protocols[i].name;
+                RPC_VLOG << "Skip protocol=" << protocols[i].name;
                 continue;
             }
             // `process_request' is required at server side
@@ -560,7 +560,7 @@ namespace melon {
             handler.arg = this;
             handler.name = protocols[i].name;
             if (acceptor->AddHandler(handler) != 0) {
-                MLOG(ERROR) << "Fail to add handler into Acceptor("
+                LOG(ERROR) << "Fail to add handler into Acceptor("
                             << acceptor << ')';
                 delete acceptor;
                 return NULL;
@@ -575,7 +575,7 @@ namespace melon {
             }
             err << '\'';
             delete acceptor;
-            MLOG(ERROR) << err.str();
+            LOG(ERROR) << err.str();
             return NULL;
         }
         return acceptor;
@@ -591,19 +591,19 @@ namespace melon {
             return 0;
         }
         if (_fullname_service_map.init(INITIAL_SERVICE_CAP) != 0) {
-            MLOG(ERROR) << "Fail to init _fullname_service_map";
+            LOG(ERROR) << "Fail to init _fullname_service_map";
             return -1;
         }
         if (_service_map.init(INITIAL_SERVICE_CAP) != 0) {
-            MLOG(ERROR) << "Fail to init _service_map";
+            LOG(ERROR) << "Fail to init _service_map";
             return -1;
         }
         if (_method_map.init(INITIAL_SERVICE_CAP * 2) != 0) {
-            MLOG(ERROR) << "Fail to init _method_map";
+            LOG(ERROR) << "Fail to init _method_map";
             return -1;
         }
         if (_ssl_ctx_map.init(INITIAL_CERT_MAP) != 0) {
-            MLOG(ERROR) << "Fail to init _ssl_ctx_map";
+            LOG(ERROR) << "Fail to init _ssl_ctx_map";
             return -1;
         }
         _status = READY;
@@ -612,7 +612,7 @@ namespace melon {
 
     int Server::InitALPNOptions(const ServerSSLOptions *options) {
         if (options == nullptr) {
-            MLOG(ERROR) << "Fail to init alpn options, ssl options is nullptr.";
+            LOG(ERROR) << "Fail to init alpn options, ssl options is nullptr.";
             return -1;
         }
 
@@ -626,7 +626,7 @@ namespace melon {
             AdaptiveProtocolType protocol_type(alpn);
             const Protocol *protocol = FindProtocol(protocol_type);
             if (protocol == nullptr || !protocol->support_server()) {
-                MLOG(ERROR) << "Server does not support alpn=" << alpn;
+                LOG(ERROR) << "Server does not support alpn=" << alpn;
                 return -1;
             }
             raw_protocol.append(ALPNProtocolToString(protocol_type));
@@ -689,12 +689,12 @@ namespace melon {
         const ConcurrencyLimiter *cl =
                 ConcurrencyLimiterExtension()->Find(amc.type().c_str());
         if (cl == NULL) {
-            MLOG(ERROR) << "Fail to find ConcurrencyLimiter by `" << amc.value() << "'";
+            LOG(ERROR) << "Fail to find ConcurrencyLimiter by `" << amc.value() << "'";
             return false;
         }
         ConcurrencyLimiter *cl_copy = cl->New(amc);
         if (cl_copy == NULL) {
-            MLOG(ERROR) << "Fail to new ConcurrencyLimiter";
+            LOG(ERROR) << "Fail to new ConcurrencyLimiter";
             return false;
         }
         *out = cl_copy;
@@ -710,21 +710,21 @@ namespace melon {
         std::unique_ptr<Server, RevertServerStatus> revert_server(this);
         if (_failed_to_set_max_concurrency_of_method) {
             _failed_to_set_max_concurrency_of_method = false;
-            MLOG(ERROR) << "previous call to MaxConcurrencyOf() was failed, "
+            LOG(ERROR) << "previous call to MaxConcurrencyOf() was failed, "
                            "fix it before starting server";
             return -1;
         }
         if (InitializeOnce() != 0) {
-            MLOG(ERROR) << "Fail to initialize Server[" << version() << ']';
+            LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
             return -1;
         }
         const Status st = status();
         if (st != READY) {
             if (st == RUNNING) {
-                MLOG(ERROR) << "Server[" << version() << "] is already running on "
+                LOG(ERROR) << "Server[" << version() << "] is already running on "
                             << _listen_addr;
             } else {
-                MLOG(ERROR) << "Can't start Server[" << version()
+                LOG(ERROR) << "Can't start Server[" << version()
                             << "] which is " << status_str(status());
             }
             return -1;
@@ -738,12 +738,12 @@ namespace melon {
         }
 
         if (!_options.h2_settings.IsValid(true/*log_error*/)) {
-            MLOG(ERROR) << "Invalid h2_settings";
+            LOG(ERROR) << "Invalid h2_settings";
             return -1;
         }
 
         if (_options.use_rdma) {
-            MLOG(WARNING) << "Cannot use rdma since melon does not compile with rdma";
+            LOG(WARNING) << "Cannot use rdma since melon does not compile with rdma";
             return -1;
         }
 
@@ -755,16 +755,16 @@ namespace melon {
             const google::protobuf::MethodDescriptor *md =
                     sd->FindMethodByName("default_method");
             if (md == NULL) {
-                MLOG(ERROR) << "http_master_service must have a method named `default_method'";
+                LOG(ERROR) << "http_master_service must have a method named `default_method'";
                 return -1;
             }
             if (md->input_type()->field_count() != 0) {
-                MLOG(ERROR) << "The request type of http_master_service must have "
+                LOG(ERROR) << "The request type of http_master_service must have "
                                "no fields, actually " << md->input_type()->field_count();
                 return -1;
             }
             if (md->output_type()->field_count() != 0) {
-                MLOG(ERROR) << "The response type of http_master_service must have "
+                LOG(ERROR) << "The response type of http_master_service must have "
                                "no fields, actually " << md->output_type()->field_count();
                 return -1;
             }
@@ -779,7 +779,7 @@ namespace melon {
                 _session_local_data_pool =
                         new(std::nothrow) SimpleDataPool(_options.session_local_data_factory);
                 if (NULL == _session_local_data_pool) {
-                    MLOG(ERROR) << "Fail to new SimpleDataPool";
+                    LOG(ERROR) << "Fail to new SimpleDataPool";
                     return -1;
                 }
             } else {
@@ -792,7 +792,7 @@ namespace melon {
         // should be destroyed in Join().
         _keytable_pool = new fiber_keytable_pool_t;
         if (fiber_keytable_pool_init(_keytable_pool) != 0) {
-            MLOG(ERROR) << "Fail to init _keytable_pool";
+            LOG(ERROR) << "Fail to init _keytable_pool";
             delete _keytable_pool;
             _keytable_pool = NULL;
             return -1;
@@ -802,7 +802,7 @@ namespace melon {
             _tl_options.thread_local_data_factory = _options.thread_local_data_factory;
             if (fiber_key_create2(&_tl_options.tls_key, DestroyServerTLS,
                                   _options.thread_local_data_factory) != 0) {
-                MLOG(ERROR) << "Fail to create thread-local key";
+                LOG(ERROR) << "Fail to create thread-local key";
                 return -1;
             }
             if (_options.reserved_thread_local_data) {
@@ -858,12 +858,12 @@ namespace melon {
             }
             delete[] init_args;
             if (ncreated != _options.fiber_init_count) {
-                MLOG(ERROR) << "Fail to create "
+                LOG(ERROR) << "Fail to create "
                             << _options.fiber_init_count - ncreated << " fibers";
                 return -1;
             }
             if (num_failed_result != 0) {
-                MLOG(ERROR) << num_failed_result << " fiber_init_fn failed";
+                LOG(ERROR) << num_failed_result << " fiber_init_fn failed";
                 return -1;
             }
         }
@@ -879,7 +879,7 @@ namespace melon {
             }
             CertInfo &default_cert = _options.mutable_ssl_options()->default_cert;
             if (default_cert.certificate.empty()) {
-                MLOG(ERROR) << "default_cert is empty";
+                LOG(ERROR) << "default_cert is empty";
                 return -1;
             }
             if (AddCertificate(default_cert) != 0) {
@@ -894,7 +894,7 @@ namespace melon {
                 }
             }
         } else if (_options.force_ssl) {
-            MLOG(ERROR) << "Fail to force SSL for all connections "
+            LOG(ERROR) << "Fail to force SSL for all connections "
                            "without ServerOptions.ssl_options";
             return -1;
         }
@@ -904,14 +904,14 @@ namespace melon {
         if (_options.has_builtin_services &&
             _builtin_service_count <= 0 &&
             AddBuiltinServices() != 0) {
-            MLOG(ERROR) << "Fail to add builtin services";
+            LOG(ERROR) << "Fail to add builtin services";
             return -1;
         }
         // If a server is started/stopped for mutiple times and one of the options
         // sets has_builtin_service to true, builtin services will be enabled for
         // any later re-start. Check this case and report to user.
         if (!_options.has_builtin_services && _builtin_service_count > 0) {
-            MLOG(ERROR) << "A server started/stopped for multiple times must be "
+            LOG(ERROR) << "A server started/stopped for multiple times must be "
                            "consistent on ServerOptions.has_builtin_services";
             return -1;
         }
@@ -948,7 +948,7 @@ namespace melon {
                 }
                 ConcurrencyLimiter *cl = NULL;
                 if (!CreateConcurrencyLimiter(*amc, &cl)) {
-                    MLOG(ERROR) << "Fail to create ConcurrencyLimiter for method";
+                    LOG(ERROR) << "Fail to create ConcurrencyLimiter for method";
                     return -1;
                 }
                 it->second.status->SetConcurrencyLimiter(cl);
@@ -957,13 +957,13 @@ namespace melon {
 
         // Create listening ports
         if (port_range.min_port > port_range.max_port) {
-            MLOG(ERROR) << "Invalid port_range=[" << port_range.min_port << '-'
+            LOG(ERROR) << "Invalid port_range=[" << port_range.min_port << '-'
                         << port_range.max_port << ']';
             return -1;
         }
         if (mutil::is_endpoint_extended(endpoint) &&
             (port_range.min_port != endpoint.port || port_range.max_port != endpoint.port)) {
-            MLOG(ERROR) << "Only IPv4 address supports port range feature";
+            LOG(ERROR) << "Only IPv4 address supports port range feature";
             return -1;
         }
         _listen_addr = endpoint;
@@ -975,11 +975,11 @@ namespace melon {
                     continue;
                 }
                 if (port_range.min_port != port_range.max_port) {
-                    MLOG(ERROR) << "Fail to listen " << _listen_addr.ip
+                    LOG(ERROR) << "Fail to listen " << _listen_addr.ip
                                 << ":[" << port_range.min_port << '-'
                                 << port_range.max_port << ']';
                 } else {
-                    MLOG(ERROR) << "Fail to listen " << _listen_addr;
+                    LOG(ERROR) << "Fail to listen " << _listen_addr;
                 }
                 return -1;
             }
@@ -988,20 +988,20 @@ namespace melon {
                 // https://en.wikipedia.org/wiki/Ephemeral_port
                 _listen_addr.port = get_port_from_fd(sockfd);
                 if (_listen_addr.port <= 0) {
-                    MLOG(ERROR) << "Fail to get port from fd=" << sockfd;
+                    LOG(ERROR) << "Fail to get port from fd=" << sockfd;
                     return -1;
                 }
             }
             if (_am == NULL) {
                 _am = BuildAcceptor();
                 if (NULL == _am) {
-                    MLOG(ERROR) << "Fail to build acceptor";
+                    LOG(ERROR) << "Fail to build acceptor";
                     return -1;
                 }
                 _am->_use_rdma = _options.use_rdma;
                 if (_options.fiber_tag < FIBER_TAG_DEFAULT ||
                     _options.fiber_tag >= fiber::FLAGS_task_group_ntags) {
-                    MLOG(ERROR) << "Fail to set tag " << _options.fiber_tag << ", tag range is ["
+                    LOG(ERROR) << "Fail to set tag " << _options.fiber_tag << ", tag range is ["
                                 << FIBER_TAG_DEFAULT << ":" << fiber::FLAGS_task_group_ntags << ")";
                     return -1;
                 }
@@ -1018,7 +1018,7 @@ namespace melon {
             if (_am->StartAccept(sockfd, _options.idle_timeout_sec,
                                  _default_ssl_ctx,
                                  _options.force_ssl) != 0) {
-                MLOG(ERROR) << "Fail to start acceptor";
+                LOG(ERROR) << "Fail to start acceptor";
                 return -1;
             }
             sockfd.release();
@@ -1026,18 +1026,18 @@ namespace melon {
         }
         if (_options.internal_port >= 0 && _options.has_builtin_services) {
             if (_options.internal_port == _listen_addr.port) {
-                MLOG(ERROR) << "ServerOptions.internal_port=" << _options.internal_port
+                LOG(ERROR) << "ServerOptions.internal_port=" << _options.internal_port
                             << " is same with port=" << _listen_addr.port << " to Start()";
                 return -1;
             }
             if (_options.internal_port == 0) {
-                MLOG(ERROR) << "ServerOptions.internal_port cannot be 0, which"
+                LOG(ERROR) << "ServerOptions.internal_port cannot be 0, which"
                                " allocates a dynamic and probabaly unfiltered port,"
                                " against the purpose of \"being internal\".";
                 return -1;
             }
             if (mutil::is_endpoint_extended(endpoint)) {
-                MLOG(ERROR) << "internal_port is available in IPv4 address only";
+                LOG(ERROR) << "internal_port is available in IPv4 address only";
                 return -1;
             }
 
@@ -1045,13 +1045,13 @@ namespace melon {
             internal_point.port = _options.internal_port;
             mutil::fd_guard sockfd(tcp_listen(internal_point));
             if (sockfd < 0) {
-                MLOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
+                LOG(ERROR) << "Fail to listen " << internal_point << " (internal)";
                 return -1;
             }
             if (NULL == _internal_am) {
                 _internal_am = BuildAcceptor();
                 if (NULL == _internal_am) {
-                    MLOG(ERROR) << "Fail to build internal acceptor";
+                    LOG(ERROR) << "Fail to build internal acceptor";
                     return -1;
                 }
             }
@@ -1059,7 +1059,7 @@ namespace melon {
             if (_internal_am->StartAccept(sockfd, _options.idle_timeout_sec,
                                           _default_ssl_ctx,
                                           false) != 0) {
-                MLOG(ERROR) << "Fail to start internal_acceptor";
+                LOG(ERROR) << "Fail to start internal_acceptor";
                 return -1;
             }
             sockfd.release();
@@ -1068,19 +1068,19 @@ namespace melon {
         PutPidFileIfNeeded();
 
         // Launch _derivative_thread.
-        MCHECK_EQ(INVALID_FIBER, _derivative_thread);
+        CHECK_EQ(INVALID_FIBER, _derivative_thread);
         fiber_attr_t tmp = FIBER_ATTR_NORMAL;
         tmp.tag = _options.fiber_tag;
         if (fiber_start_background(&_derivative_thread, &tmp,
                                    UpdateDerivedVars, this) != 0) {
-            MLOG(ERROR) << "Fail to create _derivative_thread";
+            LOG(ERROR) << "Fail to create _derivative_thread";
             return -1;
         }
 
         // Print tips to server launcher.
         if (mutil::is_endpoint_extended(_listen_addr)) {
             const char *builtin_msg = _options.has_builtin_services ? " with builtin service" : "";
-            MLOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
+            LOG(INFO) << "Server[" << version() << "] is serving on " << _listen_addr
                        << builtin_msg << '.';
             //TODO add TrackMe support
         } else {
@@ -1092,13 +1092,13 @@ namespace melon {
                 http_port = _options.internal_port;
                 server_info << " and internal_port=" << _options.internal_port;
             }
-            MLOG(INFO) << server_info.str() << '.';
+            LOG(INFO) << server_info.str() << '.';
 
             if (_options.has_builtin_services) {
-                MLOG(INFO) << "Check out http://" << mutil::my_hostname() << ':'
+                LOG(INFO) << "Check out http://" << mutil::my_hostname() << ':'
                            << http_port << " in web browser.";
             } else {
-                MLOG(WARNING) << "Builtin services are disabled according to "
+                LOG(WARNING) << "Builtin services are disabled according to "
                                  "ServerOptions.has_builtin_services";
             }
             // For trackme reporting
@@ -1117,7 +1117,7 @@ namespace melon {
         mutil::EndPoint point;
         if (str2endpoint(ip_port_str, &point) != 0 &&
             hostname2endpoint(ip_port_str, &point) != 0) {
-            MLOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
+            LOG(ERROR) << "Invalid address=`" << ip_port_str << '\'';
             return -1;
         }
         return Start(point, opt);
@@ -1125,7 +1125,7 @@ namespace melon {
 
     int Server::Start(int port, const ServerOptions *opt) {
         if (port < 0 || port > 65535) {
-            MLOG(ERROR) << "Invalid port=" << port;
+            LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }
         return Start(mutil::EndPoint(mutil::IP_ANY, port), opt);
@@ -1136,7 +1136,7 @@ namespace melon {
         mutil::ip_t ip;
         if (mutil::str2ip(ip_str, &ip) != 0 &&
             mutil::hostname2ip(ip_str, &ip) != 0) {
-            MLOG(ERROR) << "Invalid address=`" << ip_str << '\'';
+            LOG(ERROR) << "Invalid address=`" << ip_str << '\'';
             return -1;
         }
         return StartInternal(mutil::EndPoint(ip, 0), port_range, opt);
@@ -1152,7 +1152,7 @@ namespace melon {
         }
         _status = STOPPING;
 
-        MLOG(INFO) << "Server[" << version() << "] is going to quit";
+        LOG(INFO) << "Server[" << version() << "] is going to quit";
 
         if (_am) {
             _am->StopAccept(timeout_ms);
@@ -1187,7 +1187,7 @@ namespace melon {
             // done here (before leaving Join) because it's legal for users to
             // delete fiber keys after Join which makes related objects
             // in KeyTables undeletable anymore and leaked.
-            MCHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
+            CHECK_EQ(0, fiber_keytable_pool_destroy(_keytable_pool));
             // TODO: Can't delete _keytable_pool which may be accessed by
             // still-running fibers (created by the server). The memory is
             // leaked but servers are unlikely to be started/stopped frequently,
@@ -1197,7 +1197,7 @@ namespace melon {
 
         // Delete tls_key as well since we don't need it anymore.
         if (_tl_options.tls_key != INVALID_FIBER_KEY) {
-            MCHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
+            CHECK_EQ(0, fiber_key_delete(_tl_options.tls_key));
             _tl_options.tls_key = INVALID_FIBER_KEY;
         }
 
@@ -1219,34 +1219,34 @@ namespace melon {
                                    bool is_builtin_service,
                                    const ServiceOptions &svc_opt) {
         if (NULL == service) {
-            MLOG(ERROR) << "Parameter[service] is NULL!";
+            LOG(ERROR) << "Parameter[service] is NULL!";
             return -1;
         }
         const google::protobuf::ServiceDescriptor *sd = service->GetDescriptor();
         if (sd->method_count() == 0) {
-            MLOG(ERROR) << "service=" << sd->full_name()
+            LOG(ERROR) << "service=" << sd->full_name()
                         << " does not have any method.";
             return -1;
         }
 
         if (InitializeOnce() != 0) {
-            MLOG(ERROR) << "Fail to initialize Server[" << version() << ']';
+            LOG(ERROR) << "Fail to initialize Server[" << version() << ']';
             return -1;
         }
         if (status() != READY) {
-            MLOG(ERROR) << "Can't add service=" << sd->full_name() << " to Server["
+            LOG(ERROR) << "Can't add service=" << sd->full_name() << " to Server["
                         << version() << "] which is " << status_str(status());
             return -1;
         }
 
         if (_fullname_service_map.seek(sd->full_name()) != NULL) {
-            MLOG(ERROR) << "service=" << sd->full_name() << " already exists";
+            LOG(ERROR) << "service=" << sd->full_name() << " already exists";
             return -1;
         }
         ServiceProperty *old_ss = _service_map.seek(sd->name());
         if (old_ss != NULL) {
             // names conflict.
-            MLOG(ERROR) << "Conflict service name between "
+            LOG(ERROR) << "Conflict service name between "
                         << sd->full_name() << " and "
                         << old_ss->service_name();
             return -1;
@@ -1287,7 +1287,7 @@ namespace melon {
                 if (_method_map.seek(full_name_wo_ns) == NULL) {
                     _method_map[full_name_wo_ns] = mp2;
                 } else {
-                    MLOG(ERROR) << '`' << full_name_wo_ns << "' already exists";
+                    LOG(ERROR) << '`' << full_name_wo_ns << "' already exists";
                     RemoveMethodsOf(service);
                     return -1;
                 }
@@ -1312,13 +1312,13 @@ namespace melon {
             // Parse the mappings.
             std::vector<RestfulMapping> mappings;
             if (!ParseRestfulMappings(restful_mappings, &mappings)) {
-                MLOG(ERROR) << "Fail to parse mappings `" << restful_mappings << '\'';
+                LOG(ERROR) << "Fail to parse mappings `" << restful_mappings << '\'';
                 RemoveService(service);
                 return -1;
             }
             if (mappings.empty()) {
                 // we already trimmed at the beginning, this is impossible.
-                MLOG(ERROR) << "Impossible: Nothing in restful_mappings";
+                LOG(ERROR) << "Impossible: Nothing in restful_mappings";
                 RemoveService(service);
                 return -1;
             }
@@ -1342,7 +1342,7 @@ namespace melon {
                         sd->full_name() + "." + mappings[i].method_name;
                 MethodProperty *mp = _method_map.seek(full_method_name);
                 if (mp == NULL) {
-                    MLOG(ERROR) << "Unknown method=`" << full_method_name << '\'';
+                    LOG(ERROR) << "Unknown method=`" << full_method_name << '\'';
                     RemoveService(service);
                     return -1;
                 }
@@ -1361,7 +1361,7 @@ namespace melon {
                     if (!_global_restful_map->AddMethod(
                             mappings[i].path, service, params,
                             mappings[i].method_name, mp->status)) {
-                        MLOG(ERROR) << "Fail to map `" << mappings[i].path
+                        LOG(ERROR) << "Fail to map `" << mappings[i].path
                                     << "' to `" << full_method_name << '\'';
                         RemoveService(service);
                         return -1;
@@ -1380,7 +1380,7 @@ namespace melon {
                 ServiceProperty *sp2 = _service_map.seek(svc_name);
                 if (((!!sp) != (!!sp2)) ||
                     (sp != NULL && sp->service != sp2->service)) {
-                    MLOG(ERROR) << "Impossible: _fullname_service and _service_map are"
+                    LOG(ERROR) << "Impossible: _fullname_service and _service_map are"
                                    " inconsistent before inserting " << svc_name;
                     RemoveService(service);
                     return -1;
@@ -1399,7 +1399,7 @@ namespace melon {
                 params.pb_single_repeated_to_array = svc_opt.pb_single_repeated_to_array;
                 if (!m->AddMethod(mappings[i].path, service, params,
                                   mappings[i].method_name, mp->status)) {
-                    MLOG(ERROR) << "Fail to map `" << mappings[i].path << "' to `"
+                    LOG(ERROR) << "Fail to map `" << mappings[i].path << "' to `"
                                 << sd->full_name() << '.' << mappings[i].method_name
                                 << '\'';
                     if (sp == NULL) {
@@ -1436,7 +1436,7 @@ namespace melon {
             for (size_t i = last_size; i != cur_size; ++i) {
                 const TabInfo &info = (*_tab_info_list)[i];
                 if (!info.valid()) {
-                    MLOG(ERROR) << "Invalid TabInfo: path=" << info.path
+                    LOG(ERROR) << "Invalid TabInfo: path=" << info.path
                                 << " tab_name=" << info.tab_name;
                     _tab_info_list->resize(last_size);
                     RemoveService(service);
@@ -1497,7 +1497,7 @@ namespace melon {
                 _method_map.erase(full_name_wo_ns);
             }
             if (mp == NULL) {
-                MLOG(ERROR) << "Fail to find method=" << md->full_name();
+                LOG(ERROR) << "Fail to find method=" << md->full_name();
                 continue;
             }
             if (mp->http_url) {
@@ -1508,7 +1508,7 @@ namespace melon {
                     mutil::StringSplitter slash_sp(
                             path.data(), path.data() + path.size(), '/');
                     if (slash_sp == NULL) {
-                        MLOG(ERROR) << "Invalid http_url=" << *mp->http_url;
+                        LOG(ERROR) << "Invalid http_url=" << *mp->http_url;
                         break;
                     }
                     mutil::StringPiece v_svc_name(slash_sp.field(), slash_sp.length());
@@ -1521,14 +1521,14 @@ namespace melon {
                                 continue;
                             }
                         }
-                        MLOG(ERROR) << "Impossible: service=" << v_svc_name
+                        LOG(ERROR) << "Impossible: service=" << v_svc_name
                                     << " for restful_map does not exist";
                         break;
                     }
                     std::string path_str;
                     path.CopyToString(&path_str);
                     if (!vsp->restful_map->RemoveByPathString(path_str)) {
-                        MLOG(ERROR) << "Fail to find path=" << path
+                        LOG(ERROR) << "Fail to find path=" << path
                                     << " in restful_map of service=" << v_svc_name;
                     }
                 }
@@ -1544,11 +1544,11 @@ namespace melon {
 
     int Server::RemoveService(google::protobuf::Service *service) {
         if (NULL == service) {
-            MLOG(ERROR) << "Parameter[service] is NULL";
+            LOG(ERROR) << "Parameter[service] is NULL";
             return -1;
         }
         if (status() != READY) {
-            MLOG(ERROR) << "Can't remove service="
+            LOG(ERROR) << "Can't remove service="
                         << service->GetDescriptor()->full_name() << " from Server["
                         << version() << "] which is " << status_str(status());
             return -1;
@@ -1557,7 +1557,7 @@ namespace melon {
         const google::protobuf::ServiceDescriptor *sd = service->GetDescriptor();
         ServiceProperty *ss = _fullname_service_map.seek(sd->full_name());
         if (ss == NULL) {
-            RPC_VMLOG << "Fail to find service=" << sd->full_name().c_str();
+            RPC_VLOG << "Fail to find service=" << sd->full_name().c_str();
             return -1;
         }
         RemoveMethodsOf(service);
@@ -1581,7 +1581,7 @@ namespace melon {
 
     void Server::ClearServices() {
         if (status() != READY) {
-            MLOG_IF(ERROR, status() != UNINITIALIZED)
+            LOG_IF(ERROR, status() != UNINITIALIZED)
             << "Can't clear services from Server[" << version()
             << "] which is " << status_str(status());
             return;
@@ -1681,7 +1681,7 @@ namespace melon {
         if (_options.pid_file.empty()) {
             return;
         }
-        RPC_VMLOG << "pid_file = " << _options.pid_file;
+        RPC_VLOG << "pid_file = " << _options.pid_file;
         // Recursively create directory
         for (size_t pos = _options.pid_file.find('/'); pos != std::string::npos;
              pos = _options.pid_file.find('/', pos + 1)) {
@@ -1693,21 +1693,21 @@ namespace melon {
                 && errno != EISDIR
 #endif
                     ) {
-                PMLOG(WARNING) << "Fail to create " << dir_name;
+                PLOG(WARNING) << "Fail to create " << dir_name;
                 _options.pid_file.clear();
                 return;
             }
         }
         int fd = open(_options.pid_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
         if (fd < 0) {
-            MLOG(WARNING) << "Fail to open " << _options.pid_file;
+            LOG(WARNING) << "Fail to open " << _options.pid_file;
             _options.pid_file.clear();
             return;
         }
         char buf[32];
         int nw = snprintf(buf, sizeof(buf), "%lld", (long long) getpid());
-        MCHECK_EQ(nw, write(fd, buf, nw));
-        MCHECK_EQ(0, close(fd));
+        CHECK_EQ(nw, write(fd, buf, nw));
+        CHECK_EQ(0, close(fd));
     }
 
     void Server::RunUntilAskedToQuit() {
@@ -1725,14 +1725,14 @@ namespace melon {
             return NULL;
         }
         if (MELON_UNLIKELY(tl_options->thread_local_data_factory == NULL)) {
-            MCHECK(false) << "The protocol impl. may not set tls correctly";
+            CHECK(false) << "The protocol impl. may not set tls correctly";
             return NULL;
         }
         void *data = fiber_getspecific(tl_options->tls_key);
         if (data == NULL) {
             data = tl_options->thread_local_data_factory->CreateData();
             if (data != NULL) {
-                MCHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
+                CHECK_EQ(0, fiber_setspecific(tl_options->tls_key, data));
             }
         }
         return data;
@@ -1767,7 +1767,7 @@ namespace melon {
 
     int StartDummyServerAt(int port, ProfilerLinker) {
         if (port < 0 || port >= 65536) {
-            MLOG(ERROR) << "Invalid port=" << port;
+            LOG(ERROR) << "Invalid port=" << port;
             return -1;
         }
         if (g_dummy_server == NULL) {  // (1)
@@ -1779,7 +1779,7 @@ namespace melon {
                 ServerOptions options;
                 options.num_threads = 0;
                 if (dummy_server->Start(port, &options) != 0) {
-                    MLOG(ERROR) << "Fail to start dummy_server at port=" << port;
+                    LOG(ERROR) << "Fail to start dummy_server at port=" << port;
                     return -1;
                 }
                 // (1) may see uninitialized dummy_server due to relaxed memory
@@ -1789,7 +1789,7 @@ namespace melon {
                 return 0;
             }
         }
-        MLOG(ERROR) << "Already have dummy_server at port="
+        LOG(ERROR) << "Already have dummy_server at port="
                     << g_dummy_server->listen_address().port;
         return -1;
     }
@@ -1851,13 +1851,13 @@ namespace melon {
 
     int Server::AddCertificate(const CertInfo &cert) {
         if (!_options.has_ssl_options()) {
-            MLOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+            LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
             return -1;
         }
         std::string cert_key(cert.certificate);
         cert_key.append(cert.private_key);
         if (_ssl_ctx_map.seek(cert_key) != NULL) {
-            MLOG(WARNING) << cert << " already exists";
+            LOG(WARNING) << cert << " already exists";
             return 0;
         }
 
@@ -1878,7 +1878,7 @@ namespace melon {
 #endif
 
         if (!_reload_cert_maps.Modify(AddCertMapping, ssl_ctx)) {
-            MLOG(ERROR) << "Fail to add mappings into _reload_cert_maps";
+            LOG(ERROR) << "Fail to add mappings into _reload_cert_maps";
             return -1;
         }
         _ssl_ctx_map[cert_key] = ssl_ctx;
@@ -1888,12 +1888,12 @@ namespace melon {
     bool Server::AddCertMapping(CertMaps &bg, const SSLContext &ssl_ctx) {
         if (!bg.cert_map.initialized()
             && bg.cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MLOG(ERROR) << "Fail to init _cert_map";
+            LOG(ERROR) << "Fail to init _cert_map";
             return false;
         }
         if (!bg.wildcard_cert_map.initialized()
             && bg.wildcard_cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MLOG(ERROR) << "Fail to init _wildcard_cert_map";
+            LOG(ERROR) << "Fail to init _wildcard_cert_map";
             return false;
         }
 
@@ -1909,7 +1909,7 @@ namespace melon {
             if (cmap->seek(hostname) == NULL) {
                 cmap->insert(hostname, ssl_ctx.ctx);
             } else {
-                MLOG(WARNING) << "Duplicate certificate hostname=" << hostname;
+                LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
             }
         }
         return true;
@@ -1917,24 +1917,24 @@ namespace melon {
 
     int Server::RemoveCertificate(const CertInfo &cert) {
         if (!_options.has_ssl_options()) {
-            MLOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+            LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
             return -1;
         }
         std::string cert_key(cert.certificate);
         cert_key.append(cert.private_key);
         SSLContext *ssl_ctx = _ssl_ctx_map.seek(cert_key);
         if (ssl_ctx == NULL) {
-            MLOG(WARNING) << cert << " doesn't exist";
+            LOG(WARNING) << cert << " doesn't exist";
             return 0;
         }
         if (ssl_ctx->ctx == _default_ssl_ctx) {
-            MLOG(WARNING) << "Cannot remove: " << cert
+            LOG(WARNING) << "Cannot remove: " << cert
                           << " since it's the default certificate";
             return -1;
         }
 
         if (!_reload_cert_maps.Modify(RemoveCertMapping, *ssl_ctx)) {
-            MLOG(ERROR) << "Fail to remove mappings from _reload_cert_maps";
+            LOG(ERROR) << "Fail to remove mappings from _reload_cert_maps";
             return -1;
         }
 
@@ -1962,13 +1962,13 @@ namespace melon {
 
     int Server::ResetCertificates(const std::vector<CertInfo> &certs) {
         if (!_options.has_ssl_options()) {
-            MLOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
+            LOG(ERROR) << "ServerOptions.ssl_options is not configured yet";
             return -1;
         }
 
         SSLContextMap tmp_map;
         if (tmp_map.init(INITIAL_CERT_MAP) != 0) {
-            MLOG(ERROR) << "Fail to initialize tmp_map";
+            LOG(ERROR) << "Fail to initialize tmp_map";
             return -1;
         }
 
@@ -1982,7 +1982,7 @@ namespace melon {
             std::string cert_key(certs[i].certificate);
             cert_key.append(certs[i].private_key);
             if (tmp_map.seek(cert_key) != NULL) {
-                MLOG(WARNING) << certs[i] << " already exists";
+                LOG(WARNING) << certs[i] << " already exists";
                 return 0;
             }
 
@@ -2014,12 +2014,12 @@ namespace melon {
     bool Server::ResetCertMappings(CertMaps &bg, const SSLContextMap &ctx_map) {
         if (!bg.cert_map.initialized()
             && bg.cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MLOG(ERROR) << "Fail to init _cert_map";
+            LOG(ERROR) << "Fail to init _cert_map";
             return false;
         }
         if (!bg.wildcard_cert_map.initialized()
             && bg.wildcard_cert_map.init(INITIAL_CERT_MAP) != 0) {
-            MLOG(ERROR) << "Fail to init _wildcard_cert_map";
+            LOG(ERROR) << "Fail to init _wildcard_cert_map";
             return false;
         }
         bg.cert_map.clear();
@@ -2040,7 +2040,7 @@ namespace melon {
                 if (cmap->seek(hostname) == NULL) {
                     cmap->insert(hostname, ssl_ctx.ctx);
                 } else {
-                    MLOG(WARNING) << "Duplicate certificate hostname=" << hostname;
+                    LOG(WARNING) << "Duplicate certificate hostname=" << hostname;
                 }
             }
         }
@@ -2061,7 +2061,7 @@ namespace melon {
 
     int Server::ResetMaxConcurrency(int max_concurrency) {
         if (!IsRunning()) {
-            MLOG(WARNING) << "ResetMaxConcurrency is only allowed for a Running Server";
+            LOG(WARNING) << "ResetMaxConcurrency is only allowed for a Running Server";
             return -1;
         }
         // Assume that modifying int32 is atomical in X86
@@ -2071,11 +2071,11 @@ namespace melon {
 
     AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(MethodProperty *mp) {
         if (IsRunning()) {
-            MLOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
+            LOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
             return g_default_max_concurrency_of_method;
         }
         if (mp->status == NULL) {
-            MLOG(ERROR) << "method=" << mp->method->full_name()
+            LOG(ERROR) << "method=" << mp->method->full_name()
                         << " does not support max_concurrency";
             _failed_to_set_max_concurrency_of_method = true;
             return g_default_max_concurrency_of_method;
@@ -2085,7 +2085,7 @@ namespace melon {
 
     int Server::MaxConcurrencyOf(const MethodProperty *mp) const {
         if (IsRunning()) {
-            MLOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
+            LOG(WARNING) << "MaxConcurrencyOf is only allowed before Server started";
             return g_default_max_concurrency_of_method;
         }
         if (mp == NULL || mp->status == NULL) {
@@ -2097,7 +2097,7 @@ namespace melon {
     AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(const mutil::StringPiece &full_method_name) {
         MethodProperty *mp = _method_map.seek(full_method_name);
         if (mp == NULL) {
-            MLOG(ERROR) << "Fail to find method=" << full_method_name;
+            LOG(ERROR) << "Fail to find method=" << full_method_name;
             _failed_to_set_max_concurrency_of_method = true;
             return g_default_max_concurrency_of_method;
         }
@@ -2113,7 +2113,7 @@ namespace melon {
         MethodProperty *mp = const_cast<MethodProperty *>(
                 FindMethodPropertyByFullName(full_service_name, method_name));
         if (mp == NULL) {
-            MLOG(ERROR) << "Fail to find method=" << full_service_name
+            LOG(ERROR) << "Fail to find method=" << full_service_name
                         << '/' << method_name;
             _failed_to_set_max_concurrency_of_method = true;
             return g_default_max_concurrency_of_method;

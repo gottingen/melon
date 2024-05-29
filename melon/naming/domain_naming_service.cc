@@ -38,7 +38,7 @@ namespace melon::naming {
                                         std::vector<ServerNode> *servers) {
         servers->clear();
         if (!dns_name) {
-            MLOG(ERROR) << "dns_name is NULL";
+            LOG(ERROR) << "dns_name is NULL";
             return -1;
         }
 
@@ -50,7 +50,7 @@ namespace melon::naming {
             buf[i] = dns_name[i];
         }
         if (i == sizeof(buf) - 1) {
-            MLOG(ERROR) << "dns_name=`" << dns_name << "' is too long";
+            LOG(ERROR) << "dns_name=`" << dns_name << "' is too long";
             return -1;
         }
 
@@ -61,22 +61,22 @@ namespace melon::naming {
             char *end = NULL;
             port = strtol(dns_name + i, &end, 10);
             if (end == dns_name + i) {
-                MLOG(ERROR) << "No port after colon in `" << dns_name << '\'';
+                LOG(ERROR) << "No port after colon in `" << dns_name << '\'';
                 return -1;
             } else if (*end != '\0') {
                 if (*end != '/') {
-                    MLOG(ERROR) << "Invalid content=`" << end << "' after port="
+                    LOG(ERROR) << "Invalid content=`" << end << "' after port="
                                << port << " in `" << dns_name << '\'';
                     return -1;
                 }
                 // Drop path and other stuff.
-                RPC_VMLOG << "Drop content=`" << end << "' after port=" << port
+                RPC_VLOG << "Drop content=`" << end << "' after port=" << port
                          << " in `" << dns_name << '\'';
                 // NOTE: Don't ever change *end which is const.
             }
         }
         if (port < 0 || port > 65535) {
-            MLOG(ERROR) << "Invalid port=" << port << " in `" << dns_name << '\'';
+            LOG(ERROR) << "Invalid port=" << port << " in `" << dns_name << '\'';
             return -1;
         }
 
@@ -102,7 +102,7 @@ namespace melon::naming {
                 freeaddrinfo(addrResult);
                 return 0;
             } else {
-                MLOG(WARNING) << "Can't resolve `" << buf << "for ipv6, fallback to ipv4";
+                LOG(WARNING) << "Can't resolve `" << buf << "for ipv6, fallback to ipv4";
                 // fallback to ipv4
             }
 
@@ -115,7 +115,7 @@ namespace melon::naming {
         // https://lists.apple.com/archives/darwin-dev/2006/May/msg00008.html
         struct hostent* result = gethostbyname(buf);
         if (result == NULL) {
-            MLOG(WARNING) << "result of gethostbyname is NULL";
+            LOG(WARNING) << "result of gethostbyname is NULL";
             return -1;
         }
 #else
@@ -137,17 +137,17 @@ namespace melon::naming {
             }
             _aux_buf_len *= 2;
             _aux_buf.reset(new char[_aux_buf_len]);
-            RPC_VMLOG << "Resized _aux_buf to " << _aux_buf_len
+            RPC_VLOG << "Resized _aux_buf to " << _aux_buf_len
                      << ", dns_name=" << dns_name;
         } while (1);
         if (ret != 0) {
             // `hstrerror' is thread safe under linux
-            MLOG(WARNING) << "Can't resolve `" << buf << "', return=`" << berror(ret)
+            LOG(WARNING) << "Can't resolve `" << buf << "', return=`" << berror(ret)
                          << "' herror=`" << hstrerror(error) << '\'';
             return -1;
         }
         if (result == NULL) {
-            MLOG(WARNING) << "result of gethostbyname_r is NULL";
+            LOG(WARNING) << "result of gethostbyname_r is NULL";
             return -1;
         }
 #endif
@@ -161,7 +161,7 @@ namespace melon::naming {
                 bcopy(result->h_addr_list[i], &point.ip, result->h_length);
                 servers->push_back(ServerNode(point, std::string()));
             } else {
-                MLOG(WARNING) << "Found address of unsupported protocol="
+                LOG(WARNING) << "Found address of unsupported protocol="
                              << result->h_addrtype;
             }
         }

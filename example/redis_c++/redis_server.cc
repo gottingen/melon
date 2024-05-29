@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     melon::ServerOptions server_options;
     server_options.redis_service = rsimpl;
     if (server.Start(FLAGS_port, &server_options) != 0) {
-        MLOG(ERROR) << "Fail to start server";
+        LOG(ERROR) << "Fail to start server";
         return -1;
     }
     server.RunUntilAskedToQuit();

@@ -67,7 +67,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
     if (guardsize_in <= 0) {
         void* mem = malloc(stacksize);
         if (NULL == mem) {
-            PMLOG_EVERY_SECOND(ERROR) << "Fail to malloc (size="
+            PLOG_EVERY_N_SEC(ERROR, 1) << "Fail to malloc (size="
                                      << stacksize << ")";
             return -1;
         }
@@ -93,7 +93,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
                                (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
 
         if (MAP_FAILED == mem) {
-            PMLOG_EVERY_SECOND(ERROR)
+            PLOG_EVERY_N_SEC(ERROR, 1)
                 << "Fail to mmap size=" << memsize << " stack_count="
                 << s_stack_count.load(mutil::memory_order_relaxed)
                 << ", possibly limited by /proc/sys/vm/max_map_count";
@@ -103,14 +103,14 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
 
         void* aligned_mem = (void*)(((intptr_t)mem + PAGESIZE_M1) & ~PAGESIZE_M1);
         if (aligned_mem != mem) {
-            MLOG_ONCE(ERROR) << "addr=" << mem << " returned by mmap is not "
+            LOG_FIRST_N(ERROR, 1) << "addr=" << mem << " returned by mmap is not "
                 "aligned by pagesize=" << PAGESIZE;
         }
         const int offset = (char*)aligned_mem - (char*)mem;
         if (guardsize <= offset ||
             mprotect(aligned_mem, guardsize - offset, PROT_NONE) != 0) {
             munmap(mem, memsize);
-            PMLOG_EVERY_SECOND(ERROR)
+            PLOG_EVERY_N_SEC(ERROR, 1)
                 << "Fail to mprotect " << (void*)aligned_mem << " length="
                 << guardsize - offset; 
             return -1;

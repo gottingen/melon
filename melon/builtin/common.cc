@@ -23,7 +23,7 @@
 #include <sys/time.h>
 #include <fcntl.h>                           // O_RDONLY
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/fd_guard.h>                  // fd_guard
 #include <melon/utility/file_util.h>                 // mutil::FilePath
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>
@@ -322,7 +322,7 @@ namespace melon {
     int FileChecksum(const char *file_path, unsigned char *checksum) {
         mutil::fd_guard fd(open(file_path, O_RDONLY));
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open `" << file_path << "'";
+            PLOG(ERROR) << "Fail to open `" << file_path << "'";
             return -1;
         }
         char block[16 * 1024];   // 16k each time

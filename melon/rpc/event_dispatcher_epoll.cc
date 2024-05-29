@@ -29,15 +29,15 @@ namespace melon {
             : _epfd(-1), _stop(false), _tid(0), _consumer_thread_attr(FIBER_ATTR_NORMAL) {
         _epfd = epoll_create(1024 * 1024);
         if (_epfd < 0) {
-            PMLOG(FATAL) << "Fail to create epoll";
+            PLOG(FATAL) << "Fail to create epoll";
             return;
         }
-        MCHECK_EQ(0, mutil::make_close_on_exec(_epfd));
+        CHECK_EQ(0, mutil::make_close_on_exec(_epfd));
 
         _wakeup_fds[0] = -1;
         _wakeup_fds[1] = -1;
         if (pipe(_wakeup_fds) != 0) {
-            PMLOG(FATAL) << "Fail to create pipe";
+            PLOG(FATAL) << "Fail to create pipe";
             return;
         }
     }
@@ -57,12 +57,12 @@ namespace melon {
 
     int EventDispatcher::Start(const fiber_attr_t *consumer_thread_attr) {
         if (_epfd < 0) {
-            MLOG(FATAL) << "epoll was not created";
+            LOG(FATAL) << "epoll was not created";
             return -1;
         }
 
         if (_tid != 0) {
-            MLOG(FATAL) << "Already started this dispatcher(" << this
+            LOG(FATAL) << "Already started this dispatcher(" << this
                         << ") in fiber=" << _tid;
             return -1;
         }
@@ -84,7 +84,7 @@ namespace melon {
         int rc = fiber_start_background(
                 &_tid, &epoll_thread_attr, RunThis, this);
         if (rc) {
-            MLOG(FATAL) << "Fail to create epoll thread: " << berror(rc);
+            LOG(FATAL) << "Fail to create epoll thread: " << berror(rc);
             return -1;
         }
         return 0;
@@ -180,7 +180,7 @@ namespace melon {
         // epoll_wait will keep returning events of the fd continuously, making
         // program abnormal.
         if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) < 0) {
-            PMLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
+            PLOG(WARNING) << "Fail to remove fd=" << fd << " from epfd=" << _epfd;
             return -1;
         }
         return 0;
@@ -206,7 +206,7 @@ namespace melon {
                     // We've checked _stop, no wake-up will be missed.
                     continue;
                 }
-                PMLOG(FATAL) << "Fail to epoll_wait epfd=" << _epfd;
+                PLOG(FATAL) << "Fail to epoll_wait epfd=" << _epfd;
                 break;
             }
             for (int i = 0; i < n; ++i) {

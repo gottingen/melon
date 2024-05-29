@@ -50,7 +50,7 @@ public:
             throw std::system_error(std::error_code(ec, std::system_category()), "Mutex constructor failed");
         }
     }
-    ~Mutex() { MCHECK_EQ(0, fiber_mutex_destroy(&_mutex)); }
+    ~Mutex() { CHECK_EQ(0, fiber_mutex_destroy(&_mutex)); }
     native_handler_type native_handler() { return &_mutex; }
     void lock() {
         int ec = fiber_mutex_lock(&_mutex);
@@ -97,7 +97,7 @@ public:
 #if !defined(NDEBUG)
         const int rc = fiber_mutex_lock(_pmutex);
         if (rc) {
-            MLOG(FATAL) << "Fail to lock fiber_mutex_t=" << _pmutex << ", " << berror(rc);
+            LOG(FATAL) << "Fail to lock fiber_mutex_t=" << _pmutex << ", " << berror(rc);
             _pmutex = NULL;
         }
 #else
@@ -147,11 +147,11 @@ public:
 
     void lock() {
         if (!_mutex) {
-            MCHECK(false) << "Invalid operation";
+            CHECK(false) << "Invalid operation";
             return;
         }
         if (_owns_lock) {
-            MCHECK(false) << "Detected deadlock issue";
+            CHECK(false) << "Detected deadlock issue";
             return;
         }
         fiber_mutex_lock(_mutex);
@@ -160,11 +160,11 @@ public:
 
     bool try_lock() {
         if (!_mutex) {
-            MCHECK(false) << "Invalid operation";
+            CHECK(false) << "Invalid operation";
             return false;
         }
         if (_owns_lock) {
-            MCHECK(false) << "Detected deadlock issue";
+            CHECK(false) << "Detected deadlock issue";
             return false;
         }
         _owns_lock = !fiber_mutex_trylock(_mutex);
@@ -173,7 +173,7 @@ public:
 
     void unlock() {
         if (!_owns_lock) {
-            MCHECK(false) << "Invalid operation";
+            CHECK(false) << "Invalid operation";
             return;
         }
         if (_mutex) {

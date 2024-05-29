@@ -21,7 +21,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/sys_byteorder.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/find_cstr.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/rtmp/amf.h>
@@ -274,12 +274,12 @@ namespace melon {
     static bool ReadAMFShortStringBody(std::string *str, AMFInputStream *stream) {
         uint16_t len = 0;
         if (stream->cut_u16(&len) != 2u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         str->resize(len);
         if (len != 0 && stream->cutn(&(*str)[0], len) != len) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         return true;
@@ -288,12 +288,12 @@ namespace melon {
     static bool ReadAMFLongStringBody(std::string *str, AMFInputStream *stream) {
         uint32_t len = 0;
         if (stream->cut_u32(&len) != 4u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         str->resize(len);
         if (len != 0 && stream->cutn(&(*str)[0], len) != len) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         return true;
@@ -302,7 +302,7 @@ namespace melon {
     bool ReadAMFString(std::string *str, AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_STRING) {
@@ -310,43 +310,43 @@ namespace melon {
         } else if ((AMFMarker) marker == AMF_MARKER_LONG_STRING) {
             return ReadAMFLongStringBody(str, stream);
         }
-        MLOG(ERROR) << "Expected string, actually " << marker2str(marker);
+        LOG(ERROR) << "Expected string, actually " << marker2str(marker);
         return false;
     }
 
     bool ReadAMFBool(bool *val, AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_BOOLEAN) {
             uint8_t tmp;
             if (stream->cut_u8(&tmp) != 1u) {
-                MLOG(ERROR) << "stream is not long enough";
+                LOG(ERROR) << "stream is not long enough";
                 return false;
             }
             *val = tmp;
             return true;
         }
-        MLOG(ERROR) << "Expected boolean, actually " << marker2str(marker);
+        LOG(ERROR) << "Expected boolean, actually " << marker2str(marker);
         return false;
     }
 
     bool ReadAMFNumber(double *val, AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_NUMBER) {
             if (stream->cut_u64((uint64_t *) val) != 8u) {
-                MLOG(ERROR) << "stream is not long enough";
+                LOG(ERROR) << "stream is not long enough";
                 return false;
             }
             return true;
         }
-        MLOG(ERROR) << "Expected number, actually " << marker2str(marker);
+        LOG(ERROR) << "Expected number, actually " << marker2str(marker);
         return false;
     }
 
@@ -362,39 +362,39 @@ namespace melon {
     bool ReadAMFNull(AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_NULL) {
             return true;
         }
-        MLOG(ERROR) << "Expected null, actually " << marker2str(marker);
+        LOG(ERROR) << "Expected null, actually " << marker2str(marker);
         return false;
     }
 
     bool ReadAMFUndefined(AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_UNDEFINED) {
             return true;
         }
-        MLOG(ERROR) << "Expected undefined, actually " << marker2str(marker);
+        LOG(ERROR) << "Expected undefined, actually " << marker2str(marker);
         return false;
     }
 
     bool ReadAMFUnsupported(AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_UNSUPPORTED) {
             return true;
         }
-        MLOG(ERROR) << "Expected unsupported, actually " << marker2str(marker);
+        LOG(ERROR) << "Expected unsupported, actually " << marker2str(marker);
         return false;
     }
 
@@ -412,19 +412,19 @@ namespace melon {
         }
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         switch ((AMFMarker) marker) {
             case AMF_MARKER_NUMBER: {
                 uint64_t val = 0;
                 if (stream->cut_u64(&val) != 8u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 if (field) {
                     if (field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE) {
-                        MLOG(WARNING) << "Can't set double=" << val << " to "
+                        LOG(WARNING) << "Can't set double=" << val << " to "
                                      << field->full_name();
                     } else {
                         double *dptr = (double *) &val;
@@ -436,12 +436,12 @@ namespace melon {
             case AMF_MARKER_BOOLEAN: {
                 uint8_t val = 0;
                 if (stream->cut_u8(&val) != 1u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 if (field) {
                     if (field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_BOOL) {
-                        MLOG(WARNING) << "Can't set bool to " << field->full_name();
+                        LOG(WARNING) << "Can't set bool to " << field->full_name();
                     } else {
                         reflection->SetBool(message, field, !!val);
                     }
@@ -455,7 +455,7 @@ namespace melon {
                 }
                 if (field) {
                     if (field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-                        MLOG(WARNING) << "Can't set string=`" << val << "' to "
+                        LOG(WARNING) << "Can't set string=`" << val << "' to "
                                      << field->full_name();
                     } else {
                         reflection->SetString(message, field, val);
@@ -466,14 +466,14 @@ namespace melon {
             case AMF_MARKER_TYPED_OBJECT: {
                 std::string class_name;
                 if (!ReadAMFShortStringBody(&class_name, stream)) {
-                    MLOG(ERROR) << "Fail to read class_name";
+                    LOG(ERROR) << "Fail to read class_name";
                 }
             }
                 // fall through
             case AMF_MARKER_OBJECT: {
                 if (field) {
                     if (field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-                        MLOG(WARNING) << "Can't set object to " << field->full_name();
+                        LOG(WARNING) << "Can't set object to " << field->full_name();
                     } else {
                         google::protobuf::Message *m = reflection->MutableMessage(message, field);
                         if (!ReadAMFObjectBody(m, stream)) {
@@ -500,20 +500,20 @@ namespace melon {
             case AMF_MARKER_RECORDSET:
             case AMF_MARKER_XML_DOCUMENT:
             case AMF_MARKER_AVMPLUS_OBJECT:
-                MLOG(ERROR) << marker2str(marker) << " is not supported yet";
+                LOG(ERROR) << marker2str(marker) << " is not supported yet";
                 return false;
             case AMF_MARKER_OBJECT_END:
-                MCHECK(false) << "object-end shouldn't be present here";
+                CHECK(false) << "object-end shouldn't be present here";
                 return false;
             case AMF_MARKER_LONG_STRING: {
                 std::string val;
                 if (!ReadAMFLongStringBody(&val, stream)) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 if (field) {
                     if (field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-                        MLOG(WARNING) << "Can't set string=`" << val << "' to "
+                        LOG(WARNING) << "Can't set string=`" << val << "' to "
                                      << field->full_name();
                     } else {
                         reflection->SetString(message, field, val);
@@ -533,18 +533,18 @@ namespace melon {
             if (name.empty()) {
                 uint8_t marker;
                 if (stream->cut_u8(&marker) != 1u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 if ((AMFMarker) marker != AMF_MARKER_OBJECT_END) {
-                    MLOG(ERROR) << "marker=" << marker
+                    LOG(ERROR) << "marker=" << marker
                                << " after empty name is not object end";
                     return false;
                 }
                 break;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VMLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -559,11 +559,11 @@ namespace melon {
             if (name.empty()) {
                 uint8_t marker;
                 if (stream->cut_u8(&marker) != 1u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 if ((AMFMarker) marker != AMF_MARKER_OBJECT_END) {
-                    MLOG(ERROR) << "marker=" << marker
+                    LOG(ERROR) << "marker=" << marker
                                << " after empty name is not object end";
                     return false;
                 }
@@ -580,18 +580,18 @@ namespace melon {
                                      AMFInputStream *stream) {
         uint32_t count = 0;
         if (stream->cut_u32(&count) != 4u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         const google::protobuf::Descriptor *desc = message->GetDescriptor();
         std::string name;
         for (uint32_t i = 0; i < count; ++i) {
             if (!ReadAMFShortStringBody(&name, stream)) {
-                MLOG(ERROR) << "Fail to read name from the stream";
+                LOG(ERROR) << "Fail to read name from the stream";
                 return false;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VMLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -603,7 +603,7 @@ namespace melon {
     bool ReadAMFObject(google::protobuf::Message *msg, AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_OBJECT) {
@@ -616,11 +616,11 @@ namespace melon {
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
             // Notice that NULL is treated as an object w/o any fields.
-            MLOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
+            LOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
             return false;
         }
         if (!msg->IsInitialized()) {
-            MLOG(ERROR) << "Missing required fields: "
+            LOG(ERROR) << "Missing required fields: "
                        << msg->InitializationErrorString();
             return false;
         }
@@ -640,14 +640,14 @@ namespace melon {
                                    const std::string &name) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         switch ((AMFMarker) marker) {
             case AMF_MARKER_NUMBER: {
                 uint64_t val = 0;
                 if (stream->cut_u64(&val) != 8u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 double *dptr = (double *) &val;
@@ -657,7 +657,7 @@ namespace melon {
             case AMF_MARKER_BOOLEAN: {
                 uint8_t val = 0;
                 if (stream->cut_u8(&val) != 1u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 obj->SetBool(name, val);
@@ -674,7 +674,7 @@ namespace melon {
             case AMF_MARKER_TYPED_OBJECT: {
                 std::string class_name;
                 if (!ReadAMFShortStringBody(&class_name, stream)) {
-                    MLOG(ERROR) << "Fail to read class_name";
+                    LOG(ERROR) << "Fail to read class_name";
                 }
             }
                 // fall through
@@ -711,15 +711,15 @@ namespace melon {
             case AMF_MARKER_RECORDSET:
             case AMF_MARKER_XML_DOCUMENT:
             case AMF_MARKER_AVMPLUS_OBJECT:
-                MLOG(ERROR) << marker2str(marker) << " is not supported yet";
+                LOG(ERROR) << marker2str(marker) << " is not supported yet";
                 return false;
             case AMF_MARKER_OBJECT_END:
-                MCHECK(false) << "object-end shouldn't be present here";
+                CHECK(false) << "object-end shouldn't be present here";
                 break;
             case AMF_MARKER_LONG_STRING: {
                 std::string val;
                 if (!ReadAMFLongStringBody(&val, stream)) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 obj->SetString(name, val);
@@ -735,11 +735,11 @@ namespace melon {
             if (name.empty()) {
                 uint8_t marker;
                 if (stream->cut_u8(&marker) != 1u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 if ((AMFMarker) marker != AMF_MARKER_OBJECT_END) {
-                    MLOG(ERROR) << "marker=" << marker
+                    LOG(ERROR) << "marker=" << marker
                                << " after empty name is not object end";
                     return false;
                 }
@@ -755,13 +755,13 @@ namespace melon {
     static bool ReadAMFEcmaArrayBody(AMFObject *obj, AMFInputStream *stream) {
         uint32_t count = 0;
         if (stream->cut_u32(&count) != 4u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         std::string name;
         for (uint32_t i = 0; i < count; ++i) {
             if (!ReadAMFShortStringBody(&name, stream)) {
-                MLOG(ERROR) << "Fail to read name from the stream";
+                LOG(ERROR) << "Fail to read name from the stream";
                 return false;
             }
             if (!ReadAMFObjectField(stream, obj, name)) {
@@ -774,7 +774,7 @@ namespace melon {
     bool ReadAMFObject(AMFObject *obj, AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_OBJECT) {
@@ -787,7 +787,7 @@ namespace melon {
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
             // NOTE: NULL is treated as an object w/o any fields.
-            MLOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
+            LOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
             return false;
         }
         return true;
@@ -796,14 +796,14 @@ namespace melon {
     static bool ReadAMFArrayItem(AMFInputStream *stream, AMFArray *arr) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         switch ((AMFMarker) marker) {
             case AMF_MARKER_NUMBER: {
                 uint64_t val = 0;
                 if (stream->cut_u64(&val) != 8u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 double *dptr = (double *) &val;
@@ -813,7 +813,7 @@ namespace melon {
             case AMF_MARKER_BOOLEAN: {
                 uint8_t val = 0;
                 if (stream->cut_u8(&val) != 1u) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 arr->AddBool(val);
@@ -830,7 +830,7 @@ namespace melon {
             case AMF_MARKER_TYPED_OBJECT: {
                 std::string class_name;
                 if (!ReadAMFShortStringBody(&class_name, stream)) {
-                    MLOG(ERROR) << "Fail to read class_name";
+                    LOG(ERROR) << "Fail to read class_name";
                 }
             }
                 // fall through
@@ -867,15 +867,15 @@ namespace melon {
             case AMF_MARKER_RECORDSET:
             case AMF_MARKER_XML_DOCUMENT:
             case AMF_MARKER_AVMPLUS_OBJECT:
-                MLOG(ERROR) << marker2str(marker) << " is not supported yet";
+                LOG(ERROR) << marker2str(marker) << " is not supported yet";
                 return false;
             case AMF_MARKER_OBJECT_END:
-                MCHECK(false) << "object-end shouldn't be present here";
+                CHECK(false) << "object-end shouldn't be present here";
                 break;
             case AMF_MARKER_LONG_STRING: {
                 std::string val;
                 if (!ReadAMFLongStringBody(&val, stream)) {
-                    MLOG(ERROR) << "stream is not long enough";
+                    LOG(ERROR) << "stream is not long enough";
                     return false;
                 }
                 arr->AddString(val);
@@ -888,7 +888,7 @@ namespace melon {
     static bool ReadAMFArrayBody(AMFArray *arr, AMFInputStream *stream) {
         uint32_t count = 0;
         if (stream->cut_u32(&count) != 4u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         for (uint32_t i = 0; i < count; ++i) {
@@ -902,7 +902,7 @@ namespace melon {
     bool ReadAMFArray(AMFArray *arr, AMFInputStream *stream) {
         uint8_t marker;
         if (stream->cut_u8(&marker) != 1u) {
-            MLOG(ERROR) << "stream is not long enough";
+            LOG(ERROR) << "stream is not long enough";
             return false;
         }
         if ((AMFMarker) marker == AMF_MARKER_STRICT_ARRAY) {
@@ -911,7 +911,7 @@ namespace melon {
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
             // NOTE: NULL is treated as an array w/o any items.
-            MLOG(ERROR) << "Expected array/null, actually " << marker2str(marker);
+            LOG(ERROR) << "Expected array/null, actually " << marker2str(marker);
             return false;
         }
         return true;
@@ -1031,13 +1031,13 @@ namespace melon {
         for (int i = 0; i < desc->field_count(); ++i) {
             const google::protobuf::FieldDescriptor *field = desc->field(i);
             if (field->is_repeated()) {
-                MLOG(ERROR) << "Repeated fields are not supported yet";
+                LOG(ERROR) << "Repeated fields are not supported yet";
                 return stream->set_bad();
             }
             const bool has_field = reflection->HasField(message, field);
             if (!has_field) {
                 if (field->is_required()) {
-                    MLOG(ERROR) << "Missing required field=" << field->full_name();
+                    LOG(ERROR) << "Missing required field=" << field->full_name();
                     return stream->set_bad();
                 } else {
                     continue;
@@ -1045,7 +1045,7 @@ namespace melon {
             }
             const std::string &name = field->name();
             if (name.size() >= 65536u) {
-                MLOG(ERROR) << "name is too long!";
+                LOG(ERROR) << "name is too long!";
                 return stream->set_bad();
             }
             stream->put_u16(name.size());
@@ -1055,7 +1055,7 @@ namespace melon {
                 case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
                 case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
                 case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-                    MLOG(ERROR) << "AMF does not have integers";
+                    LOG(ERROR) << "AMF does not have integers";
                     return stream->set_bad();
                 case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE: {
                     stream->put_u8(AMF_MARKER_NUMBER);
@@ -1065,7 +1065,7 @@ namespace melon {
                 }
                     break;
                 case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
-                    MLOG(ERROR) << "AMF does not have float, use double instead";
+                    LOG(ERROR) << "AMF does not have float, use double instead";
                     return stream->set_bad();
                 case google::protobuf::FieldDescriptor::CPPTYPE_BOOL: {
                     stream->put_u8(AMF_MARKER_BOOLEAN);
@@ -1074,7 +1074,7 @@ namespace melon {
                 }
                     break;
                 case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
-                    MLOG(ERROR) << "AMF does not have enum";
+                    LOG(ERROR) << "AMF does not have enum";
                     return stream->set_bad();
                 case google::protobuf::FieldDescriptor::CPPTYPE_STRING: {
                     const std::string val = reflection->GetString(message, field);
@@ -1094,7 +1094,7 @@ namespace melon {
                     break;
             } // switch
             if (!stream->good()) {
-                MLOG(ERROR) << "Fail to serialize field=" << field->full_name();
+                LOG(ERROR) << "Fail to serialize field=" << field->full_name();
                 return;
             }
         }
@@ -1152,10 +1152,10 @@ namespace melon {
             case AMF_MARKER_XML_DOCUMENT:
             case AMF_MARKER_TYPED_OBJECT:
             case AMF_MARKER_AVMPLUS_OBJECT:
-                MLOG(ERROR) << marker2str(field.type()) << " is not supported yet";
+                LOG(ERROR) << marker2str(field.type()) << " is not supported yet";
                 break;
             case AMF_MARKER_OBJECT_END:
-                MCHECK(false) << "object-end shouldn't be present here";
+                CHECK(false) << "object-end shouldn't be present here";
                 break;
         } // switch
     }
@@ -1165,14 +1165,14 @@ namespace melon {
         for (AMFObject::const_iterator it = obj.begin(); it != obj.end(); ++it) {
             const std::string &name = it->first;
             if (name.size() >= 65536u) {
-                MLOG(ERROR) << "name is too long!";
+                LOG(ERROR) << "name is too long!";
                 return stream->set_bad();
             }
             stream->put_u16(name.size());
             stream->putn(name.data(), name.size());
             WriteAMFField(it->second, stream);
             if (!stream->good()) {
-                MLOG(ERROR) << "Fail to serialize field=" << name;
+                LOG(ERROR) << "Fail to serialize field=" << name;
                 return;
             }
         }
@@ -1186,7 +1186,7 @@ namespace melon {
         for (size_t i = 0; i < arr.size(); ++i) {
             WriteAMFField(arr[i], stream);
             if (!stream->good()) {
-                MLOG(ERROR) << "Fail to serialize item[" << i << ']';
+                LOG(ERROR) << "Fail to serialize item[" << i << ']';
                 return;
             }
         }

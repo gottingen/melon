@@ -222,7 +222,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_read_file_adaptor_su
             ssize_t nread = file->read(&portal, offset, rs);
 
             if (nread < 0) {
-                MLOG(INFO) << "readsize: " << rs << ", offset: " << offset
+                LOG(INFO) << "readsize: " << rs << ", offset: " << offset
                     << ", align_size: " << align_size[index]
                     << ", nread: " << nread << ", remain_size: " << remain_size;
             }
@@ -279,11 +279,11 @@ protected:
         ssize_t left = piece_data.size();
         if (_error == 0) {
             while (left >= (size_t)_align_size) {
-                BRAFT_VMLOG << "current data size: " << left
+                BRAFT_VLOG << "current data size: " << left
                           << " align_size: " << _align_size
                           << " error: " << _error;
                 size_t cut_size = piece_data.cutn(&_portal, _align_size);
-                MCHECK_EQ(cut_size, _align_size);
+                CHECK_EQ(cut_size, _align_size);
                 *nwrite += cut_size;
                 left -= cut_size;
             }
@@ -322,7 +322,7 @@ TEST_F(TestFileSystemAdaptorSuits, test_buffered_sequential_write_file_adaptor) 
         remain_size -= align_size/2;
         
         ssize_t nwrite = file->write(tmp_buf, offset);
-        BRAFT_VMLOG << "write into adaptor No_" << times << ", offset: " << offset
+        BRAFT_VLOG << "write into adaptor No_" << times << ", offset: " << offset
                   << ", size: " << tmp_buf.size()
                   << ", data: " << tmp_buf
                   << ", nwrite: " << nwrite;
@@ -354,7 +354,7 @@ protected:
         if (_error == 0) {
             need_count = (need_count + _align_size - 1) / _align_size * _align_size;
             *nread = portal->append_from_file_descriptor(_fd, need_count);
-            MLOG(INFO) << "do_read need_count: " << need_count << ", nread: " << *nread
+            LOG(INFO) << "do_read need_count: " << need_count << ", nread: " << *nread
                       << ", portal size: " << portal->size()
                       << ", portal data: " << *portal;
         }
@@ -388,11 +388,11 @@ protected:
         size_t left = piece_data.size();
         if (_error == 0) {
             while (left >= (size_t)_align_size) {
-                MLOG(INFO) << "do_write current data size: " << left
+                LOG(INFO) << "do_write current data size: " << left
                           << " align_size: " << _align_size
                           << " error: " << _error;
                 ssize_t write_size = piece_data.cut_into_file_descriptor(_fd, _align_size);
-                MCHECK_EQ(write_size, _align_size);
+                CHECK_EQ(write_size, _align_size);
                 *nwrite += (size_t)write_size;
                 left -= (size_t)write_size;
             }
@@ -406,10 +406,10 @@ protected:
         ::ftruncate(_fd, offset); 
         off_t ret_off = ::lseek(_fd, 0, SEEK_END);
         if (ret_off < 0) {
-            MLOG(ERROR) << "Fail to lseek fd= " << _fd << " to offset= " << offset
+            LOG(ERROR) << "Fail to lseek fd= " << _fd << " to offset= " << offset
                       << ", path: " << _path;
         }
-        MLOG(INFO) << "Succeed to lseek fd= " << _fd << " to offset= " << offset
+        LOG(INFO) << "Succeed to lseek fd= " << _fd << " to offset= " << offset
                   << ", path: " << _path;
         _buffer_offset = offset;
     }

@@ -50,7 +50,7 @@ TEST_F(StatusTest, status) {
     std::vector<std::string> vars;
     melon::var::Variable::list_exposed(&vars);
         for (auto v : vars) {
-            MLOG(ERROR) << v;
+            LOG(ERROR) << v;
         }
     ASSERT_EQ(1UL, vars.size());
     ASSERT_EQ("var1", vars[0]);
@@ -120,7 +120,7 @@ TEST_F(StatusTest, status) {
     ASSERT_EQ("var2_again", vars[3]);
 
     melon::var::Status<void*> st5((void*)19UL);
-    MLOG(INFO) << st5;
+    LOG(INFO) << st5;
     ASSERT_EQ("0x13", st5.get_description());
 }
 
@@ -134,7 +134,7 @@ int64_t print2(void* arg) {
 
 TEST_F(StatusTest, passive_status) {
     melon::var::BasicPassiveStatus<std::string> st1("var11", print1, (void*)9UL);
-    MLOG(INFO) << st1;
+    LOG(INFO) << st1;
     std::ostringstream ss;
     ASSERT_EQ(0, melon::var::Variable::describe_exposed("var11", ss));
     ASSERT_EQ("0x9", ss.str());

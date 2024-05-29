@@ -113,7 +113,7 @@ namespace melon {
         for (mutil::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
              sp; ++sp) {
             if (sp.value().empty()) {
-                MLOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
+                LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
                 return false;
             }
             if (sp.key() == "min_working_instances") {
@@ -129,7 +129,7 @@ namespace melon {
                 has_meet_params = true;
                 continue;
             }
-            MLOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
+            LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
             return false;
         }
         if (min_working_instances > 0 && hold_seconds > 0) {
@@ -138,7 +138,7 @@ namespace melon {
         } else if (has_meet_params) {
             // In this case, user set some params but not in the right way, just return
             // false to let user take care of this situation.
-            MLOG(ERROR) << "Invalid params=`" << params << "'";
+            LOG(ERROR) << "Invalid params=`" << params << "'";
             return false;
         }
         return true;

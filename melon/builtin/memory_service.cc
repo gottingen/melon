@@ -19,7 +19,7 @@
 
 
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/controller.h>           // Controller
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/builtin/memory_service.h>

@@ -89,7 +89,7 @@ bool DynPartLoadBalancer::RemoveServer(const ServerId& id) {
 size_t DynPartLoadBalancer::AddServersInBatch(
     const std::vector<ServerId>& servers) {
     const size_t n = _db_servers.Modify(BatchAdd, servers);
-    MLOG_IF(ERROR, n != servers.size())
+    LOG_IF(ERROR, n != servers.size())
         << "Fail to AddServersInBatch, expected " << servers.size()
         << " actually " << n;
     return n;
@@ -98,7 +98,7 @@ size_t DynPartLoadBalancer::AddServersInBatch(
 size_t DynPartLoadBalancer::RemoveServersInBatch(
     const std::vector<ServerId>& servers) {
     const size_t n = _db_servers.Modify(BatchRemove, servers);
-    MLOG_IF(ERROR, n != servers.size())
+    LOG_IF(ERROR, n != servers.size())
         << "Fail to RemoveServersInBatch, expected " << servers.size()
         << " actually " << n;
     return n;
@@ -142,7 +142,7 @@ int DynPartLoadBalancer::SelectServer(const SelectIn& in, SelectOut* out) {
             return EHOSTDOWN;
         }
         exclusion = false;
-        MCHECK_EQ(0, total_weight);
+        CHECK_EQ(0, total_weight);
         total_weight = 0;
     } while (1);
     

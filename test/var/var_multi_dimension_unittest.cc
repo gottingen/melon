@@ -208,7 +208,7 @@ TEST_F(MultiDimensionTest, mmadder_perf) {
         my_adder->reset();
         oss << i << '\t' << start_perf_test_with_madder(i, my_adder) << '\n';
     }
-    MLOG(INFO) << "Adder performance:\n" << oss.str();
+    LOG(INFO) << "Adder performance:\n" << oss.str();
 }
 
 TEST_F(MultiDimensionTest, mmaxer) {
@@ -231,7 +231,7 @@ TEST_F(MultiDimensionTest, mmaxer_perf) {
         my_maxer->reset();
         oss << i << '\t' << start_perf_test_with_mmaxer(i, my_maxer) << '\n';
     }
-    MLOG(INFO) << "Maxer performance:\n" << oss.str();
+    LOG(INFO) << "Maxer performance:\n" << oss.str();
 }
 
 TEST_F(MultiDimensionTest, mminer) {
@@ -254,7 +254,7 @@ TEST_F(MultiDimensionTest, mminer_perf) {
         my_miner->reset();
         oss << i << '\t' << start_perf_test_with_mminer(i, my_miner) << '\n';
     }
-    MLOG(INFO) << "Miner performance:\n" << oss.str();
+    LOG(INFO) << "Miner performance:\n" << oss.str();
 }
 
 
@@ -278,7 +278,7 @@ TEST_F(MultiDimensionTest, mintrecorder_perf) {
         my_intrecorder->reset();
         oss << i << '\t' << start_perf_test_with_mintrecorder(i, my_intrecorder) << '\n';
     }
-    MLOG(INFO) << "IntRecorder performance:\n" << oss.str();
+    LOG(INFO) << "IntRecorder performance:\n" << oss.str();
 }
 
 TEST_F(MultiDimensionTest, stats) {
@@ -374,7 +374,7 @@ TEST_F(MultiDimensionTest, get_description) {
     *adder2 << 2;
 
     const std::string description = my_madder.get_description();
-    MLOG(INFO) << "description=" << description;
+    LOG(INFO) << "description=" << description;
     MUTIL_RAPIDJSON_NAMESPACE::Document doc;
     doc.Parse(description.c_str());
     ASSERT_FALSE(doc.HasParseError());
@@ -497,6 +497,6 @@ TEST_F(MultiDimensionTest, test_hash) {
     oss << "hash_fun1 \t" << perf_hash(hash_fun1) << "\n"
         << "hash_fun2 \t" << perf_hash(hash_fun2) << "\n"
         << "hash_fun3 \t" << perf_hash(hash_fun3) << "\n";
-    MLOG(INFO) << "Hash fun performance:\n" << oss.str();
+    LOG(INFO) << "Hash fun performance:\n" << oss.str();
 }
 

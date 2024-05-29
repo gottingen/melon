@@ -21,7 +21,7 @@
 #include <cstring>
 #include <strings.h>
 #include <melon/utility/string_printf.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/adaptive_max_concurrency.h>
 
@@ -48,7 +48,7 @@ namespace melon {
 
     inline bool CompareStringPieceWithoutCase(
             const mutil::StringPiece &s1, const char *s2) {
-        DMCHECK(s2 != NULL);
+        DCHECK(s2 != NULL);
         if (std::strlen(s2) != s1.size()) {
             return false;
         }

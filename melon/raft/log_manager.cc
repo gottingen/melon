@@ -20,13 +20,14 @@
 
 #include <melon/raft/log_manager.h>
 
-#include <melon/utility/logging.h>                       // LOG
+#include <turbo/log/logging.h>                       // LOG
 #include <melon/utility/object_pool.h>                   // mutil::get_object
 #include <melon/fiber/unstable.h>                   // fiber_flush
 #include <melon/fiber/countdown_event.h>            // fiber::CountdownEvent
 #include <melon/rpc/reloadable_flags.h>         // MELON_VALIDATE_GFLAG
 #include <melon/raft/storage.h>                       // LogStorage
 #include <melon/raft/fsm_caller.h>                    // FSMCaller
+#include <cinttypes>
 
 namespace melon::raft {
 
@@ -66,7 +67,7 @@ namespace melon::raft {
     LogManager::LogManager()
             : _log_storage(NULL), _config_manager(NULL), _stopped(false), _has_error(false), _next_wait_id(0),
               _first_log_index(0), _last_log_index(0) {
-        MCHECK_EQ(0, start_disk_thread());
+        CHECK_EQ(0, start_disk_thread());
     }
 
     int LogManager::init(const LogManagerOptions &options) {
@@ -75,7 +76,7 @@ namespace melon::raft {
             return EINVAL;
         }
         if (_wait_map.init(16) != 0) {
-            PMLOG(ERROR) << "Fail to init _wait_map";
+            PLOG(ERROR) << "Fail to init _wait_map";
             return ENOMEM;
         }
         _log_storage = options.log_storage;
@@ -154,7 +155,7 @@ namespace melon::raft {
         }
 
         void set_last_log_id(const LogId &log_id) {
-            MCHECK(log_id.index == 0 || log_id.term != 0) << "Invalid log_id=" << log_id;
+            CHECK(log_id.index == 0 || log_id.term != 0) << "Invalid log_id=" << log_id;
             _last_log_id = log_id;
         }
 
@@ -178,7 +179,7 @@ namespace melon::raft {
                 return _last_log_index;
             }
             LastLogIdClosure c;
-            MCHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, &c));
+            CHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, &c));
             lck.unlock();
             c.wait();
             return c.last_log_id().index;
@@ -197,7 +198,7 @@ namespace melon::raft {
                 return _last_snapshot_id;
             }
             LastLogIdClosure c;
-            MCHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, &c));
+            CHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, &c));
             lck.unlock();
             c.wait();
             return c.last_log_id();
@@ -273,7 +274,7 @@ namespace melon::raft {
                 break;
             }
         }
-        MCHECK_GE(first_index_kept, _first_log_index);
+        CHECK_GE(first_index_kept, _first_log_index);
         _first_log_index = first_index_kept;
         if (first_index_kept > _last_log_index) {
             // The entrie log is dropped
@@ -291,7 +292,7 @@ namespace melon::raft {
 
     int LogManager::reset(const int64_t next_log_index,
                           std::unique_lock<raft_mutex_t> &lck) {
-        MCHECK(lck.owns_lock());
+        CHECK(lck.owns_lock());
         std::deque<LogEntry *> saved_logs_in_memory;
         saved_logs_in_memory.swap(_logs_in_memory);
         _first_log_index = next_log_index;
@@ -301,7 +302,7 @@ namespace melon::raft {
         ResetClosure *c = new ResetClosure(next_log_index);
         const int ret = fiber::execution_queue_execute(_disk_queue, c);
         lck.unlock();
-        MCHECK_EQ(0, ret) << "execq execute failed, ret: " << ret << " err: " << berror();
+        CHECK_EQ(0, ret) << "execq execute failed, ret: " << ret << " err: " << berror();
         for (size_t i = 0; i < saved_logs_in_memory.size(); ++i) {
             saved_logs_in_memory[i]->Release();
         }
@@ -311,7 +312,7 @@ namespace melon::raft {
     void LogManager::unsafe_truncate_suffix(const int64_t last_index_kept) {
 
         if (last_index_kept < _applied_id.index) {
-            MLOG(FATAL) << "Can't truncate logs before _applied_id=" << _applied_id.index
+            LOG(FATAL) << "Can't truncate logs before _applied_id=" << _applied_id.index
                        << ", last_log_kept=" << last_index_kept;
             return;
         }
@@ -327,12 +328,12 @@ namespace melon::raft {
         }
         _last_log_index = last_index_kept;
         const int64_t last_term_kept = unsafe_get_term(last_index_kept);
-        MCHECK(last_index_kept == 0 || last_term_kept != 0)
+        CHECK(last_index_kept == 0 || last_term_kept != 0)
         << "last_index_kept=" << last_index_kept;
         _config_manager->truncate_suffix(last_index_kept);
         TruncateSuffixClosure *tsc = new
                 TruncateSuffixClosure(last_index_kept, last_term_kept);
-        MCHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, tsc));
+        CHECK_EQ(0, fiber::execution_queue_execute(_disk_queue, tsc));
     }
 
     int LogManager::check_and_resolve_conflict(
@@ -359,7 +360,7 @@ namespace melon::raft {
             }
             const int64_t applied_index = _applied_id.index;
             if (entries->back()->id.index <= applied_index) {
-                MLOG(WARNING) << "Received entries of which the last_log="
+                LOG(WARNING) << "Received entries of which the last_log="
                              << entries->back()->id.index
                              << " is not greater than _applied_index=" << applied_index
                              << ", return immediately with nothing changed";
@@ -403,14 +404,14 @@ namespace melon::raft {
             done_guard.release();
             return 0;
         }
-        MCHECK(false) << "Can't reach here";
+        CHECK(false) << "Can't reach here";
         done->status().set_error(EIO, "Impossible");
         return -1;
     }
 
     void LogManager::append_entries(
             std::vector<LogEntry *> *entries, StableClosure *done) {
-        MCHECK(done);
+        CHECK(done);
         if (_has_error.load(mutil::memory_order_relaxed)) {
             for (size_t i = 0; i < entries->size(); ++i) {
                 (*entries)[i]->Release();
@@ -446,7 +447,7 @@ namespace melon::raft {
 
         done->_entries.swap(*entries);
         int ret = fiber::execution_queue_execute(_disk_queue, done);
-        MCHECK_EQ(0, ret) << "execq execute failed, ret: " << ret << " err: " << berror();
+        CHECK_EQ(0, ret) << "execq execute failed, ret: " << ret << " err: " << berror();
         wakeup_all_waiter(lck);
     }
 
@@ -465,7 +466,7 @@ namespace melon::raft {
             timer.stop();
             if (nappent != (int) to_append->size()) {
                 // FIXME
-                MLOG(ERROR) << "Fail to append_entries, "
+                LOG(ERROR) << "Fail to append_entries, "
                            << "nappent=" << nappent
                            << ", to_append=" << to_append->size();
                 report_error(EIO, "Fail to append entries");
@@ -576,7 +577,7 @@ namespace melon::raft {
                     TruncatePrefixClosure *tpc =
                             dynamic_cast<TruncatePrefixClosure *>(done);
                     if (tpc) {
-                        BRAFT_VMLOG << "Truncating storage to first_index_kept="
+                        BRAFT_VLOG << "Truncating storage to first_index_kept="
                                    << tpc->first_index_kept();
                         ret = log_manager->_log_storage->truncate_prefix(
                                 tpc->first_index_kept());
@@ -585,7 +586,7 @@ namespace melon::raft {
                     TruncateSuffixClosure *tsc =
                             dynamic_cast<TruncateSuffixClosure *>(done);
                     if (tsc) {
-                        MLOG(WARNING) << "Truncating storage to last_index_kept="
+                        LOG(WARNING) << "Truncating storage to last_index_kept="
                                      << tsc->last_index_kept();
                         ret = log_manager->_log_storage->truncate_suffix(
                                 tsc->last_index_kept());
@@ -593,14 +594,14 @@ namespace melon::raft {
                             // update last_id after truncate_suffix
                             last_id.index = tsc->last_index_kept();
                             last_id.term = tsc->last_term_kept();
-                            MCHECK(last_id.index == 0 || last_id.term != 0)
+                            CHECK(last_id.index == 0 || last_id.term != 0)
                             << "last_id=" << last_id;
                         }
                         break;
                     }
                     ResetClosure *rc = dynamic_cast<ResetClosure *>(done);
                     if (rc) {
-                        MLOG(INFO) << "Reseting storage to next_log_index="
+                        LOG(INFO) << "Reseting storage to next_log_index="
                                   << rc->next_log_index();
                         ret = log_manager->_log_storage->reset(rc->next_log_index());
                         break;
@@ -613,14 +614,14 @@ namespace melon::raft {
                 done->Run();
             }
         }
-        MCHECK(!iter) << "Must iterate to the end";
+        CHECK(!iter) << "Must iterate to the end";
         ab.flush();
         log_manager->set_disk_id(last_id);
         return 0;
     }
 
     void LogManager::set_snapshot(const SnapshotMeta *meta) {
-        BRAFT_VMLOG << "Set snapshot last_included_index="
+        BRAFT_VLOG << "Set snapshot last_included_index="
                    << meta->last_included_index()
                    << " last_included_term=" << meta->last_included_term();
         std::unique_lock<raft_mutex_t> lck(_mutex);
@@ -676,7 +677,7 @@ namespace melon::raft {
             reset(meta->last_included_index() + 1, lck);
             return;
         }
-        MCHECK(false) << "Cannot reach here";
+        CHECK(false) << "Cannot reach here";
     }
 
     void LogManager::clear_bufferred_logs() {
@@ -692,7 +693,7 @@ namespace melon::raft {
         if (!_logs_in_memory.empty()) {
             int64_t first_index = _logs_in_memory.front()->id.index;
             int64_t last_index = _logs_in_memory.back()->id.index;
-            MCHECK_EQ(last_index - first_index + 1, static_cast<int64_t>(_logs_in_memory.size()));
+            CHECK_EQ(last_index - first_index + 1, static_cast<int64_t>(_logs_in_memory.size()));
             if (index >= first_index && index <= last_index) {
                 entry = _logs_in_memory[index - first_index];
             }
@@ -785,7 +786,7 @@ namespace melon::raft {
 
     bool LogManager::check_and_set_configuration(ConfigurationEntry *current) {
         if (current == NULL) {
-            MCHECK(false) << "current should not be NULL";
+            CHECK(false) << "current should not be NULL";
             return false;
         }
         MELON_SCOPED_LOCK(_mutex);
@@ -838,7 +839,7 @@ namespace melon::raft {
             int (*on_new_log)(void *arg, int error_code), void *arg) {
         WaitMeta *wm = mutil::get_object<WaitMeta>();
         if (MELON_UNLIKELY(wm == NULL)) {
-            PMLOG(FATAL) << "Fail to new WaitMeta";
+            PLOG(FATAL) << "Fail to new WaitMeta";
             abort();
             return -1;
         }
@@ -856,7 +857,7 @@ namespace melon::raft {
             lck.unlock();
             fiber_t tid;
             if (fiber_start_urgent(&tid, NULL, run_on_new_log, wm) != 0) {
-                PMLOG(ERROR) << "Fail to start fiber";
+                PLOG(ERROR) << "Fail to start fiber";
                 run_on_new_log(wm);
             }
             return 0;  // Not pushed into _wait_map
@@ -905,7 +906,7 @@ namespace melon::raft {
             if (fiber_start_background(
                     &tid, &attr,
                     run_on_new_log, wm[i]) != 0) {
-                PMLOG(ERROR) << "Fail to start fiber";
+                PLOG(ERROR) << "Fail to start fiber";
                 run_on_new_log(wm[i]);
             }
         }
@@ -946,8 +947,8 @@ namespace melon::raft {
 
     mutil::Status LogManager::check_consistency() {
         MELON_SCOPED_LOCK(_mutex);
-        MCHECK_GT(_first_log_index, 0);
-        MCHECK_GE(_last_log_index, 0);
+        CHECK_GT(_first_log_index, 0);
+        CHECK_GE(_last_log_index, 0);
         if (_last_snapshot_id == LogId(0, 0)) {
             if (_first_log_index == 1) {
                 return mutil::Status::OK();
@@ -963,7 +964,7 @@ namespace melon::raft {
                                  _last_snapshot_id.index, _last_snapshot_id.term,
                                  _first_log_index, _last_log_index);
         }
-        MCHECK(false) << "Can't reach here";
+        CHECK(false) << "Can't reach here";
         return mutil::Status(-1, "Impossible condition");
     }
 

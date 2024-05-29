@@ -44,7 +44,7 @@ namespace melon::naming {
         std::string line;
 
         if (!service_name) {
-            MLOG(FATAL) << "Param[service_name] is NULL";
+            LOG(FATAL) << "Param[service_name] is NULL";
             return -1;
         }
         for (mutil::StringSplitter sp(service_name, ','); sp != NULL; ++sp) {
@@ -58,7 +58,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
+                LOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;
@@ -67,10 +67,10 @@ namespace melon::naming {
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {
-                RPC_VMLOG << "Duplicated server=" << node;
+                RPC_VLOG << "Duplicated server=" << node;
             }
         }
-        RPC_VMLOG << "Got " << servers->size()
+        RPC_VLOG << "Got " << servers->size()
                  << (servers->size() > 1 ? " servers" : " server");
         return 0;
     }

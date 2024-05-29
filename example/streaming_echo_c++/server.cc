@@ -21,7 +21,7 @@
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/rpc/stream.h>
@@ -40,14 +40,14 @@ public:
         for (size_t i = 0; i < size; ++i) {
             os << "msg[" << i << "]=" << *messages[i];
         }
-        MLOG(INFO) << "Received from Stream=" << id << ": " << os.str();
+        LOG(INFO) << "Received from Stream=" << id << ": " << os.str();
         return 0;
     }
     virtual void on_idle_timeout(melon::StreamId id) {
-        MLOG(INFO) << "Stream=" << id << " has no data transmission for a while";
+        LOG(INFO) << "Stream=" << id << " has no data transmission for a while";
     }
     virtual void on_closed(melon::StreamId id) {
-        MLOG(INFO) << "Stream=" << id << " is closed";
+        LOG(INFO) << "Stream=" << id << " is closed";
     }
 
 };
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // use melon::SERVER_OWNS_SERVICE.
     if (server.AddService(&echo_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     melon::ServerOptions options;
     options.idle_timeout_sec = FLAGS_idle_timeout_s;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MLOG(ERROR) << "Fail to start EchoServer";
+        LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

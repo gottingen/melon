@@ -23,7 +23,7 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/utility/rand_util.h>
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_server_num <= 0) {
-        MLOG(ERROR) << "server_num must be positive";
+        LOG(ERROR) << "server_num must be positive";
         return -1;
     }
 
@@ -133,13 +133,13 @@ int main(int argc, char* argv[]) {
                     "example/dynamic_partition_echo_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            MLOG(ERROR) << "Fail to add service";
+            LOG(ERROR) << "Fail to add service";
             return -1;
         }
         // Start the server.
         int port = FLAGS_port + i;
         if (servers[i].Start(port, &options) != 0) {
-            MLOG(ERROR) << "Fail to start EchoServer";
+            LOG(ERROR) << "Fail to start EchoServer";
             return -1;
         }
     }
@@ -157,9 +157,9 @@ int main(int argc, char* argv[]) {
             size_t diff = current_num_requests - last_num_requests[i];
             cur_total += diff;
             last_num_requests[i] = current_num_requests;
-            MLOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
+            LOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
         }
-        MLOG(INFO) << "[total=" << cur_total << ']';
+        LOG(INFO) << "[total=" << cur_total << ']';
     }
 
     // Don't forget to stop and join the server otherwise still-running

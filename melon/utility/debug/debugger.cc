@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/debug/debugger.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
@@ -15,7 +15,7 @@ bool WaitForDebugger(int wait_seconds, bool silent) {
 #if defined(OS_ANDROID)
   // The pid from which we know which process to attach to are not output by
   // android ddms, so we have to print it out explicitly.
-  DMLOG(INFO) << "DebugUtil::WaitForDebugger(pid=" << static_cast<int>(getpid())
+  DLOG(INFO) << "DebugUtil::WaitForDebugger(pid=" << static_cast<int>(getpid())
              << ")";
 #endif
   for (int i = 0; i < wait_seconds * 10; ++i) {

@@ -21,7 +21,7 @@
 // Date: 2015/09/15 15:42:55
 
 #include <melon/var/detail/percentile.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <gtest/gtest.h>
 #include <fstream>
 
@@ -46,7 +46,7 @@ TEST_F(PercentileTest, add) {
             EXPECT_GT(value, (k * 1000 - 500)) << "k=" << k;
             EXPECT_LT(value, (k * 1000 + 500)) << "k=" << k;
         }
-        MLOG(INFO) << "99%:" << b.get_number(0.99) << ' '
+        LOG(INFO) << "99%:" << b.get_number(0.99) << ' '
                   << "99.9%:" << b.get_number(0.999) << ' '
                   << "99.99%:" << b.get_number(0.9999);
 

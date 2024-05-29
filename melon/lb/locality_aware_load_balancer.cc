@@ -225,7 +225,7 @@ namespace melon::lb {
 
     bool LocalityAwareLoadBalancer::AddServer(const ServerId &id) {
         if (_id_mapper.AddServer(id)) {
-            RPC_VMLOG << "LALB: added " << id;
+            RPC_VLOG << "LALB: added " << id;
             return _db_servers.ModifyWithForeground(Add, id.id, this);
         } else {
             return true;
@@ -234,7 +234,7 @@ namespace melon::lb {
 
     bool LocalityAwareLoadBalancer::RemoveServer(const ServerId &id) {
         if (_id_mapper.RemoveServer(id)) {
-            RPC_VMLOG << "LALB: removed " << id;
+            RPC_VLOG << "LALB: removed " << id;
             return _db_servers.Modify(Remove, id.id, this);
         } else {
             return true;
@@ -244,7 +244,7 @@ namespace melon::lb {
     size_t LocalityAwareLoadBalancer::AddServersInBatch(
             const std::vector<ServerId> &servers) {
         std::vector<SocketId> &ids = _id_mapper.AddServers(servers);
-        RPC_VMLOG << "LALB: added " << ids.size();
+        RPC_VLOG << "LALB: added " << ids.size();
         _db_servers.ModifyWithForeground(BatchAdd, ids, this);
         return servers.size();
     }
@@ -252,7 +252,7 @@ namespace melon::lb {
     size_t LocalityAwareLoadBalancer::RemoveServersInBatch(
             const std::vector<ServerId> &servers) {
         std::vector<SocketId> &ids = _id_mapper.RemoveServers(servers);
-        RPC_VMLOG << "LALB: removed " << ids.size();
+        RPC_VLOG << "LALB: removed " << ids.size();
         size_t count = 0;
         for (size_t i = 0; i < ids.size(); ++i) {
             count += _db_servers.Modify(Remove, ids[i], this);
@@ -282,7 +282,7 @@ namespace melon::lb {
             // falls into infinite loop. This branch should never be entered in
             // production servers. If it does, there must be a bug.
             if (++nloop > 10000) {
-                MLOG(ERROR) << "A selection runs too long!";
+                LOG(ERROR) << "A selection runs too long!";
                 return EHOSTDOWN;
             }
 

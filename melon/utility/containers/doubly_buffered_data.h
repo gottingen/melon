@@ -28,7 +28,7 @@
 #include <pthread.h>
 #include <melon/utility/scoped_lock.h>
 #include <melon/utility/thread_local.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/type_traits.h>
 #include <melon/utility/errno.h>
@@ -291,13 +291,13 @@ public:
 
     inline static DoublyBufferedData::Wrapper* get_or_create_tls_data(WrapperTLSId id) {
         if (MELON_UNLIKELY(id < 0)) {
-            MCHECK(false) << "Invalid id=" << id;
+            CHECK(false) << "Invalid id=" << id;
             return NULL;
         }
         if (_s_tls_blocks == NULL) {
             _s_tls_blocks = new (std::nothrow) std::vector<ThreadBlock*>;
             if (MELON_UNLIKELY(_s_tls_blocks == NULL)) {
-                MLOG(FATAL) << "Fail to create vector, " << berror();
+                LOG(FATAL) << "Fail to create vector, " << berror();
                 return NULL;
             }
             mutil::thread_atexit(_destroy_tls_blocks);
@@ -477,7 +477,7 @@ DoublyBufferedData<T, TLS, AllowFiberSuspended>::AddWrapper(
         return w;
     }
     if (w->_control != NULL) {
-        MLOG(FATAL) << "Get wrapper from tls but control != this";
+        LOG(FATAL) << "Get wrapper from tls but control != this";
         return NULL;
     }
     try {
@@ -611,7 +611,7 @@ size_t DoublyBufferedData<T, TLS, AllowFiberSuspended>::Modify(Fn& fn) {
     }
 
     const size_t ret2 = fn(_data[bg_index]);
-    MCHECK_EQ(ret2, ret) << "index=" << _index.load(mutil::memory_order_relaxed);
+    CHECK_EQ(ret2, ret) << "index=" << _index.load(mutil::memory_order_relaxed);
     return ret2;
 }
 

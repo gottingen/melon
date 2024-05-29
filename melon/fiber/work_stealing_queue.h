@@ -23,7 +23,7 @@
 
 #include <melon/utility/macros.h>
 #include <melon/utility/atomicops.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace fiber {
 
@@ -44,15 +44,15 @@ public:
 
     int init(size_t capacity) {
         if (_capacity != 0) {
-            MLOG(ERROR) << "Already initialized";
+            LOG(ERROR) << "Already initialized";
             return -1;
         }
         if (capacity == 0) {
-            MLOG(ERROR) << "Invalid capacity=" << capacity;
+            LOG(ERROR) << "Invalid capacity=" << capacity;
             return -1;
         }
         if (capacity & (capacity - 1)) {
-            MLOG(ERROR) << "Invalid capacity=" << capacity
+            LOG(ERROR) << "Invalid capacity=" << capacity
                        << " which must be power of 2";
             return -1;
         }

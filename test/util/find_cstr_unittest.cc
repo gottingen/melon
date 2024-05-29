@@ -22,7 +22,7 @@
 #include <gtest/gtest.h>
 #include "melon/utility/find_cstr.h"
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace {
 class FindCstrTest : public ::testing::Test{
@@ -94,7 +94,7 @@ TEST_F(FindCstrTest, perf) {
     tm.stop();
     int64_t elp2 = tm.n_elapsed();
 
-    MLOG(INFO) << "elp1=" << elp1 / N << " elp2=" << elp2 / N << " sum=" << sum;
+    LOG(INFO) << "elp1=" << elp1 / N << " elp2=" << elp2 / N << " sum=" << sum;
 }
 
 }

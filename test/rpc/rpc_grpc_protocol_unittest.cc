@@ -32,11 +32,7 @@ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
     google::ParseCommandLineFlags(&argc, &argv, true);
     if (google::SetCommandLineOption("http_body_compress_threshold", "0").empty()) {
-        std::cerr << "Fail to set -crash_on_fatal_log" << std::endl;
-        return -1;
-    }
-    if (google::SetCommandLineOption("crash_on_fatal_log", "true").empty()) {
-        std::cerr << "Fail to set -crash_on_fatal_log" << std::endl;
+        std::cerr << "Fail to set -http_body_compress_threshold" << std::endl;
         return -1;
     }
     return RUN_ALL_TESTS();

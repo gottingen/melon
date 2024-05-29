@@ -27,7 +27,7 @@
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #endif
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/object_pool.h>
 #include <melon/fiber/errno.h>                 // EWOULDBLOCK
 #include <melon/fiber/sys_futex.h>             // futex_*

@@ -9,7 +9,8 @@
 #include <gtest/gtest.h>
 #include <melon/utility/fd_guard.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
+#include <cinttypes>
 
 class FsyncTest : public testing::Test {
 };
@@ -31,7 +32,7 @@ TEST_F(FsyncTest, benchmark_append) {
         fsync(fd);
     }
     timer.stop();
-    MLOG(INFO) << "fsync takes " << timer.u_elapsed();
+    LOG(INFO) << "fsync takes " << timer.u_elapsed();
     timer.start();
     fd.reset(-1);
     fd.reset(::open("fsync.data", O_RDWR | O_CREAT | O_TRUNC, 0644));
@@ -49,7 +50,7 @@ TEST_F(FsyncTest, benchmark_append) {
 #endif
     }
     timer.stop();
-    MLOG(INFO) << "fdatasync takes " << timer.u_elapsed();
+    LOG(INFO) << "fdatasync takes " << timer.u_elapsed();
 }
 
 TEST_F(FsyncTest, benchmark_randomly_write) {

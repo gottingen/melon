@@ -24,7 +24,7 @@
 #include <melon/fiber/fiber.h>
 #include <melon/utility/time.h>
 #include <melon/utility/scoped_lock.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/protocol.h>
 #include <melon/rpc/input_messenger.h>
@@ -75,7 +75,7 @@ static void CreateClientSideSocketMap() {
     options.idle_timeout_second_dynamic = &FLAGS_idle_timeout_second;
     options.defer_close_second_dynamic = &FLAGS_defer_close_second;
     if (socket_map->Init(options) != 0) {
-        MLOG(FATAL) << "Fail to init SocketMap";
+        LOG(FATAL) << "Fail to init SocketMap";
         exit(1);
     }
     g_socket_map.store(socket_map, mutil::memory_order_release);
@@ -144,7 +144,7 @@ SocketMap::SocketMap()
 }
 
 SocketMap::~SocketMap() {
-    RPC_VMLOG << "Destroying SocketMap=" << this;
+    RPC_VLOG << "Destroying SocketMap=" << this;
     if (_has_close_idle_thread) {
         fiber_stop(_close_idle_thread);
         fiber_join(_close_idle_thread, NULL);
@@ -165,7 +165,7 @@ SocketMap::~SocketMap() {
             }
         }
         if (nleft) {
-            MLOG(ERROR) << err.str();
+            LOG(ERROR) << err.str();
         }
     }
 
@@ -178,23 +178,23 @@ SocketMap::~SocketMap() {
 
 int SocketMap::Init(const SocketMapOptions& options) {
     if (_options.socket_creator != NULL) {
-        MLOG(ERROR) << "Already initialized";
+        LOG(ERROR) << "Already initialized";
         return -1;
     }
     _options = options;
     if (_options.socket_creator == NULL) {
-        MLOG(ERROR) << "SocketOptions.socket_creator must be set";
+        LOG(ERROR) << "SocketOptions.socket_creator must be set";
         return -1;
     }
     if (_map.init(_options.suggested_map_size, 70) != 0) {
-        MLOG(ERROR) << "Fail to init _map";
+        LOG(ERROR) << "Fail to init _map";
         return -1;
     }
     if (_options.idle_timeout_second_dynamic != NULL ||
         _options.idle_timeout_second > 0) {
         if (fiber_start_background(&_close_idle_thread, NULL,
                                      RunWatchConnections, this) != 0) {
-            MLOG(FATAL) << "Fail to start fiber";
+            LOG(FATAL) << "Fail to start fiber";
             return -1;
         }
         _has_close_idle_thread = true;
@@ -254,7 +254,7 @@ int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
     opt.initial_ssl_ctx = ssl_ctx;
     opt.use_rdma = use_rdma;
     if (_options.socket_creator->CreateSocket(opt, &tmp_id) != 0) {
-        PMLOG(FATAL) << "Fail to create socket to " << key.peer;
+        PLOG(FATAL) << "Fail to create socket to " << key.peer;
         return -1;
     }
     // Add a reference to make sure that sc->socket is always accessible. Not
@@ -262,7 +262,7 @@ int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
     // The ref will be removed at entry's removal.
     SocketUniquePtr ptr;
     if (Socket::Address(tmp_id, &ptr) != 0) {
-        MLOG(FATAL) << "Fail to address SocketId=" << tmp_id;
+        LOG(FATAL) << "Fail to address SocketId=" << tmp_id;
         return -1;
     }
     ptr->SetHCRelatedRefHeld(); // set held status

@@ -114,7 +114,7 @@ namespace melon {
                 mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p3),
                 "_latency_999", "_latency_9999", "_max_latency"
         };
-        MCHECK(NPERCENTILES == arraysize(latency_names));
+        CHECK(NPERCENTILES == arraysize(latency_names));
         const std::string desc_str = desc.as_string();
         mutil::StringPiece metric_name(name);
         for (int i = 0; i < NPERCENTILES; ++i) {

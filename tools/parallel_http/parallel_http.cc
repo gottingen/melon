@@ -24,7 +24,7 @@
 #include <gflags/gflags.h>
 #include <deque>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/files/scoped_file.h>
 #include <melon/rpc/channel.h>
 
@@ -81,7 +81,7 @@ void* access_thread(void* void_args) {
         std::string const& url = (*args->url_list)[i];
         melon::Channel channel;
         if (channel.Init(url.c_str(), &options) != 0) {
-            MLOG(ERROR) << "Fail to create channel to url=" << url;
+            LOG(ERROR) << "Fail to create channel to url=" << url;
             MELON_SCOPED_LOCK(args->output_queue_mutex);
             args->output_queue.push_back(std::make_pair(url, mutil::IOBuf()));
             continue;
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     if (!FLAGS_url_file.empty()) {
         fp_guard.reset(fopen(FLAGS_url_file.c_str(), "r"));
         if (!fp_guard) {
-            PMLOG(ERROR) << "Fail to open `" << FLAGS_url_file << '\'';
+            PLOG(ERROR) << "Fail to open `" << FLAGS_url_file << '\'';
             return -1;
         }
         fp = fp_guard.get();
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     std::vector<fiber_t> tids;
     tids.resize(FLAGS_thread_num);
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        MCHECK_EQ(0, fiber_start_background(&tids[i], NULL, access_thread, &args[i]));
+        CHECK_EQ(0, fiber_start_background(&tids[i], NULL, access_thread, &args[i]));
     }
     std::deque<std::pair<std::string, mutil::IOBuf> > output_queue;
     size_t nprinted = 0;

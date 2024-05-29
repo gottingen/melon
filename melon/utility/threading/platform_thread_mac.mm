@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include "melon/utility/lazy_instance.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/threading/thread_id_name_manager.h"
 //#include "melon/utility/tracked_objects.h"
 
@@ -36,7 +36,7 @@ void InitThreading() {
                            withObject:nil];
     multithreaded = YES;
 
-    DMCHECK([NSThread isMultiThreaded]);
+    DCHECK([NSThread isMultiThreaded]);
   }
 }
 
@@ -69,7 +69,7 @@ void SetPriorityNormal(mach_port_t mach_thread_id) {
                         THREAD_STANDARD_POLICY_COUNT);
 
   if (result != KERN_SUCCESS)
-    DVMLOG(1) << "Fail to call thread_policy_set";
+    DVLOG(1) << "Fail to call thread_policy_set";
 }
 
 // Enables time-contraint policy and priority suitable for low-latency,
@@ -91,7 +91,7 @@ void SetPriorityRealtimeAudio(mach_port_t mach_thread_id) {
                         reinterpret_cast<thread_policy_t>(&policy),
                         THREAD_EXTENDED_POLICY_COUNT);
   if (result != KERN_SUCCESS) {
-    DVMLOG(1) << "Fail to call thread_policy_set";
+    DVLOG(1) << "Fail to call thread_policy_set";
     return;
   }
 
@@ -103,7 +103,7 @@ void SetPriorityRealtimeAudio(mach_port_t mach_thread_id) {
                              reinterpret_cast<thread_policy_t>(&precedence),
                              THREAD_PRECEDENCE_POLICY_COUNT);
   if (result != KERN_SUCCESS) {
-    DVMLOG(1) << "Fail to call thread_policy_set";
+    DVLOG(1) << "Fail to call thread_policy_set";
     return;
   }
 
@@ -148,7 +148,7 @@ void SetPriorityRealtimeAudio(mach_port_t mach_thread_id) {
                         reinterpret_cast<thread_policy_t>(&time_constraints),
                         THREAD_TIME_CONSTRAINT_POLICY_COUNT);
   if (result != KERN_SUCCESS) {
-    DVMLOG(1) << "Fail to call thread_policy_set";
+    DVLOG(1) << "Fail to call thread_policy_set";
   }
   return;
 }
@@ -169,7 +169,7 @@ void PlatformThread::SetThreadPriority(PlatformThreadHandle handle,
       SetPriorityRealtimeAudio(mach_thread_id);
       break;
     default:
-      NOTREACHED() << "Unknown priority.";
+      DCHECK(false) << "Unknown priority.";
       break;
   }
 }

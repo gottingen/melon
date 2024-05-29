@@ -20,12 +20,12 @@
 
 
 #include <melon/rpc/policy/streaming_rpc_protocol.h>
-
+#include <cinttypes>
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>                       // LOG()
+#include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
 #include <melon/utility/iobuf.h>                         // mutil::IOBuf
 #include <melon/utility/raw_pack.h>                      // RawPacker RawUnpacker
@@ -55,7 +55,7 @@ void PackStreamMessage(mutil::IOBuf* out,
         .pack32(meta_length);
     out->append(head, ARRAY_SIZE(head));
     mutil::IOBufAsZeroCopyOutputStream wrapper(out);
-    MCHECK(fm.SerializeToZeroCopyStream(&wrapper));
+    CHECK(fm.SerializeToZeroCopyStream(&wrapper));
     if (data != NULL) {
         out->append(*data);
     }
@@ -87,7 +87,7 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
     }
     if (MELON_UNLIKELY(meta_size > body_size)) {
-        MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+        LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                    << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -102,12 +102,12 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
     do {
         StreamFrameMeta fm;
         if (!ParsePbFromIOBuf(&fm, meta_buf)) {
-            MLOG(WARNING) << "Fail to Parse StreamFrameMeta from " << *socket;
+            LOG(WARNING) << "Fail to Parse StreamFrameMeta from " << *socket;
             break;
         }
         SocketUniquePtr ptr;
         if (Socket::Address((SocketId)fm.stream_id(), &ptr) != 0) {
-            RPC_VMLOG_IF(fm.frame_type() != FRAME_TYPE_RST
+            RPC_VLOG_IF(fm.frame_type() != FRAME_TYPE_RST
                             && fm.frame_type() != FRAME_TYPE_CLOSE
                             && fm.frame_type() != FRAME_TYPE_FEEDBACK)
                    << "Fail to find stream=" << fm.stream_id();
@@ -127,11 +127,11 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
 }
 
 void ProcessStreamingMessage(InputMessageBase* /*msg*/) {
-    MCHECK(false) << "Should never be called";
+    CHECK(false) << "Should never be called";
 }
 
 void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
-    MCHECK(sock != NULL);
+    CHECK(sock != NULL);
     StreamFrameMeta fm;
     fm.set_stream_id(remote_stream_id);
     fm.set_frame_type(FRAME_TYPE_RST);
@@ -142,7 +142,7 @@ void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
 
 void SendStreamClose(Socket *sock, int64_t remote_stream_id,
                      int64_t source_stream_id) {
-    MCHECK(sock != NULL);
+    CHECK(sock != NULL);
     StreamFrameMeta fm;
     fm.set_stream_id(remote_stream_id);
     fm.set_source_stream_id(source_stream_id);

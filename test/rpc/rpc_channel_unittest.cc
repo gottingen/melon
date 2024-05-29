@@ -29,7 +29,7 @@
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/files/temp_file.h"
 #include <melon/rpc/socket.h>
 #include <melon/rpc/acceptor.h>
@@ -169,12 +169,12 @@ class MyEchoService : public ::test::EchoService {
             return;
         }
         if (req->close_fd()) {
-            MLOG(INFO) << "close fd...";
+            LOG(INFO) << "close fd...";
             cntl->CloseConnection("Close connection according to request");
             return;
         }
         if (req->sleep_us() > 0) {
-            MLOG(INFO) << "sleep " << req->sleep_us() << "us...";
+            LOG(INFO) << "sleep " << req->sleep_us() << "us...";
             fiber_usleep(req->sleep_us());
         }
         res->set_message("received " + req->message());
@@ -410,7 +410,7 @@ protected:
         
         EXPECT_TRUE(melon::ETOOMANYFAILS == cntl.ErrorCode() ||
                     ECONNREFUSED == cntl.ErrorCode()) << cntl.ErrorText();
-        MLOG(INFO) << cntl.ErrorText();
+        LOG(INFO) << cntl.ErrorText();
     }
 
     void TestConnectionFailedSelective(bool single_server, bool async, 
@@ -440,7 +440,7 @@ protected:
         ASSERT_EQ(1, cntl.sub_count());
         EXPECT_EQ(ECONNREFUSED, cntl.sub(0)->ErrorCode())
             << cntl.sub(0)->ErrorText();
-        MLOG(INFO) << cntl.ErrorText();
+        LOG(INFO) << cntl.ErrorText();
     }
     
     void TestSuccess(bool single_server, bool async, bool short_connection) {
@@ -837,7 +837,7 @@ protected:
         if (arg->sleep_before_cancel_us > 0) {
             fiber_usleep(arg->sleep_before_cancel_us);
         }
-        MLOG(INFO) << "Start to cancel cid=" << arg->cid.value;
+        LOG(INFO) << "Start to cancel cid=" << arg->cid.value;
         melon::StartCancel(arg->cid);
         return NULL;
     }
@@ -1167,7 +1167,7 @@ protected:
         test::EchoResponse res;
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(melon::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
-        MLOG(WARNING) << cntl.ErrorText();
+        LOG(WARNING) << cntl.ErrorText();
         StopAndJoin();
     }
 
@@ -1192,7 +1192,7 @@ protected:
         test::EchoResponse res;
         CallMethod(&channel, &cntl, &req, &res, async);
         EXPECT_EQ(melon::EREQUEST, cntl.ErrorCode()) << cntl.ErrorText();
-        MLOG(WARNING) << cntl.ErrorText();
+        LOG(WARNING) << cntl.ErrorText();
         ASSERT_EQ(1, cntl.sub_count());
         ASSERT_EQ(melon::EREQUEST, cntl.sub(0)->ErrorCode());
         StopAndJoin();
@@ -1472,7 +1472,7 @@ protected:
         CallMethod(&channel, &cntl, &req, &res, async);
         
         EXPECT_EQ(melon::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
-        MLOG(INFO) << cntl.ErrorText();
+        LOG(INFO) << cntl.ErrorText();
         StopAndJoin();
     }
 
@@ -1503,7 +1503,7 @@ protected:
         ASSERT_EQ(1, cntl.sub_count());
         ASSERT_EQ(melon::EINTERNAL, cntl.sub(0)->ErrorCode());
 
-        MLOG(INFO) << cntl.ErrorText();
+        LOG(INFO) << cntl.ErrorText();
         StopAndJoin();
     }
     
@@ -2706,7 +2706,7 @@ TEST_F(ChannelTest, destroy_channel_selective) {
 }
 
 TEST_F(ChannelTest, sizeof) {
-    MLOG(INFO) << "Size of Channel is " << sizeof(melon::Channel)
+    LOG(INFO) << "Size of Channel is " << sizeof(melon::Channel)
                << ", Size of ParallelChannel is " << sizeof(melon::ParallelChannel)
                << ", Size of Controller is " << sizeof(melon::Controller)
                << ", Size of vector is " << sizeof(std::vector<melon::Controller>);

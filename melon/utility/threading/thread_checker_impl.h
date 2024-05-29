@@ -12,7 +12,7 @@
 namespace mutil {
 
 // Real implementation of ThreadChecker, for use in debug mode, or
-// for temporary use in release mode (e.g. to MCHECK on a threading issue
+// for temporary use in release mode (e.g. to CHECK on a threading issue
 // seen only in the wild).
 //
 // Note: You should almost always use the ThreadChecker class to get the

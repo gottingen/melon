@@ -4,7 +4,7 @@
 
 #include <melon/utility/files/scoped_file.h>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 #if defined(OS_POSIX)
 #include <unistd.h>
@@ -26,7 +26,7 @@ void ScopedFDCloseTraits::Free(int fd) {
   // Chrome relies on being able to "drop" such access.
   // It's especially problematic on Linux with the setuid sandbox, where
   // a single open directory would bypass the entire security model.
-  PMCHECK(0 == IGNORE_EINTR(close(fd)));
+  PCHECK(0 == IGNORE_EINTR(close(fd)));
 }
 
 #endif  // OS_POSIX

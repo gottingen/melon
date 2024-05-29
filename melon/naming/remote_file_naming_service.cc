@@ -75,7 +75,7 @@ namespace melon::naming {
                 proto = "http";
             }
             if (proto != "bns" && proto != "http") {
-                MLOG(ERROR) << "Invalid protocol=`" << proto
+                LOG(ERROR) << "Invalid protocol=`" << proto
                            << "\' in service_name=" << service_name_cstr;
                 return -1;
             }
@@ -99,7 +99,7 @@ namespace melon::naming {
             opt.timeout_ms = FLAGS_remote_file_timeout_ms;
             std::unique_ptr<Channel> chan(new Channel);
             if (chan->Init(_server_addr.c_str(), "rr", &opt) != 0) {
-                MLOG(ERROR) << "Fail to init channel to " << _server_addr;
+                LOG(ERROR) << "Fail to init channel to " << _server_addr;
                 return -1;
             }
             _channel.swap(chan);
@@ -109,7 +109,7 @@ namespace melon::naming {
         cntl.http_request().uri() = _path;
         _channel->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
-            MLOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
+            LOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
                          << cntl.ErrorText();
             return -1;
         }
@@ -129,7 +129,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
+                LOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;
@@ -138,10 +138,10 @@ namespace melon::naming {
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {
-                RPC_VMLOG << "Duplicated server=" << node;
+                RPC_VLOG << "Duplicated server=" << node;
             }
         }
-        RPC_VMLOG << "Got " << servers->size()
+        RPC_VLOG << "Got " << servers->size()
                  << (servers->size() > 1 ? " servers" : " server")
                  << " from " << service_name_cstr;
         return 0;

@@ -20,7 +20,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/utility/macros.h>                       // MELON_CASSERT
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/task_group.h>                // TaskGroup
 #include <melon/fiber/task_control.h>              // TaskControl
 #include <melon/fiber/timer_thread.h>
@@ -109,7 +109,7 @@ namespace fiber {
                           FLAGS_fiber_min_concurrency :
                           FLAGS_fiber_concurrency;
         if (c->init(concurrency) != 0) {
-            MLOG(ERROR) << "Fail to init g_task_control";
+            LOG(ERROR) << "Fail to init g_task_control";
             delete c;
             return NULL;
         }
@@ -332,7 +332,7 @@ int fiber_getconcurrency(void) {
 
 int fiber_setconcurrency(int num) {
     if (num < FIBER_MIN_CONCURRENCY || num > FIBER_MAX_CONCURRENCY) {
-        MLOG(ERROR) << "Invalid concurrency=" << num;
+        LOG(ERROR) << "Invalid concurrency=" << num;
         return EINVAL;
     }
     if (fiber::FLAGS_fiber_min_concurrency > 0) {
@@ -365,7 +365,7 @@ int fiber_setconcurrency(int num) {
         return 0;
     }
     if (fiber::FLAGS_fiber_concurrency != c->concurrency()) {
-        MLOG(ERROR) << "MCHECK failed: fiber_concurrency="
+        LOG(ERROR) << "CHECK failed: fiber_concurrency="
                     << fiber::FLAGS_fiber_concurrency
                     << " != tc_concurrency=" << c->concurrency();
         fiber::FLAGS_fiber_concurrency = c->concurrency();
@@ -401,7 +401,7 @@ int fiber_setconcurrency_by_tag(int num, fiber_tag_t tag) {
     auto tag_ngroup = c->concurrency(tag);
     auto add = num - tag_ngroup;
     if (ngroup + add > fiber::FLAGS_fiber_concurrency) {
-        MLOG(ERROR) << "Fail to set concurrency by tag " << tag
+        LOG(ERROR) << "Fail to set concurrency by tag " << tag
                     << ", Whole concurrency larger than fiber_concurrency";
         return EPERM;
     }

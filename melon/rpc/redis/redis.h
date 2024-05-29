@@ -47,7 +47,7 @@ namespace melon {
     //   RedisResponse response;
     //   channel.CallMethod(&controller, &request, &response, NULL/*done*/);
     //   if (!cntl.Failed()) {
-    //       MLOG(INFO) << response.reply(0);
+    //       LOG(INFO) << response.reply(0);
     //   }
     class RedisRequest : public ::google::protobuf::Message {
     public:

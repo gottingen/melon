@@ -34,7 +34,7 @@
 #include <melon/utility/file_util.h>
 #include <melon/utility/unique_ptr.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/object_pool.h>
 #include <melon/fiber/butex.h>                       // butex_*
 #include <melon/fiber/processor.h>                   // cpu_relax, barrier
@@ -156,7 +156,7 @@ void ContentionProfiler::init_if_needed() {
     if (!_init) {
         // Already output nanoseconds, always set cycles/second to 1000000000.
         _disk_buf.append("--- contention\ncycles/second=1000000000\n");
-        MCHECK_EQ(0, _dedup_map.init(1024, 60));
+        CHECK_EQ(0, _dedup_map.init(1024, 60));
         _init = true;
     }
 }
@@ -181,11 +181,11 @@ void ContentionProfiler::dump_and_destroy(SampledContention* c) {
 }
 
 void ContentionProfiler::flush_to_disk(bool ending) {
-    BT_VMLOG << "flush_to_disk(ending=" << ending << ")";
+    BT_VLOG << "flush_to_disk(ending=" << ending << ")";
     
     // Serialize contentions in _dedup_map into _disk_buf.
     if (!_dedup_map.empty()) {
-        BT_VMLOG << "dedup_map=" << _dedup_map.size();
+        BT_VLOG << "dedup_map=" << _dedup_map.size();
         mutil::IOBufBuilder os;
         for (ContentionMap::const_iterator
                  it = _dedup_map.begin(); it != _dedup_map.end(); ++it) {
@@ -204,7 +204,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     // Append /proc/self/maps to the end of the contention file, required by
     // pprof.pl, otherwise the functions in sys libs are not interpreted.
     if (ending) {
-        BT_VMLOG << "Append /proc/self/maps";
+        BT_VLOG << "Append /proc/self/maps";
         // Failures are not critical, don't return directly.
         mutil::IOPortal mem_maps;
         const mutil::fd_guard fd(open("/proc/self/maps", O_RDONLY));
@@ -215,7 +215,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
                     if (errno == EINTR) {
                         continue;
                     }
-                    PMLOG(ERROR) << "Fail to read /proc/self/maps";
+                    PLOG(ERROR) << "Fail to read /proc/self/maps";
                     break;
                 }
                 if (nr == 0) {
@@ -224,7 +224,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
                 }
             }
         } else {
-            PMLOG(ERROR) << "Fail to open /proc/self/maps";
+            PLOG(ERROR) << "Fail to open /proc/self/maps";
         }
     }
     // Write _disk_buf into _filename
@@ -232,7 +232,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     mutil::FilePath path(_filename);
     mutil::FilePath dir = path.DirName();
     if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-        MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+        LOG(ERROR) << "Fail to create directory=`" << dir.value()
                    << "', " << error;
         return;
     }
@@ -244,7 +244,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     }
     mutil::fd_guard fd(open(_filename.c_str(), O_WRONLY|O_CREAT|flag, 0666));
     if (fd < 0) {
-        PMLOG(ERROR) << "Fail to open " << _filename;
+        PLOG(ERROR) << "Fail to open " << _filename;
         return;
     }
     // Write once normally, write until empty in the end.
@@ -254,10 +254,10 @@ void ContentionProfiler::flush_to_disk(bool ending) {
             if (errno == EINTR) {
                 continue;
             }
-            PMLOG(ERROR) << "Fail to write into " << _filename;
+            PLOG(ERROR) << "Fail to write into " << _filename;
             return;
         }
-        BT_VMLOG << "Write " << nw << " bytes into " << _filename;
+        BT_VLOG << "Write " << nw << " bytes into " << _filename;
     } while (!_disk_buf.empty() && ending);
 }
 
@@ -317,7 +317,7 @@ static int64_t get_nconflicthash(void*) {
 // Start profiling contention.
 bool ContentionProfilerStart(const char* filename) {
     if (filename == NULL) {
-        MLOG(ERROR) << "Parameter [filename] is NULL";
+        LOG(ERROR) << "Parameter [filename] is NULL";
         return false;
     }
     // g_cp is also the flag marking start/stop.
@@ -362,7 +362,7 @@ void ContentionProfilerStop() {
             return;
         }
     }
-    MLOG(ERROR) << "Contention profiler is not started!";
+    LOG(ERROR) << "Contention profiler is not started!";
 }
 
 MUTIL_FORCE_INLINE bool

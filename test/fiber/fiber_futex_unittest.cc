@@ -31,6 +31,7 @@
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/sys_futex.h>
 #include <melon/fiber/processor.h>
+#include <cinttypes>
 
 namespace {
 volatile bool stop = false;

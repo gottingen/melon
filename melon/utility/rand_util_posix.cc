@@ -10,7 +10,7 @@
 
 #include <melon/utility/file_util.h>
 #include "melon/utility/lazy_instance.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace {
 
@@ -21,7 +21,7 @@ namespace {
 class URandomFd {
  public:
   URandomFd() : fd_(open("/dev/urandom", O_RDONLY)) {
-    DMCHECK_GE(fd_, 0) << "Cannot open /dev/urandom: " << errno;
+    DCHECK_GE(fd_, 0) << "Cannot open /dev/urandom: " << errno;
   }
 
   ~URandomFd() { close(fd_); }
@@ -49,7 +49,7 @@ void RandBytes(void* output, size_t output_length) {
   const int urandom_fd = g_urandom_fd.Pointer()->fd();
   const bool success =
       ReadFromFD(urandom_fd, static_cast<char*>(output), output_length);
-  MCHECK(success);
+  CHECK(success);
 }
 
 int GetUrandomFD(void) {

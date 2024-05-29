@@ -8,7 +8,7 @@
 
 #include "melon/utility/debug/alias.h"
 #include "melon/utility/debug/asan_invalid_access.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>
 
 namespace mutil {
@@ -36,7 +36,7 @@ NOINLINE void CorruptMemoryBlock(bool induce_crash) {
   } catch (...) {
   }
   if (induce_crash)
-    MCHECK(false);
+    CHECK(false);
   delete[] array;
 }
 #endif

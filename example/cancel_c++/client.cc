@@ -21,7 +21,7 @@
 // A client to send 2 requests to server and accept the first returned response.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/time.h>
 #include <melon/rpc/channel.h>
 #include "echo.pb.h"
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -109,16 +109,16 @@ int main(int argc, char* argv[]) {
         melon::Join(id2);
         tm.stop();
         if (cntl1.Failed() && cntl2.Failed()) {
-            MLOG(WARNING) << "Both failed. rpc1:" << cntl1.ErrorText()
+            LOG(WARNING) << "Both failed. rpc1:" << cntl1.ErrorText()
                          << ", rpc2: " << cntl2.ErrorText();
         } else if (!cntl1.Failed()) {
-            MLOG(INFO) << "Received `" << response1.message() << "' from rpc1="
+            LOG(INFO) << "Received `" << response1.message() << "' from rpc1="
                       << id1.value << '@' << cntl1.remote_side()
                       << " latency=" << tm.u_elapsed() << "us"
                       << " rpc1_latency=" << cntl1.latency_us() << "us"
                       << " rpc2_latency=" << cntl2.latency_us() << "us";
         } else {
-            MLOG(INFO) << "Received `" << response2.message() << "' from rpc2="
+            LOG(INFO) << "Received `" << response2.message() << "' from rpc2="
                       << id2.value << '@' << cntl2.remote_side()
                       << " latency=" << tm.u_elapsed() << "us"
                       << " rpc1_latency=" << cntl1.latency_us() << "us"
@@ -127,6 +127,6 @@ int main(int argc, char* argv[]) {
         sleep(1);
     }
 
-    MLOG(INFO) << "EchoClient is going to quit";
+    LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

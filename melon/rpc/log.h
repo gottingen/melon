@@ -24,11 +24,11 @@
 #include <inttypes.h>  // PRId64 PRIu64
 #include <melon/fiber/errno.h>
 
-#define RPC_VMLOG_LEVEL     99
-#define RPC_VMLOG_IS_ON     VMLOG_IS_ON(RPC_VMLOG_LEVEL)
-#define RPC_VMLOG           VMLOG(RPC_VMLOG_LEVEL)
-#define RPC_VPLOG          VPMLOG(RPC_VMLOG_LEVEL)
-#define RPC_VMLOG_IF(cond)  VMLOG_IF(RPC_VMLOG_LEVEL, (cond))
-#define RPC_VPLOG_IF(cond) VPMLOG_IF(RPC_VMLOG_LEVEL, (cond))
+#define RPC_VLOG_LEVEL     99
+#define RPC_VLOG_IS_ON     VLOG_IS_ON(RPC_VLOG_LEVEL)
+#define RPC_VLOG           VLOG(RPC_VLOG_LEVEL)
+#define RPC_VPLOG          VPLOG(RPC_VLOG_LEVEL)
+#define RPC_VLOG_IF(cond)  LOG_IF(INFO, cond).WithVerbosity(RPC_VLOG_LEVEL)
+#define RPC_VPLOG_IF(cond) VPLOG_IF(RPC_VLOG_LEVEL, (cond))
 
 #endif  // MELON_RPC_LOG_H_

@@ -31,7 +31,7 @@
 #include <melon/utility/scoped_lock.h>
 #include <melon/utility/fast_rand.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/iobuf.h>
 #include <melon/utility/unique_ptr.h>
 #include <melon/utility/memory/singleton.h>

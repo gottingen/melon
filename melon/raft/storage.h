@@ -81,7 +81,7 @@ namespace melon::raft {
                 ++removed_spaces;
             }
         }
-        MLOG_IF(WARNING, removed_spaces) << "Removed " << removed_spaces
+        LOG_IF(WARNING, removed_spaces) << "Removed " << removed_spaces
                                          << " spaces from `" << *uri << '\'';
         return protocol;
     }
@@ -92,7 +92,7 @@ namespace melon::raft {
         mutil::FilePath tmp_path(path + ".tmp");
         // delete tmp path firstly in case there is garbage
         if (!mutil::DeleteFile(tmp_path, true)) {
-            MLOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
+            LOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
             return -1;
         }
 
@@ -100,16 +100,16 @@ namespace melon::raft {
             const bool rc = mutil::ReplaceFile(mutil::FilePath(target_path),
                                                mutil::FilePath(tmp_path), &e);
             if (!rc) {
-                MLOG(ERROR) << "Fail to rename `" << target_path.value()
+                LOG(ERROR) << "Fail to rename `" << target_path.value()
                             << " to `" << tmp_path.value() << "' : " << e;
                 return -1;
             }
             if (!mutil::DeleteFile(tmp_path, true)) {
-                MLOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
+                LOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
                 return -1;
             }
         } else {
-            MLOG(INFO) << "Target path not exist, so no need to gc, path: "
+            LOG(INFO) << "Target path not exist, so no need to gc, path: "
                        << target_path.value();
         }
         return 0;
@@ -160,7 +160,7 @@ namespace melon::raft {
         // GC an instance of this kind of LogStorage with the parameters encoded
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri) const {
-            MCHECK(false) << mutil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                           << " didn't implement gc_instance interface while deleting"
                              " raft log in " << uri;
             mutil::Status status;
@@ -197,7 +197,7 @@ namespace melon::raft {
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri,
                                           const VersionedGroupId &vgid) const {
-            MCHECK(false) << mutil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                           << " didn't implement gc_instance interface while deleting"
                              " raft stable meta in " << uri;
             mutil::Status status;
@@ -303,21 +303,21 @@ namespace melon::raft {
         virtual ~SnapshotStorage() {}
 
         virtual int set_filter_before_copy_remote() {
-            MCHECK(false) << mutil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                           << " doesn't support filter before copy remote";
             return -1;
         }
 
         virtual int set_file_system_adaptor(FileSystemAdaptor *fs) {
             (void) fs;
-            MCHECK(false) << mutil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                           << " doesn't support file system adaptor";
             return -1;
         }
 
         virtual int set_snapshot_throttle(SnapshotThrottle *st) {
             (void) st;
-            MCHECK(false) << mutil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                           << " doesn't support snapshot throttle";
             return -1;
         }
@@ -354,7 +354,7 @@ namespace melon::raft {
         // GC an instance of this kind of SnapshotStorage with the parameters encoded
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri) const {
-            MCHECK(false) << mutil::class_name_str(*this)
+            CHECK(false) << mutil::class_name_str(*this)
                           << " didn't implement gc_instance interface while deleting"
                              " raft snapshot in " << uri;
             mutil::Status status;

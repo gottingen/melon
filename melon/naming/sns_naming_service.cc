@@ -62,7 +62,7 @@ namespace melon::naming {
         channel_options.connect_timeout_ms = FLAGS_sns_timeout_ms / 3;
         g_sns_channel = new Channel;
         if (g_sns_channel->Init(FLAGS_sns_server.c_str(), "rr", &channel_options) != 0) {
-            MLOG(ERROR) << "Fail to init channel to " << FLAGS_sns_server;
+            LOG(ERROR) << "Fail to init channel to " << FLAGS_sns_server;
             return;
         }
     }
@@ -107,7 +107,7 @@ namespace melon::naming {
             return -1;
         }
         if (fiber_start_background(&_th, NULL, periodic_renew, this) != 0) {
-            MLOG(ERROR) << "Fail to start background PeriodicRenew";
+            LOG(ERROR) << "Fail to start background PeriodicRenew";
             return -1;
         }
         return 0;
@@ -116,7 +116,7 @@ namespace melon::naming {
     int SnsNamingClient::do_register() {
         Channel *chan = GetOrNewSnsChannel();
         if (NULL == chan) {
-            MLOG(ERROR) << "Fail to create discovery channel";
+            LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         Controller cntl;
@@ -124,11 +124,11 @@ namespace melon::naming {
         melon::SnsResponse response;
         stub.registry(&cntl, &_params, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
+            LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
         }
         if (response.errcode() != melon::Errno::OK && response.errcode() != melon::Errno::AlreadyExists) {
-            MLOG(ERROR) << "Fail to register peer: " << response.errmsg();
+            LOG(ERROR) << "Fail to register peer: " << response.errmsg();
             return -1;
         }
         _current_discovery_server = cntl.remote_side();
@@ -138,7 +138,7 @@ namespace melon::naming {
     int SnsNamingClient::do_renew() const {
         Channel *chan = GetOrNewSnsChannel();
         if (NULL == chan) {
-            MLOG(ERROR) << "Fail to create discovery channel";
+            LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         Controller cntl;
@@ -148,11 +148,11 @@ namespace melon::naming {
         request.set_status(to_peer_status(FLAGS_sns_status));
         stub.update(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
+            LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
         }
         if (response.errcode() != melon::Errno::OK) {
-            MLOG(ERROR) << "Fail to register peer: " << response.errmsg();
+            LOG(ERROR) << "Fail to register peer: " << response.errmsg();
             return -1;
         }
         return 0;
@@ -161,7 +161,7 @@ namespace melon::naming {
     int SnsNamingClient::do_cancel() const {
         Channel *chan = GetOrNewSnsChannel();
         if (NULL == chan) {
-            MLOG(ERROR) << "Fail to create discovery channel";
+            LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         Controller cntl;
@@ -169,11 +169,11 @@ namespace melon::naming {
         melon::SnsResponse response;
         stub.cancel(&cntl, &_params, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
+            LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
         }
         if (response.errcode() != melon::Errno::OK) {
-            MLOG(ERROR) << "Fail to register peer: " << response.errmsg();
+            LOG(ERROR) << "Fail to register peer: " << response.errmsg();
             return -1;
         }
         return 0;
@@ -192,7 +192,7 @@ namespace melon::naming {
 
         while (!fiber_stopped(fiber_self())) {
             if (consecutive_renew_error == FLAGS_sns_reregister_threshold) {
-                MLOG(WARNING) << "Re-register since discovery renew error threshold reached";
+                LOG(WARNING) << "Re-register since discovery renew error threshold reached";
                 // Do register until succeed or Cancel is called
                 while (!fiber_stopped(fiber_self())) {
                     if (sns->do_register() == 0) {
@@ -219,13 +219,13 @@ namespace melon::naming {
             FLAGS_sns_status.empty() ||
             FLAGS_sns_zone.empty() ||
             FLAGS_sns_color.empty()) {
-            MLOG_ONCE(ERROR) << "Invalid parameters";
+            LOG_FIRST_N(ERROR, 1) << "Invalid parameters";
             return -1;
         }
 
         Channel *chan = GetOrNewSnsChannel();
         if (NULL == chan) {
-            MLOG(ERROR) << "Fail to create discovery channel";
+            LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         Controller cntl;
@@ -251,23 +251,23 @@ namespace melon::naming {
 
         stub.naming(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
+            LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
         }
         if (response.errcode() != melon::Errno::OK) {
-            MLOG(ERROR) << "Fail to register peer: " << response.errmsg();
+            LOG(ERROR) << "Fail to register peer: " << response.errmsg();
             return -1;
         }
 
         for (int i = 0; i < response.servlets_size(); ++i) {
             const auto &peer = response.servlets(i);
             if (!is_valid(peer)) {
-                MLOG(ERROR) << "Invalid peer: " << peer.DebugString();
+                LOG(ERROR) << "Invalid peer: " << peer.DebugString();
                 continue;
             }
             ServerNode node;
             if(mutil::str2endpoint(peer.address().c_str(), &node.addr) != 0) {
-                MLOG(ERROR) << "Invalid address: " << peer.address();
+                LOG(ERROR) << "Invalid address: " << peer.address();
                 continue;
             }
             node.tag = peer.app_name() + "." + peer.zone() + "." + peer.env() + "." + peer.color();

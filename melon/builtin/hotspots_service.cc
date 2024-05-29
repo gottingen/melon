@@ -181,21 +181,21 @@ namespace melon {
         mutil::FilePath path(filepath_in);
         mutil::FilePath dir = path.DirName();
         if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-            MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+            LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return false;
         }
         FILE *fp = fopen(path.value().c_str(), "w");
         if (NULL == fp) {
-            MLOG(ERROR) << "Fail to open `" << path.value() << '\'';
+            LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
         bool ret = true;
         if (fwrite(content.data(), content.size(), 1UL, fp) != 1UL) {
-            MLOG(ERROR) << "Fail to write into " << path.value();
+            LOG(ERROR) << "Fail to write into " << path.value();
             ret = false;
         }
-        MCHECK_EQ(0, fclose(fp));
+        CHECK_EQ(0, fclose(fp));
         return ret;
     }
 
@@ -205,13 +205,13 @@ namespace melon {
         mutil::FilePath path(filepath_in);
         mutil::FilePath dir = path.DirName();
         if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-            MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+            LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return false;
         }
         FILE *fp = fopen(path.value().c_str(), "w");
         if (NULL == fp) {
-            MLOG(ERROR) << "Fail to open `" << path.value() << '\'';
+            LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
         mutil::IOBufAsZeroCopyInputStream iter(content);
@@ -219,7 +219,7 @@ namespace melon {
         int size = 0;
         while (iter.Next(&data, &size)) {
             if (fwrite(data, size, 1UL, fp) != 1UL) {
-                MLOG(ERROR) << "Fail to write into " << path.value();
+                LOG(ERROR) << "Fail to write into " << path.value();
                 fclose(fp);
                 return false;
             }
@@ -343,7 +343,7 @@ namespace melon {
                                std::vector<ProfilingWaiter> *waiters) {
         waiters->clear();
         if ((int) type >= (int) arraysize(g_env)) {
-            MLOG(ERROR) << "Invalid type=" << type;
+            LOG(ERROR) << "Invalid type=" << type;
             return;
         }
         ProfilingEnvironment &env = g_env[type];
@@ -375,7 +375,7 @@ namespace melon {
             return;
         }
         std::vector<ProfilingWaiter> saved_waiters;
-        MCHECK(g_env[type].client);
+        CHECK(g_env[type].client);
         ConsumeWaiters(type, cur_cntl, &saved_waiters);
         for (size_t i = 0; i < saved_waiters.size(); ++i) {
             Controller *cntl = saved_waiters[i].cntl;
@@ -471,16 +471,16 @@ namespace melon {
                         succ = true;
                         break;
                     } else if (ferror(fp)) {
-                        MLOG(ERROR) << "Encountered error while reading for "
+                        LOG(ERROR) << "Encountered error while reading for "
                                    << expected_result_name;
                         break;
                     }
                     // retry;
                 }
             }
-            PMLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
+            PLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
             if (succ) {
-                RPC_VMLOG << "Hit cache=" << expected_result_name;
+                RPC_VLOG << "Hit cache=" << expected_result_name;
                 os.move_to(resp);
                 if (use_html) {
                     resp.append("<pre>");
@@ -540,7 +540,7 @@ namespace melon {
             errno = 0; // read_command_output may not set errno, clear it to make sure if
             // we see non-zero errno, it's real error.
             mutil::IOBufBuilder pprof_output;
-            RPC_VMLOG << "Running cmd=" << cmd;
+            RPC_VLOG << "Running cmd=" << cmd;
             const int rc = mutil::read_command_output(pprof_output, cmd.c_str());
             if (rc != 0) {
                 mutil::FilePath pprof_path(pprof_tool);
@@ -600,8 +600,8 @@ namespace melon {
             }
 
             if (!WriteSmallFile(result_name, prof_result)) {
-                MLOG(ERROR) << "Fail to write " << result_name;
-                MCHECK(mutil::DeleteFile(mutil::FilePath(result_name), false));
+                LOG(ERROR) << "Fail to write " << result_name;
+                CHECK(mutil::DeleteFile(mutil::FilePath(result_name), false));
             }
             break;
         }
@@ -673,9 +673,9 @@ namespace melon {
         }
         client_info << " requests for profiling " << ProfilingType2String(type);
         if (type == PROFILING_CPU || type == PROFILING_CONTENTION) {
-            MLOG(INFO) << client_info.str() << " for " << seconds << " seconds";
+            LOG(INFO) << client_info.str() << " for " << seconds << " seconds";
         } else {
-            MLOG(INFO) << client_info.str();
+            LOG(INFO) << client_info.str();
         }
         int64_t prof_id = 0;
         const std::string *prof_id_str =
@@ -683,7 +683,7 @@ namespace melon {
         if (prof_id_str != NULL) {
             char *endptr = NULL;
             prof_id = strtoll(prof_id_str->c_str(), &endptr, 10);
-            MLOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
+            LOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
         }
 
         {
@@ -694,7 +694,7 @@ namespace melon {
                 }
                 ProfilingWaiter waiter = {cntl, done_guard.release()};
                 g_env[type].waiters->push_back(waiter);
-                RPC_VMLOG << "Queue request from " << cntl->remote_side();
+                RPC_VLOG << "Queue request from " << cntl->remote_side();
                 return;
             }
             if (g_env[type].cached_result != NULL &&
@@ -703,10 +703,10 @@ namespace melon {
                         g_env[type].cached_result->status_code);
                 cntl->response_attachment().append(
                         g_env[type].cached_result->result);
-                RPC_VMLOG << "Hit cached result, id=" << prof_id;
+                RPC_VLOG << "Hit cached result, id=" << prof_id;
                 return;
             }
-            MCHECK(NULL == g_env[type].client);
+            CHECK(NULL == g_env[type].client);
             g_env[type].client = new ProfilingClient;
             g_env[type].client->end_us = mutil::cpuwide_time_us() + seconds * 1000000L;
             g_env[type].client->seconds = seconds;
@@ -725,7 +725,7 @@ namespace melon {
             g_env[type].client->point = cntl->remote_side();
         }
 
-        RPC_VMLOG << "Apply request from " << cntl->remote_side();
+        RPC_VLOG << "Apply request from " << cntl->remote_side();
 
         char prof_name[128];
         if (MakeProfName(type, prof_name, sizeof(prof_name)) != 0) {
@@ -771,7 +771,7 @@ namespace melon {
                 return NotifyWaiters(type, cntl, view);
             }
             if (fiber_usleep(seconds * 1000000L) != 0) {
-                PMLOG(WARNING) << "Profiling has been interrupted";
+                PLOG(WARNING) << "Profiling has been interrupted";
             }
             ProfilerStop();
         } else if (type == PROFILING_CONTENTION) {
@@ -783,7 +783,7 @@ namespace melon {
                 return NotifyWaiters(type, cntl, view);
             }
             if (fiber_usleep(seconds * 1000000L) != 0) {
-                PMLOG(WARNING) << "Profiling has been interrupted";
+                PLOG(WARNING) << "Profiling has been interrupted";
             }
             fiber::ContentionProfilerStop();
         } else if (type == PROFILING_HEAP) {
@@ -1068,12 +1068,12 @@ namespace melon {
                 TRACEPRINTF("Remove %lu profiles",
                             past_profs.size() - (size_t) max_profiles);
                 for (size_t i = max_profiles; i < past_profs.size(); ++i) {
-                    MCHECK(mutil::DeleteFile(mutil::FilePath(past_profs[i]), false));
+                    CHECK(mutil::DeleteFile(mutil::FilePath(past_profs[i]), false));
                     std::string cache_path;
                     cache_path.reserve(past_profs[i].size() + 7);
                     cache_path += past_profs[i];
                     cache_path += ".cache";
-                    MCHECK(mutil::DeleteFile(mutil::FilePath(cache_path), true));
+                    CHECK(mutil::DeleteFile(mutil::FilePath(cache_path), true));
                 }
                 past_profs.resize(max_profiles);
             }

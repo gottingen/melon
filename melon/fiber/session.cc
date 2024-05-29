@@ -19,7 +19,7 @@
 
 
 #include <deque>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/butex.h>                       // butex_*
 #include <melon/fiber/mutex.h>
 #include <melon/fiber/list_of_abafree_id.h>
@@ -343,7 +343,7 @@ namespace fiber {
             meta->data = data;
             meta->on_error = on_error;
             meta->on_error2 = on_error2;
-            MCHECK(meta->pending_q.empty());
+            CHECK(meta->pending_q.empty());
             uint32_t *butex = meta->butex;
             if (0 == *butex || *butex + ID_MAX_RANGE + 2 < *butex) {
                 // Skip 0 so that fiber_session_t is never 0
@@ -365,8 +365,8 @@ namespace fiber {
             int (*on_error2)(fiber_session_t, void *, int, const std::string &),
             int range) {
         if (range < 1 || range > ID_MAX_RANGE) {
-            MLOG_IF(FATAL, range < 1) << "range must be positive, actually " << range;
-            MLOG_IF(FATAL, range > ID_MAX_RANGE) << "max of range is "
+            LOG_IF(FATAL, range < 1) << "range must be positive, actually " << range;
+            LOG_IF(FATAL, range > ID_MAX_RANGE) << "max of range is "
                                                  << ID_MAX_RANGE << ", actually " << range;
             return EINVAL;
         }
@@ -376,7 +376,7 @@ namespace fiber {
             meta->data = data;
             meta->on_error = on_error;
             meta->on_error2 = on_error2;
-            MCHECK(meta->pending_q.empty());
+            CHECK(meta->pending_q.empty());
             uint32_t *butex = meta->butex;
             if (0 == *butex || *butex + ID_MAX_RANGE + 2 < *butex) {
                 // Skip 0 so that fiber_session_t is never 0
@@ -432,9 +432,9 @@ int fiber_session_lock_and_reset_range_verbose(
             } else if (range < 0 ||
                        range > fiber::ID_MAX_RANGE ||
                        range + meta->first_ver <= meta->locked_ver) {
-                MLOG_IF(FATAL, range < 0) << "range must be positive, actually "
+                LOG_IF(FATAL, range < 0) << "range must be positive, actually "
                                           << range;
-                MLOG_IF(FATAL, range > fiber::ID_MAX_RANGE)
+                LOG_IF(FATAL, range > fiber::ID_MAX_RANGE)
                 << "max range is " << fiber::ID_MAX_RANGE
                 << ", actually " << range;
             } else {
@@ -484,7 +484,7 @@ int fiber_session_about_to_destroy(fiber_session_t id) {
     }
     if (*butex == meta->first_ver) {
         meta->mutex.unlock();
-        MLOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
+        LOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
         return EPERM;
     }
     const bool contended = (*butex == meta->contended_ver());
@@ -587,12 +587,12 @@ int fiber_session_unlock(fiber_session_t id) {
     meta->mutex.lock();
     if (!meta->has_version(id_ver)) {
         meta->mutex.unlock();
-        MLOG(FATAL) << "Invalid fiber_session=" << id.value;
+        LOG(FATAL) << "Invalid fiber_session=" << id.value;
         return EINVAL;
     }
     if (*butex == meta->first_ver) {
         meta->mutex.unlock();
-        MLOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
+        LOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
         return EPERM;
     }
     fiber::PendingError front;
@@ -628,12 +628,12 @@ int fiber_session_unlock_and_destroy(fiber_session_t id) {
     meta->mutex.lock();
     if (!meta->has_version(id_ver)) {
         meta->mutex.unlock();
-        MLOG(FATAL) << "Invalid fiber_session=" << id.value;
+        LOG(FATAL) << "Invalid fiber_session=" << id.value;
         return EINVAL;
     }
     if (*butex == meta->first_ver) {
         meta->mutex.unlock();
-        MLOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
+        LOG(FATAL) << "fiber_session=" << id.value << " is not locked!";
         return EPERM;
     }
     const uint32_t next_ver = meta->end_ver();

@@ -34,7 +34,7 @@ namespace melon {
 class ServerPrivateAccessor {
 public:
     explicit ServerPrivateAccessor(const Server* svr) {
-        MCHECK(svr);
+        CHECK(svr);
         _server = svr;
     }
 

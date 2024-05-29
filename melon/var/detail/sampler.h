@@ -23,7 +23,7 @@
 #include <vector>
 #include <melon/utility/containers/linked_list.h>// LinkNode
 #include <melon/utility/scoped_lock.h>           // MELON_SCOPED_LOCK
-#include <melon/utility/logging.h>               // LOG()
+#include <turbo/log/logging.h>               // LOG()
 #include <melon/utility/containers/bounded_queue.h>// BoundedQueue
 #include <melon/utility/type_traits.h>           // is_same
 #include <melon/utility/time.h>                  // gettimeofday_us
@@ -74,7 +74,7 @@ namespace melon::var::detail {
     struct VoidOp {
         template<typename T>
         T operator()(const T &, const T &) const {
-            MCHECK(false) << "This function should never be called, abort";
+            CHECK(false) << "This function should never be called, abort";
             abort();
         }
     };
@@ -143,7 +143,7 @@ namespace melon::var::detail {
 
         bool get_value(time_t window_size, Sample<T> *result) {
             if (window_size <= 0) {
-                MLOG(FATAL) << "Invalid window_size=" << window_size;
+                LOG(FATAL) << "Invalid window_size=" << window_size;
                 return false;
             }
             MELON_SCOPED_LOCK(_mutex);
@@ -156,7 +156,7 @@ namespace melon::var::detail {
                 oldest = _q.top();
             }
             Sample<T> *latest = _q.bottom();
-            DMCHECK(latest != oldest);
+            DCHECK(latest != oldest);
             if (mutil::is_same<InvOp, VoidOp>::value) {
                 // No inverse op. Sum up all samples within the window.
                 result->data = latest->data;
@@ -179,7 +179,7 @@ namespace melon::var::detail {
         // Change the time window which can only go larger.
         int set_window_size(time_t window_size) {
             if (window_size <= 0 || window_size > MAX_SECONDS_LIMIT) {
-                MLOG(ERROR) << "Invalid window_size=" << window_size;
+                LOG(ERROR) << "Invalid window_size=" << window_size;
                 return -1;
             }
             MELON_SCOPED_LOCK(_mutex);
@@ -191,7 +191,7 @@ namespace melon::var::detail {
 
         void get_samples(std::vector<T> *samples, time_t window_size) {
             if (window_size <= 0) {
-                MLOG(FATAL) << "Invalid window_size=" << window_size;
+                LOG(FATAL) << "Invalid window_size=" << window_size;
                 return;
             }
             MELON_SCOPED_LOCK(_mutex);

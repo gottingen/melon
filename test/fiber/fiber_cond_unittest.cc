@@ -28,6 +28,7 @@
 #include <melon/fiber/fiber.h>
 #include "melon/fiber/condition_variable.h"
 #include <melon/fiber/stack.h>
+#include <cinttypes>
 
 namespace {
 struct Arg {
@@ -277,7 +278,7 @@ TEST(CondTest, ping_pong) {
         ASSERT_EQ(0, fiber_join(threads[i], NULL));
     }
     ProfilerStop();
-    MLOG(INFO) << "total_count=" << arg.total_count.load();
+    LOG(INFO) << "total_count=" << arg.total_count.load();
 }
 
 struct BroadcastArg {
@@ -435,16 +436,16 @@ static void launch_many_fibers() {
         tids.push_back(t0);
     }
     tm.stop();
-    MLOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
+    LOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
     usleep(3 * 1000 * 1000L);
     c.Signal();
     g_stop = true;
     fiber_join(tid, NULL);
     for (size_t i = 0; i < tids.size(); ++i) {
-        MLOG_EVERY_SECOND(INFO) << "Joined " << i << " threads";
+        LOG_EVERY_N_SEC(INFO, 1) << "Joined " << i << " threads";
         fiber_join(tids[i], NULL);
     }
-    MLOG_EVERY_SECOND(INFO) << "Joined " << tids.size() << " threads";
+    LOG_EVERY_N_SEC(INFO, 1) << "Joined " << tids.size() << " threads";
 }
 
 TEST(CondTest, too_many_fibers_from_pthread) {

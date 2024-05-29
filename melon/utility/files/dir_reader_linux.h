@@ -11,7 +11,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/posix/eintr_wrapper.h"
 
 // See the comments in dir_reader_posix.h about this.
@@ -38,7 +38,7 @@ class DirReaderLinux {
   ~DirReaderLinux() {
     if (fd_ >= 0) {
       if (IGNORE_EINTR(close(fd_)))
-        RAW_LOG(ERROR, "Failed to close directory handle");
+          DLOG(ERROR)<<"Failed to close directory handle";
     }
   }
 
@@ -60,7 +60,7 @@ class DirReaderLinux {
     if (r == 0)
       return false;
     if (r == -1) {
-      DPMLOG(FATAL) << "getdents64 returned an error: " << errno;
+        DLOG(FATAL) << "getdents64 returned an error: " << errno;
       return false;
     }
     size_ = r;

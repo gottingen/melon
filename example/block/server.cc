@@ -81,20 +81,20 @@ public:
     // Starts this node
     int start() {
         if (!mutil::CreateDirectory(mutil::FilePath(FLAGS_data_path))) {
-            MLOG(ERROR) << "Fail to create directory " << FLAGS_data_path;
+            LOG(ERROR) << "Fail to create directory " << FLAGS_data_path;
             return -1;
         }
         std::string data_path = FLAGS_data_path + "/data";
         int fd = ::open(data_path.c_str(), O_CREAT | O_RDWR, 0644);
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open " << data_path;
+            PLOG(ERROR) << "Fail to open " << data_path;
             return -1;
         }
         _fd = new SharedFD(fd);
         mutil::EndPoint addr(mutil::my_ip(), FLAGS_port);
         melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
-            MLOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
+            LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
             return -1;
         }
         node_options.election_timeout_ms = FLAGS_election_timeout_ms;
@@ -108,7 +108,7 @@ public:
         node_options.disable_cli = FLAGS_disable_cli;
         melon::raft::Node* node = new melon::raft::Node(FLAGS_group, melon::raft::PeerId(addr));
         if (node->init(node_options) != 0) {
-            MLOG(ERROR) << "Fail to init raft node";
+            LOG(ERROR) << "Fail to init raft node";
             delete node;
             return -1;
         }
@@ -137,7 +137,7 @@ public:
         log.append(&meta_size_raw, sizeof(uint32_t));
         mutil::IOBufAsZeroCopyOutputStream wrapper(&log);
         if (!request->SerializeToZeroCopyStream(&wrapper)) {
-            MLOG(ERROR) << "Fail to serialize request";
+            LOG(ERROR) << "Fail to serialize request";
             response->set_success(false);
             return;
         }
@@ -180,7 +180,7 @@ public:
         if (nr < 0) {
             // Some disk error occurred, shutdown this node and another leader
             // will be elected
-            PMLOG(ERROR) << "Fail to read from fd=" << fd->fd();
+            PLOG(ERROR) << "Fail to read from fd=" << fd->fd();
             _node->shutdown(NULL);
             response->set_success(false);
             return;
@@ -279,14 +279,14 @@ friend class BlockClosure;
                 saved_log.cutn(&meta, meta_size);
                 mutil::IOBufAsZeroCopyInputStream wrapper(meta);
                 BlockRequest request;
-                MCHECK(request.ParseFromZeroCopyStream(&wrapper));
+                CHECK(request.ParseFromZeroCopyStream(&wrapper));
                 data.swap(saved_log);
                 offset = request.offset();
             }
 
             const ssize_t nw = melon::raft::file_pwrite(data, _fd->fd(), offset);
             if (nw < 0) {
-                PMLOG(ERROR) << "Fail to write to fd=" << _fd->fd();
+                PLOG(ERROR) << "Fail to write to fd=" << _fd->fd();
                 if (response) {
                     response->set_success(false);
                 }
@@ -305,7 +305,7 @@ friend class BlockClosure;
             // The purpose of following logs is to help you understand the way
             // this StateMachine works.
             // Remove these logs in performance-sensitive servers.
-            MLOG_IF(INFO, FLAGS_log_applied_task)
+            LOG_IF(INFO, FLAGS_log_applied_task)
                     << "Write " << data.size() << " bytes"
                     << " from offset=" << offset
                     << " at log_index=" << iter.index();
@@ -320,7 +320,7 @@ friend class BlockClosure;
 
     static int link_overwrite(const char* old_path, const char* new_path) {
         if (::unlink(new_path) < 0 && errno != ENOENT) {
-            PMLOG(ERROR) << "Fail to unlink " << new_path;
+            PLOG(ERROR) << "Fail to unlink " << new_path;
             return -1;
         }
         return ::link(old_path, new_path);
@@ -334,7 +334,7 @@ friend class BlockClosure;
         std::string snapshot_path = sa->writer->get_path() + "/data";
         // Sync buffered data before
         int rc = 0;
-        MLOG(INFO) << "Saving snapshot to " << snapshot_path;
+        LOG(INFO) << "Saving snapshot to " << snapshot_path;
         for (; (rc = ::fdatasync(sa->fd->fd())) < 0 && errno == EINTR;) {}
         if (rc < 0) {
             sa->done->status().set_error(EIO, "Fail to sync fd=%d : %m",
@@ -370,9 +370,9 @@ friend class BlockClosure;
 
     int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         // Load snasphot from reader, replacing the running StateMachine
-        MCHECK(!is_leader()) << "Leader is not supposed to load snapshot";
+        CHECK(!is_leader()) << "Leader is not supposed to load snapshot";
         if (reader->get_file_meta("data", NULL) != 0) {
-            MLOG(ERROR) << "Fail to find `data' on " << reader->get_path();
+            LOG(ERROR) << "Fail to find `data' on " << reader->get_path();
             return -1;
         }
         // reset fd
@@ -380,13 +380,13 @@ friend class BlockClosure;
         std::string snapshot_path = reader->get_path() + "/data";
         std::string data_path = FLAGS_data_path + "/data";
         if (link_overwrite(snapshot_path.c_str(), data_path.c_str()) != 0) {
-            PMLOG(ERROR) << "Fail to link data";
+            PLOG(ERROR) << "Fail to link data";
             return -1;
         }
         // Reopen this file
         int fd = ::open(data_path.c_str(), O_RDWR, 0644);
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open " << data_path;
+            PLOG(ERROR) << "Fail to open " << data_path;
             return -1;
         }
         _fd = new SharedFD(fd);
@@ -395,27 +395,27 @@ friend class BlockClosure;
 
     void on_leader_start(int64_t term) {
         _leader_term.store(term, mutil::memory_order_release);
-        MLOG(INFO) << "Node becomes leader";
+        LOG(INFO) << "Node becomes leader";
     }
     void on_leader_stop(const mutil::Status& status) {
         _leader_term.store(-1, mutil::memory_order_release);
-        MLOG(INFO) << "Node stepped down : " << status;
+        LOG(INFO) << "Node stepped down : " << status;
     }
 
     void on_shutdown() {
-        MLOG(INFO) << "This node is down";
+        LOG(INFO) << "This node is down";
     }
     void on_error(const ::melon::raft::Error& e) {
-        MLOG(ERROR) << "Met raft error " << e;
+        LOG(ERROR) << "Met raft error " << e;
     }
     void on_configuration_committed(const ::melon::raft::Configuration& conf) {
-        MLOG(INFO) << "Configuration of this group is " << conf;
+        LOG(INFO) << "Configuration of this group is " << conf;
     }
     void on_stop_following(const ::melon::raft::LeaderChangeContext& ctx) {
-        MLOG(INFO) << "Node stops following " << ctx;
+        LOG(INFO) << "Node stops following " << ctx;
     }
     void on_start_following(const ::melon::raft::LeaderChangeContext& ctx) {
-        MLOG(INFO) << "Node start following " << ctx;
+        LOG(INFO) << "Node start following " << ctx;
     }
     // end of @melon::raft::StateMachine
 
@@ -476,7 +476,7 @@ int main(int argc, char* argv[]) {
     // Add your service into RPC rerver
     if (server.AddService(&service, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
     // raft can share the same RPC server. Notice the second parameter, because
@@ -484,7 +484,7 @@ int main(int argc, char* argv[]) {
     // address of this server is impossible to get before the server starts. You
     // have to specify the address of the server.
     if (melon::raft::add_service(&server, FLAGS_port) != 0) {
-        MLOG(ERROR) << "Fail to add raft service";
+        LOG(ERROR) << "Fail to add raft service";
         return -1;
     }
 
@@ -494,22 +494,22 @@ int main(int argc, char* argv[]) {
     // Notice that default options of server are used here. Check out details 
     // from the doc of melon if you would like change some options
     if (server.Start(FLAGS_port, NULL) != 0) {
-        MLOG(ERROR) << "Fail to start Server";
+        LOG(ERROR) << "Fail to start Server";
         return -1;
     }
 
     // It's ok to start Block
     if (block.start() != 0) {
-        MLOG(ERROR) << "Fail to start Block";
+        LOG(ERROR) << "Fail to start Block";
         return -1;
     }
 
-    MLOG(INFO) << "Block service is running on " << server.listen_address();
+    LOG(INFO) << "Block service is running on " << server.listen_address();
     // Wait until 'CTRL-C' is pressed. then Stop() and Join() the service
     while (!melon::IsAskedToQuit()) {
         sleep(1);
     }
-    MLOG(INFO) << "Block service is going to quit";
+    LOG(INFO) << "Block service is going to quit";
 
     // Stop block before server
     block.shutdown();

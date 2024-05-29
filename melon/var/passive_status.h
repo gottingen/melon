@@ -153,7 +153,7 @@ namespace melon::var {
         }
 
         Tp reset() {
-            MCHECK(false) << "PassiveStatus::reset() should never be called, abort";
+            CHECK(false) << "PassiveStatus::reset() should never be called, abort";
             abort();
         }
 

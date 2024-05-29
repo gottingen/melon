@@ -24,7 +24,7 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/utility/rand_util.h>
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_server_num <= 0) {
-        MLOG(ERROR) << "server_num must be positive";
+        LOG(ERROR) << "server_num must be positive";
         return -1;
     }
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
                     "example/multi_threaded_echo_fns_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            MLOG(ERROR) << "Fail to add service";
+            LOG(ERROR) << "Fail to add service";
             return -1;
         }
         // Start the server.
@@ -141,20 +141,20 @@ int main(int argc, char* argv[]) {
         options.max_concurrency = FLAGS_max_concurrency;
         const int port = FLAGS_port + i;
         if (servers[i].Start(port, &options) != 0) {
-            MLOG(ERROR) << "Fail to start EchoServer";
+            LOG(ERROR) << "Fail to start EchoServer";
             return -1;
         }
 
         // Intended no truncate so that multiple servers can be added to list
         int fd = open("./server_list", O_APPEND | O_WRONLY | O_CREAT, 0666);
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open server_list";
+            PLOG(ERROR) << "Fail to open server_list";
             return -1;
         }
         char buf[64];
         int nw = snprintf(buf, sizeof(buf), "%s:%d\n", mutil::my_ip_cstr(), port);
         if (write(fd, buf, nw) != nw) {
-            MLOG(ERROR) << "Fail to fully write int fd=" << fd;
+            LOG(ERROR) << "Fail to fully write int fd=" << fd;
         }
         close(fd);
     }
@@ -172,9 +172,9 @@ int main(int argc, char* argv[]) {
             size_t diff = current_num_requests - last_num_requests[i];
             cur_total += diff;
             last_num_requests[i] = current_num_requests;
-            MLOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
+            LOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
         }
-        MLOG(INFO) << "[total=" << cur_total << ']';
+        LOG(INFO) << "[total=" << cur_total << ']';
     }
 
     // Don't forget to stop and join the server otherwise still-running

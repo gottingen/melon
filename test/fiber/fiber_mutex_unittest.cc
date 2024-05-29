@@ -23,12 +23,13 @@
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/string_printf.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/butex.h>
 #include <melon/fiber/task_control.h>
 #include <melon/fiber/mutex.h>
 #include <melon/utility/gperftools_profiler.h>
+#include <cinttypes>
 
 namespace {
 inline unsigned* get_butex(fiber_mutex_t & m) {
@@ -215,7 +216,7 @@ void PerfTest(Mutex* mutex,
         wait_time += args[i].elapse_ns;
         count += args[i].counter;
     }
-    MLOG(INFO) << mutil::class_name<Mutex>() << " in "
+    LOG(INFO) << mutil::class_name<Mutex>() << " in "
               << ((void*)create_fn == (void*)pthread_create ? "pthread" : "fiber")
               << " thread_num=" << thread_num
               << " count=" << count

@@ -22,7 +22,6 @@
 #include <melon/proto/rpc/errno.pb.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
-
 #include <melon/proto/raft/errno.pb.h>
 #include <melon/raft/util.h>
 #include <melon/raft/raft.h>
@@ -35,6 +34,7 @@
 #include <melon/raft/node_manager.h>
 #include <melon/raft/snapshot_executor.h>
 #include <melon/proto/raft/errno.pb.h>
+#include <cinttypes>
 
 namespace melon::raft {
 
@@ -133,7 +133,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     static inline int heartbeat_timeout(int election_timeout) {
         if (FLAGS_raft_election_heartbeat_factor <= 0) {
-            MLOG(WARNING) << "raft_election_heartbeat_factor flag must be greater than 1"
+            LOG(WARNING) << "raft_election_heartbeat_factor flag must be greater than 1"
                          << ", but get " << FLAGS_raft_election_heartbeat_factor
                          << ", it will be set to default value 10.";
             FLAGS_raft_election_heartbeat_factor = 10;
@@ -242,14 +242,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     int NodeImpl::init_log_storage() {
-        MCHECK(_fsm_caller);
+        CHECK(_fsm_caller);
         if (_options.log_storage) {
             _log_storage = _options.log_storage;
         } else {
             _log_storage = LogStorage::create(_options.log_uri);
         }
         if (!_log_storage) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " find log storage failed, uri " << _options.log_uri;
             return -1;
         }
@@ -265,7 +265,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // create stable storage
         _meta_storage = RaftMetaStorage::create(_options.raft_meta_uri);
         if (!_meta_storage) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " failed to create meta storage, uri "
                        << _options.raft_meta_uri;
             return ENOENT;
@@ -274,7 +274,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // check init
         mutil::Status status = _meta_storage->init();
         if (!status.ok()) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " failed to init meta storage, uri "
                        << _options.raft_meta_uri
                        << ", error " << status;
@@ -285,7 +285,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         status = _meta_storage->
                 get_term_and_votedfor(&_current_term, &_voted_id, _v_group_id);
         if (!status.ok()) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " failed to get term and voted_id when init meta storage,"
                        << " uri " << _options.raft_meta_uri
                        << ", error " << status;
@@ -296,7 +296,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         const LogId last_log_id = _log_manager->last_log_id();
         if (_current_term < last_log_id.term) {
             // Please check when this bad case really happens!
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " init with invalid term: current_term is " << _current_term
                          << " but last log term is " << last_log_id.term
                          << ". Raft will use a newer term to avoid corner cases";
@@ -307,7 +307,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             mutil::Status status = _meta_storage->
                     set_term_and_votedfor(_current_term, PeerId(), _v_group_id);
             if (!status.ok()) {
-                MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+                LOG(ERROR) << "node " << _group_id << ":" << _server_id
                            << " fail to set_term_and_votedfor when correct its term,"
                               " error: " << status;
                 return status.error_code();
@@ -332,7 +332,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     int NodeImpl::init_fsm_caller(const LogId &bootstrap_id) {
-        MCHECK(_fsm_caller);
+        CHECK(_fsm_caller);
         _closure_queue = new ClosureQueue(_options.usercode_in_pthread);
         // fsm caller init, node AddRef in init
         FSMCallerOptions fsm_caller_options;
@@ -367,7 +367,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         if (options.last_log_index > 0) {
             if (options.group_conf.empty() || options.fsm == nullptr) {
-                MLOG(ERROR) << "Invalid arguments for " << __FUNCTION__
+                LOG(ERROR) << "Invalid arguments for " << __FUNCTION__
                            << "group_conf=" << options.group_conf
                            << " fsm=" << options.fsm
                            << " while last_log_index="
@@ -377,7 +377,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
 
         if (options.group_conf.empty()) {
-            MLOG(ERROR) << "bootstraping an empty node makes no sense";
+            LOG(ERROR) << "bootstraping an empty node makes no sense";
             return -1;
         }
 
@@ -397,12 +397,12 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _fsm_caller = new FSMCaller();
 
         if (init_log_storage() != 0) {
-            MLOG(ERROR) << "Fail to init log_storage from " << _options.log_uri;
+            LOG(ERROR) << "Fail to init log_storage from " << _options.log_uri;
             return -1;
         }
 
         if (init_meta_storage() != 0) {
-            MLOG(ERROR) << "Fail to init stable_storage from "
+            LOG(ERROR) << "Fail to init stable_storage from "
                        << _options.raft_meta_uri;
             return -1;
         }
@@ -412,7 +412,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                     set_term_and_votedfor(1, PeerId(), _v_group_id);
             if (!status.ok()) {
                 // TODO add group_id
-                MLOG(ERROR) << "Fail to set term and votedfor when bootstrap,"
+                LOG(ERROR) << "Fail to set term and votedfor when bootstrap,"
                               " error: " << status;
                 return -1;
             }
@@ -420,13 +420,13 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
 
         if (options.fsm && init_fsm_caller(boostrap_id) != 0) {
-            MLOG(ERROR) << "Fail to init fsm_caller";
+            LOG(ERROR) << "Fail to init fsm_caller";
             return -1;
         }
 
         if (options.last_log_index > 0) {
             if (init_snapshot_storage() != 0) {
-                MLOG(ERROR) << "Fail to init snapshot_storage from "
+                LOG(ERROR) << "Fail to init snapshot_storage from "
                            << _options.snapshot_uri;
                 return -1;
             }
@@ -434,13 +434,13 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             _snapshot_executor->do_snapshot(&done);
             done.wait();
             if (!done.status().ok()) {
-                MLOG(ERROR) << "Fail to save snapshot " << done.status()
+                LOG(ERROR) << "Fail to save snapshot " << done.status()
                            << " from " << _options.snapshot_uri;
                 return -1;
             }
         }
-        MCHECK_EQ(_log_manager->first_log_index(), options.last_log_index + 1);
-        MCHECK_EQ(_log_manager->last_log_index(), options.last_log_index);
+        CHECK_EQ(_log_manager->first_log_index(), options.last_log_index + 1);
+        CHECK_EQ(_log_manager->last_log_index(), options.last_log_index);
 
         LogEntry *entry = new LogEntry();
         entry->AddRef();
@@ -455,7 +455,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _log_manager->append_entries(&entries, &done);
         done.wait();
         if (!done.status().ok()) {
-            MLOG(ERROR) << "Fail to append configuration";
+            LOG(ERROR) << "Fail to append configuration";
             return -1;
         }
 
@@ -467,13 +467,13 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check _server_id
         if (mutil::IP_ANY == _server_id.addr.ip) {
-            MLOG(ERROR) << "Group " << _group_id
+            LOG(ERROR) << "Group " << _group_id
                        << " Node can't started from IP_ANY";
             return -1;
         }
 
         if (!global_node_manager->server_exists(_server_id.addr)) {
-            MLOG(ERROR) << "Group " << _group_id
+            LOG(ERROR) << "Group " << _group_id
                        << " No RPC Server attached to " << _server_id.addr
                        << ", did you forget to call melon::raft::add_service()?";
             return -1;
@@ -483,28 +483,28 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             // of the normal replica to ensure that the normal replica has a higher
             // priority and is selected as the master
             if (FLAGS_raft_enable_witness_to_leader) {
-                MCHECK_EQ(0, _election_timer.init(this, options.election_timeout_ms * 2));
-                MCHECK_EQ(0, _vote_timer.init(this, options.election_timeout_ms * 2 + options.max_clock_drift_ms));
+                CHECK_EQ(0, _election_timer.init(this, options.election_timeout_ms * 2));
+                CHECK_EQ(0, _vote_timer.init(this, options.election_timeout_ms * 2 + options.max_clock_drift_ms));
             }
         } else {
-            MCHECK_EQ(0, _election_timer.init(this, options.election_timeout_ms));
-            MCHECK_EQ(0, _vote_timer.init(this, options.election_timeout_ms + options.max_clock_drift_ms));
+            CHECK_EQ(0, _election_timer.init(this, options.election_timeout_ms));
+            CHECK_EQ(0, _vote_timer.init(this, options.election_timeout_ms + options.max_clock_drift_ms));
         }
-        MCHECK_EQ(0, _stepdown_timer.init(this, options.election_timeout_ms));
-        MCHECK_EQ(0, _snapshot_timer.init(this, options.snapshot_interval_s * 1000));
+        CHECK_EQ(0, _stepdown_timer.init(this, options.election_timeout_ms));
+        CHECK_EQ(0, _snapshot_timer.init(this, options.snapshot_interval_s * 1000));
 
         _config_manager = new ConfigurationManager();
 
         if (fiber::execution_queue_start(&_apply_queue_id, nullptr,
                                            execute_applying_tasks, this) != 0) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " fail to start execution_queue";
             return -1;
         }
 
         _apply_queue = execution_queue_address(_apply_queue_id);
         if (!_apply_queue) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " fail to address execution_queue";
             return -1;
         }
@@ -521,13 +521,13 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // log storage and log manager init
         if (init_log_storage() != 0) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " init_log_storage failed";
             return -1;
         }
 
         if (init_fsm_caller(LogId(0, 0)) != 0) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " init_fsm_caller failed";
             return -1;
         }
@@ -538,7 +538,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         ballot_box_options.waiter = _fsm_caller;
         ballot_box_options.closure_queue = _closure_queue;
         if (_ballot_box->init(ballot_box_options) != 0) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " init _ballot_box failed";
             return -1;
         }
@@ -547,14 +547,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // NOTE: snapshot maybe discard entries when snapshot saved but not discard entries.
         //      init log storage before snapshot storage, snapshot storage will update configration
         if (init_snapshot_storage() != 0) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " init_snapshot_storage failed";
             return -1;
         }
 
         mutil::Status st = _log_manager->check_consistency();
         if (!st.ok()) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " is initialized with inconsitency log: "
                        << st;
             return -1;
@@ -570,7 +570,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // init meta and check term
         if (init_meta_storage() != 0) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " init_meta_storage failed";
             return -1;
         }
@@ -598,7 +598,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // set state to follower
         _state = STATE_FOLLOWER;
 
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id << " init,"
+        LOG(INFO) << "node " << _group_id << ":" << _server_id << " init,"
                   << " term: " << _current_term
                   << " last_log_id: " << _log_manager->last_log_id()
                   << " conf: " << _conf.conf
@@ -606,7 +606,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // start snapshot timer
         if (_snapshot_executor && _options.snapshot_interval_s > 0) {
-            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term << " start snapshot_timer";
             _snapshot_timer.start();
         }
@@ -617,7 +617,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // add node to NodeManager
         if (!global_node_manager->add(this)) {
-            MLOG(ERROR) << "NodeManager add " << _group_id
+            LOG(ERROR) << "NodeManager add " << _group_id
                        << ":" << _server_id << " failed";
             return -1;
         }
@@ -681,7 +681,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::on_configuration_change_done(int64_t term) {
         MELON_SCOPED_LOCK(_mutex);
         if (_state > STATE_TRANSFERRING || term != _current_term) {
-            MLOG(WARNING) << "node " << node_id()
+            LOG(WARNING) << "node " << node_id()
                          << " process on_configuration_change_done "
                          << " at term=" << term
                          << " while state=" << state2str(_state)
@@ -720,11 +720,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::on_caughtup(const PeerId &peer, int64_t term,
                                int64_t version, const mutil::Status &st) {
         MELON_SCOPED_LOCK(_mutex);
-        // MCHECK _state and _current_term to avoid ABA problem
+        // CHECK _state and _current_term to avoid ABA problem
         if (_state != STATE_LEADER || term != _current_term) {
             // if leader stepped down, reset() has already been called in step_down(),
             // so nothing needs to be done here
-            MLOG(WARNING) << "node " << node_id() << " stepped down when waiting peer "
+            LOG(WARNING) << "node " << node_id() << " stepped down when waiting peer "
                          << peer << " to catch up, current state is " << state2str(_state)
                          << ", current term is " << _current_term
                          << ", expect term is " << term;
@@ -742,7 +742,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 - _replicator_group.last_rpc_send_timestamp(peer))
                <= _options.election_timeout_ms) {
 
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " waits peer " << peer << " to catch up";
 
             OnCaughtUp *caught_up = new OnCaughtUp(this, _current_term, peer, version);
@@ -753,7 +753,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                     peer, _options.catchup_margin, &due_time, caught_up)) {
                 return;
             } else {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " wait_caughtup failed, peer " << peer;
                 delete caught_up;
             }
@@ -783,7 +783,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (alive_count >= peers.size() / 2 + 1) {
             return;
         }
-        MLOG(WARNING) << "node " << node_id()
+        LOG(WARNING) << "node " << node_id()
                      << " term " << _current_term
                      << " steps down when alive nodes don't satisfy quorum"
                         " dead_nodes: " << dead_nodes
@@ -798,7 +798,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check state
         if (_state > STATE_TRANSFERRING) {
-            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term << " stop stepdown_timer"
                        << " state is " << state2str(_state);
             return;
@@ -813,7 +813,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     void NodeImpl::check_witness(const Configuration &conf) {
         if (is_witness()) {
-            MLOG(WARNING) << "node " << node_id()
+            LOG(WARNING) << "node " << node_id()
                          << " term " << _current_term
                          << " steps down as it's a witness but become leader temporarily"
                          << " conf: " << conf;
@@ -827,7 +827,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                                                const Configuration &new_conf,
                                                Closure *done) {
         if (_state != STATE_LEADER) {
-            MLOG(WARNING) << "[" << node_id()
+            LOG(WARNING) << "[" << node_id()
                          << "] Refusing configuration changing because the state is "
                          << state2str(_state);
             if (done) {
@@ -843,7 +843,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check concurrent conf change
         if (_conf_ctx.is_busy()) {
-            MLOG(WARNING) << "[" << node_id()
+            LOG(WARNING) << "[" << node_id()
                          << " ] Refusing concurrent configuration changing";
             if (done) {
                 done->status().set_error(EBUSY, "Doing another configuration change");
@@ -893,18 +893,18 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         MELON_SCOPED_LOCK(_mutex);
 
         if (new_peers.empty()) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id << " set empty peers";
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id << " set empty peers";
             return mutil::Status(EINVAL, "new_peers is empty");
         }
         // check state
         if (!is_active_state(_state)) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is in state " << state2str(_state) << ", can't reset_peer";
             return mutil::Status(EPERM, "Bad state %s", state2str(_state));
         }
         // check bootstrap
         if (_conf.conf.empty()) {
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " reset_peers to " << new_peers << " from empty";
             _conf.conf = new_peers;
             mutil::Status status;
@@ -915,7 +915,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check concurrent conf change
         if (_state == STATE_LEADER && _conf_ctx.is_busy()) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " reset_peer need wait current conf change";
             return mutil::Status(EBUSY, "Changing to another configuration");
         }
@@ -926,7 +926,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
 
         Configuration new_conf(new_peers);
-        MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+        LOG(WARNING) << "node " << _group_id << ":" << _server_id
                      << " set_peer from "
                      << _conf.conf << " to " << new_conf;
         // change conf and step_down
@@ -943,7 +943,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::do_snapshot(Closure *done) {
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " starts to do snapshot";
         if (_snapshot_executor) {
             _snapshot_executor->do_snapshot(done);
@@ -961,7 +961,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         {
             MELON_SCOPED_LOCK(_mutex);
 
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id << " shutdown,"
+            LOG(INFO) << "node " << _group_id << ":" << _server_id << " shutdown,"
                                                                       " current_term " << _current_term << " state "
                       << state2str(_state);
 
@@ -1077,7 +1077,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             response->set_term(_current_term);
             response->set_success(false);
             lck.unlock();
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " received handle_timeout_now_request while _current_term="
                       << saved_current_term << " didn't match request_term="
                       << request->term();
@@ -1089,7 +1089,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             response->set_term(_current_term);
             response->set_success(false);
             lck.unlock();
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " received handle_timeout_now_request while state is "
                       << state2str(saved_state) << " at term=" << saved_term;
             return;
@@ -1115,7 +1115,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         // Note: don't touch controller, request, response, done anymore since they
         // were dereferenced at this point
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " received handle_timeout_now_request from "
                   << remote_side << " at term=" << saved_term;
 
@@ -1146,7 +1146,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::handle_transfer_timeout(int64_t term, const PeerId &peer) {
-        MLOG(INFO) << "node " << node_id() << " failed to transfer leadership to peer="
+        LOG(INFO) << "node " << node_id() << " failed to transfer leadership to peer="
                   << peer << " : reached timeout";
         MELON_SCOPED_LOCK(_mutex);
         if (term == _current_term) {
@@ -1163,7 +1163,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     int NodeImpl::transfer_leadership_to(const PeerId &peer) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_state != STATE_LEADER) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is in state " << state2str(_state);
             return _state == STATE_TRANSFERRING ? EBUSY : EPERM;
         }
@@ -1180,7 +1180,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             // invoke transfer_leadership_to after configuration changing is
             // completed so that the peer's configuration is up-to-date when it
             // receives the TimeOutNowRequest.
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " refused to transfer leadership to peer " << peer
                          << " when the leader is changing the configuration";
             return EBUSY;
@@ -1190,7 +1190,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // if peer_id is ANY_PEER(0.0.0.0:0:0), the peer with the largest
         // last_log_id will be selected.
         if (peer_id == ANY_PEER) {
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " starts to transfer leadership to any peer.";
             // find the next candidate which is the most possible to become new leader
             if (_replicator_group.find_the_next_candidate(&peer_id, _conf) != 0) {
@@ -1198,12 +1198,12 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             }
         }
         if (peer_id == _server_id) {
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " transfering leadership to self";
             return 0;
         }
         if (!_conf.contains(peer_id)) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " refused to transfer leadership to peer " << peer_id
                          << " which doesn't belong to " << _conf.conf;
             return EINVAL;
@@ -1212,14 +1212,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         const int rc = _replicator_group.transfer_leadership_to(peer_id, last_log_index);
         if (rc != 0) {
             if (rc == EINVAL) {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " fail to transfer leadership, no such peer=" << peer_id;
             } else if (rc == EHOSTUNREACH) {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " fail to transfer leadership, peer=" << peer_id
                              << " whose consecutive_error_times not 0.";
             } else {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " fail to transfer leadership, peer=" << peer_id
                              << " err: " << berror(rc);
             }
@@ -1231,14 +1231,14 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                                               "leadership to %s", peer_id.to_string().c_str());
         _leader_lease.on_leader_stop();
         _fsm_caller->on_leader_stop(status);
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " starts to transfer leadership to " << peer_id;
         _stop_transfer_arg = new StopTransferArg(this, _current_term, peer_id);
         if (fiber_timer_add(&_transfer_timer,
                               mutil::milliseconds_from_now(_options.election_timeout_ms),
                               on_transfer_timeout, _stop_transfer_arg) != 0) {
             lck.unlock();
-            MLOG(ERROR) << "Fail to add timer";
+            LOG(ERROR) << "Fail to add timer";
             on_transfer_timeout(_stop_transfer_arg);
             return -1;
         }
@@ -1262,7 +1262,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         const State saved_state = _state;
         lck.unlock();
 
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id << " trigger-vote,"
+        LOG(INFO) << "node " << _group_id << ":" << _server_id << " trigger-vote,"
                                                                   " current_term " << saved_current_term << " state "
                   << state2str(saved_state) <<
                   " election_timeout " << election_timeout_ms;
@@ -1282,7 +1282,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         const State saved_state = _state;
         lck.unlock();
 
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id << " reset_election_timeout,"
+        LOG(INFO) << "node " << _group_id << ":" << _server_id << " reset_election_timeout,"
                                                                   " current_term " << saved_current_term << " state "
                   << state2str(saved_state) <<
                   " new election_timeout " << election_timeout_ms << " new clock_drift_ms " <<
@@ -1298,7 +1298,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         const State saved_state = _state;
         lck.unlock();
 
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id << " reset_election_timeout,"
+        LOG(INFO) << "node " << _group_id << ":" << _server_id << " reset_election_timeout,"
                                                                   " current_term " << saved_current_term << " state "
                   << state2str(saved_state) <<
                   " new election_timeout " << election_timeout_ms << " new clock_drift_ms " <<
@@ -1323,7 +1323,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::on_error(const Error &e) {
-        MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+        LOG(WARNING) << "node " << _group_id << ":" << _server_id
                      << " got error=" << e;
         if (_fsm_caller) {
             // on_error of _fsm_caller is guaranteed to be executed once.
@@ -1352,7 +1352,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         if (FLAGS_raft_step_down_when_vote_timedout) {
             // step down to follower
-            MLOG(WARNING) << "node " << node_id()
+            LOG(WARNING) << "node " << node_id()
                          << " term " << _current_term
                          << " steps down when reaching vote timeout:"
                             " fail to get quorum vote-granted";
@@ -1362,7 +1362,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             pre_vote(&lck, false);
         } else {
             // retry vote
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " term " << _current_term << " retry elect";
             elect_self(&lck);
         }
@@ -1374,7 +1374,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         MELON_SCOPED_LOCK(_mutex);
 
         if (ctx_version != _vote_ctx.version()) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid RequestVoteResponse from " << peer_id
                          << " ctx_version " << ctx_version
                          << " current_ctx_version " << _vote_ctx.version();
@@ -1383,21 +1383,21 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check state
         if (_state != STATE_CANDIDATE) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid RequestVoteResponse from " << peer_id
                          << " state not in CANDIDATE but " << state2str(_state);
             return;
         }
         // check stale response
         if (term != _current_term) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received stale RequestVoteResponse from " << peer_id
                          << " term " << term << " current_term " << _current_term;
             return;
         }
         // check response term
         if (response.term() > _current_term) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid RequestVoteResponse from " << peer_id
                          << " term " << response.term() << " expect " << _current_term;
             mutil::Status status;
@@ -1407,7 +1407,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return;
         }
 
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " received RequestVoteResponse from " << peer_id
                   << " term " << response.term() << " granted " << response.granted()
                   << " rejected_by_lease " << response.rejected_by_lease()
@@ -1459,7 +1459,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         void Run() {
             do {
                 if (cntl.ErrorCode() != 0) {
-                    MLOG(WARNING) << "node " << node->node_id()
+                    LOG(WARNING) << "node " << node->node_id()
                                  << " received RequestVoteResponse from " << peer
                                  << " error: " << cntl.ErrorText();
                     break;
@@ -1484,7 +1484,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         std::unique_lock<raft_mutex_t> lck(_mutex);
 
         if (ctx_version != _pre_vote_ctx.version()) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid PreVoteResponse from " << peer_id
                          << " ctx_version " << ctx_version
                          << " current_ctx_version " << _pre_vote_ctx.version();
@@ -1493,21 +1493,21 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check state
         if (_state != STATE_FOLLOWER) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid PreVoteResponse from " << peer_id
                          << " state not in STATE_FOLLOWER but " << state2str(_state);
             return;
         }
         // check stale response
         if (term != _current_term) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received stale PreVoteResponse from " << peer_id
                          << " term " << term << " current_term " << _current_term;
             return;
         }
         // check response term
         if (response.term() > _current_term) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received invalid PreVoteResponse from " << peer_id
                          << " term " << response.term() << " expect " << _current_term;
             mutil::Status status;
@@ -1517,7 +1517,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return;
         }
 
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " received PreVoteResponse from " << peer_id
                   << " term " << response.term() << " granted " << response.granted()
                   << " rejected_by_lease " << response.rejected_by_lease()
@@ -1573,7 +1573,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         void Run() {
             do {
                 if (cntl.ErrorCode() != 0) {
-                    MLOG(WARNING) << "node " << node->node_id()
+                    LOG(WARNING) << "node " << node->node_id()
                                  << " request PreVote from " << peer
                                  << " error: " << cntl.ErrorText();
                     break;
@@ -1593,17 +1593,17 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     };
 
     void NodeImpl::pre_vote(std::unique_lock<raft_mutex_t> *lck, bool triggered) {
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " term " << _current_term << " start pre_vote";
         if (_snapshot_executor && _snapshot_executor->is_installing_snapshot()) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " term " << _current_term
                          << " doesn't do pre_vote when installing snapshot as the "
                             " configuration is possibly out of date";
             return;
         }
         if (!_conf.contains(_server_id)) {
-            MLOG(WARNING) << "node " << _group_id << ':' << _server_id
+            LOG(WARNING) << "node " << _group_id << ':' << _server_id
                          << " can't do pre_vote as it is not in " << _conf.conf;
             return;
         }
@@ -1615,7 +1615,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         lck->lock();
         // pre_vote need defense ABA after unlock&lock
         if (old_term != _current_term) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " raise term " << _current_term << " when get last_log_id";
             return;
         }
@@ -1635,7 +1635,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             options.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
             melon::Channel channel;
             if (0 != channel.Init(iter->addr, &options)) {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " channel init failed, addr " << iter->addr;
                 continue;
             }
@@ -1659,16 +1659,16 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 // in lock
     void NodeImpl::elect_self(std::unique_lock<raft_mutex_t> *lck,
                               bool old_leader_stepped_down) {
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " term " << _current_term << " start vote and grant vote self";
         if (!_conf.contains(_server_id)) {
-            MLOG(WARNING) << "node " << _group_id << ':' << _server_id
+            LOG(WARNING) << "node " << _group_id << ':' << _server_id
                          << " can't do elect_self as it is not in " << _conf.conf;
             return;
         }
         // cancel follower election timer
         if (_state == STATE_FOLLOWER) {
-            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term << " stop election_timer";
             _election_timer.stop();
         }
@@ -1685,7 +1685,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _current_term++;
         _voted_id = _server_id;
 
-        BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+        BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                    << " term " << _current_term << " start vote_timer";
         _vote_timer.start();
         _pre_vote_ctx.reset(this);
@@ -1703,7 +1703,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         // vote need defense ABA after unlock&lock
         if (old_term != _current_term) {
             // term changed cause by step_down
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " raise term " << _current_term << " when get last_log_id";
             return;
         }
@@ -1717,7 +1717,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         status = _meta_storage->
                 set_term_and_votedfor(_current_term, _server_id, _v_group_id);
         if (!status.ok()) {
-            MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+            LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " fail to set_term_and_votedfor itself when elect_self,"
                           " error: " << status;
             // reset _voted_id to avoid inconsistent cases
@@ -1741,7 +1741,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             options.max_retry = 0;
             melon::Channel channel;
             if (0 != channel.Init(iter->addr, &options)) {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " channel init failed, addr " << iter->addr;
                 continue;
             }
@@ -1771,7 +1771,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 // in lock
     void NodeImpl::step_down(const int64_t term, bool wakeup_a_candidate,
                              const mutil::Status &status) {
-        BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+        BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                    << " term " << _current_term
                    << " stepdown from " << state2str(_state)
                    << " new_term " << term
@@ -1821,7 +1821,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             mutil::Status status = _meta_storage->
                     set_term_and_votedfor(term, _voted_id, _v_group_id);
             if (!status.ok()) {
-                MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+                LOG(ERROR) << "node " << _group_id << ":" << _server_id
                            << " fail to set_term_and_votedfor when step_down, error: "
                            << status;
                 // TODO report error
@@ -1916,8 +1916,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
 // in lock
     void NodeImpl::become_leader() {
-        MCHECK(_state == STATE_CANDIDATE);
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        CHECK(_state == STATE_CANDIDATE);
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " term " << _current_term
                   << " become leader of group " << _conf.conf
                   << " " << _conf.old_conf;
@@ -1940,7 +1940,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 continue;
             }
 
-            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+            BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                        << " term " << _current_term
                        << " add replicator " << *iter;
             //TODO: check return code
@@ -1952,7 +1952,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // Register _conf_ctx to reject configuration changing before the first log
         // is committed.
-        MCHECK(!_conf_ctx.is_busy());
+        CHECK(!_conf_ctx.is_busy());
         _conf_ctx.flush(_conf.conf, _conf.old_conf);
         _stepdown_timer.start();
     }
@@ -1991,7 +1991,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             int64_t now = mutil::cpuwide_time_us();
             if (FLAGS_raft_trace_append_entry_latency &&
                 now - metric.start_time_us > (int64_t) FLAGS_raft_append_entry_high_lat_us) {
-                MLOG(WARNING) << "leader append entry latency us " << (now - metric.start_time_us)
+                LOG(WARNING) << "leader append entry latency us " << (now - metric.start_time_us)
                              << " greater than "
                              << FLAGS_raft_append_entry_high_lat_us
                              << metric
@@ -2001,7 +2001,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                              << "]";
             }
         } else {
-            MLOG(ERROR) << "node " << _node_id << " append [" << _first_log_index << ", "
+            LOG(ERROR) << "node " << _node_id << " append [" << _first_log_index << ", "
                        << _first_log_index + _nentries - 1 << "] failed";
         }
         delete this;
@@ -2024,7 +2024,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 st.set_error(EBUSY, "is transferring leadership");
             }
             lck.unlock();
-            BRAFT_VMLOG << "node " << _group_id << ":" << _server_id << " can't apply : " << st;
+            BRAFT_VLOG << "node " << _group_id << ":" << _server_id << " can't apply : " << st;
             for (size_t i = 0; i < size; ++i) {
                 tasks[i].entry->Release();
                 if (tasks[i].done) {
@@ -2036,7 +2036,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         for (size_t i = 0; i < size; ++i) {
             if (tasks[i].expected_term != -1 && tasks[i].expected_term != _current_term) {
-                BRAFT_VMLOG << "node " << _group_id << ":" << _server_id
+                BRAFT_VLOG << "node " << _group_id << ":" << _server_id
                            << " can't apply taks whose expected_term=" << tasks[i].expected_term
                            << " doesn't match current_term=" << _current_term;
                 if (tasks[i].done) {
@@ -2067,7 +2067,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::unsafe_apply_configuration(const Configuration &new_conf,
                                               const Configuration *old_conf,
                                               bool leader_start) {
-        MCHECK(_conf_ctx.is_busy());
+        CHECK(_conf_ctx.is_busy());
         LogEntry *entry = new LogEntry();
         entry->AddRef();
         entry->id.term = _current_term;
@@ -2100,7 +2100,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             const int64_t saved_current_term = _current_term;
             const State saved_state = _state;
             lck.unlock();
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is not in active state " << "current_term "
                          << saved_current_term
                          << " state " << state2str(saved_state);
@@ -2109,7 +2109,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         PeerId candidate_id;
         if (0 != candidate_id.parse(request->server_id())) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received PreVote from " << request->server_id()
                          << " server_id bad format";
             return EINVAL;
@@ -2120,7 +2120,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         do {
             if (request->term() < _current_term) {
                 // ignore older term
-                MLOG(INFO) << "node " << _group_id << ":" << _server_id
+                LOG(INFO) << "node " << _group_id << ":" << _server_id
                           << " ignore PreVote from " << request->server_id()
                           << " in term " << request->term()
                           << " current_term " << _current_term;
@@ -2141,7 +2141,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 rejected_by_lease = (votable_time > 0);
             }
 
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " received PreVote from " << request->server_id()
                       << " in term " << request->term()
                       << " current_term " << _current_term
@@ -2167,7 +2167,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             const int64_t saved_current_term = _current_term;
             const State saved_state = _state;
             lck.unlock();
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is not in active state " << "current_term "
                          << saved_current_term
                          << " state " << state2str(saved_state);
@@ -2176,7 +2176,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         PeerId candidate_id;
         if (0 != candidate_id.parse(request->server_id())) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received RequestVote from " << request->server_id()
                          << " server_id bad format";
             return EINVAL;
@@ -2200,7 +2200,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             // ignore older term
             if (request->term() < _current_term) {
                 // ignore older term
-                MLOG(INFO) << "node " << _group_id << ":" << _server_id
+                LOG(INFO) << "node " << _group_id << ":" << _server_id
                           << " ignore RequestVote from " << request->server_id()
                           << " in term " << request->term()
                           << " current_term " << _current_term;
@@ -2214,7 +2214,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
             // vote need ABA check after unlock&lock
             if (previous_term != _current_term) {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " raise term " << _current_term << " when get last_log_id";
                 break;
             }
@@ -2223,7 +2223,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                               >= last_log_id);
             int64_t votable_time = _follower_lease.votable_time_from_now();
 
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " received RequestVote from " << request->server_id()
                       << " in term " << request->term()
                       << " current_term " << _current_term
@@ -2256,7 +2256,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 status = _meta_storage->
                         set_term_and_votedfor(_current_term, candidate_id, _v_group_id);
                 if (!status.ok()) {
-                    MLOG(ERROR) << "node " << _group_id << ":" << _server_id
+                    LOG(ERROR) << "node " << _group_id << ":" << _server_id
                                << " refuse to vote for " << request->server_id()
                                << " because failed to set_votedfor it, error: "
                                << status;
@@ -2348,7 +2348,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             int64_t now = mutil::cpuwide_time_us();
             if (FLAGS_raft_trace_append_entry_latency && now - metric.start_time_us >
                                                          (int64_t) FLAGS_raft_append_entry_high_lat_us) {
-                MLOG(WARNING) << "follower append entry latency us " << (now - metric.start_time_us)
+                LOG(WARNING) << "follower append entry latency us " << (now - metric.start_time_us)
                              << " greater than "
                              << FLAGS_raft_append_entry_high_lat_us
                              << metric
@@ -2384,7 +2384,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             const int64_t saved_current_term = _current_term;
             const State saved_state = _state;
             lck.unlock();
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is not in active state " << "current_term " << saved_current_term
                          << " state " << state2str(saved_state);
             cntl->SetFailed(EINVAL, "node %s:%s is not in active state, state %s",
@@ -2395,7 +2395,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         PeerId server_id;
         if (0 != server_id.parse(request->server_id())) {
             lck.unlock();
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received AppendEntries from " << request->server_id()
                          << " server_id bad format";
             cntl->SetFailed(melon::EREQUEST,
@@ -2408,7 +2408,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (request->term() < _current_term) {
             const int64_t saved_current_term = _current_term;
             lck.unlock();
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " ignore stale AppendEntries from " << request->server_id()
                          << " in term " << request->term()
                          << " current_term " << saved_current_term;
@@ -2421,7 +2421,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         check_step_down(request->term(), server_id);
 
         if (server_id != _leader_id) {
-            MLOG(ERROR) << "Another peer " << _group_id << ":" << server_id
+            LOG(ERROR) << "Another peer " << _group_id << ":" << server_id
                        << " declares that it is the leader at term=" << _current_term
                        << " which was occupied by leader=" << _leader_id;
             // Increase the term by 1 and make both leaders step down to minimize the
@@ -2442,7 +2442,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (request->entries_size() > 0 &&
             (_snapshot_executor
              && _snapshot_executor->is_installing_snapshot())) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " received append entries while installing snapshot";
             cntl->SetFailed(EBUSY, "Is installing snapshot");
             return;
@@ -2463,7 +2463,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 // since the ownership is tranfered to the cache.
                 lck.unlock();
                 done_guard.release();
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " cache out-of-order AppendEntries from "
                              << rpc_server_id
                              << " in term " << saved_term
@@ -2480,7 +2480,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             response->set_last_log_index(last_index);
             lck.unlock();
             if (local_prev_log_term != 0) {
-                MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+                LOG(WARNING) << "node " << _group_id << ":" << _server_id
                              << " reject term_unmatched AppendEntries from "
                              << request->server_id()
                              << " in term " << request->term()
@@ -2525,7 +2525,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                     for (int i = 0; i < entry.peers_size(); i++) {
                         log_entry->peers->push_back(entry.peers(i));
                     }
-                    MCHECK_EQ(log_entry->type, ENTRY_TYPE_CONFIGURATION);
+                    CHECK_EQ(log_entry->type, ENTRY_TYPE_CONFIGURATION);
                     if (entry.old_peers_size() > 0) {
                         log_entry->old_peers = new std::vector<PeerId>;
                         for (int i = 0; i < entry.old_peers_size(); i++) {
@@ -2533,7 +2533,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                         }
                     }
                 } else {
-                    MCHECK_NE(entry.type(), ENTRY_TYPE_CONFIGURATION);
+                    CHECK_NE(entry.type(), ENTRY_TYPE_CONFIGURATION);
                 }
                 if (entry.has_data_len()) {
                     int len = entry.data_len();
@@ -2572,7 +2572,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         std::vector<Closure *> saved_done;
         {
             MELON_SCOPED_LOCK(_mutex);
-            MCHECK_EQ(STATE_SHUTTING, _state);
+            CHECK_EQ(STATE_SHUTTING, _state);
             _state = STATE_SHUTDOWN;
             std::swap(saved_done, _shutdown_continuations);
         }
@@ -2606,7 +2606,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             const int64_t saved_current_term = _current_term;
             const State saved_state = _state;
             lck.unlock();
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " is not in active state " << "current_term "
                          << saved_current_term << " state " << state2str(saved_state);
             cntl->SetFailed(EINVAL, "node %s:%s is not in active state, state %s",
@@ -2616,7 +2616,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         // check stale term
         if (request->term() < _current_term) {
-            MLOG(WARNING) << "node " << _group_id << ":" << _server_id
+            LOG(WARNING) << "node " << _group_id << ":" << _server_id
                          << " ignore stale InstallSnapshot from " << request->server_id()
                          << " in term " << request->term()
                          << " current_term " << _current_term;
@@ -2628,7 +2628,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         check_step_down(request->term(), server_id);
 
         if (server_id != _leader_id) {
-            MLOG(ERROR) << "Another peer " << _group_id << ":" << server_id
+            LOG(ERROR) << "Another peer " << _group_id << ":" << server_id
                        << " declares that it is the leader at term=" << _current_term
                        << " which was occupied by leader=" << _leader_id;
             // Increase the term by 1 and make both leaders step down to minimize the
@@ -2642,7 +2642,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         clear_append_entries_cache();
         lck.unlock();
-        MLOG(INFO) << "node " << _group_id << ":" << _server_id
+        LOG(INFO) << "node " << _group_id << ":" << _server_id
                   << " received InstallSnapshotRequest"
                   << " last_included_log_index="
                   << request->meta().last_included_index()
@@ -2957,7 +2957,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (fiber_start_background(
                 &tid, nullptr, NodeImpl::handle_append_entries_cache_timedout,
                 arg) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             NodeImpl::handle_append_entries_cache_timedout(arg);
         }
     }
@@ -2990,8 +2990,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     int64_t NodeImpl::AppendEntriesCache::first_index() const {
-        MCHECK(!_rpc_map.empty());
-        MCHECK(!_rpc_queue.empty());
+        CHECK(!_rpc_map.empty());
+        CHECK(!_rpc_queue.empty());
         return _rpc_map.begin()->second->request->prev_log_index() + 1;
     }
 
@@ -3063,8 +3063,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::AppendEntriesCache::process_runable_rpcs(int64_t local_last_index) {
-        MCHECK(!_rpc_map.empty());
-        MCHECK(!_rpc_queue.empty());
+        CHECK(!_rpc_map.empty());
+        CHECK(!_rpc_queue.empty());
         HandleAppendEntriesFromCacheArg *arg = nullptr;
         for (std::map<int64_t, AppendEntriesRpc *>::iterator it = _rpc_map.begin();
              it != _rpc_map.end();) {
@@ -3090,7 +3090,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::AppendEntriesCache::clear() {
-        BRAFT_VMLOG << "node " << _node->_group_id << ":" << _node->_server_id
+        BRAFT_VLOG << "node " << _node->_group_id << ":" << _node->_server_id
                    << " clear append entries cache";
         stop_timer();
         HandleAppendEntriesFromCacheArg *arg = new HandleAppendEntriesFromCacheArg;
@@ -3117,7 +3117,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (fiber_start_background(
                 &tid, nullptr, NodeImpl::handle_append_entries_from_cache,
                 arg) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             // We cant't call NodeImpl::handle_append_entries_from_cache
             // here since we are in the mutex, which will cause dead lock, just
             // set the rpc fail, and let leader block for a while.
@@ -3146,7 +3146,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (fiber_timer_add(
                 &_timer, duetime, NodeImpl::on_append_entries_cache_timedout,
                 timer_arg) != 0) {
-            MLOG(ERROR) << "Fail to add timer";
+            LOG(ERROR) << "Fail to add timer";
             delete timer_arg;
             _node->Release();
             return false;
@@ -3170,8 +3170,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (timer_version != _timer_version) {
             return;
         }
-        MCHECK(!_rpc_map.empty());
-        MCHECK(!_rpc_queue.empty());
+        CHECK(!_rpc_map.empty());
+        CHECK(!_rpc_queue.empty());
         // If the head of out-of-order requests is not be handled, clear the entire cache,
         // otherwise, start a new timer.
         if (_rpc_queue.head()->value()->receive_time_ms <= timer_start_ms) {
@@ -3186,8 +3186,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::ConfigurationCtx::start(const Configuration &old_conf,
                                            const Configuration &new_conf,
                                            Closure *done) {
-        MCHECK(!is_busy());
-        MCHECK(!_done);
+        CHECK(!is_busy());
+        CHECK(!_done);
         _done = done;
         _stage = STAGE_CATCHING_UP;
         old_conf.list_peers(&_old_peers);
@@ -3203,16 +3203,16 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
         if (adding.empty()) {
             ss << ", begin removing.";
-            MLOG(INFO) << ss.str();
+            LOG(INFO) << ss.str();
             return next_stage();
         }
         ss << ", begin caughtup.";
-        MLOG(INFO) << ss.str();
+        LOG(INFO) << ss.str();
         adding.list_peers(&_adding_peers);
         for (std::set<PeerId>::const_iterator iter
                 = _adding_peers.begin(); iter != _adding_peers.end(); ++iter) {
             if (_node->_replicator_group.add_replicator(*iter) != 0) {
-                MLOG(ERROR) << "node " << _node->node_id()
+                LOG(ERROR) << "node " << _node->node_id()
                            << " start replicator failed, peer " << *iter;
                 return on_caughtup(_version, *iter, false);
             }
@@ -3222,7 +3222,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                     _node->_options.get_catchup_timeout_ms());
             if (_node->_replicator_group.wait_caughtup(
                     *iter, _node->_options.catchup_margin, &due_time, caught_up) != 0) {
-                MLOG(WARNING) << "node " << _node->node_id()
+                LOG(WARNING) << "node " << _node->node_id()
                              << " wait_caughtup failed, peer " << *iter;
                 delete caught_up;
                 return on_caughtup(_version, *iter, false);
@@ -3232,7 +3232,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     void NodeImpl::ConfigurationCtx::flush(const Configuration &conf,
                                            const Configuration &old_conf) {
-        MCHECK(!is_busy());
+        CHECK(!is_busy());
         conf.list_peers(&_new_peers);
         if (old_conf.empty()) {
             _stage = STAGE_STABLE;
@@ -3249,12 +3249,12 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::ConfigurationCtx::on_caughtup(
             int64_t version, const PeerId &peer_id, bool succ) {
         if (version != _version) {
-            MLOG(WARNING) << "Node " << _node->node_id()
+            LOG(WARNING) << "Node " << _node->node_id()
                          << " on_caughtup with unmatched version=" << version
                          << ", expect version=" << _version;
             return;
         }
-        MCHECK_EQ(STAGE_CATCHING_UP, _stage);
+        CHECK_EQ(STAGE_CATCHING_UP, _stage);
         if (succ) {
             _adding_peers.erase(peer_id);
             if (_adding_peers.empty()) {
@@ -3263,7 +3263,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             return;
         }
         // Fail
-        MLOG(WARNING) << "Node " << _node->node_id()
+        LOG(WARNING) << "Node " << _node->node_id()
                      << " fail to catch up peer " << peer_id
                      << " when trying to change peers from "
                      << Configuration(_old_peers) << " to "
@@ -3274,7 +3274,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     }
 
     void NodeImpl::ConfigurationCtx::next_stage() {
-        MCHECK(is_busy());
+        CHECK(is_busy());
         switch (_stage) {
             case STAGE_CATCHING_UP:
                 if (_nchanges > 1) {
@@ -3302,7 +3302,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                 return;
             }
             case STAGE_NONE:
-                MCHECK(false) << "Can't reach here";
+                CHECK(false) << "Can't reach here";
                 return;
         }
     }
@@ -3310,12 +3310,12 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::ConfigurationCtx::reset(mutil::Status *st) {
         // reset() should be called only once
         if (_stage == STAGE_NONE) {
-            BRAFT_VMLOG << "node " << _node->node_id()
+            BRAFT_VLOG << "node " << _node->node_id()
                        << " reset ConfigurationCtx when stage is STAGE_NONE already";
             return;
         }
 
-        MLOG(INFO) << "node " << _node->node_id()
+        LOG(INFO) << "node " << _node->node_id()
                   << " reset ConfigurationCtx, new_peers: " << Configuration(_new_peers)
                   << ", old_peers: " << Configuration(_old_peers);
         if (st && st->ok()) {
@@ -3346,7 +3346,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::enter_readonly_mode() {
         MELON_SCOPED_LOCK(_mutex);
         if (!_node_readonly) {
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " enter readonly mode";
             _node_readonly = true;
         }
@@ -3355,7 +3355,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     void NodeImpl::leave_readonly_mode() {
         MELON_SCOPED_LOCK(_mutex);
         if (_node_readonly) {
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " leave readonly mode";
             _node_readonly = false;
         }
@@ -3400,7 +3400,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         bool prev_readonly = _majority_nodes_readonly;
         _majority_nodes_readonly = !(writable_nodes >= (peers.size() / 2 + 1));
         if (prev_readonly != _majority_nodes_readonly) {
-            MLOG(INFO) << "node " << _group_id << ":" << _server_id
+            LOG(INFO) << "node " << _group_id << ":" << _server_id
                       << " majority readonly change from " << (prev_readonly ? "enable" : "disable")
                       << " to " << (_majority_nodes_readonly ? " enable" : "disable");
         }
@@ -3475,7 +3475,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (fiber_timer_add(
                 &_timer, duetime, NodeImpl::on_grant_self_timedout,
                 timer_arg) != 0) {
-            MLOG(ERROR) << "Fail to add timer";
+            LOG(ERROR) << "Fail to add timer";
             delete timer_arg;
             _grant_self_arg = nullptr;
             node->Release();
@@ -3556,7 +3556,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (fiber_start_background(
                 &tid, nullptr, NodeImpl::handle_grant_self_timedout,
                 arg) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             NodeImpl::handle_grant_self_timedout(arg);
         }
     }

@@ -19,7 +19,7 @@
 
 
 #include <algorithm>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/json2pb/pb_to_json.h>
 #include <melon/json2pb/json_to_pb.h>
 #include "pb_util.h"
@@ -66,7 +66,7 @@ bool JsonLoader::Reader::read_some() {
         if (errno == EINTR) {
             return read_some();
         }
-        PMLOG(ERROR) << "Fail to read fd=" << _fd;
+        PLOG(ERROR) << "Fail to read fd=" << _fd;
         return false;
     } else if (nr == 0) {
         return false;
@@ -119,7 +119,7 @@ bool JsonLoader::Reader::get_next_json(mutil::IOBuf* json1) {
                     if (!_quoted) {
                         ++_brace_depth;
                     } else {
-                        VMLOG(1) << "Quoted left brace";
+                        VLOG(1) << "Quoted left brace";
                     }                        
                     break;
                 case '}':
@@ -131,11 +131,11 @@ bool JsonLoader::Reader::get_next_json(mutil::IOBuf* json1) {
                             json1->pop_front(skipped);
                             return possibly_valid_json(*json1);
                         } else if (_brace_depth < 0) {
-                            MLOG(ERROR) << "More right braces than left braces";
+                            LOG(ERROR) << "More right braces than left braces";
                             return false;
                         }
                     } else {
-                        VMLOG(1) << "Quoted right brace";
+                        VLOG(1) << "Quoted right brace";
                     }
                     break;
                 case '"':
@@ -198,19 +198,19 @@ void JsonLoader::load_messages(
     out_msgs->clear();
     mutil::IOBuf request_json;
     while (ctx->get_next_json(&request_json)) {
-        VMLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
+        VLOG(1) << "Load " << out_msgs->size() + 1 << "-th json=`"
                 << request_json << '\'';
         std::string error;
         google::protobuf::Message* request = _request_prototype->New();
         mutil::IOBufAsZeroCopyInputStream wrapper(request_json);
         if (!json2pb::JsonToProtoMessage(&wrapper, request, &error)) {
-            MLOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
+            LOG(WARNING) << "Fail to convert to pb: " << error << ", json=`"
                          << request_json << '\'';
             delete request;
             continue;
         }
         out_msgs->push_back(request);
-        MLOG_IF(INFO, (out_msgs->size() % 10000) == 0)
+        LOG_IF(INFO, (out_msgs->size() % 10000) == 0)
             << "Loaded " << out_msgs->size() << " jsons";
     }
 }

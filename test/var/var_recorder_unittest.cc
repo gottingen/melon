@@ -33,7 +33,7 @@
 
 namespace {
 TEST(RecorderTest, test_complement) {
-    MLOG(INFO) << "sizeof(LatencyRecorder)=" << sizeof(melon::var::LatencyRecorder)
+    LOG(INFO) << "sizeof(LatencyRecorder)=" << sizeof(melon::var::LatencyRecorder)
               << " " << sizeof(melon::var::detail::Percentile)
               << " " << sizeof(melon::var::Maxer<int64_t>)
               << " " << sizeof(melon::var::IntRecorder)
@@ -98,7 +98,7 @@ TEST(RecorderTest, window) {
         int64_t now = mutil::gettimeofday_us();
         if (now - last_time >= 1000000L) {
             last_time = now;
-            MLOG(INFO) << "c1=" << c1 << " w1=" << w1 << " w2=" << w2 << " w3=" << w3;
+            LOG(INFO) << "c1=" << c1 << " w1=" << w1 << " w2=" << w2 << " w3=" << w3;
         } else {
             usleep(950);
         }
@@ -205,7 +205,7 @@ TEST(RecorderTest, perf) {
         totol_time += (long)ret;
     }
     ASSERT_EQ(((int64_t)OPS_PER_THREAD - 1) / 2, recorder.average());
-    MLOG(INFO) << "Recorder takes " << totol_time / (OPS_PER_THREAD * ARRAY_SIZE(threads))
+    LOG(INFO) << "Recorder takes " << totol_time / (OPS_PER_THREAD * ARRAY_SIZE(threads))
               << "ns per sample with " << ARRAY_SIZE(threads) 
               << " threads";
 }

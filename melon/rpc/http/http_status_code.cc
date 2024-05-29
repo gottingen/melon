@@ -21,7 +21,7 @@
 
 #include <stdio.h>                                  // snprintf
 
-#include <melon/utility/logging.h>                           // MELON_*
+#include <turbo/log/logging.h>                           // MELON_*
 #include <melon/utility/macros.h>                            // ARRAY_SIZE
 #include <melon/utility/thread_local.h>                      // thread_local
 #include <melon/proto/rpc/errno.pb.h>
@@ -95,7 +95,7 @@ static void InitReasonPhrases() {
             status_pairs[i].status_code < (int)ARRAY_SIZE(phrases)) {
             phrases[status_pairs[i].status_code] = status_pairs[i].reason_phrase;
         } else {
-            MLOG(FATAL) << "The status_pairs[" << i << "] is invalid"
+            LOG(FATAL) << "The status_pairs[" << i << "] is invalid"
                         << " status_code=" << status_pairs[i].status_code
                         << " reason_phrase=`" << status_pairs[i].reason_phrase
                         << '\'';

@@ -32,33 +32,33 @@
 #include <cstring>
 #include <sstream>
 #include <melon/utility/macros.h>    // MELON_CONCAT
-#include <melon/utility/atomicops.h> // Used by MLOG_EVERY_N, MLOG_FIRST_N etc
+#include <melon/utility/atomicops.h> // Used by LOG_EVERY_N, LOG_FIRST_N etc
 #include <melon/utility/time.h>      // gettimeofday_us()
 
 #if MELON_WITH_GLOG
 # include <glog/logging.h>
 # include <glog/raw_logging.h>
 // define macros that not implemented in glog
-# ifndef DMCHECK_IS_ON   // glog didn't define DMCHECK_IS_ON in older version
+# ifndef DCHECK_IS_ON   // glog didn't define DCHECK_IS_ON in older version
 #  if defined(NDEBUG)
-#    define DMCHECK_IS_ON() 0
+#    define DCHECK_IS_ON() 0
 #  else
-#    define DMCHECK_IS_ON() 1
+#    define DCHECK_IS_ON() 1
 #  endif  // NDEBUG
-# endif // DMCHECK_IS_ON
-# if DMCHECK_IS_ON()
-#  define DPMLOG(...) PMLOG(__VA_ARGS__)
-#  define DPMLOG_IF(...) PMLOG_IF(__VA_ARGS__)
-#  define DPMCHECK(...) PMCHECK(__VA_ARGS__)
-#  define DVPMLOG(...) VMLOG(__VA_ARGS__)
+# endif // DCHECK_IS_ON
+# if DCHECK_IS_ON()
+#  define DPLOG(...) PLOG(__VA_ARGS__)
+#  define DPLOG_IF(...) PLOG_IF(__VA_ARGS__)
+#  define DPCHECK(...) PCHECK(__VA_ARGS__)
+#  define DVPLOG(...) VLOG(__VA_ARGS__)
 # else 
-#  define DPMLOG(...) DMLOG(__VA_ARGS__)
-#  define DPMLOG_IF(...) DMLOG_IF(__VA_ARGS__)
-#  define DPMCHECK(...) DMCHECK(__VA_ARGS__)
-#  define DVPMLOG(...) DVMLOG(__VA_ARGS__)
+#  define DPLOG(...) DLOG(__VA_ARGS__)
+#  define DPLOG_IF(...) DLOG_IF(__VA_ARGS__)
+#  define DPCHECK(...) DCHECK(__VA_ARGS__)
+#  define DVPLOG(...) DVLOG(__VA_ARGS__)
 # endif
 
-#define MLOG_AT(severity, file, line)                                    \
+#define LOG_AT(severity, file, line)                                    \
     google::LogMessage(file, line, google::severity).stream()
 
 #else
@@ -102,51 +102,51 @@
 // ------------
 //
 // Make a bunch of macros for logging.  The way to log things is to stream
-// things to MLOG(<a particular severity level>).  E.g.,
+// things to LOG(<a particular severity level>).  E.g.,
 //
-//   MLOG(INFO) << "Found " << num_cookies << " cookies";
+//   LOG(INFO) << "Found " << num_cookies << " cookies";
 //
 // You can also do conditional logging:
 //
-//   MLOG_IF(INFO, num_cookies > 10) << "Got lots of cookies";
+//   LOG_IF(INFO, num_cookies > 10) << "Got lots of cookies";
 //
-// The MCHECK(condition) macro is active in both debug and release builds and
-// effectively performs a MLOG(FATAL) which terminates the process and
+// The CHECK(condition) macro is active in both debug and release builds and
+// effectively performs a LOG(FATAL) which terminates the process and
 // generates a crashdump unless a debugger is attached.
 //
 // There are also "debug mode" logging macros like the ones above:
 //
-//   DMLOG(INFO) << "Found cookies";
+//   DLOG(INFO) << "Found cookies";
 //
-//   DMLOG_IF(INFO, num_cookies > 10) << "Got lots of cookies";
+//   DLOG_IF(INFO, num_cookies > 10) << "Got lots of cookies";
 //
 // All "debug mode" logging is compiled away to nothing for non-debug mode
-// compiles.  MLOG_IF and development flags also work well together
+// compiles.  LOG_IF and development flags also work well together
 // because the code can be compiled away sometimes.
 //
 // We also have
 //
 //   DLOG_ASSERT(assertion);
-//   DMLOG_ASSERT(assertion);
+//   DLOG_ASSERT(assertion);
 //
-// which is syntactic sugar for {,D}MLOG_IF(FATAL, assert fails) << assertion;
+// which is syntactic sugar for {,D}LOG_IF(FATAL, assert fails) << assertion;
 //
 // There are "verbose level" logging macros.  They look like
 //
-//   VMLOG(1) << "I'm printed when you run the program with --v=1 or more";
-//   VMLOG(2) << "I'm printed when you run the program with --v=2 or more";
+//   VLOG(1) << "I'm printed when you run the program with --v=1 or more";
+//   VLOG(2) << "I'm printed when you run the program with --v=2 or more";
 //
 // These always log at the INFO log level (when they log at all).
 // The verbose logging can also be turned on module-by-module.  For instance,
 //    --vmodule=profile=2,icon_loader=1,browser_*=3,*/chromeos/*=4 --v=0
 // will cause:
-//   a. VMLOG(2) and lower messages to be printed from profile.{h,cc}
-//   b. VMLOG(1) and lower messages to be printed from icon_loader.{h,cc}
-//   c. VMLOG(3) and lower messages to be printed from files prefixed with
+//   a. VLOG(2) and lower messages to be printed from profile.{h,cc}
+//   b. VLOG(1) and lower messages to be printed from icon_loader.{h,cc}
+//   c. VLOG(3) and lower messages to be printed from files prefixed with
 //      "browser"
-//   d. VMLOG(4) and lower messages to be printed from files under a
+//   d. VLOG(4) and lower messages to be printed from files under a
 //     "chromeos" directory.
-//   e. VMLOG(0) and lower messages to be printed from elsewhere
+//   e. VLOG(0) and lower messages to be printed from elsewhere
 //
 // The wildcarding functionality shown by (c) supports both '*' (match
 // 0 or more characters) and '?' (match any single character)
@@ -155,29 +155,29 @@
 // E.g., "*/foo/bar/*=2" would change the logging level for all code
 // in source files under a "foo/bar" directory.
 //
-// There's also VMLOG_IS_ON(n) "verbose level" condition macro. To be used as
+// There's also VLOG_IS_ON(n) "verbose level" condition macro. To be used as
 //
-//   if (VMLOG_IS_ON(2)) {
+//   if (VLOG_IS_ON(2)) {
 //     // do some logging preparation and logging
-//     // that can't be accomplished with just VMLOG(2) << ...;
+//     // that can't be accomplished with just VLOG(2) << ...;
 //   }
 //
-// There is also a VMLOG_IF "verbose level" condition macro for sample
+// There is also a VLOG_IF "verbose level" condition macro for sample
 // cases, when some extra computation and preparation for logs is not
 // needed.
 //
-//   VMLOG_IF(1, (size > 1024))
+//   VLOG_IF(1, (size > 1024))
 //      << "I'm printed when size is more than 1024 and when you run the "
 //         "program with --v=1 or more";
 //
 // Lastly, there is:
 //
-//   PMLOG(ERROR) << "Couldn't do foo";
-//   DPMLOG(ERROR) << "Couldn't do foo";
-//   PMLOG_IF(ERROR, cond) << "Couldn't do foo";
-//   DPMLOG_IF(ERROR, cond) << "Couldn't do foo";
-//   PMCHECK(condition) << "Couldn't do foo";
-//   DPMCHECK(condition) << "Couldn't do foo";
+//   PLOG(ERROR) << "Couldn't do foo";
+//   DPLOG(ERROR) << "Couldn't do foo";
+//   PLOG_IF(ERROR, cond) << "Couldn't do foo";
+//   DPLOG_IF(ERROR, cond) << "Couldn't do foo";
+//   PCHECK(condition) << "Couldn't do foo";
+//   DPCHECK(condition) << "Couldn't do foo";
 //
 // which append the last system error to the message in string form (taken from
 // GetLastError() on Windows and errno on POSIX).
@@ -366,7 +366,7 @@ const LogSeverity BLOG_DFATAL = BLOG_ERROR;
 #endif
 
 // A few definitions of macros that don't generate much code. These are used
-// by MLOG() and MLOG_IF, etc. Since these are used all over our code, it's
+// by LOG() and LOG_IF, etc. Since these are used all over our code, it's
 // better to have compact code for these operations.
 #define MELON_COMPACT_LOG_EX(severity, ClassName, ...)  \
     ::logging::ClassName(__FILE__, __LINE__,  __func__, \
@@ -376,7 +376,7 @@ const LogSeverity BLOG_DFATAL = BLOG_ERROR;
     MELON_COMPACT_LOG_EX(severity, LogMessage)
 
 #if defined(OS_WIN)
-// wingdi.h defines ERROR to be 0. When we call MLOG(ERROR), it gets
+// wingdi.h defines ERROR to be 0. When we call LOG(ERROR), it gets
 // substituted with 0, and it expands to MELON_COMPACK_LOG(0). To allow us
 // to keep using this syntax, we define this macro to do the same thing
 // as MELON_COMPACK_LOG(ERROR), and also define ERROR the same way that
@@ -388,40 +388,40 @@ const LogSeverity BLOG_0 = BLOG_ERROR;
 #endif
 
 // As special cases, we can assume that LOG_IS_ON(FATAL) always holds. Also,
-// LOG_IS_ON(DFATAL) always holds in debug mode. In particular, MCHECK()s will
+// LOG_IS_ON(DFATAL) always holds in debug mode. In particular, CHECK()s will
 // always fire if they fail.
 #define LOG_IS_ON(severity)                                     \
     (::logging::BLOG_##severity >= ::logging::GetMinLogLevel())
 
 #if defined(__GNUC__)
-// We emit an anonymous static int* variable at every VMLOG_IS_ON(n) site.
-// (Normally) the first time every VMLOG_IS_ON(n) site is hit,
+// We emit an anonymous static int* variable at every VLOG_IS_ON(n) site.
+// (Normally) the first time every VLOG_IS_ON(n) site is hit,
 // we determine what variable will dynamically control logging at this site:
 // it's either FLAGS_verbose or an appropriate internal variable
 // matching the current source file that represents results of
-// parsing of --vmodule flag and/or SetVMLOGLevel calls.
-# define MELON_VMLOG_IS_ON(verbose_level, filepath)                      \
-    ({ static const int* vlocal = &::logging::VMLOG_UNINITIALIZED;       \
+// parsing of --vmodule flag and/or SetVLOGLevel calls.
+# define MELON_VLOG_IS_ON(verbose_level, filepath)                      \
+    ({ static const int* vlocal = &::logging::VLOG_UNINITIALIZED;       \
         const int saved_verbose_level = (verbose_level);                \
-        (saved_verbose_level >= 0)/*VMLOG(-1) is forbidden*/ &&          \
+        (saved_verbose_level >= 0)/*VLOG(-1) is forbidden*/ &&          \
             (*vlocal >= saved_verbose_level) &&                         \
-            ((vlocal != &::logging::VMLOG_UNINITIALIZED) ||              \
+            ((vlocal != &::logging::VLOG_UNINITIALIZED) ||              \
              (::logging::add_vlog_site(&vlocal, filepath, __LINE__,     \
                                        saved_verbose_level))); })
 #else
 // GNU extensions not available, so we do not support --vmodule.
 // Dynamic value of FLAGS_verbose always controls the logging level.
-# define MELON_VMLOG_IS_ON(verbose_level, filepath)      \
+# define MELON_VLOG_IS_ON(verbose_level, filepath)      \
     (::logging::FLAGS_v >= (verbose_level))
 #endif
 
-#define VMLOG_IS_ON(verbose_level) MELON_VMLOG_IS_ON(verbose_level, __FILE__)
+#define VLOG_IS_ON(verbose_level) MELON_VLOG_IS_ON(verbose_level, __FILE__)
 
 DECLARE_int32(v);
 
-extern const int VMLOG_UNINITIALIZED;
+extern const int VLOG_UNINITIALIZED;
 
-// Called to initialize a VMLOG callsite.
+// Called to initialize a VLOG callsite.
 bool add_vlog_site(const int** v, const LogChar* filename,
                    int line_no, int required_v);
 
@@ -446,7 +446,7 @@ void print_vlog_sites(VLogSitePrinter*);
     !(condition) ? (void) 0 : ::logging::LogMessageVoidify() & (stream)
 
 // We use the preprocessor's merging operator, "##", so that, e.g.,
-// MLOG(INFO) becomes the token MELON_COMPACK_LOG(INFO).  There's some funny
+// LOG(INFO) becomes the token MELON_COMPACK_LOG(INFO).  There's some funny
 // subtle difference between ostream member streaming functions (e.g.,
 // ostream::operator<<(int) and ostream non-member streaming functions
 // (e.g., ::operator<<(ostream&, string&): it turns out that it's
@@ -455,24 +455,24 @@ void print_vlog_sites(VLogSitePrinter*);
 // function of LogMessage which seems to avoid the problem.
 #define LOG_STREAM(severity) MELON_COMPACK_LOG(severity).stream()
 
-#define MLOG(severity)                                                   \
+#define LOG(severity)                                                   \
     MELON_LAZY_STREAM(LOG_STREAM(severity), LOG_IS_ON(severity))
-#define MLOG_IF(severity, condition)                                     \
+#define LOG_IF(severity, condition)                                     \
     MELON_LAZY_STREAM(LOG_STREAM(severity), LOG_IS_ON(severity) && (condition))
 
 // FIXME(gejun): Should always crash.
 #define DLOG_ASSERT(condition)                                           \
-    MLOG_IF(FATAL, !(condition)) << "Assert failed: " #condition ". "
+    LOG_IF(FATAL, !(condition)) << "Assert failed: " #condition ". "
 
-#define SYSLOG(severity) MLOG(severity)
-#define SYSLOG_IF(severity, condition) MLOG_IF(severity, condition)
-#define SYSLOG_EVERY_N(severity, N) MLOG_EVERY_N(severity, N)
+#define SYSLOG(severity) LOG(severity)
+#define SYSLOG_IF(severity, condition) LOG_IF(severity, condition)
+#define SYSLOG_EVERY_N(severity, N) LOG_EVERY_N(severity, N)
 #define SYSLOG_IF_EVERY_N(severity, condition, N) LOG_IF_EVERY_N(severity, condition, N)
-#define SYSLOG_FIRST_N(severity, N) MLOG_FIRST_N(severity, N)
+#define SYSLOG_FIRST_N(severity, N) LOG_FIRST_N(severity, N)
 #define SYSLOG_IF_FIRST_N(severity, condition, N) LOG_IF_FIRST_N(severity, condition, N)
-#define SYSLOG_ONCE(severity) MLOG_FIRST_N(severity, 1)
+#define SYSLOG_ONCE(severity) LOG_FIRST_N(severity, 1)
 #define SYSLOG_IF_ONCE(severity, condition) LOG_IF_FIRST_N(severity, condition, 1)
-#define SYSLOG_EVERY_SECOND(severity) MLOG_EVERY_SECOND(severity)
+#define SYSLOG_EVERY_SECOND(severity) LOG_EVERY_SECOND(severity)
 #define SYSLOG_IF_EVERY_SECOND(severity, condition) LOG_IF_EVERY_SECOND(severity, condition)
 
 #define SYSLOG_ASSERT(condition)                                        \
@@ -492,110 +492,110 @@ void print_vlog_sites(VLogSitePrinter*);
     MELON_LAZY_STREAM(LOG_AT_STREAM(severity, file, line), LOG_IS_ON(severity))
 #define LOG_AT2(severity, file, line, func)                                   \
     MELON_LAZY_STREAM(LOG_AT_STREAM(severity, file, line, func), LOG_IS_ON(severity))
-#define MLOG_AT(...) LOG_AT_SELECTOR(__VA_ARGS__, LOG_AT2, LOG_AT1)(__VA_ARGS__)
+#define LOG_AT(...) LOG_AT_SELECTOR(__VA_ARGS__, LOG_AT2, LOG_AT1)(__VA_ARGS__)
 
 
-// The VMLOG macros log with negative verbosities.
-#define VMLOG_STREAM(verbose_level)                                      \
+// The VLOG macros log with negative verbosities.
+#define VLOG_STREAM(verbose_level)                                      \
     ::logging::LogMessage(__FILE__, __LINE__, __func__, -(verbose_level)).stream()
 
-#define VMLOG(verbose_level)                                             \
-    MELON_LAZY_STREAM(VMLOG_STREAM(verbose_level), VMLOG_IS_ON(verbose_level))
-#define VMLOG_IF(verbose_level, condition)                       \
-    MELON_LAZY_STREAM(VMLOG_STREAM(verbose_level),               \
-                      VMLOG_IS_ON(verbose_level) && (condition))
+#define VLOG(verbose_level)                                             \
+    MELON_LAZY_STREAM(VLOG_STREAM(verbose_level), VLOG_IS_ON(verbose_level))
+#define VLOG_IF(verbose_level, condition)                       \
+    MELON_LAZY_STREAM(VLOG_STREAM(verbose_level),               \
+                      VLOG_IS_ON(verbose_level) && (condition))
 
-#define VMLOG_EVERY_N(verbose_level, N)                                  \
-    MELON_LOG_IF_EVERY_N_IMPL(VMLOG_IF, verbose_level, true, N)
-#define VMLOG_IF_EVERY_N(verbose_level, condition, N)                    \
-    MELON_LOG_IF_EVERY_N_IMPL(VMLOG_IF, verbose_level, condition, N)
+#define VLOG_EVERY_N(verbose_level, N)                                  \
+    MELON_LOG_IF_EVERY_N_IMPL(VLOG_IF, verbose_level, true, N)
+#define VLOG_IF_EVERY_N(verbose_level, condition, N)                    \
+    MELON_LOG_IF_EVERY_N_IMPL(VLOG_IF, verbose_level, condition, N)
 
-#define VMLOG_FIRST_N(verbose_level, N)                                  \
-    MELON_LOG_IF_FIRST_N_IMPL(VMLOG_IF, verbose_level, true, N)
-#define VMLOG_IF_FIRST_N(verbose_level, condition, N)                    \
-    MELON_LOG_IF_FIRST_N_IMPL(VMLOG_IF, verbose_level, condition, N)
+#define VLOG_FIRST_N(verbose_level, N)                                  \
+    MELON_LOG_IF_FIRST_N_IMPL(VLOG_IF, verbose_level, true, N)
+#define VLOG_IF_FIRST_N(verbose_level, condition, N)                    \
+    MELON_LOG_IF_FIRST_N_IMPL(VLOG_IF, verbose_level, condition, N)
 
-#define VMLOG_ONCE(verbose_level) VMLOG_FIRST_N(verbose_level, 1)
-#define VMLOG_IF_ONCE(verbose_level, condition) VMLOG_IF_FIRST_N(verbose_level, condition, 1)
+#define VLOG_ONCE(verbose_level) VLOG_FIRST_N(verbose_level, 1)
+#define VLOG_IF_ONCE(verbose_level, condition) VLOG_IF_FIRST_N(verbose_level, condition, 1)
 
-#define VMLOG_EVERY_SECOND(verbose_level)                        \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(VMLOG_IF, verbose_level, true)
-#define VMLOG_IF_EVERY_SECOND(verbose_level, condition)                  \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(VMLOG_IF, verbose_level, condition)
+#define VLOG_EVERY_SECOND(verbose_level)                        \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(VLOG_IF, verbose_level, true)
+#define VLOG_IF_EVERY_SECOND(verbose_level, condition)                  \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(VLOG_IF, verbose_level, condition)
 
 #if defined (OS_WIN)
-#define VPMLOG_STREAM(verbose_level)                                     \
+#define VPLOG_STREAM(verbose_level)                                     \
      ::logging::Win32ErrorLogMessage(__FILE__, __LINE__, __func__, -verbose_level, \
                                      ::logging::GetLastSystemErrorCode()).stream()
 #elif defined(OS_POSIX)
-#define VPMLOG_STREAM(verbose_level)                                     \
+#define VPLOG_STREAM(verbose_level)                                     \
     ::logging::ErrnoLogMessage(__FILE__, __LINE__, __func__, -verbose_level,      \
                                ::logging::GetLastSystemErrorCode()).stream()
 #endif
 
-#define VPMLOG(verbose_level)                                            \
-    MELON_LAZY_STREAM(VPMLOG_STREAM(verbose_level), VMLOG_IS_ON(verbose_level))
+#define VPLOG(verbose_level)                                            \
+    MELON_LAZY_STREAM(VPLOG_STREAM(verbose_level), VLOG_IS_ON(verbose_level))
 
-#define VPMLOG_IF(verbose_level, condition)                      \
-    MELON_LAZY_STREAM(VPMLOG_STREAM(verbose_level),              \
-                      VMLOG_IS_ON(verbose_level) && (condition))
+#define VPLOG_IF(verbose_level, condition)                      \
+    MELON_LAZY_STREAM(VPLOG_STREAM(verbose_level),              \
+                      VLOG_IS_ON(verbose_level) && (condition))
 
 #if defined(OS_WIN)
-#define PMLOG_STREAM(severity)                                           \
+#define PLOG_STREAM(severity)                                           \
     MELON_COMPACT_LOG_EX(severity, Win32ErrorLogMessage,                \
                          ::logging::GetLastSystemErrorCode()).stream()
 #elif defined(OS_POSIX)
-#define PMLOG_STREAM(severity)                                           \
+#define PLOG_STREAM(severity)                                           \
     MELON_COMPACT_LOG_EX(severity, ErrnoLogMessage,                     \
                          ::logging::GetLastSystemErrorCode()).stream()
 #endif
 
-#define PMLOG(severity)                                                  \
-    MELON_LAZY_STREAM(PMLOG_STREAM(severity), LOG_IS_ON(severity))
-#define PMLOG_IF(severity, condition)                                    \
-    MELON_LAZY_STREAM(PMLOG_STREAM(severity), LOG_IS_ON(severity) && (condition))
+#define PLOG(severity)                                                  \
+    MELON_LAZY_STREAM(PLOG_STREAM(severity), LOG_IS_ON(severity))
+#define PLOG_IF(severity, condition)                                    \
+    MELON_LAZY_STREAM(PLOG_STREAM(severity), LOG_IS_ON(severity) && (condition))
 
 // The actual stream used isn't important.
 #define MELON_EAT_STREAM_PARAMS                                           \
     true ? (void) 0 : ::logging::LogMessageVoidify() & LOG_STREAM(FATAL)
 
-// MCHECK dies with a fatal error if condition is not true.  It is *not*
+// CHECK dies with a fatal error if condition is not true.  It is *not*
 // controlled by NDEBUG, so the check will be executed regardless of
 // compilation mode.
 //
-// We make sure MCHECK et al. always evaluates their arguments, as
-// doing MCHECK(FunctionWithSideEffect()) is a common idiom.
+// We make sure CHECK et al. always evaluates their arguments, as
+// doing CHECK(FunctionWithSideEffect()) is a common idiom.
 
 #if defined(OFFICIAL_BUILD) && defined(NDEBUG)
 
-// Make all MCHECK functions discard their log strings to reduce code
+// Make all CHECK functions discard their log strings to reduce code
 // bloat for official release builds.
 
 // TODO(akalin): This would be more valuable if there were some way to
 // remove BreakDebugger() from the backtrace, perhaps by turning it
 // into a macro (like __debugbreak() on Windows).
-#define MCHECK(condition)                                                \
+#define CHECK(condition)                                                \
     !(condition) ? ::mutil::debug::BreakDebugger() : MELON_EAT_STREAM_PARAMS
 
-#define PMCHECK(condition) MCHECK(condition)
+#define PCHECK(condition) CHECK(condition)
 
-#define MELON_CHECK_OP(name, op, val1, val2) MCHECK((val1) op (val2))
+#define MELON_CHECK_OP(name, op, val1, val2) CHECK((val1) op (val2))
 
 #else
 
-#define MCHECK(condition)                                        \
+#define CHECK(condition)                                        \
     MELON_LAZY_STREAM(LOG_STREAM(FATAL).SetCheck(), !(condition))     \
     << "Check failed: " #condition ". "
 
-#define PMCHECK(condition)                                       \
-    MELON_LAZY_STREAM(PMLOG_STREAM(FATAL).SetCheck(), !(condition))    \
+#define PCHECK(condition)                                       \
+    MELON_LAZY_STREAM(PLOG_STREAM(FATAL).SetCheck(), !(condition))    \
     << "Check failed: " #condition ". "
 
 // Helper macro for binary operators.
-// Don't use this macro directly in your code, use MCHECK_EQ et al below.
+// Don't use this macro directly in your code, use CHECK_EQ et al below.
 //
 // TODO(akalin): Rewrite this so that constructs like if (...)
-// MCHECK_EQ(...) else { ... } work properly.
+// CHECK_EQ(...) else { ... } work properly.
 #define MELON_CHECK_OP(name, op, val1, val2)                                  \
     if (std::string* _result =                                          \
         ::logging::Check##name##Impl((val1), (val2),                    \
@@ -659,204 +659,204 @@ MELON_DEFINE_CHECK_OP_IMPL(GE, >=)
 MELON_DEFINE_CHECK_OP_IMPL(GT, > )
 #undef MELON_DEFINE_CHECK_OP_IMPL
 
-#define MCHECK_EQ(val1, val2) MELON_CHECK_OP(EQ, ==, val1, val2)
-#define MCHECK_NE(val1, val2) MELON_CHECK_OP(NE, !=, val1, val2)
-#define MCHECK_LE(val1, val2) MELON_CHECK_OP(LE, <=, val1, val2)
-#define MCHECK_LT(val1, val2) MELON_CHECK_OP(LT, < , val1, val2)
-#define MCHECK_GE(val1, val2) MELON_CHECK_OP(GE, >=, val1, val2)
-#define MCHECK_GT(val1, val2) MELON_CHECK_OP(GT, > , val1, val2)
+#define CHECK_EQ(val1, val2) MELON_CHECK_OP(EQ, ==, val1, val2)
+#define CHECK_NE(val1, val2) MELON_CHECK_OP(NE, !=, val1, val2)
+#define CHECK_LE(val1, val2) MELON_CHECK_OP(LE, <=, val1, val2)
+#define CHECK_LT(val1, val2) MELON_CHECK_OP(LT, < , val1, val2)
+#define CHECK_GE(val1, val2) MELON_CHECK_OP(GE, >=, val1, val2)
+#define CHECK_GT(val1, val2) MELON_CHECK_OP(GT, > , val1, val2)
 
-#if defined(NDEBUG) && !defined(DMCHECK_ALWAYS_ON)
-#define DMCHECK_IS_ON() 0
+#if defined(NDEBUG) && !defined(DCHECK_ALWAYS_ON)
+#define DCHECK_IS_ON() 0
 #else
-#define DMCHECK_IS_ON() 1
+#define DCHECK_IS_ON() 1
 #endif
 
-#define ENABLE_DMLOG DMCHECK_IS_ON()
+#define ENABLE_DLOG DCHECK_IS_ON()
 
-// Definitions for DMLOG et al.
+// Definitions for DLOG et al.
 
 // Need to be this way because `condition' may contain variables that is only
 // defined in debug mode.
-#if ENABLE_DMLOG
-#define DMLOG_IS_ON(severity) LOG_IS_ON(severity)
-#define DMLOG_IF(severity, condition)                    \
-    MLOG_IF(severity, ENABLE_DMLOG && (condition))
-#define DMLOG_ASSERT(condition) DLOG_ASSERT(!ENABLE_DMLOG || condition)
-#define DPMLOG_IF(severity, condition)                   \
-    PMLOG_IF(severity, ENABLE_DMLOG && (condition))
-#define DVMLOG_IF(verbose_level, condition)               \
-    VMLOG_IF(verbose_level, ENABLE_DMLOG && (condition))
-#define DVPMLOG_IF(verbose_level, condition)      \
-    VPMLOG_IF(verbose_level, ENABLE_DMLOG && (condition))
-#else  // ENABLE_DMLOG
-#define DMLOG_IS_ON(severity) false
-#define DMLOG_IF(severity, condition) MELON_EAT_STREAM_PARAMS
-#define DMLOG_ASSERT(condition) MELON_EAT_STREAM_PARAMS
-#define DPMLOG_IF(severity, condition) MELON_EAT_STREAM_PARAMS
-#define DVMLOG_IF(verbose_level, condition) MELON_EAT_STREAM_PARAMS
-#define DVPMLOG_IF(verbose_level, condition) MELON_EAT_STREAM_PARAMS
-#endif  // ENABLE_DMLOG
+#if ENABLE_DLOG
+#define DLOG_IS_ON(severity) LOG_IS_ON(severity)
+#define DLOG_IF(severity, condition)                    \
+    LOG_IF(severity, ENABLE_DLOG && (condition))
+#define DLOG_ASSERT(condition) DLOG_ASSERT(!ENABLE_DLOG || condition)
+#define DPLOG_IF(severity, condition)                   \
+    PLOG_IF(severity, ENABLE_DLOG && (condition))
+#define DVLOG_IF(verbose_level, condition)               \
+    VLOG_IF(verbose_level, ENABLE_DLOG && (condition))
+#define DVPLOG_IF(verbose_level, condition)      \
+    VPLOG_IF(verbose_level, ENABLE_DLOG && (condition))
+#else  // ENABLE_DLOG
+#define DLOG_IS_ON(severity) false
+#define DLOG_IF(severity, condition) MELON_EAT_STREAM_PARAMS
+#define DLOG_ASSERT(condition) MELON_EAT_STREAM_PARAMS
+#define DPLOG_IF(severity, condition) MELON_EAT_STREAM_PARAMS
+#define DVLOG_IF(verbose_level, condition) MELON_EAT_STREAM_PARAMS
+#define DVPLOG_IF(verbose_level, condition) MELON_EAT_STREAM_PARAMS
+#endif  // ENABLE_DLOG
 
-#define DMLOG(severity)                                          \
-    MELON_LAZY_STREAM(LOG_STREAM(severity), DMLOG_IS_ON(severity))
-#define DMLOG_EVERY_N(severity, N)                               \
-    MELON_LOG_IF_EVERY_N_IMPL(DMLOG_IF, severity, true, N)
-#define DMLOG_IF_EVERY_N(severity, condition, N)                 \
-    MELON_LOG_IF_EVERY_N_IMPL(DMLOG_IF, severity, condition, N)
-#define DMLOG_FIRST_N(severity, N)                               \
-    MELON_LOG_IF_FIRST_N_IMPL(DMLOG_IF, severity, true, N)
-#define DMLOG_IF_FIRST_N(severity, condition, N)                 \
-    MELON_LOG_IF_FIRST_N_IMPL(DMLOG_IF, severity, condition, N)
-#define DMLOG_ONCE(severity) DMLOG_FIRST_N(severity, 1)
-#define DMLOG_IF_ONCE(severity, condition) DMLOG_IF_FIRST_N(severity, condition, 1)
-#define DMLOG_EVERY_SECOND(severity)                             \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DMLOG_IF, severity, true)
-#define DMLOG_IF_EVERY_SECOND(severity, condition)                       \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DMLOG_IF, severity, condition)
+#define DLOG(severity)                                          \
+    MELON_LAZY_STREAM(LOG_STREAM(severity), DLOG_IS_ON(severity))
+#define DLOG_EVERY_N(severity, N)                               \
+    MELON_LOG_IF_EVERY_N_IMPL(DLOG_IF, severity, true, N)
+#define DLOG_IF_EVERY_N(severity, condition, N)                 \
+    MELON_LOG_IF_EVERY_N_IMPL(DLOG_IF, severity, condition, N)
+#define DLOG_FIRST_N(severity, N)                               \
+    MELON_LOG_IF_FIRST_N_IMPL(DLOG_IF, severity, true, N)
+#define DLOG_IF_FIRST_N(severity, condition, N)                 \
+    MELON_LOG_IF_FIRST_N_IMPL(DLOG_IF, severity, condition, N)
+#define DLOG_ONCE(severity) DLOG_FIRST_N(severity, 1)
+#define DLOG_IF_ONCE(severity, condition) DLOG_IF_FIRST_N(severity, condition, 1)
+#define DLOG_EVERY_SECOND(severity)                             \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DLOG_IF, severity, true)
+#define DLOG_IF_EVERY_SECOND(severity, condition)                       \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DLOG_IF, severity, condition)
 
-#define DPMLOG(severity)                                         \
-    MELON_LAZY_STREAM(PMLOG_STREAM(severity), DMLOG_IS_ON(severity))
-#define DPMLOG_EVERY_N(severity, N)                               \
-    MELON_LOG_IF_EVERY_N_IMPL(DPMLOG_IF, severity, true, N)
-#define DPMLOG_IF_EVERY_N(severity, condition, N)                 \
-    MELON_LOG_IF_EVERY_N_IMPL(DPMLOG_IF, severity, condition, N)
-#define DPMLOG_FIRST_N(severity, N)                               \
-    MELON_LOG_IF_FIRST_N_IMPL(DPMLOG_IF, severity, true, N)
+#define DPLOG(severity)                                         \
+    MELON_LAZY_STREAM(PLOG_STREAM(severity), DLOG_IS_ON(severity))
+#define DPLOG_EVERY_N(severity, N)                               \
+    MELON_LOG_IF_EVERY_N_IMPL(DPLOG_IF, severity, true, N)
+#define DPLOG_IF_EVERY_N(severity, condition, N)                 \
+    MELON_LOG_IF_EVERY_N_IMPL(DPLOG_IF, severity, condition, N)
+#define DPLOG_FIRST_N(severity, N)                               \
+    MELON_LOG_IF_FIRST_N_IMPL(DPLOG_IF, severity, true, N)
 #define DPLOG_IF_FIRST_N(severity, condition, N)                 \
-    MELON_LOG_IF_FIRST_N_IMPL(DPMLOG_IF, severity, condition, N)
-#define DPMLOG_ONCE(severity) DPMLOG_FIRST_N(severity, 1)
-#define DPMLOG_IF_ONCE(severity, condition) DPLOG_IF_FIRST_N(severity, condition, 1)
-#define DPMLOG_EVERY_SECOND(severity)                             \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DPMLOG_IF, severity, true)
-#define DPMLOG_IF_EVERY_SECOND(severity, condition)                       \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DPMLOG_IF, severity, condition)
+    MELON_LOG_IF_FIRST_N_IMPL(DPLOG_IF, severity, condition, N)
+#define DPLOG_ONCE(severity) DPLOG_FIRST_N(severity, 1)
+#define DPLOG_IF_ONCE(severity, condition) DPLOG_IF_FIRST_N(severity, condition, 1)
+#define DPLOG_EVERY_SECOND(severity)                             \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DPLOG_IF, severity, true)
+#define DPLOG_IF_EVERY_SECOND(severity, condition)                       \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DPLOG_IF, severity, condition)
 
-#define DVMLOG(verbose_level) DVMLOG_IF(verbose_level, VMLOG_IS_ON(verbose_level))
-#define DVMLOG_EVERY_N(verbose_level, N)                               \
-    MELON_LOG_IF_EVERY_N_IMPL(DVMLOG_IF, verbose_level, true, N)
-#define DVMLOG_IF_EVERY_N(verbose_level, condition, N)                 \
-    MELON_LOG_IF_EVERY_N_IMPL(DVMLOG_IF, verbose_level, condition, N)
-#define DVMLOG_FIRST_N(verbose_level, N)                               \
-    MELON_LOG_IF_FIRST_N_IMPL(DVMLOG_IF, verbose_level, true, N)
-#define DVMLOG_IF_FIRST_N(verbose_level, condition, N)                 \
-    MELON_LOG_IF_FIRST_N_IMPL(DVMLOG_IF, verbose_level, condition, N)
-#define DVMLOG_ONCE(verbose_level) DVMLOG_FIRST_N(verbose_level, 1)
-#define DVMLOG_IF_ONCE(verbose_level, condition) DVMLOG_IF_FIRST_N(verbose_level, condition, 1)
-#define DVMLOG_EVERY_SECOND(verbose_level)                             \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DVMLOG_IF, verbose_level, true)
-#define DVMLOG_IF_EVERY_SECOND(verbose_level, condition)                       \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DVMLOG_IF, verbose_level, condition)
+#define DVLOG(verbose_level) DVLOG_IF(verbose_level, VLOG_IS_ON(verbose_level))
+#define DVLOG_EVERY_N(verbose_level, N)                               \
+    MELON_LOG_IF_EVERY_N_IMPL(DVLOG_IF, verbose_level, true, N)
+#define DVLOG_IF_EVERY_N(verbose_level, condition, N)                 \
+    MELON_LOG_IF_EVERY_N_IMPL(DVLOG_IF, verbose_level, condition, N)
+#define DVLOG_FIRST_N(verbose_level, N)                               \
+    MELON_LOG_IF_FIRST_N_IMPL(DVLOG_IF, verbose_level, true, N)
+#define DVLOG_IF_FIRST_N(verbose_level, condition, N)                 \
+    MELON_LOG_IF_FIRST_N_IMPL(DVLOG_IF, verbose_level, condition, N)
+#define DVLOG_ONCE(verbose_level) DVLOG_FIRST_N(verbose_level, 1)
+#define DVLOG_IF_ONCE(verbose_level, condition) DVLOG_IF_FIRST_N(verbose_level, condition, 1)
+#define DVLOG_EVERY_SECOND(verbose_level)                             \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DVLOG_IF, verbose_level, true)
+#define DVLOG_IF_EVERY_SECOND(verbose_level, condition)                       \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DVLOG_IF, verbose_level, condition)
 
-#define DVPMLOG(verbose_level) DVPMLOG_IF(verbose_level, VMLOG_IS_ON(verbose_level))
-#define DVPMLOG_EVERY_N(verbose_level, N)                               \
-    MELON_LOG_IF_EVERY_N_IMPL(DVPMLOG_IF, verbose_level, true, N)
-#define DVPMLOG_IF_EVERY_N(verbose_level, condition, N)                 \
-    MELON_LOG_IF_EVERY_N_IMPL(DVPMLOG_IF, verbose_level, condition, N)
-#define DVPMLOG_FIRST_N(verbose_level, N)                               \
-    MELON_LOG_IF_FIRST_N_IMPL(DVPMLOG_IF, verbose_level, true, N)
-#define DVPMLOG_IF_FIRST_N(verbose_level, condition, N)                 \
-    MELON_LOG_IF_FIRST_N_IMPL(DVPMLOG_IF, verbose_level, condition, N)
-#define DVPMLOG_ONCE(verbose_level) DVPMLOG_FIRST_N(verbose_level, 1)
-#define DVPMLOG_IF_ONCE(verbose_level, condition) DVPMLOG_IF_FIRST_N(verbose_level, condition, 1)
-#define DVPMLOG_EVERY_SECOND(verbose_level)                             \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DVPMLOG_IF, verbose_level, true)
-#define DVPMLOG_IF_EVERY_SECOND(verbose_level, condition)                       \
-    MELON_LOG_IF_EVERY_SECOND_IMPL(DVPMLOG_IF, verbose_level, condition)
+#define DVPLOG(verbose_level) DVPLOG_IF(verbose_level, VLOG_IS_ON(verbose_level))
+#define DVPLOG_EVERY_N(verbose_level, N)                               \
+    MELON_LOG_IF_EVERY_N_IMPL(DVPLOG_IF, verbose_level, true, N)
+#define DVPLOG_IF_EVERY_N(verbose_level, condition, N)                 \
+    MELON_LOG_IF_EVERY_N_IMPL(DVPLOG_IF, verbose_level, condition, N)
+#define DVPLOG_FIRST_N(verbose_level, N)                               \
+    MELON_LOG_IF_FIRST_N_IMPL(DVPLOG_IF, verbose_level, true, N)
+#define DVPLOG_IF_FIRST_N(verbose_level, condition, N)                 \
+    MELON_LOG_IF_FIRST_N_IMPL(DVPLOG_IF, verbose_level, condition, N)
+#define DVPLOG_ONCE(verbose_level) DVPLOG_FIRST_N(verbose_level, 1)
+#define DVPLOG_IF_ONCE(verbose_level, condition) DVPLOG_IF_FIRST_N(verbose_level, condition, 1)
+#define DVPLOG_EVERY_SECOND(verbose_level)                             \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DVPLOG_IF, verbose_level, true)
+#define DVPLOG_IF_EVERY_SECOND(verbose_level, condition)                       \
+    MELON_LOG_IF_EVERY_SECOND_IMPL(DVPLOG_IF, verbose_level, condition)
 
-// You can assign virtual path to VMLOG instead of physical filename.
+// You can assign virtual path to VLOG instead of physical filename.
 // [public/foo/bar.cpp]
-// VMLOG2("a/b/c", 2) << "being filtered by a/b/c rather than public/foo/bar";
-#define VMLOG2(virtual_path, verbose_level)                              \
-    MELON_LAZY_STREAM(VMLOG_STREAM(verbose_level),                       \
-                      MELON_VMLOG_IS_ON(verbose_level, virtual_path))
+// VLOG2("a/b/c", 2) << "being filtered by a/b/c rather than public/foo/bar";
+#define VLOG2(virtual_path, verbose_level)                              \
+    MELON_LAZY_STREAM(VLOG_STREAM(verbose_level),                       \
+                      MELON_VLOG_IS_ON(verbose_level, virtual_path))
 
-#define VMLOG2_IF(virtual_path, verbose_level, condition)                \
-    MELON_LAZY_STREAM(VMLOG_STREAM(verbose_level),                       \
-                      MELON_VMLOG_IS_ON(verbose_level, virtual_path) && (condition))
+#define VLOG2_IF(virtual_path, verbose_level, condition)                \
+    MELON_LAZY_STREAM(VLOG_STREAM(verbose_level),                       \
+                      MELON_VLOG_IS_ON(verbose_level, virtual_path) && (condition))
 
-#define DVMLOG2(virtual_path, verbose_level)             \
-    VMLOG2_IF(virtual_path, verbose_level, ENABLE_DMLOG)
+#define DVLOG2(virtual_path, verbose_level)             \
+    VLOG2_IF(virtual_path, verbose_level, ENABLE_DLOG)
 
-#define DVMLOG2_IF(virtual_path, verbose_level, condition)               \
-    VMLOG2_IF(virtual_path, verbose_level, ENABLE_DMLOG && (condition))
+#define DVLOG2_IF(virtual_path, verbose_level, condition)               \
+    VLOG2_IF(virtual_path, verbose_level, ENABLE_DLOG && (condition))
 
-#define VPMLOG2(virtual_path, verbose_level)                             \
-    MELON_LAZY_STREAM(VPMLOG_STREAM(verbose_level),                      \
-                      MELON_VMLOG_IS_ON(verbose_level, virtual_path))
+#define VPLOG2(virtual_path, verbose_level)                             \
+    MELON_LAZY_STREAM(VPLOG_STREAM(verbose_level),                      \
+                      MELON_VLOG_IS_ON(verbose_level, virtual_path))
 
-#define VPMLOG2_IF(virtual_path, verbose_level, condition)               \
-    MELON_LAZY_STREAM(VPMLOG_STREAM(verbose_level),                      \
-                      MELON_VMLOG_IS_ON(verbose_level, virtual_path) && (condition))
+#define VPLOG2_IF(virtual_path, verbose_level, condition)               \
+    MELON_LAZY_STREAM(VPLOG_STREAM(verbose_level),                      \
+                      MELON_VLOG_IS_ON(verbose_level, virtual_path) && (condition))
 
-#define DVPMLOG2(virtual_path, verbose_level)                            \
-    VPMLOG2_IF(virtual_path, verbose_level, ENABLE_DMLOG)
+#define DVPLOG2(virtual_path, verbose_level)                            \
+    VPLOG2_IF(virtual_path, verbose_level, ENABLE_DLOG)
 
-#define DVPMLOG2_IF(virtual_path, verbose_level, condition)              \
-    VPMLOG2_IF(virtual_path, verbose_level, ENABLE_DMLOG && (condition))
+#define DVPLOG2_IF(virtual_path, verbose_level, condition)              \
+    VPLOG2_IF(virtual_path, verbose_level, ENABLE_DLOG && (condition))
 
-// Definitions for DMCHECK et al.
+// Definitions for DCHECK et al.
 
-#if DMCHECK_IS_ON()
+#if DCHECK_IS_ON()
 
-const LogSeverity BLOG_DMCHECK = BLOG_FATAL;
+const LogSeverity BLOG_DCHECK = BLOG_FATAL;
 
-#else  // DMCHECK_IS_ON
+#else  // DCHECK_IS_ON
 
-const LogSeverity BLOG_DMCHECK = BLOG_INFO;
+const LogSeverity BLOG_DCHECK = BLOG_INFO;
 
-#endif  // DMCHECK_IS_ON
+#endif  // DCHECK_IS_ON
 
-// DMCHECK et al. make sure to reference |condition| regardless of
+// DCHECK et al. make sure to reference |condition| regardless of
 // whether DCHECKs are enabled; this is so that we don't get unused
-// variable warnings if the only use of a variable is in a DMCHECK.
-// This behavior is different from DMLOG_IF et al.
+// variable warnings if the only use of a variable is in a DCHECK.
+// This behavior is different from DLOG_IF et al.
 
-#define DMCHECK(condition)                                               \
-    MELON_LAZY_STREAM(LOG_STREAM(DMCHECK), DMCHECK_IS_ON() && !(condition)) \
+#define DCHECK(condition)                                               \
+    MELON_LAZY_STREAM(LOG_STREAM(DCHECK), DCHECK_IS_ON() && !(condition)) \
     << "Check failed: " #condition ". "
 
-#define DPMCHECK(condition)                                              \
-    MELON_LAZY_STREAM(PMLOG_STREAM(DMCHECK), DMCHECK_IS_ON() && !(condition)) \
+#define DPCHECK(condition)                                              \
+    MELON_LAZY_STREAM(PLOG_STREAM(DCHECK), DCHECK_IS_ON() && !(condition)) \
     << "Check failed: " #condition ". "
 
 // Helper macro for binary operators.
-// Don't use this macro directly in your code, use DMCHECK_EQ et al below.
+// Don't use this macro directly in your code, use DCHECK_EQ et al below.
 #define MELON_DCHECK_OP(name, op, val1, val2)                           \
-    if (DMCHECK_IS_ON())                                                   \
+    if (DCHECK_IS_ON())                                                   \
         if (std::string* _result =                                      \
             ::logging::Check##name##Impl((val1), (val2),                \
                                          #val1 " " #op " " #val2))      \
             ::logging::LogMessage(                                      \
                 __FILE__, __LINE__, __func__,                           \
-                ::logging::BLOG_DMCHECK,                                 \
+                ::logging::BLOG_DCHECK,                                 \
                 _result).stream()
 
 // Equality/Inequality checks - compare two values, and log a
-// BLOG_DMCHECK message including the two values when the result is not
+// BLOG_DCHECK message including the two values when the result is not
 // as expected.  The values must have operator<<(ostream, ...)
 // defined.
 //
 // You may append to the error message like so:
-//   DMCHECK_NE(1, 2) << ": The world must be ending!";
+//   DCHECK_NE(1, 2) << ": The world must be ending!";
 //
 // We are very careful to ensure that each argument is evaluated exactly
 // once, and that anything which is legal to pass as a function argument is
 // legal here.  In particular, the arguments may be temporary expressions
 // which will end up being destroyed at the end of the apparent statement,
 // for example:
-//   DMCHECK_EQ(string("abc")[1], 'b');
+//   DCHECK_EQ(string("abc")[1], 'b');
 //
 // WARNING: These may not compile correctly if one of the arguments is a pointer
 // and the other is NULL. To work around this, simply static_cast NULL to the
 // type of the desired pointer.
 
-#define DMCHECK_EQ(val1, val2) MELON_DCHECK_OP(EQ, ==, val1, val2)
-#define DMCHECK_NE(val1, val2) MELON_DCHECK_OP(NE, !=, val1, val2)
-#define DMCHECK_LE(val1, val2) MELON_DCHECK_OP(LE, <=, val1, val2)
-#define DMCHECK_LT(val1, val2) MELON_DCHECK_OP(LT, < , val1, val2)
-#define DMCHECK_GE(val1, val2) MELON_DCHECK_OP(GE, >=, val1, val2)
-#define DMCHECK_GT(val1, val2) MELON_DCHECK_OP(GT, > , val1, val2)
+#define DCHECK_EQ(val1, val2) MELON_DCHECK_OP(EQ, ==, val1, val2)
+#define DCHECK_NE(val1, val2) MELON_DCHECK_OP(NE, !=, val1, val2)
+#define DCHECK_LE(val1, val2) MELON_DCHECK_OP(LE, <=, val1, val2)
+#define DCHECK_LT(val1, val2) MELON_DCHECK_OP(LT, < , val1, val2)
+#define DCHECK_GE(val1, val2) MELON_DCHECK_OP(GE, >=, val1, val2)
+#define DCHECK_GT(val1, val2) MELON_DCHECK_OP(GT, > , val1, val2)
 
 #if defined(OS_WIN)
 typedef unsigned long SystemErrorCode;
@@ -981,22 +981,22 @@ private:
 // is not present.
 //
 // You shouldn't actually use LogMessage's constructor to log things,
-// though.  You should use the MLOG() macro (and variants thereof)
+// though.  You should use the LOG() macro (and variants thereof)
 // above.
 class MUTIL_EXPORT LogMessage {
 public:
-    // Used for MLOG(severity).
+    // Used for LOG(severity).
     LogMessage(const char* file, int line, LogSeverity severity);
     LogMessage(const char* file, int line, const char* func,
                LogSeverity severity);
 
-    // Used for MCHECK_EQ(), etc. Takes ownership of the given string.
+    // Used for CHECK_EQ(), etc. Takes ownership of the given string.
     // Implied severity = BLOG_FATAL.
     LogMessage(const char* file, int line, std::string* result);
     LogMessage(const char* file, int line, const char* func,
                std::string* result);
 
-    // Used for DMCHECK_EQ(), etc. Takes ownership of the given string.
+    // Used for DCHECK_EQ(), etc. Takes ownership of the given string.
     LogMessage(const char* file, int line, LogSeverity severity,
                std::string* result);
     LogMessage(const char* file, int line, const char* func,
@@ -1137,9 +1137,9 @@ inline std::ostream& operator<<(std::ostream& out, const std::wstring& wstr) {
 //   0 -- Do nothing (stripped by compiler)
 //   1 -- Warn at compile time
 //   2 -- Fail at compile time
-//   3 -- Fail at runtime (DMCHECK)
-//   4 -- [default] MLOG(ERROR) at runtime
-//   5 -- MLOG(ERROR) at runtime, only once per call-site
+//   3 -- Fail at runtime (DCHECK)
+//   4 -- [default] LOG(ERROR) at runtime
+//   5 -- LOG(ERROR) at runtime, only once per call-site
 
 #endif // MELON_WITH_GLOG
 
@@ -1147,7 +1147,7 @@ inline std::ostream& operator<<(std::ostream& out, const std::wstring& wstr) {
 #if defined(OS_ANDROID) && defined(OFFICIAL_BUILD)
 #define NOTIMPLEMENTED_POLICY 0
 #else
-// Select default policy: MLOG(ERROR)
+// Select default policy: LOG(ERROR)
 #define NOTIMPLEMENTED_POLICY 4
 #endif
 #endif
@@ -1168,23 +1168,23 @@ inline std::ostream& operator<<(std::ostream& out, const std::wstring& wstr) {
 #elif NOTIMPLEMENTED_POLICY == 2
 #define NOTIMPLEMENTED() COMPILE_ASSERT(false, NOT_IMPLEMENTED)
 #elif NOTIMPLEMENTED_POLICY == 3
-#define NOTIMPLEMENTED() NOTREACHED()
+#define NOTIMPLEMENTED() DCHECK(false)
 #elif NOTIMPLEMENTED_POLICY == 4
-#define NOTIMPLEMENTED() MLOG(ERROR) << NOTIMPLEMENTED_MSG
+#define NOTIMPLEMENTED() LOG(ERROR) << NOTIMPLEMENTED_MSG
 #elif NOTIMPLEMENTED_POLICY == 5
 #define NOTIMPLEMENTED() do {                                   \
         static bool logged_once = false;                        \
-        MLOG_IF(ERROR, !logged_once) << NOTIMPLEMENTED_MSG;      \
+        LOG_IF(ERROR, !logged_once) << NOTIMPLEMENTED_MSG;      \
         logged_once = true;                                     \
     } while(0);                                                 \
     MELON_EAT_STREAM_PARAMS
 #endif
 
 #if defined(NDEBUG) && defined(OS_CHROMEOS)
-#define NOTREACHED() MLOG(ERROR) << "NOTREACHED() hit in "       \
+#define DCHECK(false) LOG(ERROR) << "DCHECK(false) hit in "       \
     << __FUNCTION__ << ". "
 #else
-#define NOTREACHED() DMCHECK(false)
+#define DCHECK(false) DCHECK(false)
 #endif
 
 // Helper macro included by all *_EVERY_N macros.
@@ -1220,64 +1220,64 @@ inline std::ostream& operator<<(std::ostream& out, const std::wstring& wstr) {
 
 // Print a log for at most once. (not present in glog)
 // Almost zero overhead when the log was printed.
-#ifndef MLOG_ONCE
-# define MLOG_ONCE(severity) MLOG_FIRST_N(severity, 1)
+#ifndef LOG_ONCE
+# define LOG_ONCE(severity) LOG_FIRST_N(severity, 1)
 # define LOG_IF_ONCE(severity, condition) LOG_IF_FIRST_N(severity, condition, 1)
 #endif
 
 // Print a log after every N calls. First call always prints.
 // Each call to this macro has a cost of relaxed atomic increment.
 // The corresponding macro in glog is not thread-safe while this is.
-#ifndef MLOG_EVERY_N
-# define MLOG_EVERY_N(severity, N)                                \
-     MELON_LOG_IF_EVERY_N_IMPL(MLOG_IF, severity, true, N)
+#ifndef LOG_EVERY_N
+# define LOG_EVERY_N(severity, N)                                \
+     MELON_LOG_IF_EVERY_N_IMPL(LOG_IF, severity, true, N)
 # define LOG_IF_EVERY_N(severity, condition, N)                  \
-     MELON_LOG_IF_EVERY_N_IMPL(MLOG_IF, severity, condition, N)
+     MELON_LOG_IF_EVERY_N_IMPL(LOG_IF, severity, condition, N)
 #endif
 
 // Print logs for first N calls.
 // Almost zero overhead when the log was printed for N times
 // The corresponding macro in glog is not thread-safe while this is.
-#ifndef MLOG_FIRST_N
-# define MLOG_FIRST_N(severity, N)                                \
-     MELON_LOG_IF_FIRST_N_IMPL(MLOG_IF, severity, true, N)
+#ifndef LOG_FIRST_N
+# define LOG_FIRST_N(severity, N)                                \
+     MELON_LOG_IF_FIRST_N_IMPL(LOG_IF, severity, true, N)
 # define LOG_IF_FIRST_N(severity, condition, N)                  \
-     MELON_LOG_IF_FIRST_N_IMPL(MLOG_IF, severity, condition, N)
+     MELON_LOG_IF_FIRST_N_IMPL(LOG_IF, severity, condition, N)
 #endif
 
 // Print a log every second. (not present in glog). First call always prints.
 // Each call to this macro has a cost of calling gettimeofday.
-#ifndef MLOG_EVERY_SECOND
-# define MLOG_EVERY_SECOND(severity)                                \
-     MELON_LOG_IF_EVERY_SECOND_IMPL(MLOG_IF, severity, true)
+#ifndef LOG_EVERY_SECOND
+# define LOG_EVERY_SECOND(severity)                                \
+     MELON_LOG_IF_EVERY_SECOND_IMPL(LOG_IF, severity, true)
 # define LOG_IF_EVERY_SECOND(severity, condition)                \
-     MELON_LOG_IF_EVERY_SECOND_IMPL(MLOG_IF, severity, condition)
+     MELON_LOG_IF_EVERY_SECOND_IMPL(LOG_IF, severity, condition)
 #endif
 
-#ifndef PMLOG_EVERY_N
-# define PMLOG_EVERY_N(severity, N)                               \
-     MELON_LOG_IF_EVERY_N_IMPL(PMLOG_IF, severity, true, N)
+#ifndef PLOG_EVERY_N
+# define PLOG_EVERY_N(severity, N)                               \
+     MELON_LOG_IF_EVERY_N_IMPL(PLOG_IF, severity, true, N)
 # define PLOG_IF_EVERY_N(severity, condition, N)                 \
-     MELON_LOG_IF_EVERY_N_IMPL(PMLOG_IF, severity, condition, N)
+     MELON_LOG_IF_EVERY_N_IMPL(PLOG_IF, severity, condition, N)
 #endif
 
-#ifndef PMLOG_FIRST_N
-# define PMLOG_FIRST_N(severity, N)                               \
-     MELON_LOG_IF_FIRST_N_IMPL(PMLOG_IF, severity, true, N)
+#ifndef PLOG_FIRST_N
+# define PLOG_FIRST_N(severity, N)                               \
+     MELON_LOG_IF_FIRST_N_IMPL(PLOG_IF, severity, true, N)
 # define PLOG_IF_FIRST_N(severity, condition, N)                 \
-     MELON_LOG_IF_FIRST_N_IMPL(PMLOG_IF, severity, condition, N)
+     MELON_LOG_IF_FIRST_N_IMPL(PLOG_IF, severity, condition, N)
 #endif
 
-#ifndef PMLOG_ONCE
-# define PMLOG_ONCE(severity) PMLOG_FIRST_N(severity, 1)
+#ifndef PLOG_ONCE
+# define PLOG_ONCE(severity) PLOG_FIRST_N(severity, 1)
 # define PLOG_IF_ONCE(severity, condition) PLOG_IF_FIRST_N(severity, condition, 1)
 #endif
 
-#ifndef PMLOG_EVERY_SECOND
-# define PMLOG_EVERY_SECOND(severity)                             \
-     MELON_LOG_IF_EVERY_SECOND_IMPL(PMLOG_IF, severity, true)
-# define PMLOG_IF_EVERY_SECOND(severity, condition)                       \
-     MELON_LOG_IF_EVERY_SECOND_IMPL(PMLOG_IF, severity, condition)
+#ifndef PLOG_EVERY_SECOND
+# define PLOG_EVERY_SECOND(severity)                             \
+     MELON_LOG_IF_EVERY_SECOND_IMPL(PLOG_IF, severity, true)
+# define PLOG_IF_EVERY_SECOND(severity, condition)                       \
+     MELON_LOG_IF_EVERY_SECOND_IMPL(PLOG_IF, severity, condition)
 #endif
 
 // DEBUG_MODE is for uses like
@@ -1287,8 +1287,8 @@ inline std::ostream& operator<<(std::ostream& out, const std::wstring& wstr) {
 //     foo.CheckThatFoo();
 //   #endif
 //
-// We tie its state to ENABLE_DMLOG.
-enum { DEBUG_MODE = DMCHECK_IS_ON() };
+// We tie its state to ENABLE_DLOG.
+enum { DEBUG_MODE = DCHECK_IS_ON() };
 
 
 #endif  // MUTIL_LOGGING_H_

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/synchronization/waitable_event.h"
 #include <melon/utility/synchronization/condition_variable.h>
 #include <melon/utility/synchronization/lock.h>
@@ -155,7 +155,7 @@ class SyncWaiter : public WaitableEvent::Waiter {
 
 void WaitableEvent::Wait() {
   bool result = TimedWait(TimeDelta::FromSeconds(-1));
-  DMCHECK(result) << "TimedWait() should never fail with infinite timeout";
+  DCHECK(result) << "TimedWait() should never fail with infinite timeout";
 }
 
 bool WaitableEvent::TimedWait(const TimeDelta& max_time) {
@@ -227,7 +227,7 @@ cmp_fst_addr(const std::pair<WaitableEvent*, unsigned> &a,
 size_t WaitableEvent::WaitMany(WaitableEvent** raw_waitables,
                                size_t count) {
   mutil::ThreadRestrictions::AssertWaitAllowed();
-  DMCHECK(count) << "Cannot wait on no events";
+  DCHECK(count) << "Cannot wait on no events";
 
   // We need to acquire the locks in a globally consistent order. Thus we sort
   // the array of waitables by address. We actually sort a pairs so that we can
@@ -237,7 +237,7 @@ size_t WaitableEvent::WaitMany(WaitableEvent** raw_waitables,
   for (size_t i = 0; i < count; ++i)
     waitables.emplace_back(raw_waitables[i], i);
 
-  DMCHECK_EQ(count, waitables.size());
+  DCHECK_EQ(count, waitables.size());
 
   sort(waitables.begin(), waitables.end(), cmp_fst_addr);
 
@@ -245,7 +245,7 @@ size_t WaitableEvent::WaitMany(WaitableEvent** raw_waitables,
   // address, we can check this cheaply by comparing pairs of consecutive
   // elements.
   for (size_t i = 0; i < waitables.size() - 1; ++i) {
-    DMCHECK(waitables[i].first != waitables[i+1].first);
+    DCHECK(waitables[i].first != waitables[i+1].first);
   }
 
   SyncWaiter sw;

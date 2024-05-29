@@ -145,13 +145,13 @@ namespace melon {
     static long ReadPortOfDummyServer(const char *filename) {
         mutil::fd_guard fd(open(filename, O_RDONLY));
         if (fd < 0) {
-            MLOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
+            LOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
             return -1;
         }
         char port_str[32];
         const ssize_t nr = read(fd, port_str, sizeof(port_str));
         if (nr <= 0) {
-            MLOG(ERROR) << "Fail to read `" << DUMMY_SERVER_PORT_FILE << "': "
+            LOG(ERROR) << "Fail to read `" << DUMMY_SERVER_PORT_FILE << "': "
                        << (nr == 0 ? "nothing to read" : berror());
             return -1;
         }
@@ -162,7 +162,7 @@ namespace melon {
         const long port = strtol(p, &endptr, 10);
         for (; isspace(*endptr); ++endptr) {}
         if (*endptr != '\0') {
-            MLOG(ERROR) << "Invalid port=`" << port_str << "'";
+            LOG(ERROR) << "Invalid port=`" << port_str << "'";
             return -1;
         }
         return port;
@@ -211,7 +211,7 @@ namespace melon {
 
         mutil::FileWatcher fw;
         if (fw.init_from_not_exist(DUMMY_SERVER_PORT_FILE) < 0) {
-            MLOG(FATAL) << "Fail to init FileWatcher on `" << DUMMY_SERVER_PORT_FILE << "'";
+            LOG(FATAL) << "Fail to init FileWatcher on `" << DUMMY_SERVER_PORT_FILE << "'";
             return nullptr;
         }
 
@@ -225,14 +225,14 @@ namespace melon {
             const int64_t sleep_us = 1000000L + last_time_us - mutil::gettimeofday_us();
             if (sleep_us > 0) {
                 if (fiber_usleep(sleep_us) < 0) {
-                    PMLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
+                    PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
                     break;
                 }
                 consecutive_nosleep = 0;
             } else {
                 if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                     consecutive_nosleep = 0;
-                    MLOG(WARNING) << __FUNCTION__ << " is too busy!";
+                    LOG(WARNING) << __FUNCTION__ << " is too busy!";
                 }
             }
             last_time_us = mutil::gettimeofday_us();
@@ -286,19 +286,19 @@ namespace melon {
                                          const std::string &message) {
         switch (level) {
             case google::protobuf::LOGLEVEL_INFO:
-                MLOG(INFO) << filename << ':' << line << ' ' << message;
+                LOG(INFO) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_WARNING:
-                MLOG(WARNING) << filename << ':' << line << ' ' << message;
+                LOG(WARNING) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_ERROR:
-                MLOG(ERROR) << filename << ':' << line << ' ' << message;
+                LOG(ERROR) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_FATAL:
-                MLOG(FATAL) << filename << ':' << line << ' ' << message;
+                LOG(FATAL) << filename << ':' << line << ' ' << message;
                 return;
         }
-        MCHECK(false) << filename << ':' << line << ' ' << message;
+        CHECK(false) << filename << ':' << line << ' ' << message;
     }
 
     static void GlobalInitializeOrDieImpl() {
@@ -312,7 +312,7 @@ namespace melon {
         struct sigaction oldact;
         if (sigaction(SIGPIPE, nullptr, &oldact) != 0 ||
             (oldact.sa_handler == nullptr && oldact.sa_sigaction == nullptr)) {
-            MCHECK(SIG_ERR != signal(SIGPIPE, SIG_IGN));
+            CHECK(SIG_ERR != signal(SIGPIPE, SIG_IGN));
         }
 
         // Make GOOGLE_LOG print to comlog device
@@ -513,14 +513,14 @@ namespace melon {
 
         // We never join GlobalUpdate, let it quit with the process.
         fiber_t th;
-        MCHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
+        CHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
         << "Fail to start GlobalUpdate";
     }
 
     void GlobalInitializeOrDie() {
         if (pthread_once(&register_extensions_once,
                          GlobalInitializeOrDieImpl) != 0) {
-            MLOG(FATAL) << "Fail to pthread_once";
+            LOG(FATAL) << "Fail to pthread_once";
             exit(1);
         }
     }

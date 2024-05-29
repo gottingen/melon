@@ -18,7 +18,7 @@
 //
 
 
-
+#include <melon/utility/config.h>
 #if !MELON_WITH_GLOG
 
 #include <melon/rpc/log.h>
@@ -26,6 +26,7 @@
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/builtin/vlog_service.h>
 #include <melon/builtin/common.h>
+
 
 namespace melon {
 

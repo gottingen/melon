@@ -24,7 +24,7 @@
 #include <sys/socket.h>                         // ^
 #include <sys/un.h>                             // unix domain socket
 #include <melon/utility/fd_guard.h>                     // fd_guard
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -35,19 +35,19 @@ int unix_socket_listen(const char* sockname, bool remove_previous_file) {
 
     fd_guard fd(socket(AF_LOCAL, SOCK_STREAM, 0));
     if (fd < 0) {
-        PMLOG(ERROR) << "Fail to create unix socket";
+        PLOG(ERROR) << "Fail to create unix socket";
         return -1;
     }
     if (remove_previous_file) {
         remove(sockname);
     }
     if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
-        PMLOG(ERROR) << "Fail to bind sockfd=" << fd << " as unix socket="
+        PLOG(ERROR) << "Fail to bind sockfd=" << fd << " as unix socket="
                     << sockname;
         return -1;
     }
     if (listen(fd, SOMAXCONN) != 0) {
-        PMLOG(ERROR) << "Fail to listen to sockfd=" << fd;
+        PLOG(ERROR) << "Fail to listen to sockfd=" << fd;
         return -1;
     }
     return fd.release();
@@ -64,11 +64,11 @@ int unix_socket_connect(const char* sockname) {
 
     fd_guard fd(socket(AF_LOCAL, SOCK_STREAM, 0));
     if (fd < 0) {
-        PMLOG(ERROR) << "Fail to create unix socket";
+        PLOG(ERROR) << "Fail to create unix socket";
         return -1;
     }
     if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
-        PMLOG(ERROR) << "Fail to connect to unix socket=" << sockname
+        PLOG(ERROR) << "Fail to connect to unix socket=" << sockname
                     << " via sockfd=" << fd;
         return -1;
     }

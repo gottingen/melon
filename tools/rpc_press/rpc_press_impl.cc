@@ -30,7 +30,7 @@
 #include <melon/utility/time.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/json2pb/pb_to_json.h>
 #include "json_loader.h"
 #include "rpc_press_impl.h"
@@ -47,7 +47,7 @@ public:
     // an error with the entire file (e.g. "not found").
     virtual void AddError(const std::string& filename, int line,
                           int /*column*/, const std::string& message) {
-        MLOG_AT(ERROR, filename.c_str(), line) << message;
+        LOG(ERROR).AtLocation(filename.c_str(), line) << message;
     }
 };
 
@@ -64,13 +64,13 @@ int PressClient::init() {
     }
     if (_rpc_client.Init(_options->host.c_str(), _options->lb_policy.c_str(),
                          &rpc_options) != 0){
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
     _method_descriptor = find_method_by_name(
         _options->service, _options->method, _importer);
     if (NULL == _method_descriptor) {
-        MLOG(ERROR) << "Fail to find method=" << _options->service << '.'
+        LOG(ERROR) << "Fail to find method=" << _options->service << '.'
                    << _options->method;
         return -1;
     }
@@ -104,14 +104,14 @@ RpcPress::~RpcPress() {
 
 int RpcPress::init(const PressOptions* options) {
     if (NULL == options) {
-        MLOG(ERROR) << "Param[options] is NULL" ;
+        LOG(ERROR) << "Param[options] is NULL" ;
         return -1;
     }
     _options = *options;
 
     // Import protos.
     if (_options.proto_file.empty()) {
-        MLOG(ERROR) << "-proto is required";
+        LOG(ERROR) << "-proto is required";
         return -1;
     }
     int pos = _options.proto_file.find_last_of('/');
@@ -130,7 +130,7 @@ int RpcPress::init(const PressOptions* options) {
     ImportErrorPrinter error_printer;
     _importer = new google::protobuf::compiler::Importer(&sourceTree, &error_printer);
     if (_importer->Import(proto_file.c_str()) == NULL) {
-        MLOG(ERROR) << "Fail to import " << proto_file;
+        LOG(ERROR) << "Fail to import " << proto_file;
         return -1;
     }
     
@@ -141,22 +141,22 @@ int RpcPress::init(const PressOptions* options) {
         mutil::FilePath path(_options.output);
         mutil::FilePath dir = path.DirName();
         if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-            MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+            LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return -1;
         }
         _output_json = fopen(_options.output.c_str(), "w");
-        MLOG_IF(ERROR, !_output_json) << "Fail to open " << _options.output;
+        LOG_IF(ERROR, !_output_json) << "Fail to open " << _options.output;
     }
 
     int ret = _pbrpc_client->init();
     if (0 != ret) {
-        MLOG(ERROR) << "Fail to initialize rpc client";
+        LOG(ERROR) << "Fail to initialize rpc client";
         return ret;
     }
 
     if (_options.input.empty()) {
-        MLOG(ERROR) << "-input is empty";
+        LOG(ERROR) << "-input is empty";
         return -1;
     }
     melon::JsonLoader json_util(_importer, &_factory,
@@ -164,7 +164,7 @@ int RpcPress::init(const PressOptions* options) {
     if (mutil::PathExists(mutil::FilePath(_options.input))) {
         int fd = open(_options.input.c_str(), O_RDONLY);
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open " << _options.input;
+            PLOG(ERROR) << "Fail to open " << _options.input;
             return -1;
         }
         json_util.load_messages(fd, &_msgs);
@@ -172,10 +172,10 @@ int RpcPress::init(const PressOptions* options) {
         json_util.load_messages(_options.input, &_msgs);
     }
     if (_msgs.empty()) {
-        MLOG(ERROR) << "Fail to load requests";
+        LOG(ERROR) << "Fail to load requests";
         return -1;
     }
-    MLOG(INFO) << "Loaded " << _msgs.size() << " requests";
+    LOG(INFO) << "Loaded " << _msgs.size() << " requests";
     _latency_recorder.expose("rpc_press");
     _error_count.expose("rpc_press_error_count");
     return 0;
@@ -198,12 +198,12 @@ void RpcPress::handle_response(melon::Controller* cntl,
             std::string response_json;
             std::string error;
             if (!json2pb::ProtoMessageToJson(*response, &response_json, &error)) {
-                MLOG(WARNING) << "Fail to convert to json: " << error;
+                LOG(WARNING) << "Fail to convert to json: " << error;
             }
             fprintf(_output_json, "%s\n", response_json.c_str());
         }
     } else {
-        MLOG(WARNING) << "error_code=" <<  cntl->ErrorCode() << ", "
+        LOG(WARNING) << "error_code=" <<  cntl->ErrorCode() << ", "
                    << cntl->ErrorText();
         _error_count << 1;
     }
@@ -217,7 +217,7 @@ void RpcPress::sync_client() {
     double req_rate = _options.test_req_rate / _options.test_thread_num;
     //max make up time is 5 s
     if (_msgs.empty()) {
-        MLOG(ERROR) << "nothing to send!";
+        LOG(ERROR) << "nothing to send!";
         return;
     }
     const int thread_index = g_thread_count.fetch_add(1, mutil::memory_order_relaxed);
@@ -264,7 +264,7 @@ int RpcPress::start() {
     int ret = 0;
     for (int i = 0; i < _options.test_thread_num; i++) {
         if ((ret = pthread_create(&_ttid[i], NULL, sync_call_thread, this)) != 0) {
-            MLOG(ERROR) << "Fail to create sending threads";
+            LOG(ERROR) << "Fail to create sending threads";
             return -1;
         }
     }
@@ -273,7 +273,7 @@ int RpcPress::start() {
     info_thr_opt.error_count = &_error_count;
     info_thr_opt.sent_count = &_sent_count;
     if (!_info_thr.start(info_thr_opt)) {
-        MLOG(ERROR) << "Fail to create stats thread";
+        LOG(ERROR) << "Fail to create stats thread";
         return -1;
     }
     _started = true;

@@ -25,7 +25,7 @@
 #include <iostream>
 #include <gflags/gflags.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>                       // LOG
+#include <turbo/log/logging.h>                       // LOG
 #include <melon/utility/scoped_lock.h>
 #include <melon/utility/endpoint.h>
 #include <melon/utility/base64.h>
@@ -97,7 +97,7 @@ namespace melon {
             http_message->_stage = HTTP_ON_HEADER_VALUE;
             first_entry = true;
             if (http_message->_cur_header.empty()) {
-                MLOG(ERROR) << "Header name is empty";
+                LOG(ERROR) << "Header name is empty";
                 return -1;
             }
             http_message->_cur_value =
@@ -141,7 +141,7 @@ namespace melon {
         if (parser->http_major > 1) {
             // NOTE: this checking is a MUST because ProcessHttpResponse relies
             // on it to cast InputMessageBase* into different types.
-            MLOG(WARNING) << "Invalid major_version=" << parser->http_major;
+            LOG(WARNING) << "Invalid major_version=" << parser->http_major;
             parser->http_major = 1;
         }
         http_message->header().set_version(parser->http_major, parser->http_minor);
@@ -157,7 +157,7 @@ namespace melon {
         http_message->header().set_method(static_cast<HttpMethod>(parser->method));
         if (parser->type == HTTP_REQUEST &&
             http_message->header().uri().SetHttpURL(http_message->_url) != 0) {
-            MLOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
+            LOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
             return -1;
         }
         //rfc2616-sec5.2
@@ -226,7 +226,7 @@ namespace melon {
                 // description which is very helpful for debugging. Otherwise
                 // the body is probably streaming data which is too long to print.
                 header().status_code() == HTTP_STATUS_OK) {
-                MLOG(INFO) << '\n' << _vmsgbuilder->buf();
+                LOG(INFO) << '\n' << _vmsgbuilder->buf();
                 _vmsgbuilder.reset(NULL);
             } else {
                 if (_vbodylen < (size_t) FLAGS_http_verbose_max_body_length) {
@@ -290,7 +290,7 @@ namespace melon {
                 *_vmsgbuilder << "\n<skipped " << _vbodylen
                                                   - (size_t) FLAGS_http_verbose_max_body_length << " bytes>";
             }
-            MLOG(INFO) << '\n' << _vmsgbuilder->buf();
+            LOG(INFO) << '\n' << _vmsgbuilder->buf();
             _vmsgbuilder.reset(NULL);
         }
         _cur_header.clear();
@@ -422,7 +422,7 @@ namespace melon {
             if (length == 0) {
                 return 0;
             }
-            MLOG(ERROR) << "Append data(len=" << length
+            LOG(ERROR) << "Append data(len=" << length
                        << ") to already-completed message";
             return -1;
         }
@@ -430,7 +430,7 @@ namespace melon {
                 http_parser_execute(&_parser, &g_parser_settings, data, length);
         if (_parser.http_errno != 0) {
             // May try HTTP on other formats, failure is norm.
-            RPC_VMLOG << "Fail to parse http message, parser=" << _parser
+            RPC_VLOG << "Fail to parse http message, parser=" << _parser
                      << ", buf=`" << mutil::StringPiece(data, length) << '\'';
             return -1;
         }
@@ -443,7 +443,7 @@ namespace melon {
             if (buf.empty()) {
                 return 0;
             }
-            MLOG(ERROR) << "Append data(len=" << buf.size()
+            LOG(ERROR) << "Append data(len=" << buf.size()
                        << ") to already-completed message";
             return -1;
         }
@@ -458,7 +458,7 @@ namespace melon {
                     &_parser, &g_parser_settings, blk.data(), blk.size());
             if (_parser.http_errno != 0) {
                 // May try HTTP on other formats, failure is norm.
-                RPC_VMLOG << "Fail to parse http message, parser=" << _parser
+                RPC_VLOG << "Fail to parse http message, parser=" << _parser
                          << ", buf=" << mutil::ToPrintable(buf);
                 return -1;
             }

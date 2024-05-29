@@ -22,7 +22,7 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>                       // LOG()
+#include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
 #include <melon/utility/iobuf.h>                         // mutil::IOBuf
 #include <melon/utility/sys_byteorder.h>
@@ -98,14 +98,14 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         }
 
         if (!IsSupportedCommand(header->command)) {
-            MLOG(WARNING) << "Not support command=" << header->command;
+            LOG(WARNING) << "Not support command=" << header->command;
             source->pop_front(sizeof(*header) + total_body_length);
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
         
         PipelinedInfo pi;
         if (!socket->PopPipelinedInfo(&pi)) {
-            MLOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
+            LOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
             source->pop_front(sizeof(*header) + total_body_length);
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
@@ -133,7 +133,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         source->cutn(&msg->meta, total_body_length);
         if (header->command == MC_BINARY_SASL_AUTH) {
             if (header->status != 0) {
-                MLOG(ERROR) << "Failed to authenticate the couchbase bucket.";
+                LOG(ERROR) << "Failed to authenticate the couchbase bucket.";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE, 
                                       "Fail to authenticate with the couchbase bucket");
             }
@@ -142,7 +142,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
             socket->GivebackPipelinedInfo(pi);
         } else {
             if (++msg->pi.count >= pi.count) {
-                MCHECK_EQ(msg->pi.count, pi.count);
+                CHECK_EQ(msg->pi.count, pi.count);
                 msg = static_cast<MostCommonMessage*>(socket->release_parsing_context());
                 msg->pi = pi;
                 return MakeMessage(msg);
@@ -161,7 +161,7 @@ void ProcessMemcacheResponse(InputMessageBase* msg_base) {
     Controller* cntl = NULL;
     const int rc = fiber_session_lock(cid, (void**)&cntl);
     if (rc != 0) {
-        MLOG_IF(ERROR, rc != EINVAL && rc != EPERM)
+        LOG_IF(ERROR, rc != EINVAL && rc != EPERM)
             << "Fail to lock correlation_id=" << cid << ": " << berror(rc);
         return;
     }

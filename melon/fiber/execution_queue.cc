@@ -114,7 +114,7 @@ namespace fiber {
                     if (pthread_create(&_pid, NULL,
                                        _execute_tasks_pthread,
                                        node) != 0) {
-                        PMLOG(FATAL) << "Fail to create pthread";
+                        PLOG(FATAL) << "Fail to create pthread";
                         _execute_tasks(node);
                     }
                     _pthread_started = true;
@@ -127,14 +127,14 @@ namespace fiber {
                 // cause undefined behavior (e.g. deadlock)
                 if (fiber_start_background(&tid, &_options.fiber_attr,
                                            _execute_tasks, node) != 0) {
-                    PMLOG(FATAL) << "Fail to start fiber";
+                    PLOG(FATAL) << "Fail to start fiber";
                     _execute_tasks(node);
                 }
             }
 
         } else {
             if (_options.executor->submit(_execute_tasks, node) != 0) {
-                PMLOG(FATAL) << "Fail to submit task";
+                PLOG(FATAL) << "Fail to submit task";
                 _execute_tasks(node);
             }
         }
@@ -148,7 +148,7 @@ namespace fiber {
         bool destroy_queue = false;
         for (;;) {
             if (head->iterated) {
-                MCHECK(head->next != NULL);
+                CHECK(head->next != NULL);
                 TaskNode *saved_head = head;
                 head = head->next;
                 m->return_task_node(saved_head);
@@ -182,15 +182,15 @@ namespace fiber {
             }
             // break when no more tasks and head has been executed
             if (!m->_more_tasks(cur_tail, &cur_tail, !head->iterated)) {
-                MCHECK_EQ(cur_tail, head);
-                MCHECK(head->iterated);
+                CHECK_EQ(cur_tail, head);
+                CHECK(head->iterated);
                 m->return_task_node(head);
                 break;
             }
         }
         if (destroy_queue) {
-            MCHECK(m->_head.load(mutil::memory_order_relaxed) == NULL);
-            MCHECK(m->_stopped);
+            CHECK(m->_head.load(mutil::memory_order_relaxed) == NULL);
+            CHECK(m->_stopped);
             // Add _join_butex by 2 to make it equal to the next version of the
             // ExecutionQueue from the same slot so that join with old id would
             // return immediately.
@@ -246,7 +246,7 @@ namespace fiber {
                 start_execute(node);
                 break;
             }
-            MCHECK(false) << "Fail to create task_node_t, " << berror();
+            CHECK(false) << "Fail to create task_node_t, " << berror();
             ::fiber_usleep(1000);
         }
     }
@@ -300,7 +300,7 @@ namespace fiber {
 
     int ExecutionQueueBase::_execute(TaskNode *head, bool high_priority, int *niterated) {
         if (head != NULL && head->stop_task) {
-            MCHECK(head->next == NULL);
+            CHECK(head->next == NULL);
             head->iterated = true;
             head->status = EXECUTED;
             TaskIteratorBase iter(NULL, this, true, false);
@@ -367,15 +367,15 @@ namespace fiber {
                             // is executed m would be finally reset and returned
                         }
                     } else {
-                        MCHECK(false) << "ref-version=" << ver1
+                        CHECK(false) << "ref-version=" << ver1
                                       << " unref-version=" << ver2;
                     }
                 } else {
-                    MCHECK_EQ(ver1, ver2);
+                    CHECK_EQ(ver1, ver2);
                     // Addressed a free slot.
                 }
             } else {
-                MCHECK(false) << "Over dereferenced id=" << id;
+                CHECK(false) << "Over dereferenced id=" << id;
             }
         }
         return ret.Pass();
@@ -396,8 +396,8 @@ namespace fiber {
             m->_clear_func = clear_func;
             m->_meta = meta;
             m->_type_specific_function = type_specific_function;
-            MCHECK(m->_head.load(mutil::memory_order_relaxed) == NULL);
-            MCHECK_EQ(0, m->_high_priority_tasks.load(mutil::memory_order_relaxed));
+            CHECK(m->_head.load(mutil::memory_order_relaxed) == NULL);
+            CHECK_EQ(0, m->_high_priority_tasks.load(mutil::memory_order_relaxed));
             ExecutionQueueOptions opt;
             if (options != NULL) {
                 opt = *options;

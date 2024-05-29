@@ -41,7 +41,7 @@
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
 #include "melon/utility/debug/leak_annotations.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/memory/aligned_memory.h"
 #include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h>
 #include "melon/utility/threading/thread_restrictions.h"
@@ -62,7 +62,7 @@ struct DefaultLazyInstanceTraits {
 #endif
 
   static Type* New(void* instance) {
-    DMCHECK_EQ(reinterpret_cast<uintptr_t>(instance) & (ALIGNOF(Type) - 1), 0u)
+    DCHECK_EQ(reinterpret_cast<uintptr_t>(instance) & (ALIGNOF(Type) - 1), 0u)
         << ": Bad boy, the buffer passed to placement new is not aligned!\n"
         "This may break some stuff like SSE-based optimizations assuming the "
         "<Type> objects are word aligned.";

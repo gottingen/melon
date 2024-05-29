@@ -21,7 +21,7 @@
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/task_group.h>
 #include <melon/fiber/fiber.h>
 

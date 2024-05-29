@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -82,7 +82,7 @@ size_t RefCountedString::size() const {
 RefCountedMallocedMemory::RefCountedMallocedMemory(
     void* data, size_t length)
     : data_(reinterpret_cast<unsigned char*>(data)), length_(length) {
-  DMCHECK(data || length == 0);
+  DCHECK(data || length == 0);
 }
 
 const unsigned char* RefCountedMallocedMemory::front() const {

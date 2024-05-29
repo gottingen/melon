@@ -27,8 +27,8 @@ namespace melon::raft {
             : _timeout_ms(0), _stopped(true), _running(false), _destroyed(true), _invoking(false) {}
 
     RepeatedTimerTask::~RepeatedTimerTask() {
-        MCHECK(!_running) << "Is still running";
-        MCHECK(_destroyed) << "destroy() must be invoked before descrution";
+        CHECK(!_running) << "Is still running";
+        CHECK(_destroyed) << "destroy() must be invoked before descrution";
     }
 
     int RepeatedTimerTask::init(int timeout_ms) {
@@ -44,7 +44,7 @@ namespace melon::raft {
         MELON_SCOPED_LOCK(_mutex);
         BRAFT_RETURN_IF(_stopped);
         _stopped = true;
-        MCHECK(_running);
+        CHECK(_running);
         const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             _running = false;
@@ -60,7 +60,7 @@ namespace melon::raft {
         run();
         lck.lock();
         _invoking = false;
-        MCHECK(_running);
+        CHECK(_running);
         if (_stopped) {
             _running = false;
             if (_destroyed) {
@@ -116,7 +116,7 @@ namespace melon::raft {
         fiber_t tid;
         if (fiber_start_background(
                 &tid, NULL, run_on_timedout_in_new_thread, arg) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             run_on_timedout_in_new_thread(arg);
         }
     }
@@ -126,7 +126,7 @@ namespace melon::raft {
                 mutil::milliseconds_from_now(adjust_timeout_ms(_timeout_ms));
         if (fiber_timer_add(&_timer, _next_duetime, on_timedout, this) != 0) {
             lck.unlock();
-            MLOG(ERROR) << "Fail to add timer";
+            LOG(ERROR) << "Fail to add timer";
             return on_timedout(this);
         }
     }
@@ -134,7 +134,7 @@ namespace melon::raft {
     void RepeatedTimerTask::reset() {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         BRAFT_RETURN_IF(_stopped);
-        MCHECK(_running);
+        CHECK(_running);
         const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             return schedule(lck);
@@ -146,7 +146,7 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         _timeout_ms = timeout_ms;
         BRAFT_RETURN_IF(_stopped);
-        MCHECK(_running);
+        CHECK(_running);
         const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             return schedule(lck);
@@ -159,7 +159,7 @@ namespace melon::raft {
         BRAFT_RETURN_IF(_destroyed);
         _destroyed = true;
         if (!_running) {
-            MCHECK(_stopped);
+            CHECK(_stopped);
             lck.unlock();
             on_destroy();
             return;
@@ -173,7 +173,7 @@ namespace melon::raft {
             on_destroy();
             return;
         }
-        MCHECK(_running);
+        CHECK(_running);
     }
 
     void RepeatedTimerTask::describe(std::ostream &os, bool use_html) {

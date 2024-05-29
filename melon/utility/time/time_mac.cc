@@ -14,7 +14,7 @@
 #include <time.h>
 
 #include "melon/utility/basictypes.h"
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/mac/scoped_cftyperef.h"
 #include "melon/utility/mac/scoped_mach_port.h"
 
@@ -30,7 +30,7 @@ uint64_t ComputeCurrentTicks() {
   int mib[2] = {CTL_KERN, KERN_BOOTTIME};
   size_t size = sizeof(boottime);
   int kr = sysctl(mib, arraysize(mib), &boottime, &size, NULL, 0);
-  DMCHECK_EQ(KERN_SUCCESS, kr);
+  DCHECK_EQ(KERN_SUCCESS, kr);
   mutil::TimeDelta time_difference = mutil::Time::Now() -
       (mutil::Time::FromTimeT(boottime.tv_sec) +
        mutil::TimeDelta::FromMicroseconds(boottime.tv_usec));
@@ -46,7 +46,7 @@ uint64_t ComputeCurrentTicks() {
     // whether mach_timebase_info has already been called.  This is
     // recommended by Apple's QA1398.
     kern_return_t kr = mach_timebase_info(&timebase_info);
-    DMCHECK(kr == KERN_SUCCESS) << "Fail to call mach_timebase_info";
+    DCHECK(kr == KERN_SUCCESS) << "Fail to call mach_timebase_info";
   }
 
   // mach_absolute_time is it when it comes to ticks on the Mac.  Other calls
@@ -68,7 +68,7 @@ uint64_t ComputeCurrentTicks() {
 
 uint64_t ComputeThreadTicks() {
 #if defined(OS_IOS)
-  NOTREACHED();
+  DCHECK(false);
   return 0;
 #else
   mutil::mac::ScopedMachSendRight thread(mach_thread_self());
@@ -76,7 +76,7 @@ uint64_t ComputeThreadTicks() {
   thread_basic_info_data_t thread_info_data;
 
   if (thread.get() == MACH_PORT_NULL) {
-    DMLOG(ERROR) << "Failed to get mach_thread_self()";
+    DLOG(ERROR) << "Failed to get mach_thread_self()";
     return 0;
   }
 
@@ -85,7 +85,7 @@ uint64_t ComputeThreadTicks() {
       THREAD_BASIC_INFO,
       reinterpret_cast<thread_info_t>(&thread_info_data),
       &thread_info_count);
-  DMCHECK(kr == KERN_SUCCESS) << "Fail to call thread_info";
+  DCHECK(kr == KERN_SUCCESS) << "Fail to call thread_info";
 
   return (thread_info_data.user_time.seconds *
               mutil::Time::kMicrosecondsPerSecond) +

@@ -66,7 +66,7 @@ namespace {
                && !IsCoprime(weight_sum, *iter)) {
             ++iter;
         }
-        MCHECK(iter != prime_stride.end()) << "Failed to get stride";
+        CHECK(iter != prime_stride.end()) << "Failed to get stride";
         return *iter > weight_sum ? *iter % weight_sum : *iter;
     }
 
@@ -81,11 +81,11 @@ namespace melon::lb {
         uint32_t weight = 0;
         if (!mutil::StringToUint(id.tag, &weight) || weight <= 0) {
             if (FLAGS_default_weight_of_wlb > 0) {
-                MLOG(WARNING) << "Invalid weight is set: " << id.tag
+                LOG(WARNING) << "Invalid weight is set: " << id.tag
                              << ". Now, 'weight' has been set to 'FLAGS_default_weight_of_wlb' by default.";
                 weight = FLAGS_default_weight_of_wlb;
             } else {
-                MLOG(ERROR) << "Invalid weight is set: " << id.tag;
+                LOG(ERROR) << "Invalid weight is set: " << id.tag;
                 return false;
             }
         }
@@ -142,7 +142,7 @@ namespace melon::lb {
     size_t WeightedRoundRobinLoadBalancer::AddServersInBatch(
             const std::vector<ServerId> &servers) {
         const size_t n = _db_servers.Modify(BatchAdd, servers);
-        MLOG_IF(ERROR, n != servers.size())
+        LOG_IF(ERROR, n != servers.size())
         << "Fail to AddServersInBatch, expected " << servers.size()
         << " actually " << n;
         return n;
@@ -151,7 +151,7 @@ namespace melon::lb {
     size_t WeightedRoundRobinLoadBalancer::RemoveServersInBatch(
             const std::vector<ServerId> &servers) {
         const size_t n = _db_servers.Modify(BatchRemove, servers);
-        MLOG_IF(ERROR, n != servers.size())
+        LOG_IF(ERROR, n != servers.size())
         << "Fail to RemoveServersInBatch, expected " << servers.size()
         << " actually " << n;
         return n;

@@ -24,7 +24,7 @@
 #include <gflags/gflags_declare.h>                 // DECLARE_xxx
 #include <melon/utility/endpoint.h>                         // mutil::EndPoint
 #include <melon/utility/iobuf.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/proto/rpc/options.pb.h>                  // ProtocolType
 #include <melon/rpc/socket_id.h>                   // SocketId
 #include <melon/rpc/parse_result.h>                // ParseResult
@@ -253,7 +253,7 @@ namespace melon {
             if (_size < N) {
                 return _arr[_size++];
             } else {
-                MCHECK(false) << "push to a full array, cap=" << N;
+                CHECK(false) << "push to a full array, cap=" << N;
                 static T dummy;
                 return dummy;
             }

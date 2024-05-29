@@ -25,7 +25,7 @@
 #include <melon/utility/iobuf.h>                  // mutil::IOBuf
 #include <melon/utility/strings/string_piece.h>   // mutil::StringPiece
 #include <melon/utility/arena.h>                  // mutil::Arena
-#include <melon/utility/logging.h>                // MCHECK
+#include <turbo/log/logging.h>                // CHECK
 #include <melon/rpc/parse_result.h>                 // ParseError
 
 
@@ -210,7 +210,7 @@ namespace melon {
         if (is_integer()) {
             return _data.integer;
         }
-        MCHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                      << ", not an integer";
         return 0;
     }
@@ -281,7 +281,7 @@ namespace melon {
                 return _data.long_str;
             }
         }
-        MCHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                      << ", not a string";
         return "";
     }
@@ -294,7 +294,7 @@ namespace melon {
                 return mutil::StringPiece(_data.long_str, _length);
             }
         }
-        MCHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                      << ", not a string";
         return mutil::StringPiece();
     }
@@ -307,7 +307,7 @@ namespace melon {
                 return _data.long_str;
             }
         }
-        MCHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
+        CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                      << ", not an error";
         return "";
     }

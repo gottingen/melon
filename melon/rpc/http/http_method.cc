@@ -20,7 +20,7 @@
 
 
 #include <melon/utility/macros.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <pthread.h>
 #include <algorithm>
 #include <melon/rpc/http/http_method.h>

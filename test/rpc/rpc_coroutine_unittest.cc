@@ -45,10 +45,10 @@ class Trace {
 public:
     Trace(const std::string& name) {
         _name = name;
-        MLOG(INFO) << "enter " << name;
+        LOG(INFO) << "enter " << name;
     }
     ~Trace() {
-        MLOG(INFO) << "exit " << _name;
+        LOG(INFO) << "exit " << _name;
     }
 private:
     std::string _name;
@@ -77,7 +77,7 @@ public:
         // This is important to test RAII object's destruction after coroutine finished
         melon::ClosureGuard done_guard(done);
         if (request->has_sleep_us()) {
-            MLOG(INFO) << "sleep " << request->sleep_us() << " us at server side";
+            LOG(INFO) << "sleep " << request->sleep_us() << " us at server side";
             co_await Coroutine::usleep(request->sleep_us());
         }
         response->set_message(request->message());
@@ -114,7 +114,7 @@ Awaitable<int> sleep_func() {
     co_await aw;
     int cost = mutil::monotonic_time_us() - s;
     EXPECT_GE(cost, 1000);
-    MLOG(INFO) << "after usleep:" << cost;
+    LOG(INFO) << "after usleep:" << cost;
     co_return 123;
 }
 
@@ -131,13 +131,13 @@ Awaitable<void> func(melon::Channel& channel, int* out) {
     test::EchoResponse response;
     melon::Controller cntl;
 
-    MLOG(INFO) << "before start coroutine";
+    LOG(INFO) << "before start coroutine";
     Coroutine coro(sleep_func());
     usleep(delay_us);
-    MLOG(INFO) << "before wait coroutine";
+    LOG(INFO) << "before wait coroutine";
     int ret = co_await coro.awaitable<int>();
     EXPECT_EQ(ret, 123);
-    MLOG(INFO) << "after wait coroutine, ret:" << ret;
+    LOG(INFO) << "after wait coroutine, ret:" << ret;
 
     auto str = co_await inplace_func("hello");
     EXPECT_EQ("hello", str);
@@ -152,25 +152,25 @@ Awaitable<void> func(melon::Channel& channel, int* out) {
     EXPECT_EQ(1.0, num);
 
     AwaitableDone done;
-    MLOG(INFO) << "start echo";
+    LOG(INFO) << "start echo";
     stub.Echo(&cntl, &request, &response, &done);
-    MLOG(INFO) << "after echo";
+    LOG(INFO) << "after echo";
     usleep(delay_us);
     co_await done.awaitable();
-    MLOG(INFO) << "after wait";
+    LOG(INFO) << "after wait";
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
     EXPECT_EQ("hello world", response.message());
 
     cntl.Reset();
     request.set_sleep_us(2000);
     AwaitableDone done2;
-    MLOG(INFO) << "start echo2";
+    LOG(INFO) << "start echo2";
     int64_t s = mutil::monotonic_time_us();
     stub.Echo(&cntl, &request, &response, &done2);
-    MLOG(INFO) << "after echo2";
+    LOG(INFO) << "after echo2";
     co_await done2.awaitable();
     int cost = mutil::monotonic_time_us() - s;
-    MLOG(INFO) << "after wait2";
+    LOG(INFO) << "after wait2";
     EXPECT_GE(cost, 2000);
     EXPECT_FALSE(cntl.Failed()) << cntl.ErrorText();
     EXPECT_EQ("hello world", response.message());
@@ -218,7 +218,7 @@ TEST_F(CoroutineTest, coroutine) {
     Coroutine coro8(sleep_func(), true);
     usleep(10000); // wait sleep_func() to complete
 
-    MLOG(INFO) << "test case finished";
+    LOG(INFO) << "test case finished";
 }
 
 #endif // MELON_ENABLE_COROUTINE

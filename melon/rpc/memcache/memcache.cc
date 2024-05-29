@@ -25,7 +25,7 @@
 #include <melon/utility/string_printf.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/sys_byteorder.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/memcache/memcache.h>
 #include <melon/rpc/policy/memcache_binary_header.h>
 
@@ -79,7 +79,7 @@ void MemcacheRequest::Clear() {
 
 bool MemcacheRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-    MLOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
+    LOG(WARNING) << "You're not supposed to parse a MemcacheRequest";
     
     // simple approach just making it work.
     mutil::IOBuf tmp;
@@ -114,7 +114,7 @@ bool MemcacheRequest::MergePartialFromCodedStream(
 
 void MemcacheRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-    MLOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
+    LOG(WARNING) << "You're not supposed to serialize a MemcacheRequest";
 
     // simple approach just making it work.
     mutil::IOBufAsZeroCopyInputStream wrapper(_buf);
@@ -137,7 +137,7 @@ int MemcacheRequest::ByteSize() const {
 }
 
 void MemcacheRequest::MergeFrom(const ::google::protobuf::Message& from) {
-    MCHECK_NE(&from, this);
+    CHECK_NE(&from, this);
     const MemcacheRequest* source = dynamic_cast<const MemcacheRequest*>(&from);
     if (source == NULL) {
         ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -147,7 +147,7 @@ void MemcacheRequest::MergeFrom(const ::google::protobuf::Message& from) {
 }
 
 void MemcacheRequest::MergeFrom(const MemcacheRequest& from) {
-    MCHECK_NE(&from, this);
+    CHECK_NE(&from, this);
     _buf.append(from._buf);
     _pipelined_count += from._pipelined_count;
 }
@@ -228,7 +228,7 @@ void MemcacheResponse::Clear() {
 
 bool MemcacheResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-    MLOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
+    LOG(WARNING) << "You're not supposed to parse a MemcacheResponse";
 
     // simple approach just making it work.
     const void* data = NULL;
@@ -242,7 +242,7 @@ bool MemcacheResponse::MergePartialFromCodedStream(
 
 void MemcacheResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-    MLOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
+    LOG(WARNING) << "You're not supposed to serialize a MemcacheResponse";
     
     // simple approach just making it work.
     mutil::IOBufAsZeroCopyInputStream wrapper(_buf);
@@ -265,7 +265,7 @@ int MemcacheResponse::ByteSize() const {
 }
 
 void MemcacheResponse::MergeFrom(const ::google::protobuf::Message& from) {
-    MCHECK_NE(&from, this);
+    CHECK_NE(&from, this);
     const MemcacheResponse* source = dynamic_cast<const MemcacheResponse*>(&from);
     if (source == NULL) {
         ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -275,7 +275,7 @@ void MemcacheResponse::MergeFrom(const ::google::protobuf::Message& from) {
 }
 
 void MemcacheResponse::MergeFrom(const MemcacheResponse& from) {
-    MCHECK_NE(&from, this);
+    CHECK_NE(&from, this);
     _err = from._err;
     // responses of memcached according to their binary layout, should be
     // directly concatenatible.
@@ -449,8 +449,8 @@ bool MemcacheResponse::PopGet(
         return false;
     }
     if (header.status != (uint16_t)STATUS_SUCCESS) {
-        MLOG_IF(ERROR, header.extras_length != 0) << "GET response must not have flags";
-        MLOG_IF(ERROR, header.key_length != 0) << "GET response must not have key";
+        LOG_IF(ERROR, header.extras_length != 0) << "GET response must not have flags";
+        LOG_IF(ERROR, header.key_length != 0) << "GET response must not have key";
         const int value_size = (int)header.total_body_length - (int)header.extras_length
             - (int)header.key_length;
         if (value_size < 0) {
@@ -583,8 +583,8 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
         mutil::string_printf(&_err, "Not enough data");
         return false;
     }
-    MLOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
-    MLOG_IF(ERROR, header.key_length != 0) << "STORE response must not have key";
+    LOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
+    LOG_IF(ERROR, header.key_length != 0) << "STORE response must not have key";
     int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     if (header.status != (uint16_t)STATUS_SUCCESS) {
@@ -593,11 +593,11 @@ bool MemcacheResponse::PopStore(uint8_t command, uint64_t* cas_value) {
         _buf.cutn(&_err, value_size);
         return false;
     }
-    MLOG_IF(ERROR, value_size != 0) << "STORE response must not have value, actually="
+    LOG_IF(ERROR, value_size != 0) << "STORE response must not have value, actually="
                                    << value_size;
     _buf.pop_front(sizeof(header) + header.total_body_length);
     if (cas_value) {
-        MCHECK(header.cas_value);
+        CHECK(header.cas_value);
         *cas_value = header.cas_value;
     }
     _err.clear();
@@ -626,7 +626,7 @@ bool MemcacheRequest::Append(
     const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     if (value.empty()) {
-        MLOG(ERROR) << "value to append must be non-empty";
+        LOG(ERROR) << "value to append must be non-empty";
         return false;
     }
     return Store(policy::MC_BINARY_APPEND, key, value, flags, exptime, cas_value);
@@ -636,7 +636,7 @@ bool MemcacheRequest::Prepend(
     const mutil::StringPiece& key, const mutil::StringPiece& value,
     uint32_t flags, uint32_t exptime, uint64_t cas_value) {
     if (value.empty()) {
-        MLOG(ERROR) << "value to prepend must be non-empty";
+        LOG(ERROR) << "value to prepend must be non-empty";
         return false;
     }
     return Store(policy::MC_BINARY_PREPEND, key, value, flags, exptime, cas_value);
@@ -748,8 +748,8 @@ bool MemcacheResponse::PopCounter(
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
-    MLOG_IF(ERROR, header.extras_length != 0) << "INCR/DECR response must not have flags";
-    MLOG_IF(ERROR, header.key_length != 0) << "INCR/DECR response must not have key";
+    LOG_IF(ERROR, header.extras_length != 0) << "INCR/DECR response must not have flags";
+    LOG_IF(ERROR, header.key_length != 0) << "INCR/DECR response must not have key";
     const int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);
@@ -868,8 +868,8 @@ bool MemcacheResponse::PopVersion(std::string* version) {
                   (unsigned)n, (unsigned)sizeof(header), header.total_body_length);
         return false;
     }
-    MLOG_IF(ERROR, header.extras_length != 0) << "VERSION response must not have flags";
-    MLOG_IF(ERROR, header.key_length != 0) << "VERSION response must not have key";
+    LOG_IF(ERROR, header.extras_length != 0) << "VERSION response must not have flags";
+    LOG_IF(ERROR, header.key_length != 0) << "VERSION response must not have key";
     const int value_size = (int)header.total_body_length - (int)header.extras_length
         - (int)header.key_length;
     _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);

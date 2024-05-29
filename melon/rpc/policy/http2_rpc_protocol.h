@@ -401,7 +401,7 @@ friend void InitFrameHandlers();
 
 inline int H2Context::AllocateClientStreamId() {
     if (RunOutStreams()) {
-        MLOG(WARNING) << "Fail to allocate new client stream, _last_sent_stream_id="
+        LOG(WARNING) << "Fail to allocate new client stream, _last_sent_stream_id="
             << _last_sent_stream_id;
         return -1;
     }

@@ -79,7 +79,7 @@ namespace melon::var {
         pthread_mutex_t mutex;
 
         VarMapWithLock() {
-            MCHECK_EQ(0, init(1024, 80));
+            CHECK_EQ(0, init(1024, 80));
             pthread_mutexattr_t attr;
             pthread_mutexattr_init(&attr);
             pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -122,7 +122,7 @@ namespace melon::var {
     }
 
     Variable::~Variable() {
-        MCHECK(!hide()) << "Subclass of Variable MUST call hide() manually in their"
+        CHECK(!hide()) << "Subclass of Variable MUST call hide() manually in their"
                           " dtors to avoid displaying a variable that is just destructing";
     }
 
@@ -130,7 +130,7 @@ namespace melon::var {
                               const mutil::StringPiece &name,
                               DisplayFilter display_filter) {
         if (name.empty()) {
-            MLOG(ERROR) << "Parameter[name] is empty";
+            LOG(ERROR) << "Parameter[name] is empty";
             return -1;
         }
         // NOTE: It's impossible to atomically erase from a submap and insert into
@@ -174,7 +174,7 @@ namespace melon::var {
             s_var_may_abort = true;
         }
 
-        MLOG(ERROR) << "Already exposed `" << _name << "' whose value is `"
+        LOG(ERROR) << "Already exposed `" << _name << "' whose value is `"
                    << describe_exposed(_name) << '\'';
         _name.clear();
         return -1;
@@ -192,9 +192,9 @@ namespace melon::var {
         MELON_SCOPED_LOCK(m.mutex);
         VarEntry *entry = m.seek(_name);
         if (entry) {
-            MCHECK_EQ(1UL, m.erase(_name));
+            CHECK_EQ(1UL, m.erase(_name));
         } else {
-            MCHECK(false) << "`" << _name << "' must exist";
+            CHECK(false) << "`" << _name << "' must exist";
         }
         _name.clear();
         return true;
@@ -445,7 +445,7 @@ namespace melon::var {
 
     int Variable::dump_exposed(Dumper *dumper, const DumpOptions *poptions) {
         if (NULL == dumper) {
-            MLOG(ERROR) << "Parameter[dumper] is NULL";
+            LOG(ERROR) << "Parameter[dumper] is NULL";
             return -1;
         }
         DumpOptions opt;
@@ -512,7 +512,7 @@ namespace melon::var {
             }
         }
         if (log_dummped) {
-            MLOG(INFO) << "Dumpped variables:" << dumpped_info.str();
+            LOG(INFO) << "Dumpped variables:" << dumpped_info.str();
         }
         return count;
     }
@@ -581,13 +581,13 @@ namespace melon::var {
                 mutil::File::Error error;
                 mutil::FilePath dir = mutil::FilePath(_filename).DirName();
                 if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-                    MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+                    LOG(ERROR) << "Fail to create directory=`" << dir.value()
                                << "', " << error;
                     return false;
                 }
                 _fp = fopen(_filename.c_str(), "w");
                 if (NULL == _fp) {
-                    MLOG(ERROR) << "Fail to open " << _filename;
+                    LOG(ERROR) << "Fail to open " << _filename;
                     return false;
                 }
             }
@@ -596,7 +596,7 @@ namespace melon::var {
                         (int) name.size(), name.data(),
                         (int) separator.size(), separator.data(),
                         (int) desc.size(), desc.data()) < 0) {
-                PMLOG(ERROR) << "Fail to write into " << _filename;
+                PLOG(ERROR) << "Fail to write into " << _filename;
                 return false;
             }
             return true;
@@ -732,39 +732,39 @@ namespace melon::var {
             std::string mvar_prefix;
             std::string mvar_format;
             if (!google::GetCommandLineOption("var_dump_file", &filename)) {
-                MLOG(ERROR) << "Fail to get gflag var_dump_file";
+                LOG(ERROR) << "Fail to get gflag var_dump_file";
                 return NULL;
             }
             if (!google::GetCommandLineOption("var_dump_include",
                                                  &options.white_wildcards)) {
-                MLOG(ERROR) << "Fail to get gflag var_dump_include";
+                LOG(ERROR) << "Fail to get gflag var_dump_include";
                 return NULL;
             }
             if (!google::GetCommandLineOption("var_dump_exclude",
                                                  &options.black_wildcards)) {
-                MLOG(ERROR) << "Fail to get gflag var_dump_exclude";
+                LOG(ERROR) << "Fail to get gflag var_dump_exclude";
                 return NULL;
             }
             if (!google::GetCommandLineOption("var_dump_prefix", &prefix)) {
-                MLOG(ERROR) << "Fail to get gflag var_dump_prefix";
+                LOG(ERROR) << "Fail to get gflag var_dump_prefix";
                 return NULL;
             }
             if (!google::GetCommandLineOption("var_dump_tabs", &tabs)) {
-                MLOG(ERROR) << "Fail to get gflags var_dump_tabs";
+                LOG(ERROR) << "Fail to get gflags var_dump_tabs";
                 return NULL;
             }
 
             // We can't access string flags directly because it's thread-unsafe.
             if (!google::GetCommandLineOption("mvar_dump_file", &mvar_filename)) {
-                MLOG(ERROR) << "Fail to get gflag mvar_dump_file";
+                LOG(ERROR) << "Fail to get gflag mvar_dump_file";
                 return NULL;
             }
             if (!google::GetCommandLineOption("mvar_dump_prefix", &mvar_prefix)) {
-                MLOG(ERROR) << "Fail to get gflag mvar_dump_prefix";
+                LOG(ERROR) << "Fail to get gflag mvar_dump_prefix";
                 return NULL;
             }
             if (!google::GetCommandLineOption("mvar_dump_format", &mvar_format)) {
-                MLOG(ERROR) << "Fail to get gflag mvar_dump_format";
+                LOG(ERROR) << "Fail to get gflag mvar_dump_format";
                 return NULL;
             }
 
@@ -780,7 +780,7 @@ namespace melon::var {
                 }
                 if (last_filename != filename) {
                     last_filename = filename;
-                    MLOG(INFO) << "Write all var to " << filename << " every "
+                    LOG(INFO) << "Write all var to " << filename << " every "
                               << FLAGS_var_dump_interval << " seconds.";
                 }
                 const size_t pos2 = prefix.find("<app>");
@@ -790,7 +790,7 @@ namespace melon::var {
                 FileDumperGroup dumper(tabs, filename, prefix);
                 int nline = Variable::dump_exposed(&dumper, &options);
                 if (nline < 0) {
-                    MLOG(ERROR) << "Fail to dump vars into " << filename;
+                    LOG(ERROR) << "Fail to dump vars into " << filename;
                 }
             }
 
@@ -807,7 +807,7 @@ namespace melon::var {
                 }
                 if (mvar_last_filename != mvar_filename) {
                     mvar_last_filename = mvar_filename;
-                    MLOG(INFO) << "Write all mvar to " << mvar_filename << " every "
+                    LOG(INFO) << "Write all mvar to " << mvar_filename << " every "
                               << FLAGS_var_dump_interval << " seconds.";
                 }
                 const size_t pos2 = mvar_prefix.find("<app>");
@@ -823,7 +823,7 @@ namespace melon::var {
                 }
                 int nline = MVariable::dump_exposed(dumper, &options);
                 if (nline < 0) {
-                    MLOG(ERROR) << "Fail to dump mvars into " << filename;
+                    LOG(ERROR) << "Fail to dump mvars into " << filename;
                 }
                 delete dumper;
                 dumper = NULL;
@@ -836,7 +836,7 @@ namespace melon::var {
             const int post_sleep_ms = 50;
             int cond_sleep_ms = FLAGS_var_dump_interval * 1000 - post_sleep_ms;
             if (cond_sleep_ms < 0) {
-                MLOG(ERROR) << "Bad cond_sleep_ms=" << cond_sleep_ms;
+                LOG(ERROR) << "Bad cond_sleep_ms=" << cond_sleep_ms;
                 cond_sleep_ms = 10000;
             }
             timespec deadline = mutil::milliseconds_from_now(cond_sleep_ms);
@@ -851,11 +851,11 @@ namespace melon::var {
         pthread_t thread_id;
         int rc = pthread_create(&thread_id, NULL, dumping_thread, NULL);
         if (rc != 0) {
-            MLOG(FATAL) << "Fail to launch dumping thread: " << berror(rc);
+            LOG(FATAL) << "Fail to launch dumping thread: " << berror(rc);
             return;
         }
         // Detach the thread because no one would join it.
-        MCHECK_EQ(0, pthread_detach(thread_id));
+        CHECK_EQ(0, pthread_detach(thread_id));
         created_dumping_thread = true;
     }
 
@@ -882,7 +882,7 @@ namespace melon::var {
         // this is just fine since people rarely have the intention of modifying
         // this flag at runtime.
         if (v < 1) {
-            MLOG(ERROR) << "Invalid var_dump_interval=" << v;
+            LOG(ERROR) << "Invalid var_dump_interval=" << v;
             return false;
         }
         return true;
@@ -924,7 +924,7 @@ namespace melon::var {
     static bool validate_mvar_dump_format(const char *, const std::string &format) {
         if (format != "common"
             && format != "prometheus") {
-            MLOG(ERROR) << "Invalid mvar_dump_format=" << format;
+            LOG(ERROR) << "Invalid mvar_dump_format=" << format;
             return false;
         }
 

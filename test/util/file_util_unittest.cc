@@ -449,7 +449,7 @@ TEST_F(FileUtilTest, DevicePathToDriveLetter) {
   // Get a drive letter.
   std::wstring real_drive_letter = temp_dir_.path().value().substr(0, 2);
   if (!isalpha(real_drive_letter[0]) || ':' != real_drive_letter[1]) {
-    MLOG(ERROR) << "Can't get a drive letter to test with.";
+    LOG(ERROR) << "Can't get a drive letter to test with.";
     return;
   }
 

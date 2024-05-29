@@ -21,7 +21,7 @@
 
 #include <queue>                           // heap functions
 #include <melon/utility/scoped_lock.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>   // fmix64
 #include <melon/utility/resource_pool.h>
 #include <melon/utility/threading/platform_thread.h>
@@ -142,16 +142,16 @@ namespace fiber {
             _options = *options_in;
         }
         if (_options.num_buckets == 0) {
-            MLOG(ERROR) << "num_buckets can't be 0";
+            LOG(ERROR) << "num_buckets can't be 0";
             return EINVAL;
         }
         if (_options.num_buckets > 1024) {
-            MLOG(ERROR) << "num_buckets=" << _options.num_buckets << " is too big";
+            LOG(ERROR) << "num_buckets=" << _options.num_buckets << " is too big";
             return EINVAL;
         }
         _buckets = new(std::nothrow) Bucket[_options.num_buckets];
         if (NULL == _buckets) {
-            MLOG(ERROR) << "Fail to new _buckets";
+            LOG(ERROR) << "Fail to new _buckets";
             return ENOMEM;
         }
         const int ret = pthread_create(&_thread, NULL, TimerThread::run_this, this);
@@ -253,7 +253,7 @@ namespace fiber {
         const mutil::ResourceId<Task> slot_id = slot_of_task_id(task_id);
         Task *const task = mutil::address_resource(slot_id);
         if (task == NULL) {
-            MLOG(ERROR) << "Invalid task_id=" << task_id;
+            LOG(ERROR) << "Invalid task_id=" << task_id;
             return -1;
         }
         const uint32_t id_version = version_of_task_id(task_id);
@@ -287,7 +287,7 @@ namespace fiber {
             return false;
         } else {
             // Impossible.
-            MLOG(ERROR) << "Invalid version=" << expected_version
+            LOG(ERROR) << "Invalid version=" << expected_version
                         << ", expecting " << id_version + 2;
             return false;
         }
@@ -296,7 +296,7 @@ namespace fiber {
     bool TimerThread::Task::try_delete() {
         const uint32_t id_version = version_of_task_id(task_id);
         if (version.load(mutil::memory_order_relaxed) != id_version) {
-            MCHECK_EQ(version.load(mutil::memory_order_relaxed), id_version + 2);
+            CHECK_EQ(version.load(mutil::memory_order_relaxed), id_version + 2);
             mutil::return_resource(slot_of_task_id(task_id));
             return true;
         }
@@ -312,7 +312,7 @@ namespace fiber {
         run_worker_startfn();
 
         int64_t last_sleep_time = mutil::gettimeofday_us();
-        BT_VMLOG << "Started TimerThread=" << pthread_self();
+        BT_VLOG << "Started TimerThread=" << pthread_self();
 
         // min heap of tasks (ordered by run_time)
         std::vector<Task *> tasks;
@@ -390,7 +390,7 @@ namespace fiber {
                 }
             }
             if (pull_again) {
-                BT_VMLOG << "pull again, tasks=" << tasks.size();
+                BT_VLOG << "pull again, tasks=" << tasks.size();
                 continue;
             }
 
@@ -426,7 +426,7 @@ namespace fiber {
             futex_wait_private(&_nsignals, expected_nsignals, ptimeout);
             last_sleep_time = mutil::gettimeofday_us();
         }
-        BT_VMLOG << "Ended TimerThread=" << pthread_self();
+        BT_VLOG << "Ended TimerThread=" << pthread_self();
     }
 
     void TimerThread::stop_and_join() {
@@ -453,14 +453,14 @@ namespace fiber {
     static void init_global_timer_thread() {
         g_timer_thread = new(std::nothrow) TimerThread;
         if (g_timer_thread == NULL) {
-            MLOG(FATAL) << "Fail to new g_timer_thread";
+            LOG(FATAL) << "Fail to new g_timer_thread";
             return;
         }
         TimerThreadOptions options;
         options.var_prefix = "fiber_timer";
         const int rc = g_timer_thread->start(&options);
         if (rc != 0) {
-            MLOG(FATAL) << "Fail to start timer_thread, " << berror(rc);
+            LOG(FATAL) << "Fail to start timer_thread, " << berror(rc);
             delete g_timer_thread;
             g_timer_thread = NULL;
             return;

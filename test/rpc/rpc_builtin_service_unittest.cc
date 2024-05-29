@@ -58,6 +58,7 @@
 #include "../echo.pb.h"
 #include <melon/proto/rpc/grpc_health_check.pb.h>
 #include "melon/json2pb/pb_to_json.h"
+#include <cinttypes>
 
 DEFINE_bool(foo, false, "Flags for UT");
 MELON_VALIDATE_GFLAG(foo, melon::PassValidate);
@@ -109,7 +110,7 @@ private:
 };
 
 void MyVLogSite() {
-    VMLOG(3) << "This is a VMLOG!";
+    VLOG(3) << "This is a VLOG!";
 }
 
 void CheckContent(const melon::Controller& cntl, const char* name) {

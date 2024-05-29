@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/utility/strings/string_split.h>
 #include <melon/utility/strings/string_util.h>
@@ -115,20 +115,20 @@ bool Version::IsOlderThan(const std::string& version_str) const {
 }
 
 int Version::CompareToWildcardString(const std::string& wildcard_string) const {
-  DMCHECK(IsValid());
-  DMCHECK(Version::IsValidWildcardString(wildcard_string));
+  DCHECK(IsValid());
+  DCHECK(Version::IsValidWildcardString(wildcard_string));
 
   // Default behavior if the string doesn't end with a wildcard.
   if (!EndsWith(wildcard_string.c_str(), ".*", false)) {
     Version version(wildcard_string);
-    DMCHECK(version.IsValid());
+    DCHECK(version.IsValid());
     return CompareTo(version);
   }
 
   std::vector<uint16_t> parsed;
   const bool success = ParseVersionNumbers(
       wildcard_string.substr(0, wildcard_string.length() - 2), &parsed);
-  DMCHECK(success);
+  DCHECK(success);
   const int comparison = CompareVersionComponents(components_, parsed);
   // If the version is smaller than the wildcard version's |parsed| vector,
   // then the wildcard has no effect (e.g. comparing 1.2.3 and 1.3.*) and the
@@ -142,7 +142,7 @@ int Version::CompareToWildcardString(const std::string& wildcard_string) const {
   // which means that the two are equal since |parsed| has a trailing "*".
   // (e.g. 1.2.3 vs. 1.2.* will return 0). All other cases return 1 since
   // components is greater (e.g. 3.2.3 vs 1.*).
-  DMCHECK_GT(parsed.size(), 0UL);
+  DCHECK_GT(parsed.size(), 0UL);
   const size_t min_num_comp = std::min(components_.size(), parsed.size());
   for (size_t i = 0; i < min_num_comp; ++i) {
     if (components_[i] != parsed[i])
@@ -152,19 +152,19 @@ int Version::CompareToWildcardString(const std::string& wildcard_string) const {
 }
 
 bool Version::Equals(const Version& that) const {
-  DMCHECK(IsValid());
-  DMCHECK(that.IsValid());
+  DCHECK(IsValid());
+  DCHECK(that.IsValid());
   return (CompareTo(that) == 0);
 }
 
 int Version::CompareTo(const Version& other) const {
-  DMCHECK(IsValid());
-  DMCHECK(other.IsValid());
+  DCHECK(IsValid());
+  DCHECK(other.IsValid());
   return CompareVersionComponents(components_, other.components_);
 }
 
 const std::string Version::GetString() const {
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   std::string version_str;
   size_t count = components_.size();
   for (size_t i = 0; i < count - 1; ++i) {

@@ -22,7 +22,7 @@
 #include <iostream>
 
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/http/http_parser.h>
 #include <melon/builtin/common.h>  // AppendFileName
 
@@ -51,37 +51,37 @@ TEST_F(HttpParserTest, init_perf) {
 }
 
 int on_message_begin(http_parser *) {
-    MLOG(INFO) << "Start parsing message";
+    LOG(INFO) << "Start parsing message";
     return 0;
 }
 
 int on_url(http_parser *, const char *at, const size_t length) {
-    MLOG(INFO) << "Get url " << std::string(at, length);
+    LOG(INFO) << "Get url " << std::string(at, length);
     return 0;
 }
 
 int on_headers_complete(http_parser *) {
-    MLOG(INFO) << "Header complete";
+    LOG(INFO) << "Header complete";
     return 0;
 }
 
 int on_message_complete(http_parser *) {
-    MLOG(INFO) << "Message complete";
+    LOG(INFO) << "Message complete";
     return 0;
 }
 
 int on_header_field(http_parser *, const char *at, const size_t length) {
-    MLOG(INFO) << "Get header field " << std::string(at, length);
+    LOG(INFO) << "Get header field " << std::string(at, length);
     return 0;
 }
 
 int on_header_value(http_parser *, const char *at, const size_t length) {
-    MLOG(INFO) << "Get header value " << std::string(at, length);
+    LOG(INFO) << "Get header value " << std::string(at, length);
     return 0;
 }
 
 int on_body(http_parser *, const char *at, const size_t length) {
-    MLOG(INFO) << "Get body " << std::string(at, length);
+    LOG(INFO) << "Get body " << std::string(at, length);
     return 0;
 }
 
@@ -110,7 +110,7 @@ TEST_F(HttpParserTest, http_example) {
     settings.on_header_field = on_header_field;
     settings.on_header_value = on_header_value;
     settings.on_body = on_body;
-    MLOG(INFO) << http_parser_execute(&parser, &settings, http_request, strlen(http_request));
+    LOG(INFO) << http_parser_execute(&parser, &settings, http_request, strlen(http_request));
 }
 
 TEST_F(HttpParserTest, append_filename) {

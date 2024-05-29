@@ -18,7 +18,7 @@
 //
 
 #include <melon/raft/configuration.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_splitter.h>
 
 namespace melon::raft {
@@ -42,7 +42,7 @@ namespace melon::raft {
             melon::raft::PeerId peer;
             peer_str.assign(sp.field(), sp.length());
             if (peer.parse(peer_str) != 0) {
-                MLOG(ERROR) << "Fail to parse " << peer_str;
+                LOG(ERROR) << "Fail to parse " << peer_str;
                 return -1;
             }
             add_peer(peer);

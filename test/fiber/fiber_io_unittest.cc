@@ -29,12 +29,13 @@
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/fd_utility.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/task_control.h>
 #include <melon/fiber/task_group.h>
 #include <melon/fiber/interrupt_pthread.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/unstable.h>
+#include <turbo/log/internal/globals.h>
 #if defined(OS_MACOSX)
 #include <sys/types.h>                           // struct kevent
 #include <sys/event.h>                           // kevent(), kqueue()
@@ -88,13 +89,13 @@ void* process_thread(void* arg) {
     //printf("begin to process fd=%d\n", m->fd);
     ssize_t n = read(m->fd, &count, sizeof(count));
     if (n != sizeof(count)) {
-        MLOG(FATAL) << "Should not happen in this test";
+        LOG(FATAL) << "Should not happen in this test";
         return NULL;
     }
     count += NCLIENT;
     //printf("write result=%lu to fd=%d\n", count, m->fd);
     if (write(m->fd, &count, sizeof(count)) != sizeof(count)) {
-        MLOG(FATAL) << "Should not happen in this test";
+        LOG(FATAL) << "Should not happen in this test";
         return NULL;
     }
 #ifdef CREATE_THREAD_TO_PROCESS
@@ -158,9 +159,9 @@ void* epoll_thread(void* arg) {
                 continue;
             }
 #if defined(OS_LINUX)
-            PMLOG(FATAL) << "Fail to epoll_wait";
+            PLOG(FATAL) << "Fail to epoll_wait";
 #elif defined(OS_MACOSX)
-            PMLOG(FATAL) << "Fail to kevent";
+            PLOG(FATAL) << "Fail to kevent";
 #endif
             break;
         }
@@ -194,7 +195,7 @@ void* client_thread(void* arg) {
     ClientMeta* m = (ClientMeta*)arg;
     for (size_t i = 0; i < m->times; ++i) {
         if (write(m->fd, &m->count, sizeof(m->count)) != sizeof(m->count)) {
-            MLOG(FATAL) << "Should not happen in this test";
+            LOG(FATAL) << "Should not happen in this test";
             return NULL;
         }
 #ifdef RUN_CLIENT_IN_FIBER
@@ -212,7 +213,7 @@ void* client_thread(void* arg) {
         ssize_t rc = read(m->fd, &m->count, sizeof(m->count));
 #endif
         if (rc != sizeof(m->count)) {
-            PMLOG(FATAL) << "Should not happen in this test, rc=" << rc;
+            PLOG(FATAL) << "Should not happen in this test, rc=" << rc;
             return NULL;
         }
     }
@@ -327,7 +328,7 @@ TEST(FDTest, ping_pong) {
     }
     tm.stop();
     ProfilerStop();
-    MLOG(INFO) << "tid=" << REP*NCLIENT*1000000L/tm.u_elapsed();
+    LOG(INFO) << "tid=" << REP*NCLIENT*1000000L/tm.u_elapsed();
     stop = true;
     for (size_t i = 0; i < NEPOLL; ++i) {
 #if defined(OS_LINUX)
@@ -446,6 +447,7 @@ void* close_the_fd(void* arg) {
 }
 
 TEST(FDTest, invalid_epoll_events) {
+    turbo::log_internal::SetExitOnDFatal(false);
     errno = 0;
 #if defined(OS_LINUX)
     ASSERT_EQ(-1, fiber_fd_wait(-1, EPOLLIN));
@@ -480,6 +482,7 @@ TEST(FDTest, invalid_epoll_events) {
     ASSERT_LT(tm.m_elapsed(), 20);
     ASSERT_EQ(0, fiber_join(th, NULL));
     ASSERT_EQ(0, fiber_close(fds[0]));
+        turbo::log_internal::SetExitOnDFatal(true);
 }
 
 void* wait_for_the_fd(void* arg) {

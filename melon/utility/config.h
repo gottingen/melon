@@ -20,5 +20,5 @@
 #undef MELON_WITH_GLOG
 #endif
 /* #undef MELON_WITH_GLOG */
-
+#define MELON_WITH_GLOG 1
 #endif  // MUTIL_CONFIG_H

@@ -22,7 +22,7 @@
 
 #include "melon/utility/basictypes.h"
 #include <melon/utility/containers/hash_tables.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -174,7 +174,7 @@ class MRUCacheBase {
   size_type size() const {
     // We don't use ordering_.size() for the return value because
     // (as a linked list) it can be O(n).
-    DMCHECK(index_.size() == ordering_.size());
+    DCHECK(index_.size() == ordering_.size());
     return index_.size();
   }
 

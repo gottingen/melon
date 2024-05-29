@@ -30,7 +30,7 @@
 #include <melon/utility/atomicops.h>
 #include <melon/utility/time.h>
 #include <melon/utility/fd_utility.h>                     // make_non_blocking
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>   // fmix32
 #include <melon/fiber/butex.h>                       // butex_*
 #include <melon/fiber/task_group.h>                  // TaskGroup
@@ -132,14 +132,14 @@ namespace fiber {
 #endif
             _start_mutex.unlock();
             if (_epfd < 0) {
-                PMLOG(FATAL) << "Fail to epoll_create/kqueue";
+                PLOG(FATAL) << "Fail to epoll_create/kqueue";
                 return -1;
             }
             if (fiber_start_background(
                     &_tid, NULL, EpollThread::run_this, this) != 0) {
                 close(_epfd);
                 _epfd = -1;
-                MLOG(FATAL) << "Fail to create epoll fiber";
+                LOG(FATAL) << "Fail to create epoll fiber";
                 return -1;
             }
             return 0;
@@ -166,7 +166,7 @@ namespace fiber {
             _stop = true;
             int closing_epoll_pipe[2];
             if (pipe(closing_epoll_pipe)) {
-                PMLOG(FATAL) << "Fail to create closing_epoll_pipe";
+                PLOG(FATAL) << "Fail to create closing_epoll_pipe";
                 return -1;
             }
 #if defined(OS_LINUX)
@@ -179,14 +179,14 @@ namespace fiber {
                         0, 0, NULL);
                 if (kevent(saved_epfd, &kqueue_event, 1, NULL, 0, NULL) < 0) {
 #endif
-                PMLOG(FATAL) << "Fail to add closing_epoll_pipe into epfd="
+                PLOG(FATAL) << "Fail to add closing_epoll_pipe into epfd="
                              << saved_epfd;
                 return -1;
             }
 
             const int rc = fiber_join(_tid, NULL);
             if (rc) {
-                MLOG(FATAL) << "Fail to join EpollThread, " << berror(rc);
+                LOG(FATAL) << "Fail to join EpollThread, " << berror(rc);
                 return -1;
             }
             close(closing_epoll_pipe[0]);
@@ -235,7 +235,7 @@ namespace fiber {
             evt.data.fd = fd;
             if (epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &evt) < 0 &&
                 errno != EEXIST) {
-                PMLOG(FATAL) << "Fail to add fd=" << fd << " into epfd=" << _epfd;
+                PLOG(FATAL) << "Fail to add fd=" << fd << " into epfd=" << _epfd;
                 return -1;
             }
 #elif defined(OS_MACOSX)
@@ -243,7 +243,7 @@ namespace fiber {
             EV_SET(&kqueue_event, fd, events, EV_ADD | EV_ENABLE | EV_ONESHOT,
                     0, 0, butex);
             if (kevent(_epfd, &kqueue_event, 1, NULL, 0, NULL) < 0) {
-                PMLOG(FATAL) << "Fail to add fd=" << fd << " into kqueuefd=" << _epfd;
+                PLOG(FATAL) << "Fail to add fd=" << fd << " into kqueuefd=" << _epfd;
                 return -1;
             }
 #endif
@@ -309,12 +309,12 @@ namespace fiber {
             struct kevent* e = new (std::nothrow) KEVENT[MAX_EVENTS];
 #endif
             if (NULL == e) {
-                MLOG(FATAL) << "Fail to new epoll_event";
+                LOG(FATAL) << "Fail to new epoll_event";
                 return NULL;
             }
 
 #if defined(OS_LINUX)
-            DMLOG(INFO) << "Use DEL+ADD instead of EPOLLONESHOT+MOD due to kernel bug. Performance will be much lower.";
+            DLOG(INFO) << "Use DEL+ADD instead of EPOLLONESHOT+MOD due to kernel bug. Performance will be much lower.";
 #endif
             while (!_stop) {
                 const int epfd = _epfd;
@@ -334,13 +334,13 @@ namespace fiber {
                         int* p = &errno;
                         const char* b = berror();
                         const char* b2 = berror(errno);
-                        DMLOG(FATAL) << "Fail to epoll epfd=" << epfd << ", "
+                        DLOG(FATAL) << "Fail to epoll epfd=" << epfd << ", "
                                     << errno << " " << p << " " <<  b << " " <<  b2;
 #endif
                         continue;
                     }
 
-                    PMLOG(INFO) << "Fail to epoll epfd=" << epfd;
+                    PLOG(INFO) << "Fail to epoll epfd=" << epfd;
                     break;
                 }
 
@@ -365,7 +365,7 @@ namespace fiber {
             }
 
             delete[] e;
-            DMLOG(INFO) << "EpollThread=" << _tid << "(epfd="
+            DLOG(INFO) << "EpollThread=" << _tid << "(epfd="
                         << initial_epfd << ") is about to stop";
             return NULL;
         }
@@ -406,12 +406,12 @@ namespace fiber {
 
     short epoll_to_poll_events(uint32_t epoll_events) {
         // Most POLL* and EPOLL* are same values.
-        short poll_events = (epoll_events &
+        uint32_t poll_events = (epoll_events &
                              (EPOLLIN | EPOLLPRI | EPOLLOUT |
                               EPOLLRDNORM | EPOLLRDBAND |
                               EPOLLWRNORM | EPOLLWRBAND |
                               EPOLLMSG | EPOLLERR | EPOLLHUP));
-        MCHECK_EQ((uint32_t) poll_events, epoll_events);
+        DCHECK_EQ((uint32_t) poll_events, epoll_events);
         return poll_events;
     }
 
@@ -525,11 +525,11 @@ int fiber_connect(int sockfd, const sockaddr *serv_addr,
     int err;
     socklen_t errlen = sizeof(err);
     if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &errlen) < 0) {
-        PMLOG(FATAL) << "Fail to getsockopt";
+        PLOG(FATAL) << "Fail to getsockopt";
         return -1;
     }
     if (err != 0) {
-        MCHECK(err != EINPROGRESS);
+        CHECK(err != EINPROGRESS);
         errno = err;
         return -1;
     }

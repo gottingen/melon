@@ -25,7 +25,7 @@
 #include <melon/utility/memory/ref_counted.h>
 #include <melon/utility/atomicops.h>
 #include <melon/utility/iobuf.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/raft/log_entry.h>
 #include <melon/raft/storage.h>
 #include <melon/raft/util.h>
