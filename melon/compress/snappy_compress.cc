@@ -19,9 +19,9 @@
 
 
 #include <melon/utility/logging.h>
-#include <melon/utility/third_party/snappy/snappy.h>
 #include <melon/compress/snappy_compress.h>
 #include <melon/rpc/protocol.h>
+#include <snappy.h>
 
 
 namespace melon::compress {
@@ -32,7 +32,7 @@ namespace melon::compress {
         if (res.SerializeToZeroCopyStream(&wrapper)) {
             mutil::IOBufAsSnappySource source(serialized_pb);
             mutil::IOBufAsSnappySink sink(*buf);
-            return mutil::snappy::Compress(&source, &sink);
+            return snappy::Compress(&source, &sink);
         }
         MLOG(WARNING) << "Fail to serialize input pb=" << &res;
         return false;
@@ -42,7 +42,7 @@ namespace melon::compress {
         mutil::IOBufAsSnappySource source(data);
         mutil::IOBuf binary_pb;
         mutil::IOBufAsSnappySink sink(binary_pb);
-        if (mutil::snappy::Uncompress(&source, &sink)) {
+        if (snappy::Uncompress(&source, &sink)) {
             return ParsePbFromIOBuf(req, binary_pb);
         }
         MLOG(WARNING) << "Fail to snappy::Uncompress, size=" << data.size();
@@ -52,13 +52,13 @@ namespace melon::compress {
     bool SnappyCompress(const mutil::IOBuf &in, mutil::IOBuf *out) {
         mutil::IOBufAsSnappySource source(in);
         mutil::IOBufAsSnappySink sink(*out);
-        return mutil::snappy::Compress(&source, &sink);
+        return snappy::Compress(&source, &sink);
     }
 
     bool SnappyDecompress(const mutil::IOBuf &in, mutil::IOBuf *out) {
         mutil::IOBufAsSnappySource source(in);
         mutil::IOBufAsSnappySink sink(*out);
-        return mutil::snappy::Uncompress(&source, &sink);
+        return snappy::Uncompress(&source, &sink);
     }
 
 } // namespace melon::compress
