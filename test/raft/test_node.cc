@@ -646,7 +646,7 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
         std::string data_buf;
         data_buf.resize(256 * 1024, 'a');
         data.append(data_buf);
-        
+
         melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
@@ -667,14 +667,14 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
         std::string data_buf;
         data_buf.resize(256 * 1024, 'b');
         data.append(data_buf);
-        
+
         melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
     }
     cond.wait();
-    
+
     // trigger leader snapshot again to compact logs
     MLOG(WARNING) << "trigger leader snapshot again";
     cond.reset(1);
@@ -718,18 +718,18 @@ TEST_P(NodeTest, Leader_step_down_during_install_snapshot) {
     mutil::Status status;
     status.set_error(melon::raft::ERAFTTIMEDOUT, "Majority of the group dies");
     leader->_impl->step_down(leader->_impl->_current_term, false, status);
-    cond.wait(); 
-    
+    cond.wait();
+
     // add peer1 again, success 
     MLOG(INFO) << "add peer again: " << peer1;
     cond.reset(1);
     cluster.wait_leader();
     leader = cluster.leader();
     leader->add_peer(peer1, NEW_ADDPEERCLOSURE(&cond, 0));
-    cond.wait(); 
-    
+    cond.wait();
+
     cluster.ensure_same();
-    
+
     MLOG(INFO) << "stop cluster";
     cluster.stop_all();
 }
@@ -829,11 +829,11 @@ TEST_P(NodeTest, Report_error_during_install_snapshot) {
     MLOG(WARNING) << "restart follower";
     ASSERT_EQ(0, cluster.start(follower_addr));
     usleep(1*1000*1000);
-    
+
     // trigger newly-started follower report_error when install_snapshot
-    cluster._nodes.back()->_impl->_snapshot_executor->report_error(EIO, "%s", 
+    cluster._nodes.back()->_impl->_snapshot_executor->report_error(EIO, "%s",
                                                     "Fail to close writer");
-    
+
     sleep(2);
     MLOG(WARNING) << "cluster stop";
     cluster.stop_all();
@@ -1240,7 +1240,7 @@ TEST_P(NodeTest, Vote_timedout) {
     // stop follower, only one node left 
     const mutil::EndPoint follower_addr = nodes[0]->_impl->_server_id.addr;
     cluster.stop(follower_addr);
-    
+
     // wait old leader to step down 
     usleep(2000 * 1000);
     // trigger old leader to vote, expecting fail when vote timedout
@@ -1248,7 +1248,7 @@ TEST_P(NodeTest, Vote_timedout) {
     leader->_impl->elect_self(&lck);
     lck.unlock();
     usleep(3000 * 1000);
-   
+
     // start the stopped follower
     MLOG(WARNING) << "restart follower";
     cluster.start(follower_addr);
@@ -1348,7 +1348,7 @@ TEST_P(NodeTest, SetPeer2) {
         leader->apply(task);
     }
     cond.wait();
-    
+
     std::cout << "Here" << std::endl;
     //set peer when no quorum die
     std::vector<melon::raft::PeerId> new_peers;
@@ -1631,11 +1631,11 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
         std::string data_buf;
         data_buf.resize(128 * 1024, 'a');
         data.append(data_buf);
-        
+
         melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
-        leader->apply(task);        
+        leader->apply(task);
     }
     cond.wait();
 
@@ -1652,11 +1652,11 @@ TEST_P(NodeTest, install_snapshot_exceed_max_task_num) {
         std::string data_buf;
         data_buf.resize(128 * 1024, 'b');
         data.append(data_buf);
-        
+
         melon::raft::Task task;
         task.data = &data;
         task.done = NEW_APPLYCLOSURE(&cond, 0);
-        leader->apply(task);    
+        leader->apply(task);
     }
     cond.wait();
 
@@ -1994,7 +1994,7 @@ TEST_P(NodeTest, leader_witness_temporary_be_leader) {
     leader = cluster.leader();
     ASSERT_TRUE(leader != NULL);
     MLOG(WARNING) << "leader is " << leader->node_id();
-    
+
     cluster.start(old_leader);
     MLOG(WARNING) << "restart old leader " << old_leader;
     cluster.ensure_same();
@@ -2178,7 +2178,7 @@ TEST_P(NodeTest, shutdown_and_join_work_after_init_fails) {
         node.shutdown(NULL);
         node.join();
     }
-    
+
     {
         melon::raft::NodeOptions options;
         options.election_timeout_ms = 300;
@@ -2392,7 +2392,7 @@ TEST_P(NodeTest, append_entries_when_follower_is_in_error_state) {
     // stop error follower
     MLOG(WARNING) << "stop wrong follower " << error_follower_node->node_id();
     cluster.stop(error_follower);
-    
+
     sleep(5);
     // restart error follower
     ASSERT_EQ(0, cluster.start(error_follower));
@@ -2429,7 +2429,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     melon::raft::Node* leader_first = cluster.leader();
     ASSERT_TRUE(leader_first != NULL);
     MLOG(WARNING) << "leader_first is " << leader_first->node_id()
-                 << ", election_timeout is " 
+                 << ", election_timeout is "
                  << leader_first->_impl->_options.election_timeout_ms;
 
     // apply something
@@ -2445,7 +2445,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
         leader_first->apply(task);
     }
     cond.wait();
-   
+
     // check _on_start_following_times and _on_stop_following_times
     std::vector<melon::raft::Node*> followers_first;
     cluster.followers(&followers_first);
@@ -2481,7 +2481,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
         leader_second->apply(task);
     }
     cond.wait();
- 
+
     // check _on_start_following_times and _on_stop_following_times again
     std::vector<melon::raft::Node*> followers_second;
     cluster.followers(&followers_second);
@@ -2508,7 +2508,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     cluster.wait_leader();
     melon::raft::Node* leader_third = cluster.leader();
     ASSERT_EQ(target, leader_third->node_id().peer_id);
-    
+
     // apply something
     cond.reset(10);
     for (int i = 0; i < 10; i++) {
@@ -2522,7 +2522,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
         leader_third->apply(task);
     }
     cond.wait();
-    
+
     // check _on_start_following_times and _on_stop_following_times again 
     std::vector<melon::raft::Node*> followers_third;
     cluster.followers(&followers_third);
@@ -2547,7 +2547,7 @@ TEST_P(NodeTest, on_start_following_and_on_stop_following) {
     }
 
     cluster.ensure_same();
-   
+
     cluster.stop_all();
 }
 
@@ -2587,7 +2587,7 @@ TEST_P(NodeTest, read_committed_user_log) {
     }
     cond.wait();
     sleep(2);
-    
+
     // index == 1 is a CONFIGURATION log, so real_index will be 2 when returned.
     int64_t index = 1;
     melon::raft::UserLog* user_log = new melon::raft::UserLog();
@@ -2595,8 +2595,8 @@ TEST_P(NodeTest, read_committed_user_log) {
     ASSERT_EQ(0, status.error_code());
     ASSERT_EQ(2, user_log->log_index());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
 
     // index == 5 is a DATA log(a user log)
     index = 5;
@@ -2605,33 +2605,33 @@ TEST_P(NodeTest, read_committed_user_log) {
     ASSERT_EQ(0, status.error_code());
     ASSERT_EQ(5, user_log->log_index());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
-    
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
+
     // index == 15 is greater than last_committed_index
     index = 15;
     user_log->reset();
     status = leader->read_committed_user_log(index, user_log);
     ASSERT_EQ(melon::raft::ENOMOREUSERLOG, status.error_code());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
-    
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
+
     // index == 0, invalid request index.
     index = 0;
     user_log->reset();
     status = leader->read_committed_user_log(index, user_log);
     ASSERT_EQ(EINVAL, status.error_code());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
-   
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
+
     // trigger leader snapshot for the first time
     MLOG(WARNING) << "trigger leader snapshot ";
     cond.reset(1);
     leader->snapshot(NEW_SNAPSHOTCLOSURE(&cond, 0));
     cond.wait();
-    
+
     // remove and add a peer to add two CONFIGURATION logs
     std::vector<melon::raft::Node*> followers;
     cluster.followers(&followers);
@@ -2667,7 +2667,7 @@ TEST_P(NodeTest, read_committed_user_log) {
         leader->apply(task);
     }
     cond.wait();
-    
+
     // trigger leader snapshot for the second time, after this the log of index 1~11 will be deleted.
     MLOG(WARNING) << "trigger leader snapshot ";
     cond.reset(1);
@@ -2680,9 +2680,9 @@ TEST_P(NodeTest, read_committed_user_log) {
     status = leader->read_committed_user_log(index, user_log);
     ASSERT_EQ(melon::raft::ELOGDELETED, status.error_code());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
-    
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
+
     // index == 12 and index == 13 are 2 CONFIGURATION logs, so real_index will be 14 when returned.
     index = 12;
     user_log->reset();
@@ -2690,9 +2690,9 @@ TEST_P(NodeTest, read_committed_user_log) {
     ASSERT_EQ(0, status.error_code());
     ASSERT_EQ(14, user_log->log_index());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
-    
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
+
     // now index == 15 is a user log
     index = 15;
     user_log->reset();
@@ -2700,9 +2700,9 @@ TEST_P(NodeTest, read_committed_user_log) {
     ASSERT_EQ(0, status.error_code());
     ASSERT_EQ(15, user_log->log_index());
     MLOG(INFO) << "read local committed user log from leader:" << leader->node_id() << ", index:"
-        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data() 
-        << ", status:" << status; 
-   
+        << index << ", real_index:" << user_log->log_index() << ", data:" << user_log->log_data()
+        << ", status:" << status;
+
     delete(user_log);
 
     cluster.ensure_same();
@@ -3172,7 +3172,7 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
 
     std::vector<melon::raft::Node*> followers;
     cluster.followers(&followers);
-    
+
     while (true) {
         followers[0]->_impl->_mutex.lock();
         int64_t local_index = followers[0]->_impl->_log_manager->last_log_index();
@@ -3349,7 +3349,7 @@ TEST_P(NodeTest, follower_handle_out_of_order_append_entries) {
     ASSERT_EQ(followers[0]->_impl->_append_entries_cache->_rpc_map.size(), 1);
     ASSERT_EQ(followers[0]->_impl->_append_entries_cache->first_index(), local_index + 5 + 1);
     followers[0]->_impl->_mutex.unlock();
-    
+
     closure10.wait();
     closure9.wait();
     closure8.wait();
@@ -3447,7 +3447,7 @@ TEST_P(NodeTest, readonly) {
         leader->apply(task);
     }
     cond.wait();
-  
+
     std::vector<melon::raft::Node*> followers;
     cluster.followers(&followers);
     ASSERT_EQ(2, followers.size());
@@ -3490,7 +3490,7 @@ TEST_P(NodeTest, readonly) {
         task.done = NEW_APPLYCLOSURE(&cond, melon::raft::EREADONLY);
         leader->apply(task);
     }
-    cond.wait();  
+    cond.wait();
 
     // Add a new follower
     melon::raft::PeerId peer3;
@@ -3527,7 +3527,7 @@ TEST_P(NodeTest, readonly) {
         task.done = NEW_APPLYCLOSURE(&cond, melon::raft::EREADONLY);
         leader->apply(task);
     }
-    cond.wait();  
+    cond.wait();
 
     // Remove follower 0
     cond.reset(1);
@@ -3554,7 +3554,7 @@ TEST_P(NodeTest, readonly) {
         task.done = NEW_APPLYCLOSURE(&cond, 0);
         leader->apply(task);
     }
-    cond.wait();  
+    cond.wait();
 
     // Follower 1 leave readonly, catch up logs
     followers[1]->leave_readonly_mode();
