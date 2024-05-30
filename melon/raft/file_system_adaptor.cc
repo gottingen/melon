@@ -1,21 +1,25 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 #include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
 #include <melon/utility/memory/singleton_on_pthread_once.h>  // mutil::get_leaky_singleton
-#include "melon/raft/file_system_adaptor.h"
+#include <melon/raft/file_system_adaptor.h>
 
 namespace melon::raft {
 
@@ -74,7 +78,7 @@ namespace melon::raft {
                    << ", buffer_offset " << _buffer_offset
                    << " buffer_size " << _buffer_size;
         if (offset < _buffer_offset || offset > off_t(_buffer_offset + _buffer_size)) {
-            MLOG(WARNING) << "Fail to read from buffered file adaptor with invalid range"
+            LOG(WARNING) << "Fail to read from buffered file adaptor with invalid range"
                          << ", buffer_offset: " << _buffer_offset
                          << ", buffer_size: " << _buffer_size
                          << ", read offset: " << offset
@@ -122,7 +126,7 @@ namespace melon::raft {
                    << ", buffer_offset " << _buffer_offset
                    << ", buffer_size " << _buffer_size;
         if (offset < _buffer_offset + _buffer_size) {
-            MLOG(WARNING) << "Fail to write into buffered file adaptor with invalid range"
+            LOG(WARNING) << "Fail to write into buffered file adaptor with invalid range"
                          << ", offset: " << offset
                          << ", data_size: " << data.size()
                          << ", buffer_offset: " << _buffer_offset
@@ -131,7 +135,7 @@ namespace melon::raft {
             return -1;
         } else if (offset > _buffer_offset + _buffer_size) {
             // passby hole
-            MCHECK(_buffer_size == 0);
+            CHECK(_buffer_size == 0);
             BRAFT_VLOG << "seek to new offset " << offset << " as there is hole";
             seek(offset);
         }
@@ -149,7 +153,7 @@ namespace melon::raft {
             _buffer_offset += write_count;
             _buffer_size -= write_count;
             _buffer.pop_front(write_count);
-            MCHECK_EQ(_buffer_size, _buffer.size());
+            CHECK_EQ(_buffer_size, _buffer.size());
         }
         return saved_size;
     }
@@ -294,7 +298,7 @@ namespace melon::raft {
                 continue;
             }
             full_path = full_path.Append(*i);
-            DMLOG(INFO) << "Creating " << full_path.value();
+            DLOG(INFO) << "Creating " << full_path.value();
             if (!fs->create_directory(full_path.value(), error, false)) {
                 return false;
             }

@@ -1,23 +1,27 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/utility/logging.h"
-#include "melon/rpc/compress.h"
-#include "melon/rpc/protocol.h"
+#include <turbo/log/logging.h>
+#include <melon/rpc/compress.h>
+#include <melon/rpc/protocol.h>
 
 
 namespace melon {
@@ -28,16 +32,16 @@ namespace melon {
     int RegisterCompressHandler(CompressType type,
                                 CompressHandler handler) {
         if (NULL == handler.Compress || NULL == handler.Decompress) {
-            MLOG(FATAL) << "Invalid parameter: handler function is NULL";
+            LOG(FATAL) << "Invalid parameter: handler function is NULL";
             return -1;
         }
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            MLOG(FATAL) << "CompressType=" << type << " is out of range";
+            LOG(FATAL) << "CompressType=" << type << " is out of range";
             return -1;
         }
         if (s_handler_map[index].Compress != NULL) {
-            MLOG(FATAL) << "CompressType=" << type << " was registered";
+            LOG(FATAL) << "CompressType=" << type << " was registered";
             return -1;
         }
         s_handler_map[index] = handler;
@@ -49,7 +53,7 @@ namespace melon {
     inline const CompressHandler *FindCompressHandler(CompressType type) {
         int index = type;
         if (index < 0 || index >= MAX_HANDLER_SIZE) {
-            MLOG(ERROR) << "CompressType=" << type << " is out of range";
+            LOG(ERROR) << "CompressType=" << type << " is out of range";
             return NULL;
         }
         if (NULL == s_handler_map[index].Compress) {

@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -20,15 +24,15 @@
 #include <string>                               // std::string
 #include <iostream>
 #include <gflags/gflags.h>
-#include "melon/utility/macros.h"
-#include "melon/utility/logging.h"                       // LOG
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/endpoint.h"
-#include "melon/utility/base64.h"
-#include "melon/fiber/fiber.h"                    // fiber_usleep
-#include "melon/rpc/log.h"
-#include "melon/rpc/reloadable_flags.h"
-#include "melon/rpc/http/http_message.h"
+#include <melon/utility/macros.h>
+#include <turbo/log/logging.h>                       // LOG
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/endpoint.h>
+#include <turbo/strings/escaping.h>
+#include <melon/fiber/fiber.h>                    // fiber_usleep
+#include <melon/rpc/log.h>
+#include <melon/rpc/reloadable_flags.h>
+#include <melon/rpc/http/http_message.h>
 
 namespace melon {
 
@@ -93,7 +97,7 @@ namespace melon {
             http_message->_stage = HTTP_ON_HEADER_VALUE;
             first_entry = true;
             if (http_message->_cur_header.empty()) {
-                MLOG(ERROR) << "Header name is empty";
+                LOG(ERROR) << "Header name is empty";
                 return -1;
             }
             http_message->_cur_value =
@@ -137,7 +141,7 @@ namespace melon {
         if (parser->http_major > 1) {
             // NOTE: this checking is a MUST because ProcessHttpResponse relies
             // on it to cast InputMessageBase* into different types.
-            MLOG(WARNING) << "Invalid major_version=" << parser->http_major;
+            LOG(WARNING) << "Invalid major_version=" << parser->http_major;
             parser->http_major = 1;
         }
         http_message->header().set_version(parser->http_major, parser->http_minor);
@@ -153,7 +157,7 @@ namespace melon {
         http_message->header().set_method(static_cast<HttpMethod>(parser->method));
         if (parser->type == HTTP_REQUEST &&
             http_message->header().uri().SetHttpURL(http_message->_url) != 0) {
-            MLOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
+            LOG(ERROR) << "Fail to parse url=`" << http_message->_url << '\'';
             return -1;
         }
         //rfc2616-sec5.2
@@ -222,7 +226,7 @@ namespace melon {
                 // description which is very helpful for debugging. Otherwise
                 // the body is probably streaming data which is too long to print.
                 header().status_code() == HTTP_STATUS_OK) {
-                MLOG(INFO) << '\n' << _vmsgbuilder->buf();
+                LOG(INFO) << '\n' << _vmsgbuilder->buf();
                 _vmsgbuilder.reset(NULL);
             } else {
                 if (_vbodylen < (size_t) FLAGS_http_verbose_max_body_length) {
@@ -286,7 +290,7 @@ namespace melon {
                 *_vmsgbuilder << "\n<skipped " << _vbodylen
                                                   - (size_t) FLAGS_http_verbose_max_body_length << " bytes>";
             }
-            MLOG(INFO) << '\n' << _vmsgbuilder->buf();
+            LOG(INFO) << '\n' << _vmsgbuilder->buf();
             _vmsgbuilder.reset(NULL);
         }
         _cur_header.clear();
@@ -418,7 +422,7 @@ namespace melon {
             if (length == 0) {
                 return 0;
             }
-            MLOG(ERROR) << "Append data(len=" << length
+            LOG(ERROR) << "Append data(len=" << length
                        << ") to already-completed message";
             return -1;
         }
@@ -439,7 +443,7 @@ namespace melon {
             if (buf.empty()) {
                 return 0;
             }
-            MLOG(ERROR) << "Append data(len=" << buf.size()
+            LOG(ERROR) << "Append data(len=" << buf.size()
                        << ") to already-completed message";
             return -1;
         }
@@ -596,7 +600,7 @@ namespace melon {
             // characters in this part and even if users did, most of them are
             // invalid and rejected by http_parser_parse_url().
             std::string encoded_user_info;
-            mutil::Base64Encode(user_info, &encoded_user_info);
+            turbo::base64_encode(user_info, &encoded_user_info);
             os << "Authorization: Basic " << encoded_user_info << MELON_CRLF;
         }
         os << MELON_CRLF;  // CRLF before content
@@ -606,14 +610,14 @@ namespace melon {
         }
     }
 
-// Response format
-// Response     = Status-Line               ; Section 6.1
-//                *(( general-header        ; Section 4.5
-//                 | response-header        ; Section 6.2
-//                 | entity-header ) CRLF)  ; Section 7.1
-//                CRLF
-//                [ message-body ]          ; Section 7.2
-// Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+    // Response format
+    // Response     = Status-Line               ; Section 6.1
+    //                *(( general-header        ; Section 4.5
+    //                 | response-header        ; Section 6.2
+    //                 | entity-header ) CRLF)  ; Section 7.1
+    //                CRLF
+    //                [ message-body ]          ; Section 7.2
+    // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
     void MakeRawHttpResponse(mutil::IOBuf *response,
                              HttpHeader *h,
                              mutil::IOBuf *content) {

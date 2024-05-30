@@ -1,36 +1,40 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <sys/types.h>
 #include <stddef.h>                         // size_t
 #include <gflags/gflags.h>
-#include "melon/utility/compat.h"                   // OS_MACOSX
-#include "melon/utility/macros.h"                   // ARRAY_SIZE
-#include "melon/utility/scoped_lock.h"              // MELON_SCOPED_LOCK
-#include "melon/utility/fast_rand.h"
-#include "melon/utility/unique_ptr.h"
-#include "melon/utility/third_party/murmurhash3/murmurhash3.h" // fmix64
-#include "melon/fiber/errno.h"                  // ESTOP
-#include "melon/fiber/butex.h"                  // butex_*
-#include "melon/fiber/sys_futex.h"              // futex_wake_private
-#include "melon/fiber/processor.h"              // cpu_relax
-#include "melon/fiber/task_control.h"
-#include "melon/fiber/task_group.h"
-#include "melon/fiber/timer_thread.h"
-#include "melon/fiber/errno.h"
+#include <melon/utility/compat.h>                   // OS_MACOSX
+#include <melon/utility/macros.h>                   // ARRAY_SIZE
+#include <melon/utility/scoped_lock.h>              // MELON_SCOPED_LOCK
+#include <melon/utility/fast_rand.h>
+#include <melon/utility/unique_ptr.h>
+#include <melon/utility/third_party/murmurhash3/murmurhash3.h> // fmix64
+#include <melon/fiber/errno.h>                  // ESTOP
+#include <melon/fiber/butex.h>                  // butex_*
+#include <melon/fiber/sys_futex.h>              // futex_wake_private
+#include <melon/fiber/processor.h>              // cpu_relax
+#include <melon/fiber/task_control.h>
+#include <melon/fiber/task_group.h>
+#include <melon/fiber/timer_thread.h>
+#include <melon/fiber/errno.h>
 
 namespace fiber {
 
@@ -140,18 +144,18 @@ static double get_cumulated_cputime_from_this(void* arg) {
 void TaskGroup::run_main_task() {
     melon::var::PassiveStatus<double> cumulated_cputime(
         get_cumulated_cputime_from_this, this);
-    std::unique_ptr<melon::var::PerSecond<melon::var::PassiveStatus<double> > > usage_bvar;
+    std::unique_ptr<melon::var::PerSecond<melon::var::PassiveStatus<double> > > usage_var;
 
     TaskGroup* dummy = this;
     fiber_t tid;
     while (wait_task(&tid)) {
         TaskGroup::sched_to(&dummy, tid);
-        DMCHECK_EQ(this, dummy);
-        DMCHECK_EQ(_cur_meta->stack, _main_stack);
+        DCHECK_EQ(this, dummy);
+        DCHECK_EQ(_cur_meta->stack, _main_stack);
         if (_cur_meta->tid != _main_tid) {
             TaskGroup::task_runner(1/*skip remained*/);
         }
-        if (FLAGS_show_per_worker_usage_in_vars && !usage_bvar) {
+        if (FLAGS_show_per_worker_usage_in_vars && !usage_var) {
             char name[32];
 #if defined(OS_MACOSX)
             snprintf(name, sizeof(name), "fiber_worker_usage_%" PRIu64,
@@ -160,7 +164,7 @@ void TaskGroup::run_main_task() {
             snprintf(name, sizeof(name), "fiber_worker_usage_%ld",
                      (long)syscall(SYS_gettid));
 #endif
-            usage_bvar.reset(new melon::var::PerSecond<melon::var::PassiveStatus<double> >
+            usage_var.reset(new melon::var::PerSecond<melon::var::PassiveStatus<double> >
                              (name, &cumulated_cputime, 1));
         }
     }
@@ -191,13 +195,13 @@ TaskGroup::TaskGroup(TaskControl* c)
 {
     _steal_seed = mutil::fast_rand();
     _steal_offset = OFFSET_TABLE[_steal_seed % ARRAY_SIZE(OFFSET_TABLE)];
-    MCHECK(c);
+    CHECK(c);
 }
 
 TaskGroup::~TaskGroup() {
     if (_main_tid) {
         TaskMeta* m = address_meta(_main_tid);
-        MCHECK(_main_stack == m->stack);
+        CHECK(_main_stack == m->stack);
         return_stack(m->release_stack());
         return_resource(get_slot(_main_tid));
         _main_tid = 0;
@@ -206,22 +210,22 @@ TaskGroup::~TaskGroup() {
 
 int TaskGroup::init(size_t runqueue_capacity) {
     if (_rq.init(runqueue_capacity) != 0) {
-        MLOG(FATAL) << "Fail to init _rq";
+        LOG(FATAL) << "Fail to init _rq";
         return -1;
     }
     if (_remote_rq.init(runqueue_capacity / 2) != 0) {
-        MLOG(FATAL) << "Fail to init _remote_rq";
+        LOG(FATAL) << "Fail to init _remote_rq";
         return -1;
     }
     ContextualStack* stk = get_stack(STACK_TYPE_MAIN, NULL);
     if (NULL == stk) {
-        MLOG(FATAL) << "Fail to get main stack container";
+        LOG(FATAL) << "Fail to get main stack container";
         return -1;
     }
     mutil::ResourceId<TaskMeta> slot;
     TaskMeta* m = mutil::get_resource<TaskMeta>(&slot);
     if (NULL == m) {
-        MLOG(FATAL) << "Fail to get TaskMeta";
+        LOG(FATAL) << "Fail to get TaskMeta";
         return -1;
     }
     m->stop = false;
@@ -302,7 +306,7 @@ void TaskGroup::task_runner(intptr_t skip_remained) {
         // use fiber local storage internally, or will cause memory leak.
         // FIXME: the time from quiting fn to here is not counted into cputime
         if (m->attr.flags & FIBER_LOG_START_AND_FINISH) {
-            MLOG(INFO) << "Finished fiber " << m->tid << ", cputime="
+            LOG(INFO) << "Finished fiber " << m->tid << ", cputime="
                       << m->stat.cputime_ns / 1000000.0 << "ms";
         }
 
@@ -366,13 +370,13 @@ int TaskGroup::start_foreground(TaskGroup** pg,
     if (__builtin_expect(!m, 0)) {
         return ENOMEM;
     }
-    MCHECK(m->current_waiter.load(mutil::memory_order_relaxed) == NULL);
+    CHECK(m->current_waiter.load(mutil::memory_order_relaxed) == NULL);
     m->stop = false;
     m->interrupted = false;
     m->about_to_quit = false;
     m->fn = fn;
     m->arg = arg;
-    MCHECK(m->stack == NULL);
+    CHECK(m->stack == NULL);
     m->attr = using_attr;
     m->local_storage = LOCAL_STORAGE_INIT;
     if (using_attr.flags & FIBER_INHERIT_SPAN) {
@@ -383,7 +387,7 @@ int TaskGroup::start_foreground(TaskGroup** pg,
     m->tid = make_tid(*m->version_butex, slot);
     *th = m->tid;
     if (using_attr.flags & FIBER_LOG_START_AND_FINISH) {
-        MLOG(INFO) << "Started fiber " << m->tid;
+        LOG(INFO) << "Started fiber " << m->tid;
     }
 
     TaskGroup* g = *pg;
@@ -425,13 +429,13 @@ int TaskGroup::start_background(fiber_t* __restrict th,
     if (__builtin_expect(!m, 0)) {
         return ENOMEM;
     }
-    MCHECK(m->current_waiter.load(mutil::memory_order_relaxed) == NULL);
+    CHECK(m->current_waiter.load(mutil::memory_order_relaxed) == NULL);
     m->stop = false;
     m->interrupted = false;
     m->about_to_quit = false;
     m->fn = fn;
     m->arg = arg;
-    MCHECK(m->stack == NULL);
+    CHECK(m->stack == NULL);
     m->attr = using_attr;
     m->local_storage = LOCAL_STORAGE_INIT;
     if (using_attr.flags & FIBER_INHERIT_SPAN) {
@@ -442,7 +446,7 @@ int TaskGroup::start_background(fiber_t* __restrict th,
     m->tid = make_tid(*m->version_butex, slot);
     *th = m->tid;
     if (using_attr.flags & FIBER_LOG_START_AND_FINISH) {
-        MLOG(INFO) << "Started fiber " << m->tid;
+        LOG(INFO) << "Started fiber " << m->tid;
     }
     _control->_nfibers << 1;
     _control->tag_nfibers(tag()) << 1;
@@ -569,7 +573,7 @@ void TaskGroup::sched_to(TaskGroup** pg, TaskMeta* next_meta) {
     TaskGroup* g = *pg;
 #ifndef NDEBUG
     if ((++g->_sched_recursive_guard) > 1) {
-        MLOG(FATAL) << "Recursively(" << g->_sched_recursive_guard - 1
+        LOG(FATAL) << "Recursively(" << g->_sched_recursive_guard - 1
                    << ") call sched_to(" << g << ")";
     }
 #endif
@@ -598,7 +602,7 @@ void TaskGroup::sched_to(TaskGroup** pg, TaskMeta* next_meta) {
         // use fiber local storage internally, or will cause memory leak.
         if ((cur_meta->attr.flags & FIBER_LOG_CONTEXT_SWITCH) ||
             (next_meta->attr.flags & FIBER_LOG_CONTEXT_SWITCH)) {
-            MLOG(INFO) << "Switch fiber: " << cur_meta->tid << " -> "
+            LOG(INFO) << "Switch fiber: " << cur_meta->tid << " -> "
                       << next_meta->tid;
         }
 
@@ -612,13 +616,13 @@ void TaskGroup::sched_to(TaskGroup** pg, TaskMeta* next_meta) {
             else {
                 // else pthread_task is switching to another pthread_task, sc
                 // can only equal when they're both _main_stack
-                MCHECK(cur_meta->stack == g->_main_stack);
+                CHECK(cur_meta->stack == g->_main_stack);
             }
 #endif
         }
         // else because of ending_sched(including pthread_task->pthread_task)
     } else {
-        MLOG(FATAL) << "fiber=" << g->current_tid() << " sched_to itself!";
+        LOG(FATAL) << "fiber=" << g->current_tid() << " sched_to itself!";
     }
 
     while (g->_last_context_remained) {
@@ -644,7 +648,7 @@ void TaskGroup::destroy_self() {
         _control->_destroy_group(this);
         _control = NULL;
     } else {
-        MCHECK(false);
+        CHECK(false);
     }
 }
 
@@ -673,7 +677,7 @@ void TaskGroup::ready_to_run_remote(fiber_t tid, bool nosignal) {
     _remote_rq._mutex.lock();
     while (!_remote_rq.push_locked(tid)) {
         flush_nosignal_tasks_remote_locked(_remote_rq._mutex);
-        MLOG_EVERY_SECOND(ERROR) << "_remote_rq is full, capacity="
+        LOG_EVERY_N_SEC(ERROR, 1) << "_remote_rq is full, capacity="
                                 << _remote_rq.capacity();
         ::usleep(1000);
         _remote_rq._mutex.lock();
@@ -734,7 +738,7 @@ struct SleepArgs {
 };
 
 static void ready_to_run_from_timer_thread(void* arg) {
-    MCHECK(tls_task_group == NULL);
+    CHECK(tls_task_group == NULL);
     const SleepArgs* e = static_cast<const SleepArgs*>(arg);
     auto g = e->group;
     auto tag = g->tag();
@@ -867,14 +871,14 @@ int TaskGroup::interrupt(fiber_t tid, TaskControl* c) {
         return rc;
     }
     // a fiber cannot wait on a butex and be sleepy at the same time.
-    MCHECK(!sleep_id || !w);
+    CHECK(!sleep_id || !w);
     if (w != NULL) {
         erase_from_butex_because_of_interruption(w);
         // If butex_wait() already wakes up before we set current_waiter back,
         // the function will spin until current_waiter becomes non-NULL.
         rc = set_butex_waiter(tid, w);
         if (rc) {
-            MLOG(FATAL) << "butex_wait should spin until setting back waiter";
+            LOG(FATAL) << "butex_wait should spin until setting back waiter";
             return rc;
         }
     } else if (sleep_id != 0) {

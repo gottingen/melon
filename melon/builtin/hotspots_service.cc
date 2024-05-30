@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,17 +22,17 @@
 #include <stdio.h>
 #include <thread>
 #include <gflags/gflags.h>
-#include "melon/utility/files/file_enumerator.h"
-#include "melon/utility/file_util.h"                     // mutil::FilePath
-#include "melon/utility/popen.h"                         // mutil::read_command_output
-#include "melon/utility/fd_guard.h"                      // mutil::fd_guard
-#include "melon/rpc/log.h"
-#include "melon/rpc/controller.h"
-#include "melon/rpc/server.h"
-#include "melon/rpc/reloadable_flags.h"
-#include "melon/builtin/pprof_perl.h"
-#include "melon/builtin/hotspots_service.h"
-#include "melon/rpc/details/tcmalloc_extension.h"
+#include <melon/utility/files/file_enumerator.h>
+#include <melon/utility/file_util.h>                     // mutil::FilePath
+#include <melon/utility/popen.h>                         // mutil::read_command_output
+#include <melon/utility/fd_guard.h>                      // mutil::fd_guard
+#include <melon/rpc/log.h>
+#include <melon/rpc/controller.h>
+#include <melon/rpc/server.h>
+#include <melon/rpc/reloadable_flags.h>
+#include <melon/builtin/pprof_perl.h>
+#include <melon/builtin/hotspots_service.h>
+#include <melon/rpc/details/tcmalloc_extension.h>
 
 extern "C" {
 int __attribute__((weak)) ProfilerStart(const char *fname);
@@ -177,21 +181,21 @@ namespace melon {
         mutil::FilePath path(filepath_in);
         mutil::FilePath dir = path.DirName();
         if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-            MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+            LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return false;
         }
         FILE *fp = fopen(path.value().c_str(), "w");
         if (NULL == fp) {
-            MLOG(ERROR) << "Fail to open `" << path.value() << '\'';
+            LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
         bool ret = true;
         if (fwrite(content.data(), content.size(), 1UL, fp) != 1UL) {
-            MLOG(ERROR) << "Fail to write into " << path.value();
+            LOG(ERROR) << "Fail to write into " << path.value();
             ret = false;
         }
-        MCHECK_EQ(0, fclose(fp));
+        CHECK_EQ(0, fclose(fp));
         return ret;
     }
 
@@ -201,13 +205,13 @@ namespace melon {
         mutil::FilePath path(filepath_in);
         mutil::FilePath dir = path.DirName();
         if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-            MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+            LOG(ERROR) << "Fail to create directory=`" << dir.value()
                        << "', " << error;
             return false;
         }
         FILE *fp = fopen(path.value().c_str(), "w");
         if (NULL == fp) {
-            MLOG(ERROR) << "Fail to open `" << path.value() << '\'';
+            LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
         mutil::IOBufAsZeroCopyInputStream iter(content);
@@ -215,7 +219,7 @@ namespace melon {
         int size = 0;
         while (iter.Next(&data, &size)) {
             if (fwrite(data, size, 1UL, fp) != 1UL) {
-                MLOG(ERROR) << "Fail to write into " << path.value();
+                LOG(ERROR) << "Fail to write into " << path.value();
                 fclose(fp);
                 return false;
             }
@@ -339,7 +343,7 @@ namespace melon {
                                std::vector<ProfilingWaiter> *waiters) {
         waiters->clear();
         if ((int) type >= (int) arraysize(g_env)) {
-            MLOG(ERROR) << "Invalid type=" << type;
+            LOG(ERROR) << "Invalid type=" << type;
             return;
         }
         ProfilingEnvironment &env = g_env[type];
@@ -371,7 +375,7 @@ namespace melon {
             return;
         }
         std::vector<ProfilingWaiter> saved_waiters;
-        MCHECK(g_env[type].client);
+        CHECK(g_env[type].client);
         ConsumeWaiters(type, cur_cntl, &saved_waiters);
         for (size_t i = 0; i < saved_waiters.size(); ++i) {
             Controller *cntl = saved_waiters[i].cntl;
@@ -467,14 +471,14 @@ namespace melon {
                         succ = true;
                         break;
                     } else if (ferror(fp)) {
-                        MLOG(ERROR) << "Encountered error while reading for "
+                        LOG(ERROR) << "Encountered error while reading for "
                                    << expected_result_name;
                         break;
                     }
                     // retry;
                 }
             }
-            PMLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
+            PLOG_IF(ERROR, fclose(fp) != 0) << "Fail to close fp";
             if (succ) {
                 RPC_VLOG << "Hit cache=" << expected_result_name;
                 os.move_to(resp);
@@ -596,8 +600,8 @@ namespace melon {
             }
 
             if (!WriteSmallFile(result_name, prof_result)) {
-                MLOG(ERROR) << "Fail to write " << result_name;
-                MCHECK(mutil::DeleteFile(mutil::FilePath(result_name), false));
+                LOG(ERROR) << "Fail to write " << result_name;
+                CHECK(mutil::DeleteFile(mutil::FilePath(result_name), false));
             }
             break;
         }
@@ -669,9 +673,9 @@ namespace melon {
         }
         client_info << " requests for profiling " << ProfilingType2String(type);
         if (type == PROFILING_CPU || type == PROFILING_CONTENTION) {
-            MLOG(INFO) << client_info.str() << " for " << seconds << " seconds";
+            LOG(INFO) << client_info.str() << " for " << seconds << " seconds";
         } else {
-            MLOG(INFO) << client_info.str();
+            LOG(INFO) << client_info.str();
         }
         int64_t prof_id = 0;
         const std::string *prof_id_str =
@@ -702,7 +706,7 @@ namespace melon {
                 RPC_VLOG << "Hit cached result, id=" << prof_id;
                 return;
             }
-            MCHECK(NULL == g_env[type].client);
+            CHECK(NULL == g_env[type].client);
             g_env[type].client = new ProfilingClient;
             g_env[type].client->end_us = mutil::cpuwide_time_us() + seconds * 1000000L;
             g_env[type].client->seconds = seconds;
@@ -767,7 +771,7 @@ namespace melon {
                 return NotifyWaiters(type, cntl, view);
             }
             if (fiber_usleep(seconds * 1000000L) != 0) {
-                PMLOG(WARNING) << "Profiling has been interrupted";
+                PLOG(WARNING) << "Profiling has been interrupted";
             }
             ProfilerStop();
         } else if (type == PROFILING_CONTENTION) {
@@ -779,7 +783,7 @@ namespace melon {
                 return NotifyWaiters(type, cntl, view);
             }
             if (fiber_usleep(seconds * 1000000L) != 0) {
-                PMLOG(WARNING) << "Profiling has been interrupted";
+                PLOG(WARNING) << "Profiling has been interrupted";
             }
             fiber::ContentionProfilerStop();
         } else if (type == PROFILING_HEAP) {
@@ -1064,12 +1068,12 @@ namespace melon {
                 TRACEPRINTF("Remove %lu profiles",
                             past_profs.size() - (size_t) max_profiles);
                 for (size_t i = max_profiles; i < past_profs.size(); ++i) {
-                    MCHECK(mutil::DeleteFile(mutil::FilePath(past_profs[i]), false));
+                    CHECK(mutil::DeleteFile(mutil::FilePath(past_profs[i]), false));
                     std::string cache_path;
                     cache_path.reserve(past_profs[i].size() + 7);
                     cache_path += past_profs[i];
                     cache_path += ".cache";
-                    MCHECK(mutil::DeleteFile(mutil::FilePath(cache_path), true));
+                    CHECK(mutil::DeleteFile(mutil::FilePath(cache_path), true));
                 }
                 past_profs.resize(max_profiles);
             }

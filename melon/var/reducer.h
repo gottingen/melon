@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,14 +22,14 @@
 #define  MELON_VAR_REDUCER_H_
 
 #include <limits>                                 // std::numeric_limits
-#include "melon/utility/logging.h"                         // LOG()
-#include "melon/utility/type_traits.h"                     // mutil::add_cr_non_integral
-#include "melon/utility/class_name.h"                      // class_name_str
-#include "melon/var/variable.h"                        // Variable
-#include "melon/var/detail/combiner.h"                 // detail::AgentCombiner
-#include "melon/var/detail/sampler.h"                  // ReducerSampler
-#include "melon/var/detail/series.h"
-#include "melon/var/window.h"
+#include <turbo/log/logging.h>                         // LOG()
+#include <melon/utility/type_traits.h>                     // mutil::add_cr_non_integral
+#include <melon/utility/class_name.h>                      // class_name_str
+#include <melon/var/variable.h>                        // Variable
+#include <melon/var/detail/combiner.h>                 // detail::AgentCombiner
+#include <melon/var/detail/sampler.h>                  // ReducerSampler
+#include <melon/var/detail/series.h>
+#include <melon/var/window.h>
 
 namespace melon::var {
 
@@ -60,7 +64,7 @@ namespace melon::var {
 // }
 // melon::var::Adder<MyType> my_type_sum;
 // my_type_sum << MyType(1) << MyType(2) << MyType(3);
-// MLOG(INFO) << my_type_sum;  // "MyType{6}"
+// LOG(INFO) << my_type_sum;  // "MyType{6}"
 
 template <typename T, typename Op, typename InvOp = detail::VoidOp>
 class Reducer : public Variable {
@@ -112,7 +116,7 @@ public:
     // Notice that this function walks through threads that ever add values
     // into this reducer. You should avoid calling it frequently.
     T get_value() const {
-        MCHECK(!(mutil::is_same<InvOp, detail::VoidOp>::value) || _sampler == NULL)
+        CHECK(!(mutil::is_same<InvOp, detail::VoidOp>::value) || _sampler == NULL)
             << "You should not call Reducer<" << mutil::class_name_str<T>()
             << ", " << mutil::class_name_str<Op>() << ">::get_value() when a"
             << " Window<> is used because the operator does not have inverse.";
@@ -186,7 +190,7 @@ inline Reducer<T, Op, InvOp>& Reducer<T, Op, InvOp>::operator<<(
     // It's wait-free for most time
     agent_type* agent = _combiner.get_or_create_tls_agent();
     if (__builtin_expect(!agent, 0)) {
-        MLOG(FATAL) << "Fail to create agent";
+        LOG(FATAL) << "Fail to create agent";
         return *this;
     }
     agent->element.modify(_combiner.op(), value);
@@ -197,7 +201,7 @@ inline Reducer<T, Op, InvOp>& Reducer<T, Op, InvOp>::operator<<(
 
 // melon::var::Adder<int> sum;
 // sum << 1 << 2 << 3 << 4;
-// MLOG(INFO) << sum.get_value(); // 10
+// LOG(INFO) << sum.get_value(); // 10
 // Commonly used functors
 namespace detail {
 template <typename Tp>
@@ -233,7 +237,7 @@ public:
 
 // melon::var::Maxer<int> max_value;
 // max_value << 1 << 2 << 3 << 4;
-// MLOG(INFO) << max_value.get_value(); // 4
+// LOG(INFO) << max_value.get_value(); // 4
 namespace detail {
 template <typename Tp> 
 struct MaxTo {
@@ -282,7 +286,7 @@ private:
 
 // melon::var::Miner<int> min_value;
 // min_value << 1 << 2 << 3 << 4;
-// MLOG(INFO) << min_value.get_value(); // 1
+// LOG(INFO) << min_value.get_value(); // 1
 namespace detail {
 
 template <typename Tp> 

@@ -1,23 +1,27 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/fiber/unstable.h>
 #include "echo.pb.h"
@@ -58,11 +62,11 @@ public:
 DEFINE_bool(h, false, "print help information");
 
 static void my_tagged_worker_start_fn(fiber_tag_t tag) {
-    MLOG(INFO) << "run tagged worker start function tag=" << tag;
+    LOG(INFO) << "run tagged worker start function tag=" << tag;
 }
 
 static void* my_background_task(void*) {
-    MLOG(INFO) << "run background task tag=" << fiber_self_tag();
+    LOG(INFO) << "run background task tag=" << fiber_self_tag();
     fiber_usleep(1000000UL);
     return NULL;
 }
@@ -92,7 +96,7 @@ int main(int argc, char* argv[]) {
     // service is put on stack, we don't want server to delete it, otherwise
     // use melon::SERVER_OWNS_SERVICE.
     if (server1.AddService(&echo_service_impl1, melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -103,7 +107,7 @@ int main(int argc, char* argv[]) {
     options1.internal_port = FLAGS_internal_port1;
     options1.fiber_tag = FLAGS_tag1;
     if (server1.Start(FLAGS_port1, &options1) != 0) {
-        MLOG(ERROR) << "Fail to start EchoServer";
+        LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 
@@ -117,7 +121,7 @@ int main(int argc, char* argv[]) {
     // service is put on stack, we don't want server to delete it, otherwise
     // use melon::SERVER_OWNS_SERVICE.
     if (server2.AddService(&echo_service_impl2, melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
@@ -128,7 +132,7 @@ int main(int argc, char* argv[]) {
     options2.internal_port = FLAGS_internal_port2;
     options2.fiber_tag = FLAGS_tag2;
     if (server2.Start(FLAGS_port2, &options2) != 0) {
-        MLOG(ERROR) << "Fail to start EchoServer";
+        LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

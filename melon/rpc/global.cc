@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -20,55 +24,56 @@
 #include <fcntl.h>                               // O_RDONLY
 #include <signal.h>
 
-#include "melon/utility/build_config.h"                  // OS_LINUX
+#include <melon/utility/build_config.h>                  // OS_LINUX
 // Naming services
-#include "melon/naming/file_naming_service.h"
-#include "melon/naming/list_naming_service.h"
-#include "melon/naming/domain_naming_service.h"
-#include "melon/naming/remote_file_naming_service.h"
-#include "melon/naming/consul_naming_service.h"
-#include "melon/naming/discovery_naming_service.h"
-#include "melon/naming/nacos_naming_service.h"
+#include <melon/naming/file_naming_service.h>
+#include <melon/naming/list_naming_service.h>
+#include <melon/naming/domain_naming_service.h>
+#include <melon/naming/remote_file_naming_service.h>
+#include <melon/naming/consul_naming_service.h>
+#include <melon/naming/discovery_naming_service.h>
+#include <melon/naming/sns_naming_service.h>
+#include <melon/naming/nacos_naming_service.h>
 
 // Load Balancers
-#include "melon/lb/round_robin_load_balancer.h"
-#include "melon/lb/weighted_round_robin_load_balancer.h"
-#include "melon/lb/randomized_load_balancer.h"
-#include "melon/lb/weighted_randomized_load_balancer.h"
-#include "melon/lb/locality_aware_load_balancer.h"
-#include "melon/lb/consistent_hashing_load_balancer.h"
-#include "melon/rpc/policy/hasher.h"
-#include "melon/rpc/policy/dynpart_load_balancer.h"
+#include <melon/lb/round_robin_load_balancer.h>
+#include <melon/lb/weighted_round_robin_load_balancer.h>
+#include <melon/lb/randomized_load_balancer.h>
+#include <melon/lb/weighted_randomized_load_balancer.h>
+#include <melon/lb/locality_aware_load_balancer.h>
+#include <melon/lb/consistent_hashing_load_balancer.h>
+#include <melon/rpc/policy/hasher.h>
+#include <melon/rpc/policy/dynpart_load_balancer.h>
 
 // Compress handlers
-#include "melon/rpc/compress.h"
-#include "melon/compress/gzip_compress.h"
-#include "melon/compress/snappy_compress.h"
+#include <melon/rpc/compress.h>
+#include <melon/compress/gzip_compress.h>
+#include <melon/compress/snappy_compress.h>
 
 // Protocols
-#include "melon/rpc/protocol.h"
-#include "melon/rpc/policy/melon_rpc_protocol.h"
-#include "melon/rpc/policy/baidu_rpc_protocol.h"
-#include "melon/rpc/policy/http_rpc_protocol.h"
-#include "melon/rpc/policy/http2_rpc_protocol.h"
-#include "melon/rpc/policy/hulu_pbrpc_protocol.h"
-#include "melon/rpc/policy/memcache_binary_protocol.h"
-#include "melon/rpc/policy/streaming_rpc_protocol.h"
-#include "melon/rpc/policy/mongo_protocol.h"
-#include "melon/rpc/policy/redis_protocol.h"
-#include "melon/rpc/policy/rtmp_protocol.h"
+#include <melon/rpc/protocol.h>
+#include <melon/rpc/policy/melon_rpc_protocol.h>
+#include <melon/rpc/policy/baidu_rpc_protocol.h>
+#include <melon/rpc/policy/http_rpc_protocol.h>
+#include <melon/rpc/policy/http2_rpc_protocol.h>
+#include <melon/rpc/policy/hulu_pbrpc_protocol.h>
+#include <melon/rpc/policy/memcache_binary_protocol.h>
+#include <melon/rpc/policy/streaming_rpc_protocol.h>
+#include <melon/rpc/policy/mongo_protocol.h>
+#include <melon/rpc/policy/redis_protocol.h>
+#include <melon/rpc/policy/rtmp_protocol.h>
 
 // Concurrency Limiters
-#include "melon/rpc/concurrency_limiter.h"
-#include "melon/rpc/policy/auto_concurrency_limiter.h"
-#include "melon/rpc/policy/constant_concurrency_limiter.h"
-#include "melon/rpc/policy/timeout_concurrency_limiter.h"
+#include <melon/rpc/concurrency_limiter.h>
+#include <melon/rpc/policy/auto_concurrency_limiter.h>
+#include <melon/rpc/policy/constant_concurrency_limiter.h>
+#include <melon/rpc/policy/timeout_concurrency_limiter.h>
 
-#include "melon/rpc/input_messenger.h"     // get_or_new_client_side_messenger
-#include "melon/rpc/socket_map.h"          // SocketMapList
-#include "melon/rpc/server.h"
-#include "melon/rpc/trackme.h"             // TrackMe
-#include "melon/rpc/details/usercode_backup_pool.h"
+#include <melon/rpc/input_messenger.h>     // get_or_new_client_side_messenger
+#include <melon/rpc/socket_map.h>          // SocketMapList
+#include <melon/rpc/server.h>
+#include <melon/rpc/trackme.h>             // TrackMe
+#include <melon/rpc/details/usercode_backup_pool.h>
 
 #if defined(OS_LINUX)
 
@@ -76,8 +81,8 @@
 
 #endif
 
-#include "melon/utility/fd_guard.h"
-#include "melon/utility/files/file_watcher.h"
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/files/file_watcher.h>
 
 extern "C" {
 // defined in gperftools/malloc_extension_c.h
@@ -94,7 +99,7 @@ namespace melon {
     MELON_VALIDATE_GFLAG(free_memory_to_system_interval, PassValidate);
 
     namespace policy {
-// Defined in http_rpc_protocol.cpp
+        // Defined in http_rpc_protocol.cpp
         void InitCommonStrings();
     }
 
@@ -116,6 +121,7 @@ namespace melon {
         melon::naming::RemoteFileNamingService rfns;
         melon::naming::ConsulNamingService cns;
         melon::naming::DiscoveryNamingService dcns;
+        melon::naming::SnsNamingService sns;
         melon::naming::NacosNamingService nns;
 
         melon::lb::RoundRobinLoadBalancer rr_lb;
@@ -139,13 +145,13 @@ namespace melon {
     static long ReadPortOfDummyServer(const char *filename) {
         mutil::fd_guard fd(open(filename, O_RDONLY));
         if (fd < 0) {
-            MLOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
+            LOG(ERROR) << "Fail to open `" << DUMMY_SERVER_PORT_FILE << "'";
             return -1;
         }
         char port_str[32];
         const ssize_t nr = read(fd, port_str, sizeof(port_str));
         if (nr <= 0) {
-            MLOG(ERROR) << "Fail to read `" << DUMMY_SERVER_PORT_FILE << "': "
+            LOG(ERROR) << "Fail to read `" << DUMMY_SERVER_PORT_FILE << "': "
                        << (nr == 0 ? "nothing to read" : berror());
             return -1;
         }
@@ -156,7 +162,7 @@ namespace melon {
         const long port = strtol(p, &endptr, 10);
         for (; isspace(*endptr); ++endptr) {}
         if (*endptr != '\0') {
-            MLOG(ERROR) << "Invalid port=`" << port_str << "'";
+            LOG(ERROR) << "Invalid port=`" << port_str << "'";
             return -1;
         }
         return port;
@@ -205,7 +211,7 @@ namespace melon {
 
         mutil::FileWatcher fw;
         if (fw.init_from_not_exist(DUMMY_SERVER_PORT_FILE) < 0) {
-            MLOG(FATAL) << "Fail to init FileWatcher on `" << DUMMY_SERVER_PORT_FILE << "'";
+            LOG(FATAL) << "Fail to init FileWatcher on `" << DUMMY_SERVER_PORT_FILE << "'";
             return nullptr;
         }
 
@@ -219,14 +225,14 @@ namespace melon {
             const int64_t sleep_us = 1000000L + last_time_us - mutil::gettimeofday_us();
             if (sleep_us > 0) {
                 if (fiber_usleep(sleep_us) < 0) {
-                    PMLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
+                    PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
                     break;
                 }
                 consecutive_nosleep = 0;
             } else {
                 if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                     consecutive_nosleep = 0;
-                    MLOG(WARNING) << __FUNCTION__ << " is too busy!";
+                    LOG(WARNING) << __FUNCTION__ << " is too busy!";
                 }
             }
             last_time_us = mutil::gettimeofday_us();
@@ -280,19 +286,19 @@ namespace melon {
                                          const std::string &message) {
         switch (level) {
             case google::protobuf::LOGLEVEL_INFO:
-                MLOG(INFO) << filename << ':' << line << ' ' << message;
+                LOG(INFO) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_WARNING:
-                MLOG(WARNING) << filename << ':' << line << ' ' << message;
+                LOG(WARNING) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_ERROR:
-                MLOG(ERROR) << filename << ':' << line << ' ' << message;
+                LOG(ERROR) << filename << ':' << line << ' ' << message;
                 return;
             case google::protobuf::LOGLEVEL_FATAL:
-                MLOG(FATAL) << filename << ':' << line << ' ' << message;
+                LOG(FATAL) << filename << ':' << line << ' ' << message;
                 return;
         }
-        MCHECK(false) << filename << ':' << line << ' ' << message;
+        CHECK(false) << filename << ':' << line << ' ' << message;
     }
 
     static void GlobalInitializeOrDieImpl() {
@@ -306,7 +312,7 @@ namespace melon {
         struct sigaction oldact;
         if (sigaction(SIGPIPE, nullptr, &oldact) != 0 ||
             (oldact.sa_handler == nullptr && oldact.sa_sigaction == nullptr)) {
-            MCHECK(SIG_ERR != signal(SIGPIPE, SIG_IGN));
+            CHECK(SIG_ERR != signal(SIGPIPE, SIG_IGN));
         }
 
         // Make GOOGLE_LOG print to comlog device
@@ -342,6 +348,7 @@ namespace melon {
         NamingServiceExtension()->RegisterOrDie("remotefile", &g_ext->rfns);
         NamingServiceExtension()->RegisterOrDie("consul", &g_ext->cns);
         NamingServiceExtension()->RegisterOrDie("discovery", &g_ext->dcns);
+        NamingServiceExtension()->RegisterOrDie("sns", &g_ext->sns);
         NamingServiceExtension()->RegisterOrDie("nacos", &g_ext->nns);
 
         // Load Balancers
@@ -506,14 +513,14 @@ namespace melon {
 
         // We never join GlobalUpdate, let it quit with the process.
         fiber_t th;
-        MCHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
+        CHECK(fiber_start_background(&th, nullptr, GlobalUpdate, nullptr) == 0)
         << "Fail to start GlobalUpdate";
     }
 
     void GlobalInitializeOrDie() {
         if (pthread_once(&register_extensions_once,
                          GlobalInitializeOrDieImpl) != 0) {
-            MLOG(FATAL) << "Fail to pthread_once";
+            LOG(FATAL) << "Fail to pthread_once";
             exit(1);
         }
     }

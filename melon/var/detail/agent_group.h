@@ -1,34 +1,37 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef  MELON_VAR_DETAIL_AGENT_GROUP_H_
-#define  MELON_VAR_DETAIL_AGENT_GROUP_H_
+#pragma once
 
 #include <pthread.h>                        // pthread_mutex_*
-#include <stdlib.h>                         // abort
+#include <cstdlib>                         // abort
 
 #include <new>                              // std::nothrow
 #include <deque>                            // std::deque
 #include <vector>                           // std::vector
 
-#include "melon/utility/errno.h"                     // errno
-#include "melon/utility/thread_local.h"              // thread_atexit
-#include "melon/utility/macros.h"                    // MELON_CACHELINE_ALIGNMENT
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/errno.h>                     // errno
+#include <melon/utility/thread_local.h>              // thread_atexit
+#include <melon/utility/macros.h>                    // MELON_CACHELINE_ALIGNMENT
+#include <melon/utility/scoped_lock.h>
+#include <turbo/log/logging.h>
 
 namespace melon::var {
     namespace detail {
@@ -49,8 +52,8 @@ namespace melon::var {
             typedef Agent agent_type;
 
             // TODO: We should remove the template parameter and unify AgentGroup
-            // of all bvar with a same one, to reuse the memory between different
-            // type of bvar. The unified AgentGroup allocates small structs in-place
+            // of all var with a same one, to reuse the memory between different
+            // type of var. The unified AgentGroup allocates small structs in-place
             // and large structs on heap, thus keeping batch efficiencies on small
             // structs and improving memory usage on large structs.
             const static size_t RAW_BLOCK_SIZE = 4096;
@@ -126,13 +129,13 @@ namespace melon::var {
             // Note: May return non-null for unexist id, see notes on ThreadBlock
             inline static Agent *get_or_create_tls_agent(AgentId id) {
                 if (__builtin_expect(id < 0, 0)) {
-                    MCHECK(false) << "Invalid id=" << id;
+                    CHECK(false) << "Invalid id=" << id;
                     return NULL;
                 }
                 if (_s_tls_blocks == NULL) {
                     _s_tls_blocks = new(std::nothrow) std::vector<ThreadBlock *>;
                     if (__builtin_expect(_s_tls_blocks == NULL, 0)) {
-                        MLOG(FATAL) << "Fail to create vector, " << berror();
+                        LOG(FATAL) << "Fail to create vector, " << berror();
                         return NULL;
                     }
                     mutil::thread_atexit(_destroy_tls_blocks);
@@ -195,5 +198,3 @@ namespace melon::var {
 
     }  // namespace detail
 }  // namespace melon::var
-
-#endif  // MELON_VAR_DETAIL_AGENT_GROUP_H_

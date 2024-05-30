@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 #if !defined(UNIT_TEST)
 #include <unistd.h>                        // getpagesize
@@ -25,22 +29,23 @@
 #else
 #endif
 
-#include "melon/utility/time.h"
-#include "melon/utility/memory/singleton_on_pthread_once.h"
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/files/scoped_file.h"
-#include "melon/utility/files/dir_reader_posix.h"
-#include "melon/utility/file_util.h"
-#include "melon/utility/process_util.h"            // ReadCommandLine
-#include "melon/utility/popen.h"                   // read_command_output
-#include "melon/var/passive_status.h"
+#include <melon/utility/time.h>
+#include <melon/utility/memory/singleton_on_pthread_once.h>
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/files/scoped_file.h>
+#include <melon/utility/files/dir_reader_posix.h>
+#include <melon/utility/file_util.h>
+#include <melon/utility/process_util.h>            // ReadCommandLine
+#include <melon/utility/popen.h>                   // read_command_output
+#include <melon/var/passive_status.h>
+#include <melon/utility/macros.h>
 
 namespace melon::var {
 
     template<class T, class M>
     M get_member_type(M T::*);
 
-#define BVAR_MEMBER_TYPE(member) MELON_TYPEOF(melon::var::get_member_type(member))
+#define VAR_MEMBER_TYPE(member) MELON_TYPEOF(melon::var::get_member_type(member))
 
     int do_link_default_variables = 0;
     const int64_t CACHED_INTERVAL_US = 100000L; // 100ms
@@ -77,7 +82,7 @@ namespace melon::var {
         // see http://man7.org/linux/man-pages/man5/proc.5.html
         mutil::ScopedFILE fp("/proc/self/stat", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/self/stat";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/self/stat";
             return false;
         }
         if (fscanf(fp, "%d %*s %c "
@@ -90,7 +95,7 @@ namespace melon::var {
                    &stat.flags, &stat.minflt, &stat.cminflt, &stat.majflt,
                    &stat.cmajflt, &stat.utime, &stat.stime, &stat.cutime, &stat.cstime,
                    &stat.priority, &stat.nice, &stat.num_threads) != 19) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
@@ -104,7 +109,7 @@ namespace melon::var {
                 "ps -p %ld -o pid,ppid,pgid,sess"
                 ",tpgid,flags,pri,nice | tail -n1", (long)pid);
         if (mutil::read_command_output(oss, cmdbuf) != 0) {
-            MLOG(ERROR) << "Fail to read stat";
+            LOG(ERROR) << "Fail to read stat";
             return -1;
         }
         const std::string& result = oss.str();
@@ -112,7 +117,7 @@ namespace melon::var {
                                   "%d %u %ld %ld",
                    &stat.pid, &stat.ppid, &stat.pgrp, &stat.session,
                    &stat.tpgid, &stat.flags, &stat.priority, &stat.nice) != 8) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
@@ -126,7 +131,7 @@ namespace melon::var {
     class CachedReader {
     public:
         CachedReader() : _mtime_us(0) {
-            MCHECK_EQ(0, pthread_mutex_init(&_mutex, NULL));
+            CHECK_EQ(0, pthread_mutex_init(&_mutex, NULL));
         }
 
         ~CachedReader() {
@@ -148,7 +153,7 @@ namespace melon::var {
                     p->_mtime_us = now;
                     pthread_mutex_unlock(&p->_mutex);
                     // don't run fn inside lock otherwise a slow fn may
-                    // block all concurrent bvar dumppers. (e.g. /vars)
+                    // block all concurrent var dumppers. (e.g. /vars)
                     T result;
                     if (fn(&result)) {
                         pthread_mutex_lock(&p->_mutex);
@@ -181,15 +186,15 @@ namespace melon::var {
         }
     };
 
-#define BVAR_DEFINE_PROC_STAT_FIELD(field)                              \
-    PassiveStatus<BVAR_MEMBER_TYPE(&ProcStat::field)> g_##field(        \
-        ProcStatReader::get_field<BVAR_MEMBER_TYPE(&ProcStat::field),   \
+#define VAR_DEFINE_PROC_STAT_FIELD(field)                              \
+    PassiveStatus<VAR_MEMBER_TYPE(&ProcStat::field)> g_##field(        \
+        ProcStatReader::get_field<VAR_MEMBER_TYPE(&ProcStat::field),   \
         offsetof(ProcStat, field)>, NULL);
 
-#define BVAR_DEFINE_PROC_STAT_FIELD2(field, name)                       \
-    PassiveStatus<BVAR_MEMBER_TYPE(&ProcStat::field)> g_##field(        \
+#define VAR_DEFINE_PROC_STAT_FIELD2(field, name)                       \
+    PassiveStatus<VAR_MEMBER_TYPE(&ProcStat::field)> g_##field(        \
         name,                                                           \
-        ProcStatReader::get_field<BVAR_MEMBER_TYPE(&ProcStat::field),   \
+        ProcStatReader::get_field<VAR_MEMBER_TYPE(&ProcStat::field),   \
         offsetof(ProcStat, field)>, NULL);
 
 // ==================================================
@@ -210,13 +215,13 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/self/statm", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/self/statm";
+           PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/self/statm";
             return false;
         }
         if (fscanf(fp, "%ld %ld %ld %ld %ld %ld %ld",
                    &m.size, &m.resident, &m.share,
                    &m.trs, &m.lrs, &m.drs, &m.dt) != 7) {
-            PMLOG(WARNING) << "Fail to fscanf /proc/self/statm";
+            PLOG(WARNING) << "Fail to fscanf /proc/self/statm";
             return false;
         }
         return true;
@@ -229,12 +234,12 @@ namespace melon::var {
         char cmdbuf[128];
         snprintf(cmdbuf, sizeof(cmdbuf), "ps -p %ld -o rss=,vsz=", (long)pid);
         if (mutil::read_command_output(oss, cmdbuf) != 0) {
-            MLOG(ERROR) << "Fail to read memory state";
+            LOG(ERROR) << "Fail to read memory state";
             return -1;
         }
         const std::string& result = oss.str();
         if (sscanf(result.c_str(), "%ld %ld", &m.resident, &m.size) != 2) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         // resident and size in Kbytes
@@ -260,10 +265,10 @@ namespace melon::var {
         }
     };
 
-#define BVAR_DEFINE_PROC_MEMORY_FIELD(field, name)                      \
-    PassiveStatus<BVAR_MEMBER_TYPE(&ProcMemory::field)> g_##field(      \
+#define VAR_DEFINE_PROC_MEMORY_FIELD(field, name)                      \
+    PassiveStatus<VAR_MEMBER_TYPE(&ProcMemory::field)> g_##field(      \
         name,                                                           \
-        ProcMemoryReader::get_field<BVAR_MEMBER_TYPE(&ProcMemory::field), \
+        ProcMemoryReader::get_field<VAR_MEMBER_TYPE(&ProcMemory::field), \
         offsetof(ProcMemory, field)>, NULL);
 
 // ==================================================
@@ -278,27 +283,27 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/loadavg", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/loadavg";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/loadavg";
             return false;
         }
         m = LoadAverage();
         errno = 0;
         if (fscanf(fp, "%lf %lf %lf",
                    &m.loadavg_1m, &m.loadavg_5m, &m.loadavg_15m) != 3) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
 #elif defined(OS_MACOSX)
         std::ostringstream oss;
         if (mutil::read_command_output(oss, "sysctl -n vm.loadavg") != 0) {
-            MLOG(ERROR) << "Fail to read loadavg";
+            LOG(ERROR) << "Fail to read loadavg";
             return -1;
         }
         const std::string& result = oss.str();
         if (sscanf(result.c_str(), "{ %lf %lf %lf }",
                    &m.loadavg_1m, &m.loadavg_5m, &m.loadavg_15m) != 3) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return false;
         }
         return true;
@@ -321,10 +326,10 @@ namespace melon::var {
         }
     };
 
-#define BVAR_DEFINE_LOAD_AVERAGE_FIELD(field, name)                     \
-    PassiveStatus<BVAR_MEMBER_TYPE(&LoadAverage::field)> g_##field(     \
+#define VAR_DEFINE_LOAD_AVERAGE_FIELD(field, name)                     \
+    PassiveStatus<VAR_MEMBER_TYPE(&LoadAverage::field)> g_##field(     \
         name,                                                           \
-        LoadAverageReader::get_field<BVAR_MEMBER_TYPE(&LoadAverage::field), \
+        LoadAverageReader::get_field<VAR_MEMBER_TYPE(&LoadAverage::field), \
         offsetof(LoadAverage, field)>, NULL);
 
 // ==================================================
@@ -334,7 +339,7 @@ namespace melon::var {
         mutil::DirReaderPosix dr("/proc/self/fd");
         int count = 0;
         if (!dr.IsValid()) {
-            PMLOG(WARNING) << "Fail to open /proc/self/fd";
+            PLOG(WARNING) << "Fail to open /proc/self/fd";
             return -1;
         }
         // Have to limit the scaning which consumes a lot of CPU when #fd
@@ -351,13 +356,13 @@ namespace melon::var {
         snprintf(cmdbuf, sizeof(cmdbuf),
                 "lsof -p %ld | grep -v \"txt\" | wc -l", (long)pid);
         if (mutil::read_command_output(oss, cmdbuf) != 0) {
-            MLOG(ERROR) << "Fail to read open files";
+            LOG(ERROR) << "Fail to read open files";
             return -1;
         }
         const std::string& result = oss.str();
         int count = 0;
         if (sscanf(result.c_str(), "%d", &count) != 1) {
-            PMLOG(WARNING) << "Fail to sscanf";
+            PLOG(WARNING) << "Fail to sscanf";
             return -1;
         }
         // skipped . and first column line
@@ -389,7 +394,7 @@ namespace melon::var {
             if (count == MAX_FD_SCAN_COUNT - 2
                 && s_ever_reached_fd_scan_limit.exchange(
                     true, mutil::memory_order_relaxed) == false) {
-                // Rename the bvar to notify user.
+                // Rename the var to notify user.
                 g_fd_num.hide();
                 g_fd_num.expose("process_fd_num_too_many");
             }
@@ -433,7 +438,7 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/self/io", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/self/io";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/self/io";
             return false;
         }
         errno = 0;
@@ -441,7 +446,7 @@ namespace melon::var {
                    &s->rchar, &s->wchar, &s->syscr, &s->syscw,
                    &s->read_bytes, &s->write_bytes, &s->cancelled_write_bytes)
             != 7) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
@@ -452,7 +457,7 @@ namespace melon::var {
         static pid_t pid = getpid();
         rusage_info_current rusage;
         if (proc_pid_rusage(pid, RUSAGE_INFO_CURRENT, (void**)&rusage) != 0) {
-            PMLOG(WARNING) << "Fail to proc_pid_rusage";
+            PLOG(WARNING) << "Fail to proc_pid_rusage";
             return false;
         }
         s->read_bytes = rusage.ri_diskio_bytesread;
@@ -476,9 +481,9 @@ namespace melon::var {
         }
     };
 
-#define BVAR_DEFINE_PROC_IO_FIELD(field)                                \
-    PassiveStatus<BVAR_MEMBER_TYPE(&ProcIO::field)> g_##field(          \
-        ProcIOReader::get_field<BVAR_MEMBER_TYPE(&ProcIO::field),       \
+#define VAR_DEFINE_PROC_IO_FIELD(field)                                \
+    PassiveStatus<VAR_MEMBER_TYPE(&ProcIO::field)> g_##field(          \
+        ProcIOReader::get_field<VAR_MEMBER_TYPE(&ProcIO::field),       \
         offsetof(ProcIO, field)>, NULL);
 
 // ==================================================
@@ -542,7 +547,7 @@ namespace melon::var {
 #if defined(OS_LINUX)
         mutil::ScopedFILE fp("/proc/diskstats", "r");
         if (NULL == fp) {
-            PMLOG_ONCE(WARNING) << "Fail to open /proc/diskstats";
+            PLOG_FIRST_N(WARNING, 1) << "Fail to open /proc/diskstats";
             return false;
         }
         errno = 0;
@@ -562,7 +567,7 @@ namespace melon::var {
                    &s->io_in_progress,
                    &s->time_spent_io_ms,
                    &s->weighted_time_spent_io_ms) != 14) {
-            PMLOG(WARNING) << "Fail to fscanf";
+            PLOG(WARNING) << "Fail to fscanf";
             return false;
         }
         return true;
@@ -587,9 +592,9 @@ namespace melon::var {
         }
     };
 
-#define BVAR_DEFINE_DISK_STAT_FIELD(field)                              \
-    PassiveStatus<BVAR_MEMBER_TYPE(&DiskStat::field)> g_##field(        \
-        DiskStatReader::get_field<BVAR_MEMBER_TYPE(&DiskStat::field),   \
+#define VAR_DEFINE_DISK_STAT_FIELD(field)                              \
+    PassiveStatus<VAR_MEMBER_TYPE(&DiskStat::field)> g_##field(        \
+        DiskStatReader::get_field<VAR_MEMBER_TYPE(&DiskStat::field),   \
         offsetof(DiskStat, field)>, NULL);
 
 // =====================================
@@ -614,7 +619,7 @@ namespace melon::var {
         ReadVersion() {
             std::ostringstream oss;
             if (mutil::read_command_output(oss, "uname -ap") != 0) {
-                MLOG(ERROR) << "Fail to read kernel version";
+                LOG(ERROR) << "Fail to read kernel version";
                 return;
             }
             content.append(oss.str());
@@ -644,7 +649,7 @@ namespace melon::var {
         bool operator()(rusage *stat) const {
             const int rc = getrusage(RUSAGE_SELF, stat);
             if (rc < 0) {
-                PMLOG(WARNING) << "Fail to getrusage";
+                PLOG(WARNING) << "Fail to getrusage";
                 return false;
             }
             return true;
@@ -657,22 +662,22 @@ namespace melon::var {
         }
     };
 
-#define BVAR_DEFINE_RUSAGE_FIELD(field)                                 \
-    PassiveStatus<BVAR_MEMBER_TYPE(&rusage::field)> g_##field(          \
-        RUsageReader::get_field<BVAR_MEMBER_TYPE(&rusage::field),       \
+#define VAR_DEFINE_RUSAGE_FIELD(field)                                 \
+    PassiveStatus<VAR_MEMBER_TYPE(&rusage::field)> g_##field(          \
+        RUsageReader::get_field<VAR_MEMBER_TYPE(&rusage::field),       \
         offsetof(rusage, field)>, NULL);                                \
 
-#define BVAR_DEFINE_RUSAGE_FIELD2(field, name)                          \
-    PassiveStatus<BVAR_MEMBER_TYPE(&rusage::field)> g_##field(          \
+#define VAR_DEFINE_RUSAGE_FIELD2(field, name)                          \
+    PassiveStatus<VAR_MEMBER_TYPE(&rusage::field)> g_##field(          \
         name,                                                           \
-        RUsageReader::get_field<BVAR_MEMBER_TYPE(&rusage::field),       \
+        RUsageReader::get_field<VAR_MEMBER_TYPE(&rusage::field),       \
         offsetof(rusage, field)>, NULL);                                \
 
 // ======================================
 
-    BVAR_DEFINE_PROC_STAT_FIELD2(pid, "pid");
-    BVAR_DEFINE_PROC_STAT_FIELD2(ppid, "ppid");
-    BVAR_DEFINE_PROC_STAT_FIELD2(pgrp, "pgrp");
+    VAR_DEFINE_PROC_STAT_FIELD2(pid, "pid");
+    VAR_DEFINE_PROC_STAT_FIELD2(ppid, "ppid");
+    VAR_DEFINE_PROC_STAT_FIELD2(pgrp, "pgrp");
 
     static void get_username(std::ostream &os, void *) {
         char buf[32];
@@ -687,50 +692,50 @@ namespace melon::var {
     PassiveStatus<std::string> g_username(
             "process_username", get_username, NULL);
 
-    BVAR_DEFINE_PROC_STAT_FIELD(minflt);
+    VAR_DEFINE_PROC_STAT_FIELD(minflt);
     PerSecond<PassiveStatus<unsigned long> > g_minflt_second(
             "process_faults_minor_second", &g_minflt);
-    BVAR_DEFINE_PROC_STAT_FIELD2(majflt, "process_faults_major");
+    VAR_DEFINE_PROC_STAT_FIELD2(majflt, "process_faults_major");
 
-    BVAR_DEFINE_PROC_STAT_FIELD2(priority, "process_priority");
-    BVAR_DEFINE_PROC_STAT_FIELD2(nice, "process_nice");
+    VAR_DEFINE_PROC_STAT_FIELD2(priority, "process_priority");
+    VAR_DEFINE_PROC_STAT_FIELD2(nice, "process_nice");
 
-    BVAR_DEFINE_PROC_STAT_FIELD2(num_threads, "process_thread_count");
+    VAR_DEFINE_PROC_STAT_FIELD2(num_threads, "process_thread_count");
     PassiveStatus<int> g_fd_num("process_fd_count", print_fd_count, NULL);
 
-    BVAR_DEFINE_PROC_MEMORY_FIELD(size, "process_memory_virtual");
-    BVAR_DEFINE_PROC_MEMORY_FIELD(resident, "process_memory_resident");
-    BVAR_DEFINE_PROC_MEMORY_FIELD(share, "process_memory_shared");
-    BVAR_DEFINE_PROC_MEMORY_FIELD(trs, "process_memory_text");
-    BVAR_DEFINE_PROC_MEMORY_FIELD(drs, "process_memory_data_and_stack");
+    VAR_DEFINE_PROC_MEMORY_FIELD(size, "process_memory_virtual");
+    VAR_DEFINE_PROC_MEMORY_FIELD(resident, "process_memory_resident");
+    VAR_DEFINE_PROC_MEMORY_FIELD(share, "process_memory_shared");
+    VAR_DEFINE_PROC_MEMORY_FIELD(trs, "process_memory_text");
+    VAR_DEFINE_PROC_MEMORY_FIELD(drs, "process_memory_data_and_stack");
 
-    BVAR_DEFINE_LOAD_AVERAGE_FIELD(loadavg_1m, "system_loadavg_1m");
-    BVAR_DEFINE_LOAD_AVERAGE_FIELD(loadavg_5m, "system_loadavg_5m");
-    BVAR_DEFINE_LOAD_AVERAGE_FIELD(loadavg_15m, "system_loadavg_15m");
+    VAR_DEFINE_LOAD_AVERAGE_FIELD(loadavg_1m, "system_loadavg_1m");
+    VAR_DEFINE_LOAD_AVERAGE_FIELD(loadavg_5m, "system_loadavg_5m");
+    VAR_DEFINE_LOAD_AVERAGE_FIELD(loadavg_15m, "system_loadavg_15m");
 
-    BVAR_DEFINE_PROC_IO_FIELD(rchar);
-    BVAR_DEFINE_PROC_IO_FIELD(wchar);
+    VAR_DEFINE_PROC_IO_FIELD(rchar);
+    VAR_DEFINE_PROC_IO_FIELD(wchar);
     PerSecond<PassiveStatus<size_t> > g_io_read_second(
             "process_io_read_bytes_second", &g_rchar);
     PerSecond<PassiveStatus<size_t> > g_io_write_second(
             "process_io_write_bytes_second", &g_wchar);
 
-    BVAR_DEFINE_PROC_IO_FIELD(syscr);
-    BVAR_DEFINE_PROC_IO_FIELD(syscw);
+    VAR_DEFINE_PROC_IO_FIELD(syscr);
+    VAR_DEFINE_PROC_IO_FIELD(syscw);
     PerSecond<PassiveStatus<size_t> > g_io_num_reads_second(
             "process_io_read_second", &g_syscr);
     PerSecond<PassiveStatus<size_t> > g_io_num_writes_second(
             "process_io_write_second", &g_syscw);
 
-    BVAR_DEFINE_PROC_IO_FIELD(read_bytes);
-    BVAR_DEFINE_PROC_IO_FIELD(write_bytes);
+    VAR_DEFINE_PROC_IO_FIELD(read_bytes);
+    VAR_DEFINE_PROC_IO_FIELD(write_bytes);
     PerSecond<PassiveStatus<size_t> > g_disk_read_second(
             "process_disk_read_bytes_second", &g_read_bytes);
     PerSecond<PassiveStatus<size_t> > g_disk_write_second(
             "process_disk_write_bytes_second", &g_write_bytes);
 
-    BVAR_DEFINE_RUSAGE_FIELD(ru_utime);
-    BVAR_DEFINE_RUSAGE_FIELD(ru_stime);
+    VAR_DEFINE_RUSAGE_FIELD(ru_utime);
+    VAR_DEFINE_RUSAGE_FIELD(ru_stime);
     PassiveStatus<timeval> g_uptime("process_uptime", get_uptime, NULL);
 
     static int get_core_num(void *) {
@@ -772,7 +777,7 @@ namespace melon::var {
 
     PassiveStatus<TimePercent> g_cputime_percent(get_cputime_percent, NULL);
     Window<PassiveStatus<TimePercent>, SERIES_IN_SECOND> g_cputime_percent_second(
-            "process_cpu_usage", &g_cputime_percent, FLAGS_bvar_dump_interval);
+            "process_cpu_usage", &g_cputime_percent, FLAGS_var_dump_interval);
 
     static TimePercent get_stime_percent(void *) {
         TimePercent tp = {mutil::timeval_to_microseconds(g_ru_stime.get_value()),
@@ -782,7 +787,7 @@ namespace melon::var {
 
     PassiveStatus<TimePercent> g_stime_percent(get_stime_percent, NULL);
     Window<PassiveStatus<TimePercent>, SERIES_IN_SECOND> g_stime_percent_second(
-            "process_cpu_usage_system", &g_stime_percent, FLAGS_bvar_dump_interval);
+            "process_cpu_usage_system", &g_stime_percent, FLAGS_var_dump_interval);
 
     static TimePercent get_utime_percent(void *) {
         TimePercent tp = {mutil::timeval_to_microseconds(g_ru_utime.get_value()),
@@ -792,7 +797,7 @@ namespace melon::var {
 
     PassiveStatus<TimePercent> g_utime_percent(get_utime_percent, NULL);
     Window<PassiveStatus<TimePercent>, SERIES_IN_SECOND> g_utime_percent_second(
-            "process_cpu_usage_user", &g_utime_percent, FLAGS_bvar_dump_interval);
+            "process_cpu_usage_user", &g_utime_percent, FLAGS_var_dump_interval);
 
 // According to http://man7.org/linux/man-pages/man2/getrusage.2.html
 // Unsupported fields in linux:
@@ -801,10 +806,10 @@ namespace melon::var {
 //   ru_isrss 
 //   ru_nswap 
 //   ru_nsignals 
-    BVAR_DEFINE_RUSAGE_FIELD(ru_inblock);
-    BVAR_DEFINE_RUSAGE_FIELD(ru_oublock);
-    BVAR_DEFINE_RUSAGE_FIELD(ru_nvcsw);
-    BVAR_DEFINE_RUSAGE_FIELD(ru_nivcsw);
+    VAR_DEFINE_RUSAGE_FIELD(ru_inblock);
+    VAR_DEFINE_RUSAGE_FIELD(ru_oublock);
+    VAR_DEFINE_RUSAGE_FIELD(ru_nvcsw);
+    VAR_DEFINE_RUSAGE_FIELD(ru_nivcsw);
     PerSecond<PassiveStatus<long> > g_ru_inblock_second(
             "process_inblocks_second", &g_ru_inblock);
     PerSecond<PassiveStatus<long> > g_ru_oublock_second(
@@ -880,12 +885,12 @@ namespace melon::var {
 
     PassiveStatus<std::string> g_work_dir("process_work_dir", get_work_dir, NULL);
 
-#undef BVAR_MEMBER_TYPE
-#undef BVAR_DEFINE_PROC_STAT_FIELD
-#undef BVAR_DEFINE_PROC_STAT_FIELD2
-#undef BVAR_DEFINE_PROC_MEMORY_FIELD
-#undef BVAR_DEFINE_RUSAGE_FIELD
-#undef BVAR_DEFINE_RUSAGE_FIELD2
+#undef VAR_MEMBER_TYPE
+#undef VAR_DEFINE_PROC_STAT_FIELD
+#undef VAR_DEFINE_PROC_STAT_FIELD2
+#undef VAR_DEFINE_PROC_MEMORY_FIELD
+#undef VAR_DEFINE_RUSAGE_FIELD
+#undef VAR_DEFINE_RUSAGE_FIELD2
 
 }  // namespace melon::var
 

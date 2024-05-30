@@ -10,7 +10,7 @@
 #include <limits>
 
 #include "melon/utility/format_macros.h"
-#include "melon/utility/strings/string_number_conversions.h"
+#include <melon/utility/strings/string_number_conversions.h>
 #include "melon/utility/strings/stringprintf.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>

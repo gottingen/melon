@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/file_util.h>
 #include <errno.h>
 #include <melon/rpc/server.h>
@@ -307,7 +307,7 @@ TEST_F(SnapshotTest, file_escapes_directory) {
         ASSERT_TRUE(fs->create_directory("./data/snapshot1/dir1/", NULL, true));
         melon::raft::FileAdaptor* file = fs->open("./data/snapshot1/dir1/file",
                 O_CREAT | O_TRUNC | O_RDWR, NULL, NULL);
-        MCHECK(file != NULL);
+        CHECK(file != NULL);
         delete file;
     }
     storage1->set_server_addr(mutil::EndPoint(mutil::my_ip(), 6006));
@@ -401,8 +401,8 @@ void *write_thread(void* arg) {
 }
 
 TEST_F(SnapshotTest, thread_safety) {
-    // writer thread will make much log when sleep
-    logging::FLAGS_minloglevel = 1;
+    // writer thread will make much log when sleep;
+    turbo::set_min_log_level(turbo::LogSeverityAtLeast::kWarning);
 
     melon::raft::FileSystemAdaptor* fs;
     FOR_EACH_FILE_SYSTEM_ADAPTOR_BEGIN(fs);
@@ -428,7 +428,7 @@ TEST_F(SnapshotTest, thread_safety) {
 
     FOR_EACH_FILE_SYSTEM_ADAPTOR_END;
 
-    logging::FLAGS_minloglevel = 0;
+    turbo::set_min_log_level(turbo::LogSeverityAtLeast::kInfo);
 }
 
 void write_file(melon::raft::FileSystemAdaptor* fs, const std::string& path, const std::string& data) {
@@ -436,10 +436,10 @@ void write_file(melon::raft::FileSystemAdaptor* fs, const std::string& path, con
         fs = melon::raft::default_file_system();
     }
     melon::raft::FileAdaptor* file = fs->open(path, O_CREAT | O_TRUNC | O_RDWR, NULL, NULL);
-    MCHECK(file != NULL);
+    CHECK(file != NULL);
     mutil::IOBuf io_buf;
     io_buf.append(data);
-    MCHECK_EQ(data.size(), file->write(io_buf, 0));
+    CHECK_EQ(data.size(), file->write(io_buf, 0));
     delete file;
 }
 
@@ -708,7 +708,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading) {
     ASSERT_EQ(0, storage2->init());
     // copy
     melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
-    MLOG(INFO) << "Copy finish.";
+    LOG(INFO) << "Copy finish.";
     ASSERT_TRUE(reader2 != NULL);
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(reader2));
@@ -756,7 +756,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add nomal file for storage1
-    MLOG(INFO) << "add nomal file";
+    LOG(INFO) << "add nomal file";
     const std::string data1("aaa");
     const std::string checksum1("1000");
     add_file_meta(fs, writer1, 1, &checksum1, data1);
@@ -791,11 +791,11 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing) {
     ASSERT_EQ(0, storage2->init());
 
     // copy from storage1 to storage2
-    MLOG(INFO) << "Copy start.";
+    LOG(INFO) << "Copy start.";
     melon::raft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
     ASSERT_TRUE(copier != NULL);
     copier->join();
-    MLOG(INFO) << "Copy finish.";
+    LOG(INFO) << "Copy finish.";
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(copier));
     delete storage2;
@@ -877,7 +877,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_reading_without_enable_throttle) {
     ASSERT_EQ(0, storage2->init());
     // copy
     melon::raft::SnapshotReader* reader2 = storage2->copy_from(uri);
-    MLOG(INFO) << "Copy finish.";
+    LOG(INFO) << "Copy finish.";
     ASSERT_TRUE(reader2 != NULL);
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(reader2));
@@ -927,7 +927,7 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add nomal file for storage1
-    MLOG(INFO) << "add nomal file";
+    LOG(INFO) << "add nomal file";
     const std::string data1("aaa");
     const std::string checksum1("1000");
     add_file_meta(fs, writer1, 1, &checksum1, data1);
@@ -957,11 +957,11 @@ TEST_F(SnapshotTest, snapshot_throttle_for_writing_without_enable_throttle) {
     ASSERT_EQ(0, storage2->init());
 
     // copy from storage1 to storage2
-    MLOG(INFO) << "Copy start.";
+    LOG(INFO) << "Copy start.";
     melon::raft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
     ASSERT_TRUE(copier != NULL);
     copier->join();
-    MLOG(INFO) << "Copy finish.";
+    LOG(INFO) << "Copy finish.";
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(copier));
     delete storage2;
@@ -1010,7 +1010,7 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     melon::raft::SnapshotWriter* writer1 = storage1->create();
     ASSERT_TRUE(writer1 != NULL);
     // add nomal file for storage1
-    MLOG(INFO) << "add nomal file";
+    LOG(INFO) << "add nomal file";
     const std::string data1("aaa");
     const std::string checksum1("1000");
     add_file_meta(fs, writer1, 1, &checksum1, data1);
@@ -1040,11 +1040,11 @@ TEST_F(SnapshotTest, dynamically_change_throttle_threshold) {
     ASSERT_EQ(0, storage2->init());
 
     // copy from storage1 to storage2
-    MLOG(INFO) << "Copy start.";
+    LOG(INFO) << "Copy start.";
     melon::raft::SnapshotCopier* copier = storage2->start_to_copy_from(uri);
     ASSERT_TRUE(copier != NULL);
     copier->join();
-    MLOG(INFO) << "Copy finish.";
+    LOG(INFO) << "Copy finish.";
     ASSERT_EQ(0, storage1->close(reader1));
     ASSERT_EQ(0, storage2->close(copier));
     delete storage2;

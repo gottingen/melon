@@ -1,32 +1,34 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef  MELON_VAR_DETAIL_SERIES_H_
-#define  MELON_VAR_DETAIL_SERIES_H_
+#pragma once
 
 #include <math.h>                       // round
 #include <ostream>
-#include "melon/utility/scoped_lock.h"           // MELON_SCOPED_LOCK
-#include "melon/utility/type_traits.h"
-#include "melon/var/vector.h"
-#include "melon/var/detail/call_op_returning_void.h"
-#include "melon/utility/string_splitter.h"
+#include <melon/utility/scoped_lock.h>           // MELON_SCOPED_LOCK
+#include <melon/utility/type_traits.h>
+#include <melon/var/vector.h>
+#include <melon/var/detail/call_op_returning_void.h>
+#include <melon/utility/string_splitter.h>
 
-namespace melon::var {
-    namespace detail {
+namespace melon::var::detail {
 
         template<typename T, typename Op, typename Enabler = void>
         struct DivideOnAddition {
@@ -236,7 +238,7 @@ namespace melon::var {
     template<typename T, typename Op>
     void Series<T, Op>::describe(std::ostream &os,
                                  const std::string *vector_names) const {
-        MCHECK(vector_names == NULL);
+        CHECK(vector_names == NULL);
         pthread_mutex_lock(&this->_mutex);
         const int second_begin = this->_nsecond;
         const int minute_begin = this->_nminute;
@@ -332,7 +334,4 @@ namespace melon::var {
         os << ']';
     }
 
-}  // namespace detail
-}  // namespace melon::var
-
-#endif  // MELON_VAR_DETAIL_SERIES_H_
+}  // namespace melon::var::detail

@@ -1,25 +1,29 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <limits>
-#include "melon/utility/macros.h"
-#include "melon/rpc/controller.h"
-#include "melon/rpc/details/server_private_accessor.h"
-#include "melon/rpc/details/method_status.h"
+#include <melon/utility/macros.h>
+#include <melon/rpc/controller.h>
+#include <melon/rpc/details/server_private_accessor.h>
+#include <melon/rpc/details/method_status.h>
 
 namespace melon {
 
@@ -37,9 +41,9 @@ static int cast_cl(void* arg) {
 
 MethodStatus::MethodStatus()
     : _nconcurrency(0)
-    , _nconcurrency_bvar(cast_int, &_nconcurrency)
-    , _eps_bvar(&_nerror_bvar)
-    , _max_concurrency_bvar(cast_cl, &_cl)
+    , _nconcurrency_var(cast_int, &_nconcurrency)
+    , _eps_var(&_nerror_var)
+    , _max_concurrency_var(cast_cl, &_cl)
 {
 }
 
@@ -47,20 +51,20 @@ MethodStatus::~MethodStatus() {
 }
 
 int MethodStatus::Expose(const mutil::StringPiece& prefix) {
-    if (_nconcurrency_bvar.expose_as(prefix, "concurrency") != 0) {
+    if (_nconcurrency_var.expose_as(prefix, "concurrency") != 0) {
         return -1;
     }
-    if (_nerror_bvar.expose_as(prefix, "error") != 0) {
+    if (_nerror_var.expose_as(prefix, "error") != 0) {
         return -1;
     }
-    if (_eps_bvar.expose_as(prefix, "eps") != 0) {
+    if (_eps_var.expose_as(prefix, "eps") != 0) {
         return -1;
     }
     if (_latency_rec.expose(prefix) != 0) {
         return -1;
     }
     if (_cl) {
-        if (_max_concurrency_bvar.expose_as(prefix, "max_concurrency") != 0) {
+        if (_max_concurrency_var.expose_as(prefix, "max_concurrency") != 0) {
             return -1;
         }
     }
@@ -77,7 +81,7 @@ void OutputTextValue(std::ostream& os,
 template <typename T>
 void OutputValue(std::ostream& os,
                  const char* prefix,
-                 const std::string& bvar_name,
+                 const std::string& var_name,
                  const T& value,
                  const DescribeOptions& options,
                  bool expand) {
@@ -86,9 +90,9 @@ void OutputValue(std::ostream& os,
         if (expand) {
             os << " default_expand";
         }
-        os << "\">" << prefix << "<span id=\"value-" << bvar_name << "\">"
+        os << "\">" << prefix << "<span id=\"value-" << var_name << "\">"
            << value
-           << "</span></p><div class=\"detail\"><div id=\"" << bvar_name
+           << "</span></p><div class=\"detail\"><div id=\"" << var_name
            << "\" class=\"flot-placeholder\"></div></div>\n";
     } else {
         return OutputTextValue(os, prefix, value);
@@ -106,10 +110,10 @@ void MethodStatus::Describe(
                 options, expand);
 
     // errorous requests
-    OutputValue(os, "error: ", _nerror_bvar.name(), _nerror_bvar.get_value(),
+    OutputValue(os, "error: ", _nerror_var.name(), _nerror_var.get_value(),
                 options, false);
-    OutputValue(os, "eps: ", _eps_bvar.name(),
-                _eps_bvar.get_value(1), options, false);
+    OutputValue(os, "eps: ", _eps_var.name(),
+                _eps_var.get_value(1), options, false);
 
     // latencies
     OutputValue(os, "latency: ", _latency_rec.latency_name(),
@@ -136,10 +140,10 @@ void MethodStatus::Describe(
                 _latency_rec.max_latency(), options, false);
 
     // Concurrency
-    OutputValue(os, "concurrency: ", _nconcurrency_bvar.name(),
+    OutputValue(os, "concurrency: ", _nconcurrency_var.name(),
                 _nconcurrency, options, false);
     if (_cl) {
-        OutputValue(os, "max_concurrency: ", _max_concurrency_bvar.name(),
+        OutputValue(os, "max_concurrency: ", _max_concurrency_var.name(),
                     MaxConcurrency(), options, false);
     }
 }

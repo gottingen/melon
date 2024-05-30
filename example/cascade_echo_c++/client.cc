@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,7 +22,7 @@
 // again according to the field `depth'
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/time.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
@@ -73,7 +77,7 @@ void* sender(void* arg) {
         // the response comes back or error occurs(including timedout).
         stub.Echo(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            //MLOG_EVERY_SECOND(WARNING) << "Fail to send EchoRequest, " << cntl.ErrorText();
+            //LOG_EVERY_N_SEC(WARNING, 1) << "Fail to send EchoRequest, " << cntl.ErrorText();
         } else {
             g_latency_recorder << cntl.latency_us();
         }
@@ -101,7 +105,7 @@ int main(int argc, char* argv[]) {
     // Initialize the channel, NULL means using default options. 
     // options, see `melon/rpc/channel.h'.
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -111,7 +115,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create pthread";
+                LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -120,7 +124,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create fiber";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -132,11 +136,11 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        MLOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
+        LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    MLOG(INFO) << "EchoClient is going to quit";
+    LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

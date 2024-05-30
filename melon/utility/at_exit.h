@@ -9,7 +9,7 @@
 
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/synchronization/lock.h"
+#include <melon/utility/synchronization/lock.h>
 
 namespace mutil {
 

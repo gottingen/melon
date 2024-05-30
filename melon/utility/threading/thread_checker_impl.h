@@ -6,13 +6,13 @@
 #define MUTIL_THREADING_THREAD_CHECKER_IMPL_H_
 
 #include "melon/utility/base_export.h"
-#include "melon/utility/synchronization/lock.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/synchronization/lock.h>
+#include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
 
 // Real implementation of ThreadChecker, for use in debug mode, or
-// for temporary use in release mode (e.g. to MCHECK on a threading issue
+// for temporary use in release mode (e.g. to CHECK on a threading issue
 // seen only in the wild).
 //
 // Note: You should almost always use the ThreadChecker class to get the

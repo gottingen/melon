@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -24,8 +28,8 @@
 #include <melon/utility/class_name.h>
 #include <melon/rpc/extension.h>
 #include <melon/utility/strings/string_piece.h>
-#include "melon/raft/configuration.h"
-#include "melon/raft/configuration_manager.h"
+#include <melon/raft/configuration.h>
+#include <melon/raft/configuration_manager.h>
 
 namespace google {
     namespace protobuf {
@@ -34,12 +38,6 @@ namespace google {
 }  // namespace google
 
 namespace melon::raft {
-
-    DECLARE_bool(raft_sync);
-    DECLARE_bool(raft_sync_meta);
-    DECLARE_int32(raft_sync_per_bytes);
-    DECLARE_int32(raft_sync_policy);
-    DECLARE_bool(raft_create_parent_directories);
 
     struct LogEntry;
 
@@ -84,7 +82,7 @@ namespace melon::raft {
             }
         }
         LOG_IF(WARNING, removed_spaces) << "Removed " << removed_spaces
-                                        << " spaces from `" << *uri << '\'';
+                                         << " spaces from `" << *uri << '\'';
         return protocol;
     }
 
@@ -94,7 +92,7 @@ namespace melon::raft {
         mutil::FilePath tmp_path(path + ".tmp");
         // delete tmp path firstly in case there is garbage
         if (!mutil::DeleteFile(tmp_path, true)) {
-            MLOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
+            LOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
             return -1;
         }
 
@@ -102,17 +100,17 @@ namespace melon::raft {
             const bool rc = mutil::ReplaceFile(mutil::FilePath(target_path),
                                                mutil::FilePath(tmp_path), &e);
             if (!rc) {
-                MLOG(ERROR) << "Fail to rename `" << target_path.value()
-                           << " to `" << tmp_path.value() << "' : " << e;
+                LOG(ERROR) << "Fail to rename `" << target_path.value()
+                            << " to `" << tmp_path.value() << "' : " << e;
                 return -1;
             }
             if (!mutil::DeleteFile(tmp_path, true)) {
-                MLOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
+                LOG(ERROR) << "Fail to delete tmp file, path: " << tmp_path.value();
                 return -1;
             }
         } else {
-            MLOG(INFO) << "Target path not exist, so no need to gc, path: "
-                      << target_path.value();
+            LOG(INFO) << "Target path not exist, so no need to gc, path: "
+                       << target_path.value();
         }
         return 0;
     }
@@ -162,9 +160,9 @@ namespace melon::raft {
         // GC an instance of this kind of LogStorage with the parameters encoded
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri) const {
-            MCHECK(false) << mutil::class_name_str(*this)
-                         << " didn't implement gc_instance interface while deleting"
-                            " raft log in " << uri;
+            CHECK(false) << mutil::class_name_str(*this)
+                          << " didn't implement gc_instance interface while deleting"
+                             " raft log in " << uri;
             mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
@@ -199,9 +197,9 @@ namespace melon::raft {
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri,
                                           const VersionedGroupId &vgid) const {
-            MCHECK(false) << mutil::class_name_str(*this)
-                         << " didn't implement gc_instance interface while deleting"
-                            " raft stable meta in " << uri;
+            CHECK(false) << mutil::class_name_str(*this)
+                          << " didn't implement gc_instance interface while deleting"
+                             " raft stable meta in " << uri;
             mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;
@@ -305,22 +303,22 @@ namespace melon::raft {
         virtual ~SnapshotStorage() {}
 
         virtual int set_filter_before_copy_remote() {
-            MCHECK(false) << mutil::class_name_str(*this)
-                         << " doesn't support filter before copy remote";
+            CHECK(false) << mutil::class_name_str(*this)
+                          << " doesn't support filter before copy remote";
             return -1;
         }
 
         virtual int set_file_system_adaptor(FileSystemAdaptor *fs) {
             (void) fs;
-            MCHECK(false) << mutil::class_name_str(*this)
-                         << " doesn't support file system adaptor";
+            CHECK(false) << mutil::class_name_str(*this)
+                          << " doesn't support file system adaptor";
             return -1;
         }
 
         virtual int set_snapshot_throttle(SnapshotThrottle *st) {
             (void) st;
-            MCHECK(false) << mutil::class_name_str(*this)
-                         << " doesn't support snapshot throttle";
+            CHECK(false) << mutil::class_name_str(*this)
+                          << " doesn't support snapshot throttle";
             return -1;
         }
 
@@ -356,9 +354,9 @@ namespace melon::raft {
         // GC an instance of this kind of SnapshotStorage with the parameters encoded
         // in |uri|
         virtual mutil::Status gc_instance(const std::string &uri) const {
-            MCHECK(false) << mutil::class_name_str(*this)
-                         << " didn't implement gc_instance interface while deleting"
-                            " raft snapshot in " << uri;
+            CHECK(false) << mutil::class_name_str(*this)
+                          << " didn't implement gc_instance interface while deleting"
+                             " raft snapshot in " << uri;
             mutil::Status status;
             status.set_error(ENOSYS, "gc_instance interface is not implemented");
             return status;

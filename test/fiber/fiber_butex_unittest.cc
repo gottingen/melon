@@ -1,30 +1,34 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gtest/gtest.h>
-#include "melon/utility/atomicops.h"
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/logging.h"
-#include "melon/fiber/butex.h"
-#include "melon/fiber/task_control.h"
-#include "melon/fiber/task_group.h"
-#include "melon/fiber/fiber.h"
-#include "melon/fiber/unstable.h"
-#include "melon/fiber/interrupt_pthread.h"
+#include <melon/utility/atomicops.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <turbo/log/logging.h>
+#include <melon/fiber/butex.h>
+#include <melon/fiber/task_control.h>
+#include <melon/fiber/task_group.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/unstable.h>
+#include <melon/fiber/interrupt_pthread.h>
 
 namespace fiber {
 extern mutil::atomic<TaskControl*> g_task_control;
@@ -53,12 +57,12 @@ void* joiner(void* arg) {
     const long t1 = mutil::gettimeofday_us();
     for (fiber_t* th = (fiber_t*)arg; *th; ++th) {
         if (0 != fiber_join(*th, NULL)) {
-            MLOG(FATAL) << "fail to join thread_" << th - (fiber_t*)arg;
+            LOG(FATAL) << "fail to join thread_" << th - (fiber_t*)arg;
         }
         long elp = mutil::gettimeofday_us() - t1;
         EXPECT_LE(labs(elp - (th - (fiber_t*)arg + 1) * 100000L), 15000L)
             << "timeout when joining thread_" << th - (fiber_t*)arg;
-        MLOG(INFO) << "Joined thread " << *th << " at " << elp << "us ["
+        LOG(INFO) << "Joined thread " << *th << " at " << elp << "us ["
                   << fiber_self() << "]";
     }
     for (fiber_t* th = (fiber_t*)arg; *th; ++th) {
@@ -130,7 +134,7 @@ void* waiter(void* arg) {
     } else {
         EXPECT_EQ(wa->expected_result, errno) << fiber_self();
     }
-    MLOG(INFO) << "after wait, time=" << (t2-t1) << "us";
+    LOG(INFO) << "after wait, time=" << (t2-t1) << "us";
     return NULL;
 }
 
@@ -401,12 +405,12 @@ void* trigger_signal(void* arg) {
     for (size_t i = 0; i < 50; ++i) {
       usleep(100000);
       if (fiber::interrupt_pthread(*th) == ESRCH) {
-        MLOG(INFO) << "waiter thread end, trigger count=" << i;
+        LOG(INFO) << "waiter thread end, trigger count=" << i;
         break;
       }
     }
     const long t2 = mutil::gettimeofday_us();
-    MLOG(INFO) << "trigger signal thread end, elapsed=" << (t2-t1) << "us";
+    LOG(INFO) << "trigger signal thread end, elapsed=" << (t2-t1) << "us";
     return NULL;
 }
 
@@ -434,7 +438,7 @@ TEST(ButexTest, wait_with_signal_triggered) {
     ASSERT_EQ(0, pthread_join(waiter_th, NULL));
     tm.stop();
     auto wait_elapsed_ms = tm.m_elapsed();;
-    MLOG(INFO) << "waiter thread end, elapsed " << wait_elapsed_ms << " ms";
+    LOG(INFO) << "waiter thread end, elapsed " << wait_elapsed_ms << " ms";
 
     ASSERT_LT(labs(wait_elapsed_ms - WAIT_MSEC), 250);
 

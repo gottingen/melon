@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,11 +22,11 @@
 #include <stdio.h>                                      // getline
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/utility/files/file_watcher.h"                    // FileWatcher
-#include "melon/utility/files/scoped_file.h"                     // ScopedFILE
-#include "melon/fiber/fiber.h"                            // fiber_usleep
-#include "melon/rpc/log.h"
-#include "melon/naming/file_naming_service.h"
+#include <melon/utility/files/file_watcher.h>                    // FileWatcher
+#include <melon/utility/files/scoped_file.h>                     // ScopedFILE
+#include <melon/fiber/fiber.h>                            // fiber_usleep
+#include <melon/rpc/log.h>
+#include <melon/naming/file_naming_service.h>
 
 
 namespace melon::naming {
@@ -77,7 +81,7 @@ namespace melon::naming {
 
         mutil::ScopedFILE fp(fopen(service_name, "r"));
         if (!fp) {
-            PMLOG(ERROR) << "Fail to open `" << service_name << "'";
+            PLOG(ERROR) << "Fail to open `" << service_name << "'";
             return errno;
         }
         while ((nr = getline(&line, &line_len, fp.get())) != -1) {
@@ -94,7 +98,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
+                LOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;
@@ -117,7 +121,7 @@ namespace melon::naming {
         std::vector<ServerNode> servers;
         mutil::FileWatcher fw;
         if (fw.init(service_name) < 0) {
-            MLOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
+            LOG(ERROR) << "Fail to init FileWatcher on `" << service_name << "'";
             return -1;
         }
         for (;;) {
@@ -133,18 +137,18 @@ namespace melon::naming {
                     break;
                 }
                 if (change < 0) {
-                    MLOG(ERROR) << "`" << service_name << "' was deleted";
+                    LOG(ERROR) << "`" << service_name << "' was deleted";
                 }
                 if (fiber_usleep(100000L/*100ms*/) < 0) {
                     if (errno == ESTOP) {
                         return 0;
                     }
-                    PMLOG(ERROR) << "Fail to sleep";
+                    PLOG(ERROR) << "Fail to sleep";
                     return -1;
                 }
             }
         }
-        MCHECK(false);
+        CHECK(false);
         return -1;
     }
 

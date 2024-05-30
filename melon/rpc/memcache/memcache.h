@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 #pragma once
@@ -18,10 +22,10 @@
 #include <string>
 #include <google/protobuf/message.h>
 
-#include "melon/utility/iobuf.h"
-#include "melon/utility/strings/string_piece.h"
-#include "melon/proto/rpc/proto_base.pb.h"
-#include "melon/rpc/pb_compat.h"
+#include <melon/utility/iobuf.h>
+#include <melon/utility/strings/string_piece.h>
+#include <melon/proto/rpc/proto_base.pb.h>
+#include <melon/rpc/pb_compat.h>
 
 namespace melon {
 
@@ -137,17 +141,17 @@ private:
 //   channel.CallMethod(&controller, &request, &response, NULL/*done*/);
 //   ...
 //   if (!response.PopGet(&my_value1, &flags1, &cas1)) {
-//       MLOG(FATAL) << "Fail to pop GET: " << response.LastError();
+//       LOG(FATAL) << "Fail to pop GET: " << response.LastError();
 //   } else {
 //       // Use my_value1, flags1, cas1
 //   }
 //   if (!response.PopGet(&my_value2, &flags2, &cas2)) {
-//       MLOG(FATAL) << "Fail to pop GET: " << response.LastError();
+//       LOG(FATAL) << "Fail to pop GET: " << response.LastError();
 //   } else {
 //       // Use my_value2, flags2, cas2
 //   }
 //   if (!response.PopSet(&cas3)) {
-//       MLOG(FATAL) << "Fail to pop SET: " << response.LastError();
+//       LOG(FATAL) << "Fail to pop SET: " << response.LastError();
 //   } else {
 //       // the SET was successful.
 //   }

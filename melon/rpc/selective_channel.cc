@@ -1,28 +1,32 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <map>
 #include <gflags/gflags.h>
-#include "melon/fiber/fiber.h"                         // fiber_session_xx
-#include "melon/rpc/socket.h"                             // SocketUser
-#include "melon/rpc/load_balancer.h"                      // LoadBalancer
-#include "melon/rpc/details/controller_private_accessor.h"        // RPCSender
-#include "melon/rpc/selective_channel.h"
-#include "melon/rpc/global.h"
+#include <melon/fiber/fiber.h>                         // fiber_session_xx
+#include <melon/rpc/socket.h>                             // SocketUser
+#include <melon/rpc/load_balancer.h>                      // LoadBalancer
+#include <melon/rpc/details/controller_private_accessor.h>        // RPCSender
+#include <melon/rpc/selective_channel.h>
+#include <melon/rpc/global.h>
 
 
 namespace melon {
@@ -49,14 +53,14 @@ public:
 
     int CheckHealth(Socket* ptr) {
         if (ptr->health_check_count() == 0) {
-            MLOG(INFO) << "Checking " << *chan << " chan=0x" << (void*)chan
+            LOG(INFO) << "Checking " << *chan << " chan=0x" << (void*)chan
                       << " Fake" << *ptr;
         }
         return chan->CheckHealth();
     }
 
     void AfterRevived(Socket* ptr) {
-        MLOG(INFO) << "Revived " << *chan << " chan=0x" << (void*)chan
+        LOG(INFO) << "Revived " << *chan << " chan=0x" << (void*)chan
                   << " Fake" << *ptr << " (Connectable)";
     }
 };
@@ -170,17 +174,17 @@ int ChannelBalancer::Init(const char* lb_name) {
 int ChannelBalancer::AddChannel(ChannelBase* sub_channel,
                                 SelectiveChannel::ChannelHandle* handle) {
     if (NULL == sub_channel) {
-        MLOG(ERROR) << "Parameter[sub_channel] is NULL";
+        LOG(ERROR) << "Parameter[sub_channel] is NULL";
         return -1;
     }
     MELON_SCOPED_LOCK(_mutex);
     if (_chan_map.find(sub_channel) != _chan_map.end()) {
-        MLOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
+        LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
         return -1;
     }
     SubChannel* sub_chan = new (std::nothrow) SubChannel;
     if (sub_chan == NULL) {
-        MLOG(FATAL) << "Fail to to new SubChannel";
+        LOG(FATAL) << "Fail to to new SubChannel";
         return -1;
     }
     sub_chan->chan = sub_channel;
@@ -191,13 +195,13 @@ int ChannelBalancer::AddChannel(ChannelBase* sub_channel,
 
     if (Socket::Create(options, &sock_id) != 0) {
         delete sub_chan;
-        MLOG(ERROR) << "Fail to create fake socket for sub channel";
+        LOG(ERROR) << "Fail to create fake socket for sub channel";
         return -1;
     }
     SocketUniquePtr ptr;
-    MCHECK_EQ(0, Socket::Address(sock_id, &ptr));
+    CHECK_EQ(0, Socket::Address(sock_id, &ptr));
     if (!AddServer(ServerId(sock_id))) {
-        MLOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
+        LOG(ERROR) << "Duplicated sub_channel=" << sub_channel;
         // sub_chan will be deleted when the socket is recycled.
         ptr->SetFailed();
         return -1;
@@ -220,7 +224,7 @@ void ChannelBalancer::RemoveAndDestroyChannel(SelectiveChannel::ChannelHandle ha
         SubChannel* sub = static_cast<SubChannel*>(ptr->user());
         {
             MELON_SCOPED_LOCK(_mutex);
-            MCHECK_EQ(1UL, _chan_map.erase(sub->chan));
+            CHECK_EQ(1UL, _chan_map.erase(sub->chan));
         }
         {
             ptr->SetHCRelatedRefReleased(); // set released status to cancel health checking
@@ -301,14 +305,14 @@ int Sender::IssueRPC(int64_t start_realtime_us) {
         _main_cntl->SetFailed(rc, "Fail to select channel, %s", berror(rc));
         return -1;
     }
-    DMLOG(INFO) << "Selected channel=" << sel_out.channel() << ", size="
+    DLOG(INFO) << "Selected channel=" << sel_out.channel() << ", size="
                 << (_main_cntl->_accessed ? _main_cntl->_accessed->size() : 0);
     _main_cntl->_current_call.need_feedback = sel_out.need_feedback;
     _main_cntl->_current_call.peer_id = sel_out.fake_sock->id();
 
     Resource r = PopFree();
     if (r.sub_done == NULL) {
-        MCHECK(false) << "Impossible!";
+        CHECK(false) << "Impossible!";
         _main_cntl->SetFailed("Impossible happens");
         return -1;
     }
@@ -344,7 +348,7 @@ void SubDone::Run() {
     if (rc != 0) {
         // _cid must be valid because schan does not dtor before cancelling
         // all sub calls.
-        MLOG(ERROR) << "Fail to lock correlation_id="
+        LOG(ERROR) << "Fail to lock correlation_id="
                    << _cid.value << ": " << berror(rc);
         return;
     }
@@ -389,7 +393,7 @@ void Sender::Run() {
             ids[i] = _alloc_resources[i].sub_done->_cntl.call_id();
         }
         CallId cid = _main_cntl->call_id();
-        MCHECK_EQ(0, fiber_session_unlock(cid));
+        CHECK_EQ(0, fiber_session_unlock(cid));
         for (int i = 0; i < saved_nalloc; ++i) {
             fiber_session_error(ids[i], error);
         }
@@ -428,7 +432,7 @@ inline Resource Sender::PopFree() {
             _alloc_resources[_nalloc++] = r;
             return r;
         } else {
-            MCHECK(false) << "nalloc=" << _nalloc;
+            CHECK(false) << "nalloc=" << _nalloc;
             return Resource();
         }
     } else {
@@ -452,7 +456,7 @@ inline bool Sender::PushFree(const Resource& r) {
         }
         return true;
     } else {
-        MCHECK(false) << "Impossible!";
+        CHECK(false) << "Impossible!";
         return false;
     }
 }
@@ -491,16 +495,16 @@ int SelectiveChannel::Init(const char* lb_name, const ChannelOptions* options) {
     // Force naming services to register.
     GlobalInitializeOrDie();
     if (initialized()) {
-        MLOG(ERROR) << "Already initialized";
+        LOG(ERROR) << "Already initialized";
         return -1;
     }
     schan::ChannelBalancer* lb = new (std::nothrow) schan::ChannelBalancer;
     if (NULL == lb) {
-        MLOG(FATAL) << "Fail to new ChannelBalancer";
+        LOG(FATAL) << "Fail to new ChannelBalancer";
         return -1;
     }
     if (lb->Init(lb_name) != 0) {
-        MLOG(ERROR) << "Fail to init lb";
+        LOG(ERROR) << "Fail to init lb";
         delete lb;
         return -1;
     }
@@ -526,7 +530,7 @@ int SelectiveChannel::AddChannel(ChannelBase* sub_channel,
     schan::ChannelBalancer* lb =
         static_cast<schan::ChannelBalancer*>(_chan._lb.get());
     if (lb == NULL) {
-        MLOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
+        LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
         return -1;
     }
     return lb->AddChannel(sub_channel, handle);
@@ -536,7 +540,7 @@ void SelectiveChannel::RemoveAndDestroyChannel(ChannelHandle handle) {
     schan::ChannelBalancer* lb =
         static_cast<schan::ChannelBalancer*>(_chan._lb.get());
     if (lb == NULL) {
-        MLOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
+        LOG(ERROR) << "You must call Init() to initialize a SelectiveChannel";
         return;
     }
     lb->RemoveAndDestroyChannel(handle);

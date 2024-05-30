@@ -1,23 +1,27 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/unstable.h>
-#include "melon/rpc/periodic_task.h"
+#include <melon/rpc/periodic_task.h>
 
 namespace melon {
 
@@ -40,7 +44,7 @@ static void RunPeriodicTaskThread(void* arg) {
     int rc = fiber_start_background(
         &th, &FIBER_ATTR_NORMAL, PeriodicTaskThread, arg);
     if (rc != 0) {
-        MLOG(ERROR) << "Fail to start PeriodicTaskThread";
+        LOG(ERROR) << "Fail to start PeriodicTaskThread";
         static_cast<PeriodicTask*>(arg)->OnDestroyingTask();
         return;
     }
@@ -48,14 +52,14 @@ static void RunPeriodicTaskThread(void* arg) {
 
 void PeriodicTaskManager::StartTaskAt(PeriodicTask* task, const timespec& abstime) {
     if (task == NULL) {
-        MLOG(ERROR) << "Param[task] is NULL";
+        LOG(ERROR) << "Param[task] is NULL";
         return;
     }
     fiber_timer_t timer_id;
     const int rc = fiber_timer_add(
         &timer_id, abstime, RunPeriodicTaskThread, task);
     if (rc != 0) {
-        MLOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";
+        LOG(ERROR) << "Fail to add timer for RunPerodicTaskThread";
         task->OnDestroyingTask();
         return;
     }

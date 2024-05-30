@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,7 +22,7 @@
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <melon/rpc/server.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_splitter.h>
 #include <string.h>
 #include "rpc_press_impl.h"
@@ -47,7 +51,7 @@ DEFINE_bool(pretty, true, "output pretty jsons");
 bool set_press_options(pbrpcframework::PressOptions* options){
     size_t dot_pos = FLAGS_method.find_last_of('.');
     if (dot_pos == std::string::npos) {
-        MLOG(ERROR) << "-method must be in form of: package.service.method";
+        LOG(ERROR) << "-method must be in form of: package.service.method";
         return false;
     }
     options->service = FLAGS_method.substr(0, dot_pos);
@@ -73,7 +77,7 @@ bool set_press_options(pbrpcframework::PressOptions* options){
     const int rate_limit_per_thread = 1000000;
     double req_rate_per_thread = options->test_req_rate / options->test_thread_num;
     if (req_rate_per_thread > rate_limit_per_thread) {
-        MLOG(ERROR) << "req_rate: " << (int64_t) req_rate_per_thread << " is too large in one thread. The rate limit is "
+        LOG(ERROR) << "req_rate: " << (int64_t) req_rate_per_thread << " is too large in one thread. The rate limit is "
                 <<  rate_limit_per_thread << " in one thread";
         return false;  
     }
@@ -109,7 +113,7 @@ int main(int argc, char* argv[]) {
     }
     pbrpcframework::RpcPress* rpc_press = new pbrpcframework::RpcPress;
     if (0 != rpc_press->init(&options)) {
-        MLOG(FATAL) << "Fail to init rpc_press";
+        LOG(FATAL) << "Fail to init rpc_press";
         return -1;
     }
 

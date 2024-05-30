@@ -1,33 +1,37 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <sys/uio.h>               // writev
-#include "melon/utility/compat.h"
+#include <melon/utility/compat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <gtest/gtest.h>
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/fd_utility.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/gperftools_profiler.h"
-#include "melon/fiber/fiber.h"
-#include "melon/fiber/task_control.h"
-#include "melon/fiber/task_group.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/fd_utility.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/gperftools_profiler.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/task_control.h>
+#include <melon/fiber/task_group.h>
 #if defined(OS_MACOSX)
 #include <sys/types.h>                           // struct kevent
 #include <sys/event.h>                           // kevent(), kqueue()
@@ -84,11 +88,11 @@ void* process_thread(void* arg) {
                 } else if (errno == EINTR) {
                     continue;
                 } else {
-                    PMLOG(FATAL) << "Fail to read fd=" << m->fd;
+                    PLOG(FATAL) << "Fail to read fd=" << m->fd;
                     return NULL;
                 }
             } else {
-                MLOG(FATAL) << "Another end closed fd=" << m->fd;
+                LOG(FATAL) << "Another end closed fd=" << m->fd;
                 return NULL;
             }
         } while (1);
@@ -129,9 +133,9 @@ void* epoll_thread(void* arg) {
                 continue;
             }
 #if defined(OS_LINUX)
-            PMLOG(FATAL) << "Fail to epoll_wait";
+            PLOG(FATAL) << "Fail to epoll_wait";
 #elif defined(OS_MACOSX)
-            PMLOG(FATAL) << "Fail to kevent";
+            PLOG(FATAL) << "Fail to kevent";
 #endif
             break;
         }
@@ -179,7 +183,7 @@ void* client_thread(void* arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                PMLOG(FATAL) << "Fail to write fd=" << m->fd;
+                PLOG(FATAL) << "Fail to write fd=" << m->fd;
                 return NULL;
             }
         } else {
@@ -287,7 +291,7 @@ TEST(DispatcherTest, dispatch_tasks) {
         all_nfold += em[i]->nfold;
     }
 
-    MLOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
+    LOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
               << "MB/s server_tp=" << server_bytes / (double)tm.u_elapsed()
               << "MB/s nthread=" << all_nthread << " nfold=" << all_nfold;
 

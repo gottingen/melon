@@ -6,9 +6,9 @@
 
 #include "melon/utility/synchronization/cancellation_flag.h"
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/synchronization/spin_wait.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/time/time.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

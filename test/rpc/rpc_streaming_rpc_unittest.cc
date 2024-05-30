@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -20,10 +24,10 @@
 
 #include <gtest/gtest.h>
 
-#include "melon/rpc/server.h"
-#include "melon/rpc/controller.h"
-#include "melon/rpc/channel.h"
-#include "melon/rpc/stream_impl.h"
+#include <melon/rpc/server.h>
+#include <melon/rpc/controller.h>
+#include <melon/rpc/channel.h>
+#include <melon/rpc/stream_impl.h>
 #include "echo.pb.h"
 
 class AfterAcceptStream {
@@ -56,7 +60,7 @@ public:
         melon::Controller* cntl = (melon::Controller*)controller;
         melon::StreamId response_stream;
         ASSERT_EQ(0, StreamAccept(&response_stream, *cntl, &_options));
-        MLOG(INFO) << "Created response_stream=" << response_stream;
+        LOG(INFO) << "Created response_stream=" << response_stream;
         if (_after_accept_stream) {
             _after_accept_stream->action(response_stream);
         }
@@ -120,7 +124,7 @@ public:
             }
         }
         for (size_t i = 0; i < size; ++i) {
-            MCHECK(messages[i]->length() == sizeof(int));
+            CHECK(messages[i]->length() == sizeof(int));
             int network = 0;
             messages[i]->cutn(&network, sizeof(int));
             EXPECT_EQ((int)ntohl(network), _expected_next_value++);
@@ -190,7 +194,7 @@ void on_writable(melon::StreamId, void* arg, int error_code) {
     std::pair<bool, int>* p = (std::pair<bool, int>*)arg;
     p->first = true;
     p->second = error_code;
-    MLOG(INFO) << "error_code=" << error_code;
+    LOG(INFO) << "error_code=" << error_code;
 }
 
 TEST_F(StreamingRpcTest, block) {
@@ -261,7 +265,7 @@ TEST_F(StreamingRpcTest, block) {
     }
     usleep(1000);
 
-    MLOG(INFO) << "Starting block";
+    LOG(INFO) << "Starting block";
     hc.block = true;
     for (int i = N + N; i < N + N + N; ++i) {
         int network = htonl(i);
@@ -274,7 +278,7 @@ TEST_F(StreamingRpcTest, block) {
     ASSERT_EQ(EAGAIN, melon::StreamWrite(request_stream, out));
     timespec duetime = mutil::microseconds_from_now(1);
     p.first = false;
-    MLOG(INFO) << "Start wait";
+    LOG(INFO) << "Start wait";
     melon::StreamWait(request_stream, &duetime, on_writable, &p);
     while (!p.first) {
         usleep(100);
@@ -388,7 +392,7 @@ public:
             return 0;
         }
         for (size_t i = 0; i < size; ++i) {
-            MCHECK(messages[i]->length() == sizeof(int));
+            CHECK(messages[i]->length() == sizeof(int));
             int network = 0;
             messages[i]->cutn(&network, sizeof(int));
             if ((int)ntohl(network) != _expected_next_value) {

@@ -7,10 +7,10 @@
 
 #include <memory>
 
-#include "melon/utility/atomicops.h"
+#include <melon/utility/atomicops.h>
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 
 // A helper class alongside macros to be used to verify assumptions about thread
 // safety of a class.
@@ -130,7 +130,7 @@ namespace mutil {
 
 // The class ThreadCollisionWarner uses an Asserter to notify the collision
 // AsserterBase is the interfaces and DCheckAsserter is the default asserter
-// used. During the unit tests is used another class that doesn't "DMCHECK"
+// used. During the unit tests is used another class that doesn't "DCHECK"
 // in case of collision (check thread_collision_warner_unittests.cc)
 struct MUTIL_EXPORT AsserterBase {
   virtual ~AsserterBase() {}
@@ -213,7 +213,7 @@ class MUTIL_EXPORT ThreadCollisionWarner {
   };
 
  private:
-  // This method stores the current thread identifier and does a DMCHECK
+  // This method stores the current thread identifier and does a DCHECK
   // if a another thread has already done it, it is safe if same thread
   // calls this multiple time (recursion allowed).
   void EnterSelf();
@@ -234,7 +234,7 @@ class MUTIL_EXPORT ThreadCollisionWarner {
   volatile subtle::Atomic32 counter_;
 
   // Here only for class unit tests purpose, during the test I need to not
-  // DMCHECK but notify the collision with something else.
+  // DCHECK but notify the collision with something else.
   AsserterBase* asserter_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadCollisionWarner);

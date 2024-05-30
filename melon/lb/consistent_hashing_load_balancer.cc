@@ -1,28 +1,32 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <algorithm>                                           // std::set_union
 #include <array>
 #include <gflags/gflags.h>
-#include "melon/utility/containers/flat_map.h"
-#include "melon/utility/errno.h"
-#include "melon/utility/strings/string_number_conversions.h"
-#include "melon/rpc/socket.h"
-#include "melon/lb/consistent_hashing_load_balancer.h"
-#include "melon/rpc/policy/hasher.h"
+#include <melon/utility/containers/flat_map.h>
+#include <melon/utility/errno.h>
+#include <melon/utility/strings/string_number_conversions.h>
+#include <melon/rpc/socket.h>
+#include <melon/lb/consistent_hashing_load_balancer.h>
+#include <melon/rpc/policy/hasher.h>
 
 namespace melon::policy {
     // Defined in hasher.cpp.
@@ -30,7 +34,7 @@ namespace melon::policy {
 }  // namespace melon::policy
 namespace melon::lb {
 
-// TODO: or 160?
+    // TODO: or 160?
     DEFINE_int32(chash_num_replicas, 100,
                  "default number of replicas per server in chash");
 
@@ -99,7 +103,7 @@ namespace melon::lb {
         }
         replicas->clear();
         const size_t points_per_hash = 4;
-        MCHECK(num_replicas % points_per_hash == 0)
+        CHECK(num_replicas % points_per_hash == 0)
         << "Ketam hash replicas number(" << num_replicas << ") should be n*4";
         for (size_t i = 0; i < num_replicas / points_per_hash; ++i) {
             char host[32];
@@ -146,7 +150,7 @@ namespace melon::lb {
     ConsistentHashingLoadBalancer::ConsistentHashingLoadBalancer(
             ConsistentHashingLoadBalancerType type)
             : _num_replicas(FLAGS_chash_num_replicas), _type(type) {
-        MCHECK(GetReplicaPolicy(_type))
+        CHECK(GetReplicaPolicy(_type))
         << "Fail to find replica policy for consistency lb type: '" << _type << '\'';
     }
 
@@ -188,7 +192,7 @@ namespace melon::lb {
         } else {
             use_set = false;
         }
-        MCHECK(use_set) << "Fail to construct id_set, " << berror();
+        CHECK(use_set) << "Fail to construct id_set, " << berror();
         bg.clear();
         for (size_t i = 0; i < fg.size(); ++i) {
             const bool removed =
@@ -228,7 +232,7 @@ namespace melon::lb {
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(
                 AddBatch, add_nodes, &executed);
-        MCHECK(ret == 0 || ret == _num_replicas) << ret;
+        CHECK(ret == 0 || ret == _num_replicas) << ret;
         return ret != 0;
     }
 
@@ -247,7 +251,7 @@ namespace melon::lb {
         std::sort(add_nodes.begin(), add_nodes.end());
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(AddBatch, add_nodes, &executed);
-        MCHECK(ret % _num_replicas == 0);
+        CHECK(ret % _num_replicas == 0);
         const size_t n = ret / _num_replicas;
         LOG_IF(ERROR, n != servers.size())
         << "Fail to AddServersInBatch, expected " << servers.size()
@@ -258,7 +262,7 @@ namespace melon::lb {
     bool ConsistentHashingLoadBalancer::RemoveServer(const ServerId &server) {
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(Remove, server, &executed);
-        MCHECK(ret == 0 || ret == _num_replicas);
+        CHECK(ret == 0 || ret == _num_replicas);
         return ret != 0;
     }
 
@@ -266,7 +270,7 @@ namespace melon::lb {
             const std::vector<ServerId> &servers) {
         bool executed = false;
         const size_t ret = _db_hash_ring.ModifyWithForeground(RemoveBatch, servers, &executed);
-        MCHECK(ret % _num_replicas == 0);
+        CHECK(ret % _num_replicas == 0);
         const size_t n = ret / _num_replicas;
         LOG_IF(ERROR, n != servers.size())
         << "Fail to RemoveServersInBatch, expected " << servers.size()
@@ -291,11 +295,11 @@ namespace melon::lb {
     int ConsistentHashingLoadBalancer::SelectServer(
             const SelectIn &in, SelectOut *out) {
         if (!in.has_request_code) {
-            MLOG(ERROR) << "Controller.set_request_code() is required";
+            LOG(ERROR) << "Controller.set_request_code() is required";
             return EINVAL;
         }
         if (in.request_code > UINT_MAX) {
-            MLOG(ERROR) << "request_code must be 32-bit currently";
+            LOG(ERROR) << "request_code must be 32-bit currently";
             return EINVAL;
         }
         mutil::DoublyBufferedData<std::vector<Node> >::ScopedPtr s;
@@ -384,7 +388,7 @@ namespace melon::lb {
         for (mutil::KeyValuePairsSplitter sp(params.begin(), params.end(), ' ', '=');
              sp; ++sp) {
             if (sp.value().empty()) {
-                MLOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
+                LOG(ERROR) << "Empty value for " << sp.key() << " in lb parameter";
                 return false;
             }
             if (sp.key() == "replicas") {
@@ -393,7 +397,7 @@ namespace melon::lb {
                 }
                 continue;
             }
-            MLOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
+            LOG(ERROR) << "Failed to set this unknown parameters " << sp.key_and_value();
         }
         return true;
     }

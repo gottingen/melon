@@ -1,24 +1,28 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#include "melon/raft/snapshot_executor.h"
-#include "melon/raft/util.h"
-#include "melon/raft/node.h"
-#include "melon/raft/storage.h"
-#include "melon/raft/snapshot.h"
+#include <melon/raft/snapshot_executor.h>
+#include <melon/raft/util.h>
+#include <melon/raft/node.h>
+#include <melon/raft/storage.h>
+#include <melon/raft/snapshot.h>
 
 namespace melon::raft {
 
@@ -98,10 +102,10 @@ namespace melon::raft {
     SnapshotExecutor::~SnapshotExecutor() {
         shutdown();
         join();
-        MCHECK(!_saving_snapshot);
-        MCHECK(!_cur_copier);
-        MCHECK(!_loading_snapshot);
-        MCHECK(!_downloading_snapshot.load(mutil::memory_order_relaxed));
+        CHECK(!_saving_snapshot);
+        CHECK(!_cur_copier);
+        CHECK(!_loading_snapshot);
+        CHECK(!_downloading_snapshot.load(mutil::memory_order_relaxed));
         if (_snapshot_storage) {
             delete _snapshot_storage;
         }
@@ -202,7 +206,7 @@ namespace melon::raft {
 
         if (ret == 0) {
             if (writer->save_meta(meta)) {
-                MLOG(WARNING) << "node " << _node->node_id() << " fail to save snapshot";
+                LOG(WARNING) << "node " << _node->node_id() << " fail to save snapshot";
                 ret = EIO;
             }
         } else {
@@ -213,7 +217,7 @@ namespace melon::raft {
 
         if (_snapshot_storage->close(writer) != 0) {
             ret = EIO;
-            MLOG(WARNING) << "node " << _node->node_id() << " fail to close writer";
+            LOG(WARNING) << "node " << _node->node_id() << " fail to close writer";
         }
 
         std::stringstream ss;
@@ -227,7 +231,7 @@ namespace melon::raft {
             lck.unlock();
             ss << "snapshot_save_done, last_included_index=" << meta.last_included_index()
                << " last_included_term=" << meta.last_included_term();
-            MLOG(INFO) << ss.str();
+            LOG(INFO) << ss.str();
             _log_manager->set_snapshot(&meta);
             lck.lock();
         }
@@ -243,7 +247,7 @@ namespace melon::raft {
     void SnapshotExecutor::on_snapshot_load_done(const mutil::Status &st) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
 
-        MCHECK(_loading_snapshot);
+        CHECK(_loading_snapshot);
         DownloadingSnapshot *m = _downloading_snapshot.load(mutil::memory_order_relaxed);
 
         if (st.ok()) {
@@ -257,7 +261,7 @@ namespace melon::raft {
         }
         ss << "snapshot_load_done, "
            << _loading_snapshot_meta.ShortDebugString();
-        MLOG(INFO) << ss.str();
+        LOG(INFO) << ss.str();
         lck.unlock();
         if (_node) {
             // FIXME: race with set_peer, not sure if this is fine
@@ -328,14 +332,14 @@ namespace melon::raft {
         // not important, so we start a fiber to do this.
         fiber_t tid;
         if (fiber_start_urgent(&tid, NULL, continue_run, this) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             continue_run(this);
         }
     }
 
     int SnapshotExecutor::init(const SnapshotExecutorOptions &options) {
         if (options.uri.empty()) {
-            MLOG(ERROR) << "node " << _node->node_id() << " uri is empty()";
+            LOG(ERROR) << "node " << _node->node_id() << " uri is empty()";
             return -1;
         }
         _log_manager = options.log_manager;
@@ -346,7 +350,7 @@ namespace melon::raft {
 
         _snapshot_storage = SnapshotStorage::create(options.uri);
         if (!_snapshot_storage) {
-            MLOG(ERROR) << "node " << _node->node_id()
+            LOG(ERROR) << "node " << _node->node_id()
                        << " fail to find snapshot storage, uri " << options.uri;
             return -1;
         }
@@ -361,7 +365,7 @@ namespace melon::raft {
             _snapshot_storage->set_snapshot_throttle(options.snapshot_throttle);
         }
         if (_snapshot_storage->init() != 0) {
-            MLOG(ERROR) << "node " << _node->node_id()
+            LOG(ERROR) << "node " << _node->node_id()
                        << " fail to init snapshot storage, uri " << options.uri;
             return -1;
         }
@@ -377,7 +381,7 @@ namespace melon::raft {
             return 0;
         }
         if (reader->load_meta(&_loading_snapshot_meta) != 0) {
-            MLOG(ERROR) << "Fail to load meta from `" << options.uri << "'";
+            LOG(ERROR) << "Fail to load meta from `" << options.uri << "'";
             _snapshot_storage->close(reader);
             return -1;
         }
@@ -385,11 +389,11 @@ namespace melon::raft {
         _running_jobs.add_count(1);
         // Load snapshot ater startup
         FirstSnapshotLoadDone done(this, reader);
-        MCHECK_EQ(0, _fsm_caller->on_snapshot_load(&done));
+        CHECK_EQ(0, _fsm_caller->on_snapshot_load(&done));
         done.wait_for_run();
         _snapshot_storage->close(reader);
         if (!done.status().ok()) {
-            MLOG(ERROR) << "Fail to load snapshot from " << options.uri;
+            LOG(ERROR) << "Fail to load snapshot from " << options.uri;
             return -1;
         }
         return 0;
@@ -405,7 +409,7 @@ namespace melon::raft {
 
         // check if install_snapshot tasks num exceeds threshold
         if (_snapshot_throttle && !_snapshot_throttle->add_one_more_task(false)) {
-            MLOG(WARNING) << "Fail to install snapshot";
+            LOG(WARNING) << "Fail to install snapshot";
             cntl->SetFailed(EBUSY, "Fail to add install_snapshot tasks now");
             return;
         }
@@ -420,10 +424,10 @@ namespace melon::raft {
         //        as the retry snapshot will replace this one.
         if (ret != 0) {
             if (_node) {
-                MLOG(WARNING) << "node " << _node->node_id()
+                LOG(WARNING) << "node " << _node->node_id()
                              << " fail to register_downloading_snapshot";
             } else {
-                MLOG(WARNING) << "Fail to register_downloading_snapshot";
+                LOG(WARNING) << "Fail to register_downloading_snapshot";
             }
             if (ret > 0) {
                 // This RPC will be responded by the previous session
@@ -436,7 +440,7 @@ namespace melon::raft {
         }
         // Release done first as this RPC might be replaced by the retry one
         done_guard.release();
-        MCHECK(_cur_copier);
+        CHECK(_cur_copier);
         _cur_copier->join();
         // when copying finished or canceled, more install_snapshot tasks are allowed
         if (_snapshot_throttle) {
@@ -449,9 +453,9 @@ namespace melon::raft {
                                                      const SnapshotMeta &meta) {
         std::unique_ptr<DownloadingSnapshot> ds_guard(ds);
         std::unique_lock<raft_mutex_t> lck(_mutex);
-        MCHECK_EQ(ds, _downloading_snapshot.load(mutil::memory_order_relaxed));
+        CHECK_EQ(ds, _downloading_snapshot.load(mutil::memory_order_relaxed));
         melon::ClosureGuard done_guard(ds->done);
-        MCHECK(_cur_copier);
+        CHECK(_cur_copier);
         SnapshotReader *reader = _cur_copier->get_reader();
         if (!_cur_copier->ok()) {
             if (_cur_copier->error_code() == EIO) {
@@ -496,7 +500,7 @@ namespace melon::raft {
                 new InstallSnapshotDone(this, reader);
         int ret = _fsm_caller->on_snapshot_load(install_snapshot_done);
         if (ret != 0) {
-            MLOG(WARNING) << "node " << _node->node_id() << " fail to call on_snapshot_load";
+            LOG(WARNING) << "node " << _node->node_id() << " fail to call on_snapshot_load";
             install_snapshot_done->status().set_error(EHOSTDOWN, "This raft node is down");
             return install_snapshot_done->Run();
         }
@@ -505,25 +509,25 @@ namespace melon::raft {
     int SnapshotExecutor::register_downloading_snapshot(DownloadingSnapshot *ds) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_stopped) {
-            MLOG(WARNING) << "Register failed: node is stopped.";
+            LOG(WARNING) << "Register failed: node is stopped.";
             ds->cntl->SetFailed(EHOSTDOWN, "Node is stopped");
             return -1;
         }
         if (ds->request->term() != _term) {
-            MLOG(WARNING) << "Register failed: term unmatch.";
+            LOG(WARNING) << "Register failed: term unmatch.";
             ds->response->set_success(false);
             ds->response->set_term(_term);
             return -1;
         }
         if (ds->request->meta().last_included_index() <= _last_snapshot_index) {
-            MLOG(WARNING) << "Register failed: snapshot is not newer.";
+            LOG(WARNING) << "Register failed: snapshot is not newer.";
             ds->response->set_term(_term);
             ds->response->set_success(true);
             return -1;
         }
         ds->response->set_term(_term);
         if (_saving_snapshot) {
-            MLOG(WARNING) << "Register failed: is saving snapshot.";
+            LOG(WARNING) << "Register failed: is saving snapshot.";
             ds->cntl->SetFailed(EBUSY, "Is saving snapshot");
             return -1;
         }
@@ -532,12 +536,12 @@ namespace melon::raft {
         if (!m) {
             _downloading_snapshot.store(ds, mutil::memory_order_relaxed);
             // Now this session has the right to download the snapshot.
-            MCHECK(!_cur_copier);
+            CHECK(!_cur_copier);
             _cur_copier = _snapshot_storage->start_to_copy_from(ds->request->uri());
             if (_cur_copier == NULL) {
                 _downloading_snapshot.store(NULL, mutil::memory_order_relaxed);
                 lck.unlock();
-                MLOG(WARNING) << "Register failed: fail to copy file.";
+                LOG(WARNING) << "Register failed: fail to copy file.";
                 ds->cntl->SetFailed(EINVAL, "Fail to copy from , %s",
                                     ds->request->uri().c_str());
                 return -1;
@@ -563,20 +567,20 @@ namespace melon::raft {
         } else if (m->request->meta().last_included_index()
                    > ds->request->meta().last_included_index()) {
             // |ds| is older
-            MLOG(WARNING) << "Register failed: is installing a newer one.";
+            LOG(WARNING) << "Register failed: is installing a newer one.";
             ds->cntl->SetFailed(EINVAL, "A newer snapshot is under installing");
             return -1;
         } else {
             // |ds| is newer
             if (_loading_snapshot) {
                 // We can't interrupt the loading one
-                MLOG(WARNING) << "Register failed: is loading an older snapshot.";
+                LOG(WARNING) << "Register failed: is loading an older snapshot.";
                 ds->cntl->SetFailed(EBUSY, "A former snapshot is under loading");
                 return -1;
             }
-            MCHECK(_cur_copier);
+            CHECK(_cur_copier);
             _cur_copier->cancel();
-            MLOG(WARNING) << "Register failed: an older snapshot is under installing,"
+            LOG(WARNING) << "Register failed: an older snapshot is under installing,"
                             " cancle downloading.";
             ds->cntl->SetFailed(EBUSY, "A former snapshot is under installing, "
                                        " trying to cancel");
@@ -585,7 +589,7 @@ namespace melon::raft {
         lck.unlock();
         if (has_saved) {
             // Respond replaced session
-            MLOG(WARNING) << "Register failed: interrupted by retry installing request.";
+            LOG(WARNING) << "Register failed: interrupted by retry installing request.";
             saved.cntl->SetFailed(
                     EINTR, "Interrupted by the retry InstallSnapshotRequest");
             saved.done->Run();
@@ -595,7 +599,7 @@ namespace melon::raft {
 
     void SnapshotExecutor::interrupt_downloading_snapshot(int64_t new_term) {
         std::unique_lock<raft_mutex_t> lck(_mutex);
-        MCHECK_GE(new_term, _term);
+        CHECK_GE(new_term, _term);
         _term = new_term;
         if (!_downloading_snapshot.load(mutil::memory_order_relaxed)) {
             return;
@@ -604,7 +608,7 @@ namespace melon::raft {
             // We can't interrupt loading
             return;
         }
-        MCHECK(_cur_copier);
+        CHECK(_cur_copier);
         _cur_copier->cancel();
         std::stringstream ss;
         if (_node) {
@@ -613,7 +617,7 @@ namespace melon::raft {
         ss << "Trying to cancel downloading snapshot : "
            << _downloading_snapshot.load(mutil::memory_order_relaxed)
                    ->request->ShortDebugString();
-        MLOG(INFO) << ss.str();
+        LOG(INFO) << ss.str();
     }
 
     void SnapshotExecutor::report_error(int error_code, const char *fmt, ...) {
@@ -652,12 +656,12 @@ namespace melon::raft {
         os << "last_snapshot_index: " << last_snapshot_index << newline;
         os << "last_snapshot_term: " << last_snapshot_term << newline;
         if (m && is_loading_snapshot) {
-            MCHECK(!is_saving_snapshot);
+            CHECK(!is_saving_snapshot);
             os << "snapshot_status: LOADING" << newline;
             os << "snapshot_from: " << request.uri() << newline;
             os << "snapshot_meta: " << meta.ShortDebugString();
         } else if (m) {
-            MCHECK(!is_saving_snapshot);
+            CHECK(!is_saving_snapshot);
             os << "snapshot_status: DOWNLOADING" << newline;
             os << "downloading_snapshot_from: " << request.uri() << newline;
             os << "downloading_snapshot_meta: " << request.meta().ShortDebugString();

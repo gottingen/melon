@@ -1,128 +1,135 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/rpc/serialized_request.h"
-#include "melon/utility/logging.h"
+#include <melon/rpc/serialized_request.h>
+#include <turbo/log/logging.h>
 
 namespace melon {
 
-SerializedRequest::SerializedRequest()
-    : ::google::protobuf::Message() {
-    SharedCtor();
-}
+    SerializedRequest::SerializedRequest()
+            : ::google::protobuf::Message() {
+        SharedCtor();
+    }
 
-SerializedRequest::SerializedRequest(const SerializedRequest& from)
-    : ::google::protobuf::Message() {
-    SharedCtor();
-    MergeFrom(from);
-}
+    SerializedRequest::SerializedRequest(const SerializedRequest &from)
+            : ::google::protobuf::Message() {
+        SharedCtor();
+        MergeFrom(from);
+    }
 
-void SerializedRequest::SharedCtor() {
-}
+    void SerializedRequest::SharedCtor() {
+    }
 
-SerializedRequest::~SerializedRequest() {
-    SharedDtor();
-}
+    SerializedRequest::~SerializedRequest() {
+        SharedDtor();
+    }
 
-void SerializedRequest::SharedDtor() {
-}
+    void SerializedRequest::SharedDtor() {
+    }
 
-void SerializedRequest::SetCachedSize(int /*size*/) const {
-    MCHECK(false) << "You're not supposed to call " << __FUNCTION__;
-}
-const ::google::protobuf::Descriptor* SerializedRequest::descriptor() {
-    return SerializedRequestBase::descriptor();
-}
+    void SerializedRequest::SetCachedSize(int /*size*/) const {
+        CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+    }
 
-SerializedRequest* SerializedRequest::New() const {
-    return new SerializedRequest;
-}
+    const ::google::protobuf::Descriptor *SerializedRequest::descriptor() {
+        return SerializedRequestBase::descriptor();
+    }
+
+    SerializedRequest *SerializedRequest::New() const {
+        return new SerializedRequest;
+    }
 
 #if GOOGLE_PROTOBUF_VERSION >= 3006000
-SerializedRequest*
-SerializedRequest::New(::google::protobuf::Arena* arena) const {
-    return CreateMaybeMessage<SerializedRequest>(arena);
-}
+
+    SerializedRequest *
+    SerializedRequest::New(::google::protobuf::Arena *arena) const {
+        return CreateMaybeMessage<SerializedRequest>(arena);
+    }
+
 #endif
 
-void SerializedRequest::Clear() {
-    _serialized.clear();
-}
-
-bool SerializedRequest::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream*) {
-    MCHECK(false) << "You're not supposed to call " << __FUNCTION__;
-    return false;
-}
-
-void SerializedRequest::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream*) const {
-    MCHECK(false) << "You're not supposed to call " << __FUNCTION__;
-}
-
-::google::protobuf::uint8* SerializedRequest::SerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
-    MCHECK(false) << "You're not supposed to call " << __FUNCTION__;
-    return target;
-}
-
-int SerializedRequest::ByteSize() const {
-    return (int)_serialized.size();
-}
-
-void SerializedRequest::MergeFrom(const ::google::protobuf::Message&) {
-    MCHECK(false) << "You're not supposed to call " << __FUNCTION__;
-}
-
-void SerializedRequest::MergeFrom(const SerializedRequest&) {
-    MCHECK(false) << "You're not supposed to call " << __FUNCTION__;
-}
-
-void SerializedRequest::CopyFrom(const ::google::protobuf::Message& from) {
-    if (&from == this) return;
-    const SerializedRequest* source = dynamic_cast<const SerializedRequest*>(&from);
-    if (source == NULL) {
-        MCHECK(false) << "SerializedRequest can only CopyFrom SerializedRequest";
-    } else {
-        _serialized = source->_serialized;
+    void SerializedRequest::Clear() {
+        _serialized.clear();
     }
-}
 
-void SerializedRequest::CopyFrom(const SerializedRequest& from) {
-    if (&from == this) return;
-    _serialized = from._serialized;
-}
-
-bool SerializedRequest::IsInitialized() const {
-    // Always true because it's already serialized.
-    return true;
-}
-
-void SerializedRequest::Swap(SerializedRequest* other) {
-    if (other != this) {
-        _serialized.swap(other->_serialized);
+    bool SerializedRequest::MergePartialFromCodedStream(
+            ::google::protobuf::io::CodedInputStream *) {
+        CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        return false;
     }
-}
 
-::google::protobuf::Metadata SerializedRequest::GetMetadata() const {
-    ::google::protobuf::Metadata metadata;
-    metadata.descriptor = SerializedRequest::descriptor();
-    metadata.reflection = NULL;
-    return metadata;
-}
+    void SerializedRequest::SerializeWithCachedSizes(
+            ::google::protobuf::io::CodedOutputStream *) const {
+        CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+    }
+
+    ::google::protobuf::uint8 *SerializedRequest::SerializeWithCachedSizesToArray(
+            ::google::protobuf::uint8 *target) const {
+        CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+        return target;
+    }
+
+    int SerializedRequest::ByteSize() const {
+        return (int) _serialized.size();
+    }
+
+    void SerializedRequest::MergeFrom(const ::google::protobuf::Message &) {
+        CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+    }
+
+    void SerializedRequest::MergeFrom(const SerializedRequest &) {
+        CHECK(false) << "You're not supposed to call " << __FUNCTION__;
+    }
+
+    void SerializedRequest::CopyFrom(const ::google::protobuf::Message &from) {
+        if (&from == this) return;
+        const SerializedRequest *source = dynamic_cast<const SerializedRequest *>(&from);
+        if (source == NULL) {
+            CHECK(false) << "SerializedRequest can only CopyFrom SerializedRequest";
+        } else {
+            _serialized = source->_serialized;
+        }
+    }
+
+    void SerializedRequest::CopyFrom(const SerializedRequest &from) {
+        if (&from == this) return;
+        _serialized = from._serialized;
+    }
+
+    bool SerializedRequest::IsInitialized() const {
+        // Always true because it's already serialized.
+        return true;
+    }
+
+    void SerializedRequest::Swap(SerializedRequest *other) {
+        if (other != this) {
+            _serialized.swap(other->_serialized);
+        }
+    }
+
+    ::google::protobuf::Metadata SerializedRequest::GetMetadata() const {
+        ::google::protobuf::Metadata metadata;
+        metadata.descriptor = SerializedRequest::descriptor();
+        metadata.reflection = NULL;
+        return metadata;
+    }
 
 } // namespace melon

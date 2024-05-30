@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,22 +22,22 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/utility/logging.h"                       // LOG()
-#include "melon/utility/time.h"
-#include "melon/utility/iobuf.h"                         // mutil::IOBuf
-#include "melon/utility/sys_byteorder.h"
-#include "melon/rpc/controller.h"               // Controller
-#include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/socket.h"                   // Socket
-#include "melon/rpc/server.h"                   // Server
-#include "melon/rpc/details/server_private_accessor.h"
-#include "melon/rpc/span.h"
-#include "melon/rpc/compress.h"                 // ParseFromCompressedData
-#include "melon/rpc/policy/memcache_binary_protocol.h"
-#include "melon/rpc/policy/memcache_binary_header.h"
-#include "melon/rpc/memcache/memcache.h"
-#include "melon/rpc/policy/most_common_message.h"
-#include "melon/utility/containers/flat_map.h"
+#include <turbo/log/logging.h>                       // LOG()
+#include <melon/utility/time.h>
+#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/utility/sys_byteorder.h>
+#include <melon/rpc/controller.h>               // Controller
+#include <melon/rpc/details/controller_private_accessor.h>
+#include <melon/rpc/socket.h>                   // Socket
+#include <melon/rpc/server.h>                   // Server
+#include <melon/rpc/details/server_private_accessor.h>
+#include <melon/rpc/span.h>
+#include <melon/rpc/compress.h>                 // ParseFromCompressedData
+#include <melon/rpc/policy/memcache_binary_protocol.h>
+#include <melon/rpc/policy/memcache_binary_header.h>
+#include <melon/rpc/memcache/memcache.h>
+#include <melon/rpc/policy/most_common_message.h>
+#include <melon/utility/containers/flat_map.h>
 
 
 namespace melon {
@@ -94,14 +98,14 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         }
 
         if (!IsSupportedCommand(header->command)) {
-            MLOG(WARNING) << "Not support command=" << header->command;
+            LOG(WARNING) << "Not support command=" << header->command;
             source->pop_front(sizeof(*header) + total_body_length);
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
         
         PipelinedInfo pi;
         if (!socket->PopPipelinedInfo(&pi)) {
-            MLOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
+            LOG(WARNING) << "No corresponding PipelinedInfo in socket, drop";
             source->pop_front(sizeof(*header) + total_body_length);
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
@@ -129,7 +133,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         source->cutn(&msg->meta, total_body_length);
         if (header->command == MC_BINARY_SASL_AUTH) {
             if (header->status != 0) {
-                MLOG(ERROR) << "Failed to authenticate the couchbase bucket.";
+                LOG(ERROR) << "Failed to authenticate the couchbase bucket.";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE, 
                                       "Fail to authenticate with the couchbase bucket");
             }
@@ -138,7 +142,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
             socket->GivebackPipelinedInfo(pi);
         } else {
             if (++msg->pi.count >= pi.count) {
-                MCHECK_EQ(msg->pi.count, pi.count);
+                CHECK_EQ(msg->pi.count, pi.count);
                 msg = static_cast<MostCommonMessage*>(socket->release_parsing_context());
                 msg->pi = pi;
                 return MakeMessage(msg);

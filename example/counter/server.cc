@@ -76,7 +76,7 @@ public:
         mutil::EndPoint addr(mutil::my_ip(), FLAGS_port);
         melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
-            MLOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
+            LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
             return -1;
         }
         node_options.election_timeout_ms = FLAGS_election_timeout_ms;
@@ -90,7 +90,7 @@ public:
         node_options.disable_cli = FLAGS_disable_cli;
         melon::raft::Node* node = new melon::raft::Node(FLAGS_group, melon::raft::PeerId(addr));
         if (node->init(node_options) != 0) {
-            MLOG(ERROR) << "Fail to init raft node";
+            LOG(ERROR) << "Fail to init raft node";
             delete node;
             return -1;
         }
@@ -116,7 +116,7 @@ public:
         mutil::IOBuf log;
         mutil::IOBufAsZeroCopyOutputStream wrapper(&log);
         if (!request->SerializeToZeroCopyStream(&wrapper)) {
-            MLOG(ERROR) << "Fail to serialize request";
+            LOG(ERROR) << "Fail to serialize request";
             response->set_success(false);
             return;
         }
@@ -199,7 +199,7 @@ friend class FetchAddClosure;
                 // Have to parse FetchAddRequest from this log.
                 mutil::IOBufAsZeroCopyInputStream wrapper(iter.data());
                 FetchAddRequest request;
-                MCHECK(request.ParseFromZeroCopyStream(&wrapper));
+                CHECK(request.ParseFromZeroCopyStream(&wrapper));
                 detal_value = request.value();
             }
 
@@ -215,7 +215,7 @@ friend class FetchAddClosure;
             // The purpose of following logs is to help you understand the way
             // this StateMachine works.
             // Remove these logs in performance-sensitive servers.
-            LOG_IF(INFO, FLAGS_log_applied_task) 
+            LOG_IF(INFO, FLAGS_log_applied_task)
                     << "Added value=" << prev << " by detal=" << detal_value
                     << " at log_index=" << iter.index();
         }
@@ -233,7 +233,7 @@ friend class FetchAddClosure;
         // Serialize StateMachine to the snapshot
         melon::ClosureGuard done_guard(sa->done);
         std::string snapshot_path = sa->writer->get_path() + "/data";
-        MLOG(INFO) << "Saving snapshot to " << snapshot_path;
+        LOG(INFO) << "Saving snapshot to " << snapshot_path;
         // Use protobuf to store the snapshot for backward compatibility.
         Snapshot s;
         s.set_value(sa->value);
@@ -265,16 +265,16 @@ friend class FetchAddClosure;
 
     int on_snapshot_load(melon::raft::SnapshotReader* reader) {
         // Load snasphot from reader, replacing the running StateMachine
-        MCHECK(!is_leader()) << "Leader is not supposed to load snapshot";
+        CHECK(!is_leader()) << "Leader is not supposed to load snapshot";
         if (reader->get_file_meta("data", NULL) != 0) {
-            MLOG(ERROR) << "Fail to find `data' on " << reader->get_path();
+            LOG(ERROR) << "Fail to find `data' on " << reader->get_path();
             return -1;
         }
         std::string snapshot_path = reader->get_path() + "/data";
         melon::raft::ProtoBufFile pb_file(snapshot_path);
         Snapshot s;
         if (pb_file.load(&s) != 0) {
-            MLOG(ERROR) << "Fail to load snapshot from " << snapshot_path;
+            LOG(ERROR) << "Fail to load snapshot from " << snapshot_path;
             return -1;
         }
         _value.store(s.value(), mutil::memory_order_relaxed);
@@ -283,27 +283,27 @@ friend class FetchAddClosure;
 
     void on_leader_start(int64_t term) {
         _leader_term.store(term, mutil::memory_order_release);
-        MLOG(INFO) << "Node becomes leader";
+        LOG(INFO) << "Node becomes leader";
     }
     void on_leader_stop(const mutil::Status& status) {
         _leader_term.store(-1, mutil::memory_order_release);
-        MLOG(INFO) << "Node stepped down : " << status;
+        LOG(INFO) << "Node stepped down : " << status;
     }
 
     void on_shutdown() {
-        MLOG(INFO) << "This node is down";
+        LOG(INFO) << "This node is down";
     }
     void on_error(const ::melon::raft::Error& e) {
-        MLOG(ERROR) << "Met raft error " << e;
+        LOG(ERROR) << "Met raft error " << e;
     }
     void on_configuration_committed(const ::melon::raft::Configuration& conf) {
-        MLOG(INFO) << "Configuration of this group is " << conf;
+        LOG(INFO) << "Configuration of this group is " << conf;
     }
     void on_stop_following(const ::melon::raft::LeaderChangeContext& ctx) {
-        MLOG(INFO) << "Node stops following " << ctx;
+        LOG(INFO) << "Node stops following " << ctx;
     }
     void on_start_following(const ::melon::raft::LeaderChangeContext& ctx) {
-        MLOG(INFO) << "Node start following " << ctx;
+        LOG(INFO) << "Node start following " << ctx;
     }
     // end of @melon::raft::StateMachine
 
@@ -360,7 +360,7 @@ int main(int argc, char* argv[]) {
     // Add your service into RPC server
     if (server.AddService(&service, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
     // raft can share the same RPC server. Notice the second parameter, because
@@ -368,7 +368,7 @@ int main(int argc, char* argv[]) {
     // address of this server is impossible to get before the server starts. You
     // have to specify the address of the server.
     if (melon::raft::add_service(&server, FLAGS_port) != 0) {
-        MLOG(ERROR) << "Fail to add raft service";
+        LOG(ERROR) << "Fail to add raft service";
         return -1;
     }
 
@@ -378,23 +378,23 @@ int main(int argc, char* argv[]) {
     // Notice the default options of server is used here. Check out details from
     // the doc of melon if you would like change some options;
     if (server.Start(FLAGS_port, NULL) != 0) {
-        MLOG(ERROR) << "Fail to start Server";
+        LOG(ERROR) << "Fail to start Server";
         return -1;
     }
 
     // It's ok to start Counter;
     if (counter.start() != 0) {
-        MLOG(ERROR) << "Fail to start Counter";
+        LOG(ERROR) << "Fail to start Counter";
         return -1;
     }
 
-    MLOG(INFO) << "Counter service is running on " << server.listen_address();
+    LOG(INFO) << "Counter service is running on " << server.listen_address();
     // Wait until 'CTRL-C' is pressed. then Stop() and Join() the service
     while (!melon::IsAskedToQuit()) {
         sleep(1);
     }
 
-    MLOG(INFO) << "Counter service is going to quit";
+    LOG(INFO) << "Counter service is going to quit";
 
     // Stop counter before server
     counter.shutdown();

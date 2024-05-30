@@ -1,0 +1,67 @@
+//
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+//
+
+syntax="proto2";
+package melon;
+option java_package = "com.melon";
+
+import "melon/proto/rpc/errno.proto";
+option cc_generic_services = true;
+
+enum PeerStatus {
+  NORMAL = 1;
+  SLOW   = 2;
+  FULL   = 3;
+  DEAD   = 4;
+};
+
+message SnsPeer {
+  required string      servlet_name            = 1;
+  required string      zone                    = 2;
+  required string      app_name                = 3;
+  optional string      color                   = 4;
+  optional PeerStatus  status                  = 5;
+  optional bool        deleted                 = 6;
+  optional uint32      ctime                   = 7;
+  optional uint32      mtime                   = 8;
+  required string      env                     = 9;
+  required string      address                 = 10;
+}
+
+message SnsRequest {
+  required string app_name  = 1;
+  optional int64  app_id    = 2;
+  repeated string zones       = 3;
+  optional int64  zone_id         = 4;
+  repeated string env             = 5;
+  repeated string color           = 6;
+}
+
+message SnsResponse {
+  required Errno errcode                              = 1;
+  optional string errmsg                              = 2;
+  repeated SnsPeer servlets                           = 3;
+}
+
+service SnsService {
+  rpc registry(SnsPeer) returns (SnsResponse);
+  rpc update(SnsPeer) returns (SnsResponse);
+  rpc cancel(SnsPeer) returns (SnsResponse);
+  rpc naming(SnsRequest) returns (SnsResponse);
+};

@@ -1,25 +1,29 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 // Date: 2017/11/04 17:37:43
 
 #include <gflags/gflags.h>
-#include "melon/utility/build_config.h"
-#include "melon/utility/logging.h"
-
+#include <melon/utility/build_config.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/macros.h>
 #if defined(OS_LINUX)
 // clone is a linux specific syscall
 #include <sched.h>
@@ -56,7 +60,7 @@ int launch_child_process(void* args) {
 int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     int pipe_fd[2];
     if (pipe(pipe_fd) != 0) {
-        PMLOG(ERROR) << "Fail to pipe";
+        PLOG(ERROR) << "Fail to pipe";
         return -1;
     }
     int saved_errno = 0;
@@ -69,7 +73,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     char* child_stack = NULL;
     char* child_stack_mem = (char*)malloc(CHILD_STACK_SIZE);
     if (!child_stack_mem) {
-        MLOG(ERROR) << "Fail to alloc stack for the child process";
+        LOG(ERROR) << "Fail to alloc stack for the child process";
         rc = -1;
         goto END;
     }
@@ -78,7 +82,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
     cpid = clone(launch_child_process, child_stack,
                  __WCLONE | CLONE_VM | SIGCHLD | CLONE_UNTRACED, &args);
     if (cpid < 0) {
-        PMLOG(ERROR) << "Fail to clone child process";
+        PLOG(ERROR) << "Fail to clone child process";
         rc = -1;
         goto END;
     }
@@ -93,7 +97,7 @@ int read_command_output_through_clone(std::ostream& os, const char* cmd) {
         } else if (nr == 0) {
             break;
         } else if (errno != EINTR) {
-            MLOG(ERROR) << "Encountered error while reading for the pipe";
+            LOG(ERROR) << "Encountered error while reading for the pipe";
             break;
         }
     }
@@ -169,7 +173,7 @@ int read_command_output_through_popen(std::ostream& os, const char* cmd) {
             if (feof(pipe)) {
                 break;
             } else if (ferror(pipe)) {
-                MLOG(ERROR) << "Encountered error while reading for the pipe";
+                LOG(ERROR) << "Encountered error while reading for the pipe";
                 break;
             }
             // retry;

@@ -12,6 +12,11 @@ set(MELON_CXX_DEFINES @MELON_CXX_DEFINES@)
 set(MELON_CXX_OPTIONS @MELON_CXX_OPTIONS@)
 set(MELON_C_OPTIONS @MELON_C_OPTIONS@)
 
+if(NOT EA_ROOT)
+    set(EA_ROOT /opt/EA/inf)
+endif()
+list(APPEND CMAKE_PREFIX_PATH ${EA_ROOT})
+
 set(MELON_SYSTEM_DYLINK)
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
@@ -20,61 +25,142 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     list(APPEND MELON_SYSTEM_DYLINK rt dl pthread)
 endif ()
 
-set(MELON_DEPS_LIBS ${MELON_SYSTEM_DYLINK})
-set(MELON_DEPS_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIR})
-
-macro(melon_find_gflags)
-    find_path(GFLAGS_INCLUDE_PATH NAMES gflags/gflags.h)
-    find_library(GFLAGS_SHARED_LIB NAMES gflags)
-    if(NOT GFLAGS_INCLUDE_PATH OR NOT GFLAGS_SHARED_LIB)
-        message(FATAL_ERROR "gflags not found")
-    endif()
-    list(APPEND MELON_DEPS_LIBS ${GFLAGS_SHARED_LIB})
-    list(APPEND MELON_DEPS_INCLUDE_DIRS ${GFLAGS_INCLUDE_PATH})
-endmacro()
-
-macro(melon_find_protobuf)
-    find_package(Protobuf REQUIRED)
-    list(APPEND MELON_DEPS_LIBS ${PROTOBUF_LIBRARIES})
-    list(APPEND MELON_DEPS_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS})
-endmacro()
-
-macro(melon_find_leveldb)
-    find_path(LEVELDB_INCLUDE_PATH NAMES leveldb/db.h)
-    find_library(LEVELDB_SHARED_LIB NAMES leveldb)
-    if(NOT LEVELDB_INCLUDE_PATH OR NOT LEVELDB_SHARED_LIB)
-        message(FATAL_ERROR "leveldb not found")
-    endif()
-    list(APPEND MELON_DEPS_LIBS ${LEVELDB_SHARED_LIB})
-    list(APPEND MELON_DEPS_INCLUDE_DIRS ${LEVELDB_INCLUDE_PATH})
-endmacro()
-
-macro(melon_find_openssl)
-    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        set(OPENSSL_ROOT_DIR
-                "/usr/local/opt/openssl" # Homebrew installed OpenSSL
-        )
+##################################
+# gflags
+##################################
+macro(carbin_find_static_gflags)
+    set(GFLAGS_STATIC_FOUND FALSE)
+    find_path(GFLAGS_INCLUDE_DIR NAMES gflags/gflags.h PATHS ${EA_ROOT})
+    find_library(GFLAGS_STATIC_LIB NAMES libgflags.a PATHS ${EA_ROOT})
+    if (GFLAGS_INCLUDE_DIR AND GFLAGS_STATIC_LIB)
+        set(GFLAGS_STATIC_FOUND TRUE)
     endif ()
-    find_package(OpenSSL REQUIRED)
-    list(APPEND MELON_DEPS_LIBS  ${OPENSSL_CRYPTO_LIBRARY})
-    list(APPEND MELON_DEPS_LIBS  ${OPENSSL_SSL_LIBRARY})
-    list(APPEND MELON_DEPS_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
+    message(STATUS "GFLAGS_STATIC_FOUND: ${GFLAGS_STATIC_FOUND}")
+    if (GFLAGS_STATIC_FOUND)
+        message(STATUS "GFLAGS_INCLUDE_PATH: ${GFLAGS_INCLUDE_DIR}")
+        message(STATUS "GFLAGS_STATIC_LIB: ${GFLAGS_STATIC_LIB}")
+    endif ()
 endmacro()
 
-macro(melon_find_zlib)
-    find_path(ZLIB_INCLUDE_DIRS NAMES zlib.h)
-    find_library(ZLIB_LIBRARIES NAMES z)
-    if(NOT ZLIB_INCLUDE_DIRS OR NOT ZLIB_LIBRARIES)
-        message(FATAL_ERROR "zlib not found")
-    endif()
-    list(APPEND MELON_DEPS_LIBS ${ZLIB_LIBRARIES})
-    list(APPEND MELON_DEPS_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS})
+##################################
+# snappy
+##################################
+macro(carbin_find_static_snappy)
+    set(SNAPPY_STATIC_FOUND FALSE)
+    find_path(SNAPPY_INCLUDE_DIR NAMES snappy.h)
+    find_library(SNAPPY_STATIC_LIB NAMES libsnappy.a)
+    if (SNAPPY_STATIC_LIB)
+        set(SNAPPY_STATIC_FOUND TRUE)
+    endif ()
+    if (SNAPPY_SHARED_FOUND OR SNAPPY_STATIC_FOUND)
+        set(SNAPPY_STATIC_FOUND TRUE)
+    endif ()
+
+    if (SNAPPY_INCLUDE_PATH AND SNAPPY_FOUND)
+        set(SNAPPY_DEV_FOUND TRUE)
+    endif ()
+    message(STATUS "SNAPPY_STATIC_FOUND: ${SNAPPY_STATIC_FOUND}")
+    if (SNAPPY_STATIC_FOUND)
+        message(STATUS "SNAPPY_INCLUDE_PATH: ${SNAPPY_INCLUDE_DIR}")
+        message(STATUS "SNAPPY_STATIC_LIB: ${SNAPPY_STATIC_LIB}")
+    endif ()
 endmacro()
 
-melon_find_gflags()
-melon_find_protobuf()
-melon_find_leveldb()
-melon_find_openssl()
-melon_find_zlib()
-list(REMOVE_DUPLICATES MELON_DEPS_LIBS)
-list(REMOVE_DUPLICATES MELON_DEPS_INCLUDE_DIRS)
+##################################
+# zlib
+##################################
+macro(carbin_find_static_zlib)
+    set(ZLIB_STATIC_FOUND FALSE)
+    find_path(ZLIB_INCLUDE_DIR NAMES zlib.h PATHS ${EA_ROOT})
+    find_library(ZLIB_STATIC_LIB NAMES libz.a PATHS ${EA_ROOT})
+    if (ZLIB_STATIC_LIB AND ZLIB_INCLUDE_DIR)
+        set(ZLIB_STATIC_FOUND TRUE)
+    endif ()
+    message(STATUS "ZLIB_FOUND: ${ZLIB_STATIC_FOUND}")
+    if (ZLIB_FOUND)
+        message(STATUS "ZLIB_INCLUDE_DIR: ${ZLIB_INCLUDE_DIR}")
+        message(STATUS "ZLIB_STATIC_LIB: ${ZLIB_STATIC_LIB}")
+    endif ()
+endmacro()
+
+##################################
+# leveldb
+##################################
+macro(carbin_find_static_leveldb)
+    set(LEVELDB_STATIC_FOUND FALSE)
+    find_path(LEVELDB_INCLUDE_DIR NAMES leveldb/db.h PATHS ${EA_ROOT})
+    find_library(LEVELDB_STATIC_LIB NAMES libleveldb.a PATHS ${EA_ROOT})
+    if (LEVELDB_STATIC_LIB)
+        set(LEVELDB_STATIC_FOUND TRUE)
+    endif ()
+
+    if (LEVELDB_INCLUDE_DIR AND LEVELDB_STATIC_LIB)
+        set(LEVELDB_STATIC_FOUND TRUE)
+    endif ()
+    message(STATUS "LEVELDB_STATIC_FOUND: ${LEVELDB_STATIC_FOUND}")
+    if (LEVELDB_STATIC_FOUND)
+        message(STATUS "LEVELDB_INCLUDE_PATH: ${LEVELDB_INCLUDE_DIR}")
+        message(STATUS "LEVELDB_STATIC_LIB: ${LEVELDB_STATIC_LIB}")
+    endif ()
+endmacro()
+
+##################################
+# openssl
+##################################
+set(OPENSSL_ROOT_DIR ${EA_ROOT})
+find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+message(STATUS "OpenSSL ssl library: ${OPENSSL_SSL_LIBRARY}")
+message(STATUS "OpenSSL crypto library: ${OPENSSL_CRYPTO_LIBRARY}")
+
+############################################################
+# protobuf
+############################################################
+find_package(Protobuf REQUIRED)
+message(STATUS "Protobuf include dir: ${PROTOBUF_INCLUDE_DIRS}")
+message(STATUS "Protobuf libraries: ${PROTOBUF_LIBRARY}")
+message(STATUS "Protobuf protoc: ${PROTOBUF_PROTOC_EXECUTABLE}")
+message(STATUS "Protobuf protoc: ${PROTOBUF_PROTOC_LIBRARY}")
+
+############################################################
+# turbo
+############################################################
+find_package(turbo 0.5.6 REQUIRED)
+get_target_property(TURBO_STATIC_LIB turbo::turbo_static LOCATION)
+
+carbin_find_static_gflags()
+if (NOT GFLAGS_STATIC_FOUND)
+    message(FATAL_ERROR "gflags not found")
+endif ()
+carbin_find_static_snappy()
+if (NOT SNAPPY_STATIC_FOUND)
+    message(FATAL_ERROR "snappy not found")
+endif ()
+carbin_find_static_zlib()
+if (NOT ZLIB_STATIC_FOUND)
+    message(FATAL_ERROR "zlib not found")
+endif ()
+carbin_find_static_leveldb()
+if (NOT LEVELDB_STATIC_FOUND)
+    message(FATAL_ERROR "leveldb not found")
+endif ()
+
+set(MELON_DEPS_LINK
+        ${GFLAGS_STATIC_LIB}
+        ${PROTOBUF_LIBRARY}
+        ${PROTOBUF_PROTOC_LIBRARY}
+        ${LEVELDB_STATIC_LIB}
+        ${OPENSSL_SSL_LIBRARY}
+        ${OPENSSL_CRYPTO_LIBRARY}
+        ${ZLIB_STATIC_LIB}
+        ${SNAPPY_STATIC_LIB}
+        ${TURBO_STATIC_LIB}
+        ${CARBIN_SYSTEM_DYLINK}
+        )
+get_target_property(MELON_STATIC_LIB melon::melon_static LOCATION)
+get_target_property(MELON_SHARED_LIB melon::melon_shared LOCATION)
+set(MELON_STATIC_LIBRARIES ${MELON_STATIC_LIB} ${MELON_DEPS_LINK} ${MELON_SYSTEM_DYLINK})
+set(MELON_SHARED_LIBRARIES ${MELON_SHARED_LIB} ${MELON_DEPS_LINK} ${MELON_SYSTEM_DYLINK})
+
+set(MELON_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIR} ${GFLAGS_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIRS} ${LEVELDB_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${SNAPPY_INCLUDE_DIR} ${turbo_INCLUDE_DIR})
+list(REMOVE_DUPLICATES MELON_INCLUDE_DIRS)

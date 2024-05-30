@@ -4,7 +4,7 @@
 
 #include "melon/utility/threading/non_thread_safe_impl.h"
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -13,7 +13,7 @@ bool NonThreadSafeImpl::CalledOnValidThread() const {
 }
 
 NonThreadSafeImpl::~NonThreadSafeImpl() {
-  DMCHECK(CalledOnValidThread());
+  DCHECK(CalledOnValidThread());
 }
 
 void NonThreadSafeImpl::DetachFromThread() {

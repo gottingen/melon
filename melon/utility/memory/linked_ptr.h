@@ -37,7 +37,7 @@
 #ifndef MUTIL_MEMORY_LINKED_PTR_H_
 #define MUTIL_MEMORY_LINKED_PTR_H_
 
-#include "melon/utility/logging.h"  // for MCHECK macros
+#include <turbo/log/logging.h>  // for CHECK macros
 
 // This is used internally by all instances of linked_ptr<>.  It needs to be
 // a non-template class because different types of linked_ptr<> can refer to
@@ -87,7 +87,7 @@ class linked_ptr {
   template <typename U> linked_ptr(linked_ptr<U> const& ptr) { copy(&ptr); }
 
   linked_ptr(linked_ptr const& ptr) {
-    DMCHECK_NE(&ptr, this);
+    DCHECK_NE(&ptr, this);
     copy(&ptr);
   }
 
@@ -118,7 +118,7 @@ class linked_ptr {
   // Sole ownership by this linked_ptr object is required.
   T* release() {
     bool last = link_.depart();
-    MCHECK(last);
+    CHECK(last);
     T* v = value_;
     value_ = NULL;
     return v;

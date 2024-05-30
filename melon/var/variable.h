@@ -1,28 +1,30 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-
-#ifndef  MELON_VAR_VARIABLE_H_
-#define  MELON_VAR_VARIABLE_H_
+#pragma once
 
 #include <ostream>                     // std::ostream
 #include <string>                      // std::string
 #include <vector>                      // std::vector
 #include <gflags/gflags_declare.h>
-#include "melon/utility/macros.h"               // DISALLOW_COPY_AND_ASSIGN
-#include "melon/utility/strings/string_piece.h" // mutil::StringPiece
+#include <melon/utility/macros.h>               // DISALLOW_COPY_AND_ASSIGN
+#include <melon/utility/strings/string_piece.h> // mutil::StringPiece
 
 namespace boost {
     class any;
@@ -82,14 +84,14 @@ namespace melon::var {
         bool test_only;
     };
 
-    // Base class of all bvar.
+    // Base class of all var.
     //
     // About thread-safety:
-    //   bvar is thread-compatible:
+    //   var is thread-compatible:
     //     Namely you can create/destroy/expose/hide or do whatever you want to
-    //     different bvar simultaneously in different threads.
-    //   bvar is NOT thread-safe:
-    //     You should not operate one bvar from different threads simultaneously.
+    //     different var simultaneously in different threads.
+    //   var is NOT thread-safe:
+    //     You should not operate one var from different threads simultaneously.
     //     If you need to, protect the ops with locks. Similarly with ordinary
     //     variables, const methods are thread-safe, namely you can call
     //     describe()/get_description()/get_value() etc from diferent threads
@@ -204,7 +206,7 @@ namespace melon::var {
     private:
         std::string _name;
 
-        // bvar uses TLS, thus copying/assignment need to copy TLS stuff as well,
+        // var uses TLS, thus copying/assignment need to copy TLS stuff as well,
         // which is heavy. We disable copying/assignment now.
         DISALLOW_COPY_AND_ASSIGN(Variable);
     };
@@ -231,5 +233,3 @@ namespace std {
     }
 
 }  // namespace std
-
-#endif  // MELON_VAR_VARIABLE_H_

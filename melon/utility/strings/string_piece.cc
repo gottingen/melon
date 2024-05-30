@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 // Copied from strings/stringpiece.cc with modifications
 
-#include "melon/utility/strings/string_piece.h"
+#include <melon/utility/strings/string_piece.h>
 
 #include <algorithm>
 #include <ostream>

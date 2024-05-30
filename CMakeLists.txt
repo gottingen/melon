@@ -32,7 +32,7 @@ message(STATUS ${PROJECT_NAME}_IS_TOP_PROJECT)
 set(PROJECT_DESCRIPTION "Hercules is an ahead of time compiler for a subset of the Python language framework.")
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 5)
-set(PROJECT_VERSION_PATCH 7)
+set(PROJECT_VERSION_PATCH 8)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 set(${PROJECT_NAME}_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -78,6 +78,7 @@ set(PROTO_FILES
         melon/proto/idl_options.proto
         melon/proto/rpc/rtmp.proto
         melon/proto/rpc/rpc_dump.proto
+        melon/proto/rpc/sns.proto
         melon/proto/rpc/get_favicon.proto
         melon/proto/rpc/span.proto
         melon/proto/rpc/builtin_service.proto
@@ -173,6 +174,7 @@ install(DIRECTORY ${PROJECT_NAME}
         PATTERN "*.inc"
         PATTERN "*.h"
         PATTERN "*.hpp"
+        PATTERN "*.proto"
         )
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/example DESTINATION share/melon)
 

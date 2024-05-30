@@ -1,73 +1,73 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#ifndef MELON_RPC_CLOSURE_GUARD_H_
-#define MELON_RPC_CLOSURE_GUARD_H_
+#pragma once
 
 #include <google/protobuf/service.h>
-#include "melon/utility/macros.h"
+#include <melon/utility/macros.h>
 
 
 namespace melon {
 
-// RAII: Call Run() of the closure on destruction.
-class ClosureGuard {
-public:
-    ClosureGuard() : _done(NULL) {}
+    // RAII: Call Run() of the closure on destruction.
+    class ClosureGuard {
+    public:
+        ClosureGuard() : _done(NULL) {}
 
-    // Constructed with a closure which will be Run() inside dtor.
-    explicit ClosureGuard(google::protobuf::Closure* done) : _done(done) {}
-    
-    // Run internal closure if it's not NULL.
-    ~ClosureGuard() {
-        if (_done) {
-            _done->Run();
+        // Constructed with a closure which will be Run() inside dtor.
+        explicit ClosureGuard(google::protobuf::Closure *done) : _done(done) {}
+
+        // Run internal closure if it's not NULL.
+        ~ClosureGuard() {
+            if (_done) {
+                _done->Run();
+            }
         }
-    }
 
-    // Run internal closure if it's not NULL and set it to `done'.
-    void reset(google::protobuf::Closure* done) {
-        if (_done) {
-            _done->Run();
+        // Run internal closure if it's not NULL and set it to `done'.
+        void reset(google::protobuf::Closure *done) {
+            if (_done) {
+                _done->Run();
+            }
+            _done = done;
         }
-        _done = done;
-    }
 
-    // Return and set internal closure to NULL.
-    google::protobuf::Closure* release() {
-        google::protobuf::Closure* const prev_done = _done;
-        _done = NULL;
-        return prev_done;
-    }
+        // Return and set internal closure to NULL.
+        google::protobuf::Closure *release() {
+            google::protobuf::Closure *const prev_done = _done;
+            _done = NULL;
+            return prev_done;
+        }
 
-    // True if no closure inside.
-    bool empty() const { return _done == NULL; }
+        // True if no closure inside.
+        bool empty() const { return _done == NULL; }
 
-    // Exchange closure with another guard.
-    void swap(ClosureGuard& other) { std::swap(_done, other._done); }
-    
-private:
-    // Copying this object makes no sense.
-    DISALLOW_COPY_AND_ASSIGN(ClosureGuard);
-    
-    google::protobuf::Closure* _done;
-};
+        // Exchange closure with another guard.
+        void swap(ClosureGuard &other) { std::swap(_done, other._done); }
+
+    private:
+        // Copying this object makes no sense.
+        DISALLOW_COPY_AND_ASSIGN(ClosureGuard);
+
+        google::protobuf::Closure *_done;
+    };
 
 } // namespace melon
-
-
-#endif  // MELON_RPC_CLOSURE_GUARD_H_

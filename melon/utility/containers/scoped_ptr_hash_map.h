@@ -9,9 +9,9 @@
 #include <utility>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/containers/hash_tables.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/containers/hash_tables.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/stl_util.h"
 
 namespace mutil {
@@ -73,7 +73,7 @@ class ScopedPtrHashMap {
   }
 
   scoped_ptr<Value> take(iterator it) {
-    DMCHECK(it != data_.end());
+    DCHECK(it != data_.end());
     if (it == data_.end())
       return scoped_ptr<Value>();
 
@@ -91,7 +91,7 @@ class ScopedPtrHashMap {
   }
 
   scoped_ptr<Value> take_and_erase(iterator it) {
-    DMCHECK(it != data_.end());
+    DCHECK(it != data_.end());
     if (it == data_.end())
       return scoped_ptr<Value>();
 

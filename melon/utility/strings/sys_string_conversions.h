@@ -14,7 +14,7 @@
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
 #include "melon/utility/strings/string16.h"
-#include "melon/utility/strings/string_piece.h"
+#include <melon/utility/strings/string_piece.h>
 
 #if defined(OS_MACOSX)
 #include <CoreFoundation/CoreFoundation.h>

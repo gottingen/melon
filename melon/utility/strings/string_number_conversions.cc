@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/strings/string_number_conversions.h"
+#include <melon/utility/strings/string_number_conversions.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -11,7 +11,7 @@
 
 #include <limits>
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/scoped_clear_errno.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include "melon/utility/third_party/dmg_fp/dmg_fp.h"
@@ -81,13 +81,13 @@ struct IntToStringT {
     typename STR::iterator it(outbuf.end());
     do {
       --it;
-      DMCHECK(it != outbuf.begin());
+      DCHECK(it != outbuf.begin());
       *it = static_cast<typename STR::value_type>((res % 10) + '0');
       res /= 10;
     } while (res != 0);
     if (is_neg) {
       --it;
-      DMCHECK(it != outbuf.begin());
+      DCHECK(it != outbuf.begin());
       *it = static_cast<typename STR::value_type>('-');
     }
     return STR(it, outbuf.end());
@@ -324,7 +324,7 @@ typedef BaseHexIteratorRangeToUInt64Traits<StringPiece::const_iterator>
 
 template<typename STR>
 bool HexStringToBytesT(const STR& input, std::vector<uint8_t>* output) {
-  DMCHECK_EQ(output->size(), 0u);
+  DCHECK_EQ(output->size(), 0u);
   size_t count = input.size();
   if (count == 0 || (count % 2) != 0)
     return false;

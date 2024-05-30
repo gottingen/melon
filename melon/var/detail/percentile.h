@@ -1,34 +1,37 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef  MELON_VAR_DETAIL_PERCENTILE_H_
-#define  MELON_VAR_DETAIL_PERCENTILE_H_
+#pragma once
 
-#include <string.h>                     // memset memcmp
-#include <stdint.h>                     // uint32_t
+#include <cstring>                     // memset memcmp
+#include <cstdint>                     // uint32_t
 #include <limits>                       // std::numeric_limits
 #include <ostream>                      // std::ostream
 #include <algorithm>                    // std::sort
-#include <math.h>                       // ceil
-#include "melon/utility/macros.h"                // ARRAY_SIZE
-#include "melon/var/reducer.h"               // Reducer
-#include "melon/var/window.h"                // Window
-#include "melon/var/detail/combiner.h"       // AgentCombiner
-#include "melon/var/detail/sampler.h"        // ReducerSampler
-#include "melon/utility/fast_rand.h"
+#include <cmath>                       // ceil
+#include <melon/utility/macros.h>                // ARRAY_SIZE
+#include <melon/var/reducer.h>               // Reducer
+#include <melon/var/window.h>                // Window
+#include <melon/var/detail/combiner.h>       // AgentCombiner
+#include <melon/var/detail/sampler.h>        // ReducerSampler
+#include <melon/utility/fast_rand.h>
 
 namespace melon::var {
 namespace detail {
@@ -64,7 +67,7 @@ public:
             std::sort(_samples, _samples + saved_num);
             _sorted = true;
         }
-        MCHECK_EQ(saved_num, _num_samples) << "You must call get_number() on"
+        CHECK_EQ(saved_num, _num_samples) << "You must call get_number() on"
             " a unchanging PercentileInterval";
         return _samples[index];
     }
@@ -81,7 +84,7 @@ public:
         }
         MELON_CASSERT(SAMPLE_SIZE >= size2,
                       must_merge_small_interval_into_larger_one_currently);
-        MCHECK_EQ(rhs._num_samples, rhs._num_added);
+        CHECK_EQ(rhs._num_samples, rhs._num_added);
         // Assume that the probability of each sample in |this| is a0/b0 and
         // the probability of each sample in |rhs| is a1/b1.
         // We are going to randomly pick some samples from |this| and |rhs| to
@@ -94,7 +97,7 @@ public:
         // |b1*SAMPLE_SIZE/(b0+b1)| from |rhs|.
         if (_num_added + rhs._num_added <= SAMPLE_SIZE) {
             // No sample should be dropped
-            MCHECK_EQ(_num_samples, _num_added)
+            CHECK_EQ(_num_samples, _num_added)
                 << "_num_added=" << _num_added
                 << " rhs._num_added" << rhs._num_added
                 << " _num_samples=" << _num_samples
@@ -115,13 +118,13 @@ public:
             //    num_remain < SAMPLE_SIZE = _num_added
             size_t num_remain = round_of_expectation(
                     _num_added * SAMPLE_SIZE, _num_added + rhs._num_added);
-            MCHECK_LE(num_remain, _num_samples);
+            CHECK_LE(num_remain, _num_samples);
             // Randomly drop samples of this
             for (size_t i = _num_samples; i > num_remain; --i) {
                 _samples[mutil::fast_rand_less_than(i)] = _samples[i - 1];
             }
             const size_t num_remain_from_rhs = SAMPLE_SIZE - num_remain;
-            MCHECK_LE(num_remain_from_rhs, rhs._num_samples);
+            CHECK_LE(num_remain_from_rhs, rhs._num_samples);
             // Have to copy data from rhs to shuffle since it's const
             DEFINE_SMALL_ARRAY(uint32_t, tmp, rhs._num_samples, 64);
             memcpy(tmp, rhs._samples, sizeof(uint32_t) * rhs._num_samples);
@@ -131,7 +134,7 @@ public:
                 tmp[index] = tmp[rhs._num_samples - i - 1];
             }
             _num_samples = num_remain;
-            MCHECK_EQ(_num_samples, SAMPLE_SIZE);
+            CHECK_EQ(_num_samples, SAMPLE_SIZE);
         }
         _num_added += rhs._num_added;
     }
@@ -139,7 +142,7 @@ public:
     // Randomly pick n samples from mutable_rhs to |this|
     template <size_t size2>
     void merge_with_expectation(PercentileInterval<size2>& mutable_rhs, size_t n) {
-        MCHECK(n <= mutable_rhs._num_samples);
+        CHECK(n <= mutable_rhs._num_samples);
         _num_added += mutable_rhs._num_added;
         if (_num_samples + n <= SAMPLE_SIZE && n == mutable_rhs._num_samples) {
             memcpy(_samples + _num_samples, mutable_rhs._samples, sizeof(_samples[0]) * n);
@@ -165,7 +168,7 @@ public:
     // Returns true if the input was stored.
     bool add32(uint32_t x) {
         if (MELON_UNLIKELY(_num_samples >= SAMPLE_SIZE)) {
-            MLOG(ERROR) << "This interval was full";
+            LOG(ERROR) << "This interval was full";
             return false;
         }
         ++_num_added;
@@ -306,7 +309,7 @@ friend class AddLatency;
             }
             n -= invl.added_count();
         }
-        MCHECK(false) << "Can't reach here";
+        CHECK(false) << "Can't reach here";
         return std::numeric_limits<uint32_t>::max();
     }
 
@@ -498,5 +501,3 @@ private:
 
 }  // namespace detail
 }  // namespace melon::var
-
-#endif  // MELON_VAR_DETAIL_PERCENTILE_H_

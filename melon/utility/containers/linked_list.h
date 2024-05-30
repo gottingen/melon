@@ -5,7 +5,7 @@
 #ifndef MUTIL_CONTAINERS_LINKED_LIST_H_
 #define MUTIL_CONTAINERS_LINKED_LIST_H_
 
-#include "melon/utility/macros.h"
+#include <melon/utility/macros.h>
 
 // Simple LinkedList type. (See the Q&A section to understand how this
 // differs from std::list).

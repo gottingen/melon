@@ -9,9 +9,9 @@
 
 #include "melon/utility/atomic_ref_count.h"
 #include "melon/utility/base_export.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #ifndef NDEBUG
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #endif
 #include "melon/utility/threading/thread_collision_warner.h"
 
@@ -32,7 +32,7 @@ class MUTIL_EXPORT RefCountedBase {
 
   ~RefCountedBase() {
   #ifndef NDEBUG
-    DMCHECK(in_dtor_) << "RefCounted object deleted without calling Release()";
+    DCHECK(in_dtor_) << "RefCounted object deleted without calling Release()";
   #endif
   }
 
@@ -43,7 +43,7 @@ class MUTIL_EXPORT RefCountedBase {
     // without release it.
     // DFAKE_SCOPED_LOCK_THREAD_LOCKED(add_release_);
   #ifndef NDEBUG
-    DMCHECK(!in_dtor_);
+    DCHECK(!in_dtor_);
   #endif
     ++ref_count_;
   }
@@ -55,7 +55,7 @@ class MUTIL_EXPORT RefCountedBase {
     // without release it.
     // DFAKE_SCOPED_LOCK_THREAD_LOCKED(add_release_);
   #ifndef NDEBUG
-    DMCHECK(!in_dtor_);
+    DCHECK(!in_dtor_);
   #endif
     if (--ref_count_ == 0) {
   #ifndef NDEBUG

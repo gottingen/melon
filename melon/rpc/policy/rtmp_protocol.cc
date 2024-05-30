@@ -1,36 +1,40 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <openssl/hmac.h> // HMAC_CTX_init
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/fast_rand.h"
-#include "melon/utility/sys_byteorder.h"
-#include "melon/rpc/log.h"
-#include "melon/rpc/server.h"
-#include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/details/server_private_accessor.h"
-#include "melon/rpc/span.h"
-#include "melon/rpc/policy/dh.h"
-#include "melon/rpc/policy/rtmp_protocol.h"
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/fast_rand.h>
+#include <melon/utility/sys_byteorder.h>
+#include <melon/rpc/log.h>
+#include <melon/rpc/server.h>
+#include <melon/rpc/details/controller_private_accessor.h>
+#include <melon/rpc/details/server_private_accessor.h>
+#include <melon/rpc/span.h>
+#include <melon/rpc/policy/dh.h>
+#include <melon/rpc/policy/rtmp_protocol.h>
 
 // For printing logs with useful prefixes.
 #define RTMP_LOG(level, socket, mh)                                     \
-    MLOG(level) << (socket)->remote_side() << '[' << (mh).stream_id << "] "
+    LOG(level) << (socket)->remote_side() << '[' << (mh).stream_id << "] "
 #define RTMP_ERROR(socket, mh) RTMP_LOG(ERROR, (socket), (mh))
 #define RTMP_WARNING(socket, mh) RTMP_LOG(WARNING, (socket), (mh))
 
@@ -147,7 +151,7 @@ namespace adobe_hs {
 int openssl_HMACsha256(const void* key, int key_size,
                        const void* data, int data_size, void* digest) {
     if (NULL == EVP_sha256) {
-        MLOG_ONCE(ERROR) << "Fail to find EVP_sha256, fall back to simple handshaking";
+        LOG_FIRST_N(ERROR, 1) << "Fail to find EVP_sha256, fall back to simple handshaking";
         return -1;
     }
     unsigned int digest_size = 0;
@@ -156,7 +160,7 @@ int openssl_HMACsha256(const void* key, int key_size,
         // NOTE: first parameter of EVP_Digest in older openssl is void*.
         if (EVP_Digest(const_cast<void*>(data), data_size, temp_digest,
                        &digest_size, EVP_sha256(), NULL) < 0) {
-            MLOG(ERROR) << "Fail to EVP_Digest";
+            LOG(ERROR) << "Fail to EVP_Digest";
             return -1;
         }
     } else {
@@ -165,12 +169,12 @@ int openssl_HMACsha256(const void* key, int key_size,
         if (HMAC(EVP_sha256(), key, key_size,
                  (const unsigned char*) data, data_size,
                  temp_digest, &digest_size) == NULL) {
-            MLOG(ERROR) << "Fail to HMAC";
+            LOG(ERROR) << "Fail to HMAC";
             return -1;
         }
     }
     if (digest_size != 32) {
-        MLOG(ERROR) << "digest_size=" << digest_size << " of sha256 is not 32";
+        LOG(ERROR) << "digest_size=" << digest_size << " of sha256 is not 32";
         return -1;
     }
     return 0;
@@ -398,7 +402,7 @@ bool C1S1Base::Save(void* buf) const {
         key_blk.Save(p + DigestBlock::SIZE);
         return true;
     } else {
-        MCHECK(false) << "Invalid schema=" << (int)_schema;
+        CHECK(false) << "Invalid schema=" << (int)_schema;
         return false;
     }
 }
@@ -416,12 +420,12 @@ bool C1S1Base::ComputeDigestBase(const void* key, int key_size,
         digest_blk.SaveWithoutDigest(p);
         key_blk.Save(p + DigestBlock::SIZE - DigestBlock::DIGEST_SIZE);
     } else {
-        MLOG(ERROR) << "Invalid schema=" << (int)_schema;
+        LOG(ERROR) << "Invalid schema=" << (int)_schema;
         return false;
     }
     char tmp_digest[EVP_MAX_MD_SIZE];
     if (openssl_HMACsha256(key, key_size, buf, sizeof(buf), tmp_digest) != 0) {
-        MLOG(WARNING) << "Fail to compute digest of C1/S1";
+        LOG(WARNING) << "Fail to compute digest of C1/S1";
         return false;
     }
     memcpy(digest, tmp_digest, DigestBlock::DIGEST_SIZE);
@@ -447,7 +451,7 @@ bool C1::Load(const void* buf) {
     digest_blk.Load(p + 8 + KeyBlock::SIZE);
     char tmp_digest[DigestBlock::DIGEST_SIZE];
     if (!ComputeDigest(tmp_digest)) {
-        MLOG(WARNING) << "Fail to compute digest of C1 (schema0)";
+        LOG(WARNING) << "Fail to compute digest of C1 (schema0)";
         return false;
     }
     if (memcmp(tmp_digest, digest_blk.digest(),
@@ -459,7 +463,7 @@ bool C1::Load(const void* buf) {
     digest_blk.Load(p + 8);
     key_blk.Load(p + 8 + DigestBlock::SIZE);
     if (!ComputeDigest(tmp_digest)) {
-        MLOG(WARNING) << "Fail to compute digest of C1 (schema1)";
+        LOG(WARNING) << "Fail to compute digest of C1 (schema1)";
         return false;
     }
     if (memcmp(tmp_digest, digest_blk.digest(),
@@ -484,7 +488,7 @@ bool S1::Generate(const C1& c1) {
     int pkey_size = 128;
     if (dh.copy_shared_key(c1.key_blk.key(), 128,
                            key_blk.key(), &pkey_size) != 0) { // took ~0.9ms
-        MLOG(ERROR) << "Fail to compute key of S1";
+        LOG(ERROR) << "Fail to compute key of S1";
         return false;
     }
     return ComputeDigest(digest_blk.digest());
@@ -504,7 +508,7 @@ bool S1::Load(const void* buf, C1S1Schema schema) {
     }
     char tmp_digest[DigestBlock::DIGEST_SIZE];
     if (!ComputeDigest(tmp_digest)) {
-        MLOG(WARNING) << "Fail to compute digest of S1";
+        LOG(WARNING) << "Fail to compute digest of S1";
         return false;
     }
     if (memcmp(tmp_digest, digest_blk.digest(),
@@ -519,13 +523,13 @@ bool C2S2Base::ComputeDigest(const void* key, int key_size,
     char temp_key[EVP_MAX_MD_SIZE];
     if (openssl_HMACsha256(key, key_size, c1s1_digest, DigestBlock::DIGEST_SIZE,
                            temp_key) != 0) {
-        MLOG(WARNING) << "Fail to create temp key";
+        LOG(WARNING) << "Fail to create temp key";
         return false;
     }
     char tmp_digest[EVP_MAX_MD_SIZE];
     if (openssl_HMACsha256(temp_key, 32, random, SIZE - DIGEST_SIZE,
                            tmp_digest) != 0) {
-        MLOG(WARNING) << "Fail to create temp digest";
+        LOG(WARNING) << "Fail to create temp digest";
         return false;
     }
     memcpy(digest, tmp_digest, 32);
@@ -546,7 +550,7 @@ bool C2S2Base::Load(const void* key, int key_size, const void* c1s1_digest,
     memcpy(digest, (const char*)buf + SIZE - DIGEST_SIZE, DIGEST_SIZE);
     char tmp_digest[DIGEST_SIZE];
     if (!ComputeDigest(key, key_size, c1s1_digest, tmp_digest)) {
-        MLOG(WARNING) << "Fail to compute digest of C2/S2";
+        LOG(WARNING) << "Fail to compute digest of C2/S2";
         return false;
     }
     return memcmp(tmp_digest, digest, DIGEST_SIZE) == 0;
@@ -579,7 +583,7 @@ static void
 WriteBasicHeader(char** buf, RtmpChunkType chunk_type, uint32_t cs_id) {
     char* out = *buf;
     if (cs_id < 2) {
-        MCHECK(false) << "Reserved chunk_stream_id=" << cs_id;
+        CHECK(false) << "Reserved chunk_stream_id=" << cs_id;
     } else if (cs_id <= 63) {
         *out++ = (((uint32_t)chunk_type << 6) | cs_id);
     } else if (cs_id <= 319) {
@@ -590,7 +594,7 @@ WriteBasicHeader(char** buf, RtmpChunkType chunk_type, uint32_t cs_id) {
         *out++ = (cs_id - 64) & 0xFF;
         *out++ = ((cs_id - 64) >> 8);
     } else {
-        MCHECK(false) << "Invalid chunk_stream_id=" << cs_id;
+        CHECK(false) << "Invalid chunk_stream_id=" << cs_id;
     }
     *buf = out;
 }
@@ -612,7 +616,7 @@ static int WriteAll(int fd, mutil::IOBuf* buf) {
                 // write is less than buffer size of the fd. If the
                 // impossible really happens, just spin until the fd becomes
                 // writable.
-                MLOG_EVERY_SECOND(ERROR) << "Impossible: meet EAGAIN!";
+                LOG_EVERY_N_SEC(ERROR, 1) << "Impossible: meet EAGAIN!";
                 fiber_usleep(1000);
                 continue;
             }
@@ -636,7 +640,7 @@ int SendC0C1(int fd, bool* is_simple_handshake) {
             tmp.append(buf, sizeof(buf));
             done_adobe_hs = true;
         } else {
-            MLOG(WARNING) << "Fail to generate C1, use simple handshaking";
+            LOG(WARNING) << "Fail to generate C1, use simple handshaking";
         }
     }
     if (is_simple_handshake) {
@@ -730,8 +734,8 @@ RtmpContext::RtmpContext(const RtmpClientOptions* copt, const Server* server)
         _service = server->options().rtmp_service;
     }
     _free_ms_ids.reserve(32);
-    MCHECK_EQ(0, _mstream_map.init(1024, 70));
-    MCHECK_EQ(0, _trans_map.init(1024, 70));
+    CHECK_EQ(0, _mstream_map.init(1024, 70));
+    CHECK_EQ(0, _trans_map.init(1024, 70));
     memset(static_cast<void*>(_cstream_ctx), 0, sizeof(_cstream_ctx));
 }
     
@@ -748,7 +752,7 @@ RtmpContext::~RtmpContext() {
             }
         }
         _mstream_map.clear();
-        MLOG(FATAL) << "RtmpContext=" << this << " is deallocated"
+        LOG(FATAL) << "RtmpContext=" << this << " is deallocated"
             " before all streams(" << ncstream << " client, " << nsstream
                    << "server) on the connection quit";
     }
@@ -823,7 +827,7 @@ RtmpContext::SubChunkArray::~SubChunkArray() {
 
 RtmpChunkStream* RtmpContext::GetChunkStream(uint32_t cs_id) {
     if (cs_id > RTMP_MAX_CHUNK_STREAM_ID) {
-        MLOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
+        LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
         return NULL;
     }
     const uint32_t index1 = cs_id / RTMP_CHUNK_ARRAY_2ND_SIZE;
@@ -857,21 +861,21 @@ RtmpChunkStream* RtmpContext::GetChunkStream(uint32_t cs_id) {
 
 void RtmpContext::ClearChunkStream(uint32_t cs_id) {
     if (cs_id > RTMP_MAX_CHUNK_STREAM_ID) {
-        MLOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
+        LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
         return;
     }
     const uint32_t index1 = cs_id / RTMP_CHUNK_ARRAY_2ND_SIZE;
     SubChunkArray* sub_array =
         _cstream_ctx[index1].load(mutil::memory_order_consume);
     if (sub_array == NULL) {
-        MLOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
+        LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
         return;
     }
     const uint32_t index2 = cs_id - index1 * RTMP_CHUNK_ARRAY_2ND_SIZE;
     RtmpChunkStream* cstream =
         sub_array->ptrs[index2].load(mutil::memory_order_consume);
     if (cstream == NULL) {
-        MLOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
+        LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
         return;
     }
     delete sub_array->ptrs[index2].exchange(
@@ -926,7 +930,7 @@ bool RtmpContext::FindMessageStream(
 bool RtmpContext::AddClientStream(RtmpStreamBase* stream) {
     const uint32_t stream_id = stream->stream_id();
     if (stream_id == RTMP_CONTROL_MESSAGE_STREAM_ID) {
-        MLOG(ERROR) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
+        LOG(ERROR) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
                    << " is reserved for control stream";
         return false;
     }
@@ -936,7 +940,7 @@ bool RtmpContext::AddClientStream(RtmpStreamBase* stream) {
         MessageStreamInfo& info = _mstream_map[stream_id];
         if (info.stream != NULL) {
             mu.unlock();
-            MLOG(ERROR) << "stream_id=" << stream_id << " is already used";
+            LOG(ERROR) << "stream_id=" << stream_id << " is already used";
             return false;
         }
         AllocateChunkStreamId(&chunk_stream_id);
@@ -956,7 +960,7 @@ bool RtmpContext::AddServerStream(RtmpStreamBase* stream) {
         MessageStreamInfo& info = _mstream_map[stream_id];
         if (info.stream != NULL) {
             mu.unlock();
-            MLOG(ERROR) << "stream_id=" << stream_id << " is already used";
+            LOG(ERROR) << "stream_id=" << stream_id << " is already used";
             return false;
         }
         info.stream.reset(stream);
@@ -968,12 +972,12 @@ bool RtmpContext::AddServerStream(RtmpStreamBase* stream) {
 
 bool RtmpContext::RemoveMessageStream(RtmpStreamBase* stream) {
     if (stream == NULL) {
-        MLOG(FATAL) << "Param[stream] is NULL";
+        LOG(FATAL) << "Param[stream] is NULL";
         return false;
     }
     const uint32_t stream_id = stream->stream_id();
     if (stream_id == RTMP_CONTROL_MESSAGE_STREAM_ID) {
-        MLOG(FATAL) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
+        LOG(FATAL) << "stream_id=" << RTMP_CONTROL_MESSAGE_STREAM_ID
                    << " is reserved for control stream";
         return false;
     }
@@ -988,7 +992,7 @@ bool RtmpContext::RemoveMessageStream(RtmpStreamBase* stream) {
         }
         if (stream != info->stream) {
             mu.unlock();
-            MLOG(FATAL) << "Unmatched "
+            LOG(FATAL) << "Unmatched "
                        << (stream->is_client_stream() ? "client" : "server")
                        << " stream of stream_id=" << stream_id;
             return false;
@@ -1053,7 +1057,7 @@ int RtmpContext::SendConnectRequest(const mutil::EndPoint& remote_side, int fd, 
         WriteAMFUint32(1, &ostream);
         RtmpConnectRequest req;
         if (_client_options->app.empty()) {
-            MLOG(ERROR) << "RtmpClientOptions.app must be set";
+            LOG(ERROR) << "RtmpClientOptions.app must be set";
             return -1;
         }
         req.set_app(_client_options->app);
@@ -1086,7 +1090,7 @@ int RtmpContext::SendConnectRequest(const mutil::EndPoint& remote_side, int fd, 
         req.set_stream_multiplexing(true);
         WriteAMFObject(req, &ostream);
         if (!ostream.good()) {
-            MLOG(ERROR) << "Fail to serialize connect request";
+            LOG(ERROR) << "Fail to serialize connect request";
             return -1;
         }
     }
@@ -1105,7 +1109,7 @@ int RtmpContext::SendConnectRequest(const mutil::EndPoint& remote_side, int fd, 
     }
     RtmpChunkStream* cstream = GetChunkStream(RTMP_CONTROL_CHUNK_STREAM_ID);
     if (cstream->SerializeMessage(&msg_buf, header, &req_buf) != 0) {
-        MLOG(ERROR) << "Fail to serialize connect message";
+        LOG(ERROR) << "Fail to serialize connect message";
         return -1;
     }
 
@@ -1121,7 +1125,7 @@ int RtmpContext::SendConnectRequest(const mutil::EndPoint& remote_side, int fd, 
         mutil::IOBuf tmp;
         tmp.append(cntl_buf, sizeof(cntl_buf));
         if (cstream->SerializeMessage(&msg_buf, header2, &tmp) != 0) {
-            MLOG(ERROR) << "Fail to serialize WindowAckSize message";
+            LOG(ERROR) << "Fail to serialize WindowAckSize message";
             return -1;
         }
     }
@@ -1138,7 +1142,7 @@ int RtmpContext::SendConnectRequest(const mutil::EndPoint& remote_side, int fd, 
         mutil::IOBuf tmp;
         tmp.append(cntl_buf, sizeof(cntl_buf));
         if (cstream->SerializeMessage(&msg_buf, header3, &tmp) != 0) {
-            MLOG(ERROR) << "Fail to serialize SetChunkSize message";
+            LOG(ERROR) << "Fail to serialize SetChunkSize message";
             return -1;
         }
         _chunk_size_out = _client_options->chunk_size;
@@ -1163,7 +1167,7 @@ ParseResult RtmpContext::Feed(mutil::IOBuf* source, Socket* socket) {
     case STATE_RECEIVED_C2:
         return OnChunks(source, socket);
     }
-    MCHECK(false) << "Never here!";
+    CHECK(false) << "Never here!";
     return MakeParseError(PARSE_ERROR_NO_RESOURCE);
 }
 
@@ -1197,7 +1201,7 @@ ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(mutil::IOBuf* source, Socket* s
         {
             adobe_hs::S1 s1;
             if (!s1.Generate(c1)) {
-                MLOG(WARNING) << socket->remote_side() << ": Fail to generate s1";
+                LOG(WARNING) << socket->remote_side() << ": Fail to generate s1";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             char buf[RTMP_HANDSHAKE_SIZE1];
@@ -1205,7 +1209,7 @@ ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(mutil::IOBuf* source, Socket* s
             tmp.append(buf, RTMP_HANDSHAKE_SIZE1);
             _s1_digest = malloc(adobe_hs::DigestBlock::DIGEST_SIZE);
             if (_s1_digest == NULL) {
-                MLOG(ERROR) << "Fail to malloc";
+                LOG(ERROR) << "Fail to malloc";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             memcpy(_s1_digest, s1.digest_blk.digest(),
@@ -1214,7 +1218,7 @@ ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(mutil::IOBuf* source, Socket* s
         {
             adobe_hs::S2 s2;
             if (!s2.Generate(c1.digest_blk.digest())) {
-                MLOG(ERROR) << socket->remote_side() << ": Fail to generate s2";
+                LOG(ERROR) << socket->remote_side() << ": Fail to generate s2";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             char buf[RTMP_HANDSHAKE_SIZE2];
@@ -1239,7 +1243,7 @@ ParseResult RtmpContext::WaitForC0C1orSimpleRtmp(mutil::IOBuf* source, Socket* s
         tmp.append(s2, RTMP_HANDSHAKE_SIZE2);
     }
     if (WriteAll(socket->fd(), &tmp) != 0) {
-        MLOG(WARNING) << socket->remote_side() << ": Fail to write S0 S1 S2";
+        LOG(WARNING) << socket->remote_side() << ": Fail to write S0 S1 S2";
         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
     }
     return WaitForC2(source, socket);
@@ -1257,7 +1261,7 @@ ParseResult RtmpContext::WaitForC2(mutil::IOBuf* source, Socket* socket) {
     // if (_s1_digest) {
     //     adobe_hs::C2 c2;
     //     if (!c2.Load(_s1_digest, c2_buf)) {
-    //         MLOG(WARNING) << socket->remote_side() << ": Fail to load C2";
+    //         LOG(WARNING) << socket->remote_side() << ": Fail to load C2";
     //     }
     // }
     SetState(socket->remote_side(), STATE_RECEIVED_C2);
@@ -1281,7 +1285,7 @@ ParseResult RtmpContext::WaitForS0S1(mutil::IOBuf* source, Socket* socket) {
             RPC_VLOG << socket->remote_side() << ": Loaded S1 with schema1";
             adobe_hs::C2 c2;
             if (!c2.Generate(s1.digest_blk.digest())) {
-                MLOG(ERROR) << socket->remote_side() << ": Fail to generate c2";
+                LOG(ERROR) << socket->remote_side() << ": Fail to generate c2";
                 return MakeParseError(PARSE_ERROR_NO_RESOURCE);
             }
             c2.Save(s0s1_buf + RTMP_HANDSHAKE_SIZE0);
@@ -1300,7 +1304,7 @@ ParseResult RtmpContext::WaitForS0S1(mutil::IOBuf* source, Socket* socket) {
         tmp.append(c2, RTMP_HANDSHAKE_SIZE2);
     }
     if (WriteAll(socket->fd(), &tmp) != 0) {
-        MLOG(WARNING) << socket->remote_side() << ": Fail to write C2";
+        LOG(WARNING) << socket->remote_side() << ": Fail to write C2";
         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
     }
     return WaitForS2(source, socket);
@@ -1315,7 +1319,7 @@ ParseResult RtmpContext::WaitForS2(mutil::IOBuf* source, Socket* socket) {
     SetState(socket->remote_side(), STATE_RECEIVED_S2);
 
     if (SendConnectRequest(socket->remote_side(), socket->fd(), false) != 0) {
-        MLOG(ERROR) << "Fail to send connect request to " << socket->remote_side();
+        LOG(ERROR) << "Fail to send connect request to " << socket->remote_side();
         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
     }
     return OnChunks(source, socket);
@@ -1353,7 +1357,7 @@ ParseResult RtmpContext::OnChunks(mutil::IOBuf* source, Socket* socket) {
     RtmpBasicHeader bh = { cs_id, fmt, basic_header_len };
     RtmpChunkStream* cstream = GetChunkStream(cs_id);
     if (cstream == NULL) {
-        MLOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
+        LOG(ERROR) << "Invalid chunk_stream_id=" << cs_id;
         return MakeParseError(PARSE_ERROR_NO_RESOURCE);
     }
     return cstream->Feed(bh, source, socket);
@@ -1371,7 +1375,7 @@ void RtmpContext::AddReceivedBytes(Socket* socket, uint32_t sz) {
     _nonack_bytes += sz;
     if (_nonack_bytes > _window_ack_size) {
         _nonack_bytes -= _window_ack_size;
-        PMLOG_IF(WARNING, SendAck(socket, _received_bytes) != 0)
+        PLOG_IF(WARNING, SendAck(socket, _received_bytes) != 0)
             << socket->remote_side() << ": Fail to send ack";
     }
 }
@@ -1496,7 +1500,7 @@ ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader& bh,
             has_extended_ts = true;
         }
         if (!_r.last_msg_header.is_valid()) {
-            MLOG(ERROR) << "No last message in chunk_stream=" << _cs_id
+            LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
                        << " for ChunkType1";
             return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
         }
@@ -1538,7 +1542,7 @@ ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader& bh,
             has_extended_ts = true;
         }
         if (!_r.last_msg_header.is_valid()) {
-            MLOG(ERROR) << "No last message in chunk_stream=" << _cs_id
+            LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
                        << " for ChunkType2";
             return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
         }
@@ -1579,7 +1583,7 @@ ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader& bh,
             }
         }
         if (!_r.last_msg_header.is_valid()) {
-            MLOG(ERROR) << "No last message in chunk_stream=" << _cs_id
+            LOG(ERROR) << "No last message in chunk_stream=" << _cs_id
                        << " for ChunkType3";
             return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
         }
@@ -1625,7 +1629,7 @@ ParseResult RtmpChunkStream::Feed(const RtmpBasicHeader& bh,
         if (st) {
             mutil::Timer tm;
             tm.start();
-            MCHECK(st->OnRequested());
+            CHECK(st->OnRequested());
             const bool ret = OnMessage(bh, mh, &_r.msg_body, socket);
             tm.stop();
             st->OnResponded(ret, tm.u_elapsed());
@@ -1646,12 +1650,12 @@ int RtmpChunkStream::SerializeMessage(mutil::IOBuf* buf,
                                       mutil::IOBuf* body) {
     const size_t bh_size = GetBasicHeaderLength(_cs_id);
     if (bh_size == 0) {
-        MCHECK(false) << "Invalid chunk_stream_id=" << _cs_id;
+        CHECK(false) << "Invalid chunk_stream_id=" << _cs_id;
         return -1;
     }
     // NOTE: body->size() may be longer than mh.message_length;
     uint32_t left_size = mh.message_length;
-    MCHECK_LE((size_t)left_size, body->size());
+    CHECK_LE((size_t)left_size, body->size());
     bool has_extended_ts = false;
     uint32_t timestamp_delta = 0;
     const uint32_t chunk_size_out = connection_context()->_chunk_size_out;
@@ -1765,7 +1769,7 @@ static pthread_once_t s_cmd_handlers_init_once = PTHREAD_ONCE_INIT;
 static void InitCommandHandlers() {
     // Dispatch commands based on "Command Name".
     s_cmd_handlers = new CommandHandlerMap;
-    MCHECK_EQ(0, s_cmd_handlers->init(64, 70));
+    CHECK_EQ(0, s_cmd_handlers->init(64, 70));
     (*s_cmd_handlers)[RTMP_AMF0_COMMAND_CONNECT] = &RtmpChunkStream::OnConnect;
     (*s_cmd_handlers)[RTMP_AMF0_COMMAND_ON_BW_DONE] = &RtmpChunkStream::OnBWDone;
     (*s_cmd_handlers)[RTMP_AMF0_COMMAND_RESULT] = &RtmpChunkStream::OnResult;
@@ -1792,7 +1796,7 @@ bool RtmpChunkStream::OnMessage(const RtmpBasicHeader& bh,
                                 Socket* socket) {
     // Make sure msg_body is consistent with the header. Previous code
     // forgot to clear msg_body before appending new message.
-    MCHECK_EQ((size_t)mh.message_length, msg_body->size());
+    CHECK_EQ((size_t)mh.message_length, msg_body->size());
     
     if (mh.message_type >= 1 && mh.message_type <= 6) {
         // protocol/user control messages MUST/SHOULD have message stream ID 0
@@ -2071,7 +2075,7 @@ bool RtmpChunkStream::OnPingRequest(const RtmpMessageHeader& mh,
     SocketMessagePtr<RtmpUnsentMessage> msg(
         MakeUnsentControlMessage(RTMP_MESSAGE_USER_CONTROL, data, sizeof(data)));
     if (socket->Write(msg) != 0) {
-        PMLOG(WARNING) << "Fail to send back PingResponse";
+        PLOG(WARNING) << "Fail to send back PingResponse";
         return false;
     }
     return true;
@@ -2148,7 +2152,7 @@ bool RtmpChunkStream::OnAudioMessage(
     VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
     mutil::intrusive_ptr<RtmpStreamBase> stream;
     if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-        MLOG_EVERY_SECOND(WARNING) << socket->remote_side()
+        LOG_EVERY_N_SEC(WARNING, 1) << socket->remote_side()
                                   << ": Fail to find stream_id=" << mh.stream_id;
         return false;
     }
@@ -2180,7 +2184,7 @@ bool RtmpChunkStream::OnVideoMessage(
     VLOG(vlvl) << socket->remote_side() << "[" << mh.stream_id << "] " << msg;
     mutil::intrusive_ptr<RtmpStreamBase> stream;
     if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-        MLOG_EVERY_SECOND(WARNING) << socket->remote_side()
+        LOG_EVERY_N_SEC(WARNING, 1) << socket->remote_side()
                                   << ": Fail to find stream_id=" << mh.stream_id;
         return false;
     }
@@ -2221,7 +2225,7 @@ bool RtmpChunkStream::OnDataMessageAMF0(
         // TODO: execq?
         mutil::intrusive_ptr<RtmpStreamBase> stream;
         if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-            MLOG_EVERY_SECOND(WARNING) << socket->remote_side()
+            LOG_EVERY_N_SEC(WARNING, 1) << socket->remote_side()
                                       << ": Fail to find stream_id=" << mh.stream_id;
             return false;
         }
@@ -2240,7 +2244,7 @@ bool RtmpChunkStream::OnDataMessageAMF0(
         // TODO: execq?
         mutil::intrusive_ptr<RtmpStreamBase> stream;
         if (!connection_context()->FindMessageStream(mh.stream_id, &stream)) {
-            MLOG_EVERY_SECOND(WARNING) << socket->remote_side()
+            LOG_EVERY_N_SEC(WARNING, 1) << socket->remote_side()
                                       << ": Fail to find stream_id=" << mh.stream_id;
             return false;
         }
@@ -2256,7 +2260,7 @@ bool RtmpChunkStream::OnDataMessageAMF0(
 
 bool RtmpChunkStream::OnSharedObjectMessageAMF0(
     const RtmpMessageHeader&, mutil::IOBuf*, Socket* socket) {
-    MLOG_EVERY_SECOND(ERROR) << socket->remote_side() << ": Not implemented";
+    LOG_EVERY_N_SEC(ERROR, 1) << socket->remote_side() << ": Not implemented";
     return false;
 }
 
@@ -2290,7 +2294,7 @@ bool RtmpChunkStream::OnDataMessageAMF3(
 
 bool RtmpChunkStream::OnSharedObjectMessageAMF3(
     const RtmpMessageHeader&, mutil::IOBuf*, Socket*) {
-    MLOG(ERROR) << "Not implemented";
+    LOG(ERROR) << "Not implemented";
     return false;
 }
 
@@ -2302,7 +2306,7 @@ bool RtmpChunkStream::OnCommandMessageAMF3(
 
 bool RtmpChunkStream::OnAggregateMessage(
     const RtmpMessageHeader&, mutil::IOBuf*, Socket*) {
-    MLOG(ERROR) << "Not implemented";
+    LOG(ERROR) << "Not implemented";
     return false;
 }
 
@@ -2411,7 +2415,7 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
             info.set_description(error_text);
         }
         WriteAMFObject(info, &ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     msgs.push().reset(MakeUnsentControlMessage(
                           RTMP_MESSAGE_COMMAND_AMF0, chunk_stream_id(), req_buf));
@@ -2424,7 +2428,7 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
         WriteAMFString(RTMP_AMF0_COMMAND_ON_BW_DONE, &ostream);
         WriteAMFUint32(0, &ostream);
         WriteAMFNull(&ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     // chunk_stream_id is same with _result to connect, confirmed in SRS.
     msgs.push().reset(MakeUnsentControlMessage(
@@ -2434,7 +2438,7 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
         msgs[i-2]->next.reset(msgs[i-1].release());
     }
     if (socket->Write(msgs[0]) != 0) {
-        PMLOG(WARNING) << socket->remote_side() << ": Fail to respond connect";
+        PLOG(WARNING) << socket->remote_side() << ": Fail to respond connect";
         socket->SetFailed(EFAILEDSOCKET, "Fail to respond connect");
         return false;
     }
@@ -2484,7 +2488,7 @@ bool RtmpChunkStream::OnResult(const RtmpMessageHeader& mh,
                 }
                 connection_context()->OnConnected(0);
             } else {
-                MCHECK(connect_res.create_stream_with_play_or_publish());
+                CHECK(connect_res.create_stream_with_play_or_publish());
             }
         } // else nothing to do with transaction_id=0
         return true;
@@ -2612,17 +2616,17 @@ bool RtmpChunkStream::OnCreateStream(const RtmpMessageHeader& mh,
     }
     if (NULL == stream) {
         error_text = "Fail to create stream";
-        MLOG(ERROR) << error_text;
+        LOG(ERROR) << error_text;
     } else {
         socket->ReAddress(&stream->_rtmpsock);
         if (!connection_context()->AddServerStream(stream.get())) {
             error_text = "Fail to add stream";
-            MLOG(ERROR) << error_text;
+            LOG(ERROR) << error_text;
         } else {
             const int rc = fiber_session_create(&stream->_onfail_id, stream.get(),
                                              RtmpServerStream::RunOnFailed);
             if (rc) {
-                MLOG(ERROR) << "Fail to create RtmpServerStream._onfail_id: "
+                LOG(ERROR) << "Fail to create RtmpServerStream._onfail_id: "
                            << berror(rc);
                 stream->OnStopInternal();
                 return false;
@@ -2659,13 +2663,13 @@ bool RtmpChunkStream::OnCreateStream(const RtmpMessageHeader& mh,
             info.set_description(error_text);
             WriteAMFObject(info, &ostream);
         }
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     SocketMessagePtr<RtmpUnsentMessage> msg(
         MakeUnsentControlMessage(
             RTMP_MESSAGE_COMMAND_AMF0, chunk_stream_id(), req_buf));
     if (WriteWithoutOvercrowded(socket, msg) != 0) {
-        PMLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
+        PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
                       << "] Fail to respond createStream";
         // End the stream at server-side.
         const fiber_session_t id = stream->_onfail_id;
@@ -2726,11 +2730,11 @@ void OnPlayContinuation::Run() {
     }
 
     if (player_stream->SendStopMessage(status.error_cstr()) != 0) {
-        PMLOG(WARNING) << "Fail to send StreamNotFound to "
+        PLOG(WARNING) << "Fail to send StreamNotFound to "
                       << player_stream->remote_side();
     }
     if (FLAGS_log_error_text) {
-        MLOG(WARNING) << "Error to " << player_stream->remote_side() << '['
+        LOG(WARNING) << "Error to " << player_stream->remote_side() << '['
                      << player_stream->stream_id() << "]: " << status;
     }
 }
@@ -2896,7 +2900,7 @@ bool RtmpChunkStream::OnPlay(const RtmpMessageHeader& mh,
         msgs[i-2]->next.reset(msgs[i-1].release());
     }
     if (WriteWithoutOvercrowded(socket, msgs[0]) != 0) {
-        PMLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
+        PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
                       << "] Fail to respond play";
         return false;
     }
@@ -3022,11 +3026,11 @@ void OnPublishContinuation::Run() {
     std::unique_ptr<OnPublishContinuation> delete_self(this);
     if (!status.ok()) {
         if (publish_stream->SendStopMessage(status.error_cstr()) != 0) {
-            PMLOG(WARNING) << "Fail to send StreamNotFound to "
+            PLOG(WARNING) << "Fail to send StreamNotFound to "
                           << publish_stream->remote_side();
         }
         if (FLAGS_log_error_text) {
-            MLOG(WARNING) << "Error to " << publish_stream->remote_side()
+            LOG(WARNING) << "Error to " << publish_stream->remote_side()
                          << '[' << publish_stream->stream_id() << "]: "
                          << status;
         }
@@ -3044,7 +3048,7 @@ void OnPublishContinuation::Run() {
         info.set_level(RTMP_INFO_LEVEL_STATUS);
         info.set_description("Started publishing " + publish_name);
         WriteAMFObject(info, &ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     SocketMessagePtr<RtmpUnsentMessage> msg(new RtmpUnsentMessage);
     msg->header.message_length = req_buf.size();
@@ -3054,7 +3058,7 @@ void OnPublishContinuation::Run() {
     msg->body = req_buf;
 
     if (WriteWithoutOvercrowded(publish_stream->socket(), msg) != 0) {
-        PMLOG(WARNING) << publish_stream->remote_side() << '['
+        PLOG(WARNING) << publish_stream->remote_side() << '['
                       << publish_stream->stream_id() << "] Fail to respond publish";
     }
 }
@@ -3123,12 +3127,12 @@ static bool SendFMLEStartResponse(Socket* sock, double transaction_id) {
         WriteAMFNumber(transaction_id, &ostream);
         WriteAMFNull(&ostream);
         WriteAMFUndefined(&ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     SocketMessagePtr<RtmpUnsentMessage> msg(
         MakeUnsentControlMessage(RTMP_MESSAGE_COMMAND_AMF0, req_buf));
     if (sock->Write(msg) != 0) {
-        PMLOG(WARNING) << sock->remote_side() << ": Fail to respond FMLEStart";
+        PLOG(WARNING) << sock->remote_side() << ": Fail to respond FMLEStart";
         return false;
     }
     return true;
@@ -3265,7 +3269,7 @@ bool RtmpChunkStream::OnSeek(const RtmpMessageHeader& mh,
             info.set_level(RTMP_INFO_LEVEL_STATUS);
             info.set_description("Seek successfully.");
             WriteAMFObject(info, &ostream);
-            MCHECK(ostream.good());
+            CHECK(ostream.good());
         } else {
             WriteAMFString(RTMP_AMF0_COMMAND_ERROR, &ostream);
             WriteAMFNumber(0, &ostream);
@@ -3275,7 +3279,7 @@ bool RtmpChunkStream::OnSeek(const RtmpMessageHeader& mh,
             info.set_code(RTMP_STATUS_CODE_STREAM_SEEK); // TODO
             info.set_description("Fail to seek");
             WriteAMFObject(info, &ostream);
-            MCHECK(ostream.good());
+            CHECK(ostream.good());
         }
     }
     SocketMessagePtr<RtmpUnsentMessage> msg(new RtmpUnsentMessage);
@@ -3286,7 +3290,7 @@ bool RtmpChunkStream::OnSeek(const RtmpMessageHeader& mh,
     msg->body = req_buf;
 
     if (socket->Write(msg) != 0) {
-        PMLOG(WARNING) << socket->remote_side() << ": Fail to respond seek";
+        PLOG(WARNING) << socket->remote_side() << ": Fail to respond seek";
         return false;
     }
     return (rc == 0);
@@ -3353,7 +3357,7 @@ bool RtmpChunkStream::OnPause(const RtmpMessageHeader& mh,
             info.set_level(RTMP_INFO_LEVEL_STATUS);
             info.set_description("Paused stream.");
             WriteAMFObject(info, &ostream);
-            MCHECK(ostream.good());
+            CHECK(ostream.good());
         } else {
             WriteAMFString(RTMP_AMF0_COMMAND_ERROR, &ostream);
             WriteAMFNumber(0, &ostream);
@@ -3368,7 +3372,7 @@ bool RtmpChunkStream::OnPause(const RtmpMessageHeader& mh,
             info.set_description(pause_or_unpause ? "Fail to pause" :
                                  "Fail to unpause");
             WriteAMFObject(info, &ostream);
-            MCHECK(ostream.good());
+            CHECK(ostream.good());
         }
     }
     SocketMessagePtr<RtmpUnsentMessage> msg1(new RtmpUnsentMessage);
@@ -3392,7 +3396,7 @@ bool RtmpChunkStream::OnPause(const RtmpMessageHeader& mh,
     msg1->next.reset(msg2);
     
     if (WriteWithoutOvercrowded(socket, msg1) != 0) {
-        PMLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
+        PLOG(WARNING) << socket->remote_side() << '[' << mh.stream_id
                       << "] Fail to respond " << (pause_or_unpause ? "pause" : "unpause");
         return false;
     }
@@ -3444,7 +3448,7 @@ ParseResult ParseRtmpMessage(mutil::IOBuf* source, Socket *socket, bool read_eof
         }
         rtmp_ctx = new (std::nothrow) RtmpContext(NULL, server);
         if (rtmp_ctx == NULL) {
-            MLOG(FATAL) << "Fail to new RtmpContext";
+            LOG(FATAL) << "Fail to new RtmpContext";
             return MakeParseError(PARSE_ERROR_NO_RESOURCE);
         }
         socket->reset_parsing_context(rtmp_ctx);
@@ -3454,7 +3458,7 @@ ParseResult ParseRtmpMessage(mutil::IOBuf* source, Socket *socket, bool read_eof
 }
 
 void ProcessRtmpMessage(InputMessageBase*) {
-    MCHECK(false) << "Should never be called";
+    CHECK(false) << "Should never be called";
 }
 
 class OnServerStreamCreated : public RtmpTransactionHandler {
@@ -3480,7 +3484,7 @@ void OnServerStreamCreated::Run(bool error,
     // End the createStream call.
     RtmpContext* ctx = static_cast<RtmpContext*>(socket->parsing_context());
     if (ctx == NULL) {
-        MLOG(FATAL) << "RtmpContext must be created";
+        LOG(FATAL) << "RtmpContext must be created";
         return;
     }
     const int64_t start_parse_us = mutil::cpuwide_time_us();
@@ -3597,7 +3601,7 @@ RtmpCreateStreamMessage::AppendAndDestroySelf(mutil::IOBuf* out, Socket* s) {
         } else {
             WriteAMFNull(&ostream);
         }
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     RtmpChunkStream* cstream = ctx->GetChunkStream(RTMP_CONTROL_CHUNK_STREAM_ID);
     if (cstream == NULL) {
@@ -3639,7 +3643,7 @@ void PackRtmpRequest(mutil::IOBuf* /*buf*/,
     // Hack: save last transaction_id into log_id(useless here) so that we
     // can get it back and cancel the transaction before creating new one
     // (for retrying).
-    MCHECK_LT(cntl->log_id(), (uint64_t)std::numeric_limits<uint32_t>::max());
+    CHECK_LT(cntl->log_id(), (uint64_t)std::numeric_limits<uint32_t>::max());
     uint32_t transaction_id = cntl->log_id();
     if (transaction_id != 0) {
         RtmpTransactionHandler* last_handler =

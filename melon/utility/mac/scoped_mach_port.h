@@ -8,7 +8,7 @@
 #include <mach/mach.h>
 
 #include "melon/utility/base_export.h"
-#include "melon/utility/scoped_generic.h"
+#include <melon/utility/scoped_generic.h>
 
 namespace mutil {
 namespace mac {

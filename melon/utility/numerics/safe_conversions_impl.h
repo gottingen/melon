@@ -7,8 +7,8 @@
 
 #include <limits>
 
-#include "melon/utility/macros.h"
-#include "melon/utility/type_traits.h"
+#include <melon/utility/macros.h>
+#include <melon/utility/type_traits.h>
 
 namespace mutil {
 namespace internal {
@@ -95,7 +95,7 @@ enum RangeConstraint {
 
 // Helper function for coercing an int back to a RangeContraint.
 inline RangeConstraint GetRangeConstraint(int integer_range_constraint) {
-  DMCHECK(integer_range_constraint >= RANGE_VALID &&
+  DCHECK(integer_range_constraint >= RANGE_VALID &&
          integer_range_constraint <= RANGE_INVALID);
   return static_cast<RangeConstraint>(integer_range_constraint);
 }

@@ -1,27 +1,31 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 // A server to receive EchoRequest and send back EchoResponse.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/utility/atomicops.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/json2pb/json_to_pb.h>
 #include <melon/fiber/timer_thread.h>
 #include <melon/fiber/fiber.h>
@@ -70,7 +74,7 @@ void DisplayStage(const test::Stage& stage) {
         << "Stage:[" << stage.lower_bound() << ':' 
         << stage.upper_bound() <<  "]"
         << " , Type:" << type;
-    MLOG(INFO) << ss.str();
+    LOG(INFO) << ss.str();
 }
 
 mutil::atomic<int> cnt(0);
@@ -102,7 +106,7 @@ public:
     }
 
     void StartTestCase() {
-        MCHECK(!_running_case);
+        CHECK(!_running_case);
         _running_case = true;
         UpdateLatency();
     }
@@ -169,7 +173,7 @@ public:
                 mutil::gettimeofday_s());
             _latency.store(latency, mutil::memory_order_relaxed);
         } else {
-            MLOG(FATAL) << "Wrong Type:" << latency_stage.type();
+            LOG(FATAL) << "Wrong Type:" << latency_stage.type();
         }
     }
 
@@ -194,7 +198,7 @@ public:
         _echo_service = new EchoServiceImpl;
         if (_server.AddService(_echo_service,
                                 melon::SERVER_OWNS_SERVICE) != 0) {
-            MLOG(FATAL) << "Fail to add service";
+            LOG(FATAL) << "Fail to add service";
         }
         g_timer_thread.start(NULL);
     }
@@ -209,7 +213,7 @@ public:
                         google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         const std::string& message = request->message();
-        MLOG(INFO) << message;
+        LOG(INFO) << message;
         if (message == "ResetCaseSet") {
             _server.Stop(0);
             _server.Join();
@@ -219,7 +223,7 @@ public:
             _case_index = 0;
             response->set_message("CaseSetReset");
         } else if (message == "StartCase") {
-            MCHECK(!_server.IsRunning()) << "Continuous StartCase";
+            CHECK(!_server.IsRunning()) << "Continuous StartCase";
             const test::TestCase& test_case = _case_set.test_case(_case_index++);
             _echo_service->SetTestCase(test_case);
             melon::ServerOptions options;
@@ -230,14 +234,14 @@ public:
             _echo_service->StartTestCase();
             response->set_message("CaseStarted");
         } else if (message == "StopCase") {
-            MCHECK(_server.IsRunning()) << "Continuous StopCase";
+            CHECK(_server.IsRunning()) << "Continuous StopCase";
             _server.Stop(0);
             _server.Join();
 
             _echo_service->StopTestCase();
             response->set_message("CaseStopped");
         } else {
-            MLOG(FATAL) << "Invalid message:" << message;
+            LOG(FATAL) << "Invalid message:" << message;
             response->set_message("Invalid Cntl Message");
         }
     }
@@ -246,14 +250,14 @@ private:
     void LoadCaseSet(const std::string& file_path) {
         std::ifstream ifs(file_path.c_str(), std::ios::in);  
         if (!ifs) {
-            MLOG(FATAL) << "Fail to open case set file: " << file_path;
+            LOG(FATAL) << "Fail to open case set file: " << file_path;
         }
         std::string case_set_json((std::istreambuf_iterator<char>(ifs)),  
                                   std::istreambuf_iterator<char>()); 
         test::TestCaseSet case_set;
         std::string err;
         if (!json2pb::JsonToProtoMessage(case_set_json, &case_set, &err)) {
-            MLOG(FATAL)
+            LOG(FATAL)
                 << "Fail to trans case_set from json to protobuf message: "
                 << err;
         }
@@ -279,12 +283,12 @@ int main(int argc, char* argv[]) {
 
     if (server.AddService(&control_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
 
     if (server.Start(FLAGS_cntl_port, NULL) != 0) {
-        MLOG(ERROR) << "Fail to start EchoServer";
+        LOG(ERROR) << "Fail to start EchoServer";
         return -1;
     }
 

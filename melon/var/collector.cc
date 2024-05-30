@@ -1,34 +1,38 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <map>
 #include <gflags/gflags.h>
-#include "melon/utility/memory/singleton_on_pthread_once.h"
-#include "melon/utility/threading/platform_thread.h"
-#include "melon/var/var.h"
-#include "melon/var/collector.h"
+#include <melon/utility/memory/singleton_on_pthread_once.h>
+#include <melon/utility/threading/platform_thread.h>
+#include <melon/var/var.h>
+#include <melon/var/collector.h>
 
 namespace melon::var {
 
     // TODO: Do we need to expose this flag? Dumping thread may dump different
     // kind of samples, users are unlikely to make good decisions on this value.
-    DEFINE_int32(bvar_collector_max_pending_samples, 1000,
+    DEFINE_int32(var_collector_max_pending_samples, 1000,
                  "Destroy unprocessed samples when they're too many");
 
-    DEFINE_int32(bvar_collector_expected_per_second, 1000,
+    DEFINE_int32(var_collector_expected_per_second, 1000,
                  "Expected number of samples to be collected per second");
 
     // CAUTION: Don't change this value unless you know exactly what it means.
@@ -51,7 +55,7 @@ namespace melon::var {
         }
     };
 
-    // A thread and a special bvar to collect samples submitted.
+    // A thread and a special var to collect samples submitted.
     class Collector : public melon::var::Reducer<Collected *, CombineCollected> {
     public:
         Collector();
@@ -75,13 +79,13 @@ namespace melon::var {
                                 int64_t interval_us);
 
         static void *run_grab_thread(void *arg) {
-            mutil::PlatformThread::SetName("bvar_collector_grabber");
+            mutil::PlatformThread::SetName("var_collector_grabber");
             static_cast<Collector *>(arg)->grab_thread();
             return NULL;
         }
 
         static void *run_dump_thread(void *arg) {
-            mutil::PlatformThread::SetName("bvar_collector_dumper");
+            mutil::PlatformThread::SetName("var_collector_dumper");
             static_cast<Collector *>(arg)->dump_thread();
             return NULL;
         }
@@ -119,7 +123,7 @@ namespace melon::var {
         pthread_cond_init(&_sleep_cond, NULL);
         int rc = pthread_create(&_grab_thread, NULL, run_grab_thread, this);
         if (rc != 0) {
-            MLOG(ERROR) << "Fail to create Collector, " << berror(rc);
+            LOG(ERROR) << "Fail to create Collector, " << berror(rc);
         } else {
             _created = true;
         }
@@ -153,19 +157,19 @@ namespace melon::var {
         // called inside the separate _dump_thread to prevent a slow callback
         // (caused by busy disk generally) from blocking collecting code too long
         // that pending requests may explode memory.
-        MCHECK_EQ(0, pthread_create(&_dump_thread, NULL, run_dump_thread, this));
+        CHECK_EQ(0, pthread_create(&_dump_thread, NULL, run_dump_thread, this));
 
         // vars
         melon::var::PassiveStatus<int64_t> pending_sampled_data(
-                "bvar_collector_pending_samples", get_pending_count, this);
+                "var_collector_pending_samples", get_pending_count, this);
         double busy_seconds = 0;
         melon::var::PassiveStatus<double> busy_seconds_var(deref_value<double>, &busy_seconds);
         melon::var::PerSecond<melon::var::PassiveStatus<double> > busy_seconds_second(
-                "bvar_collector_grab_thread_usage", &busy_seconds_var);
+                "var_collector_grab_thread_usage", &busy_seconds_var);
 
         melon::var::PassiveStatus<int64_t> ngrab_var(deref_value<int64_t>, &_ngrab);
         melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > ngrab_second(
-                "bvar_collector_grab_second", &ngrab_var);
+                "var_collector_grab_second", &ngrab_var);
 
         // Maps for calculating speed limit.
         typedef std::map<CollectorSpeedLimit *, size_t> GrapMap;
@@ -226,7 +230,7 @@ namespace melon::var {
                         // FIXME: equal probabilities to drop.
                         ++_ngrab;
                         if (_ngrab >= _ndrop + _ndump +
-                                      FLAGS_bvar_collector_max_pending_samples) {
+                                      FLAGS_var_collector_max_pending_samples) {
                             ++_ndrop;
                             p->destroy();
                         } else {
@@ -272,7 +276,7 @@ namespace melon::var {
             _stop = true;
             pthread_cond_signal(&_dump_thread_cond);
         }
-        MCHECK_EQ(0, pthread_join(_dump_thread, NULL));
+        CHECK_EQ(0, pthread_join(_dump_thread, NULL));
     }
 
     void Collector::wakeup_grab_thread() {
@@ -307,11 +311,11 @@ namespace melon::var {
                 // use the default interval which may make the calculated
                 // sampling_range larger.
             }
-            new_sampling_range = FLAGS_bvar_collector_expected_per_second
+            new_sampling_range = FLAGS_var_collector_expected_per_second
                                  * interval_us * COLLECTOR_SAMPLING_BASE / (1000000L * round_ngrab);
         } else {
             // NOTE: the multiplications are unlikely to overflow.
-            new_sampling_range = FLAGS_bvar_collector_expected_per_second
+            new_sampling_range = FLAGS_var_collector_expected_per_second
                                  * interval_us * old_sampling_range / (1000000L * round_ngrab);
             // Don't grow or shrink too fast.
             if (interval_us < 1000000L) {
@@ -343,7 +347,7 @@ namespace melon::var {
                     1, mutil::memory_order_relaxed);
             if (before_add == 0) {
                 sl->first_sample_real_us = mutil::gettimeofday_us();
-            } else if (before_add >= FLAGS_bvar_collector_expected_per_second) {
+            } else if (before_add >= FLAGS_var_collector_expected_per_second) {
                 mutil::get_leaky_singleton<Collector>()->wakeup_grab_thread();
             }
         }
@@ -358,7 +362,7 @@ namespace melon::var {
         double busy_seconds = 0;
         melon::var::PassiveStatus<double> busy_seconds_var(deref_value<double>, &busy_seconds);
         melon::var::PerSecond<melon::var::PassiveStatus<double> > busy_seconds_second(
-                "bvar_collector_dump_thread_usage", &busy_seconds_var);
+                "var_collector_dump_thread_usage", &busy_seconds_var);
 
         melon::var::PassiveStatus<int64_t> ndumped_var(deref_value<int64_t>, &_ndump);
         melon::var::PerSecond<melon::var::PassiveStatus<int64_t> > ndumped_second(
@@ -386,7 +390,7 @@ namespace melon::var {
                 newhead = _dump_root.next();
                 _dump_root.RemoveFromList();
             }
-            MCHECK(newhead != &_dump_root);
+            CHECK(newhead != &_dump_root);
             newhead->InsertBeforeAsList(&root);
 
             // Call callbacks.

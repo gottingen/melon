@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -19,18 +23,18 @@
 #include <gflags/gflags.h>
 #include <leveldb/db.h>
 #include <leveldb/comparator.h>
-#include "melon/fiber/fiber.h"
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/thread_local.h"
-#include "melon/utility/string_printf.h"
-#include "melon/utility/time.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/object_pool.h"
-#include "melon/utility/fast_rand.h"
-#include "melon/utility/file_util.h"
-#include "melon/rpc/shared_object.h"
-#include "melon/rpc/reloadable_flags.h"
-#include "melon/rpc/span.h"
+#include <melon/fiber/fiber.h>
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/thread_local.h>
+#include <melon/utility/string_printf.h>
+#include <melon/utility/time.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/object_pool.h>
+#include <melon/utility/fast_rand.h>
+#include <melon/utility/file_util.h>
+#include <melon/rpc/shared_object.h>
+#include <melon/rpc/reloadable_flags.h>
+#include <melon/rpc/span.h>
 
 #define MELON_SPAN_INFO_SEP "\1"
 
@@ -284,7 +288,7 @@ bool SpanInfoExtractor::PopAnnotation(
                 return true;
             }
         }
-        MLOG(ERROR) << "Unknown annotation: "
+        LOG(ERROR) << "Unknown annotation: "
                     << std::string(_sp.field(), _sp.length());
     }
     return false;
@@ -478,7 +482,7 @@ SpanDB* SpanDB::Open() {
     mutil::File::Error error;
     const mutil::FilePath dir(local.id_db_name);
     if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-        MLOG(ERROR) << "Fail to create directory=`" << dir.value() << ", "
+        LOG(ERROR) << "Fail to create directory=`" << dir.value() << ", "
                    << error;
         return NULL;
     }
@@ -486,7 +490,7 @@ SpanDB* SpanDB::Open() {
     local.id_db_name.append("/id.db");
     st = leveldb::DB::Open(options, local.id_db_name.c_str(), &local.id_db);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to open id_db: " << st.ToString();
+        LOG(ERROR) << "Fail to open id_db: " << st.ToString();
         return NULL;
     }
 
@@ -495,14 +499,14 @@ SpanDB* SpanDB::Open() {
     local.time_db_name.append("/time.db");
     st = leveldb::DB::Open(options, local.time_db_name.c_str(), &local.time_db);
     if (!st.ok()) {
-        MLOG(ERROR) << "Fail to open time_db: " << st.ToString();
+        LOG(ERROR) << "Fail to open time_db: " << st.ToString();
         return NULL;
     }
     SpanDB* db = new (std::nothrow) SpanDB;
     if (NULL == db) {
         return NULL;
     }
-    MLOG(INFO) << "Opened " << local.id_db_name << " and "
+    LOG(INFO) << "Opened " << local.id_db_name << " and "
                << local.time_db_name;
     Swap(local, *db);
     return db;
@@ -599,7 +603,7 @@ leveldb::Status SpanDB::RemoveSpansBefore(int64_t tm) {
     leveldb::Iterator* it = time_db->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         if (it->key().size() != 8) {
-            MLOG(ERROR) << "Invalid key size: " << it->key().size();
+            LOG(ERROR) << "Invalid key size: " << it->key().size();
             continue;
         }
         const int64_t realtime =
@@ -615,15 +619,15 @@ leveldb::Status SpanDB::RemoveSpansBefore(int64_t tm) {
             leveldb::Slice key((char*)key_data, sizeof(key_data));
             rc = id_db->Delete(options, key);
             if (!rc.ok()) {
-                MLOG(ERROR) << "Fail to delete from id_db";
+                LOG(ERROR) << "Fail to delete from id_db";
                 break;
             }
         } else {
-            MLOG(ERROR) << "Fail to parse from value";
+            LOG(ERROR) << "Fail to parse from value";
         }
         rc = time_db->Delete(options, it->key());
         if (!rc.ok()) {
-            MLOG(ERROR) << "Fail to delete from time_db";
+            LOG(ERROR) << "Fail to delete from time_db";
             break;
         }
     }
@@ -645,7 +649,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
         }
         SpanDB* db2 = SpanDB::Open();
         if (db2 == NULL) {
-            MLOG(WARNING) << "Fail to open SpanDB";
+            LOG(WARNING) << "Fail to open SpanDB";
             destroy();
             return;
         }
@@ -656,7 +660,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
     leveldb::Status st = db->Index(this, &value_buf);
     destroy();
     if (!st.ok()) {
-        MLOG(WARNING) << st.ToString();
+        LOG(WARNING) << st.ToString();
         if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
             ResetSpanDB(NULL);
             return;
@@ -670,7 +674,7 @@ void Span::dump_and_destroy(size_t /*round*/) {
         leveldb::Status st = db->RemoveSpansBefore(
             now - FLAGS_rpcz_keep_span_seconds * 1000000L);
         if (!st.ok()) {
-            MLOG(ERROR) << st.ToString();
+            LOG(ERROR) << st.ToString();
             if (st.IsNotFound() || st.IsIOError() || st.IsCorruption()) {
                 ResetSpanDB(NULL);
                 return;
@@ -694,7 +698,7 @@ int FindSpan(uint64_t trace_id, uint64_t span_id, RpczSpan* response) {
         return -1;
     }
     if (!response->ParseFromString(value)) {
-        MLOG(ERROR) << "Fail to parse from the value";
+        LOG(ERROR) << "Fail to parse from the value";
         return -1;
     }
     return 0;
@@ -713,7 +717,7 @@ void FindSpans(uint64_t trace_id, std::deque<RpczSpan>* out) {
     leveldb::Slice key((char*)key_data, sizeof(key_data));
     for (it->Seek(key); it->Valid(); it->Next()) {
         if (it->key().size() != sizeof(key_data)) {
-            MLOG(ERROR) << "Invalid key size: " << it->key().size();
+            LOG(ERROR) << "Invalid key size: " << it->key().size();
             break;
         }
         const uint64_t stored_trace_id =
@@ -725,7 +729,7 @@ void FindSpans(uint64_t trace_id, std::deque<RpczSpan>* out) {
         if (span.ParseFromArray(it->value().data(), it->value().size())) {
             out->push_back(span);
         } else {
-            MLOG(ERROR) << "Fail to parse from value";
+            LOG(ERROR) << "Fail to parse from value";
         }
     }
     delete it;
@@ -764,7 +768,7 @@ void ListSpans(int64_t starting_realtime, size_t max_scan,
             // scaning too many entries.
             ++nscan;
         } else {
-            MLOG(ERROR) << "Fail to parse from value";
+            LOG(ERROR) << "Fail to parse from value";
         }
     }
     delete it;

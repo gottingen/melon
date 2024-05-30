@@ -8,14 +8,14 @@
 #include <algorithm>
 #include <vector>
 
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
-#include "melon/utility/synchronization/condition_variable.h"
-#include "melon/utility/synchronization/lock.h"
+#include <turbo/log/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
+#include <melon/utility/synchronization/condition_variable.h>
+#include <melon/utility/synchronization/lock.h>
 #include "melon/utility/synchronization/spin_wait.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 #include "melon/utility/threading/thread_collision_warner.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/time/time.h>
 #include <gtest/gtest.h>
 #include <gtest/gtest.h>
 
@@ -490,7 +490,7 @@ WorkQueue::~WorkQueue() {
 
 int WorkQueue::GetThreadId() {
   DFAKE_SCOPED_RECURSIVE_LOCK(locked_methods_);
-  DMCHECK(!EveryIdWasAllocated());
+  DCHECK(!EveryIdWasAllocated());
   return thread_started_counter_++;  // Give out Unique IDs.
 }
 
@@ -501,7 +501,7 @@ bool WorkQueue::EveryIdWasAllocated() const {
 
 TimeDelta WorkQueue::GetAnAssignment(int thread_id) {
   DFAKE_SCOPED_RECURSIVE_LOCK(locked_methods_);
-  DMCHECK_LT(0, task_count_);
+  DCHECK_LT(0, task_count_);
   assignment_history_[thread_id]++;
   if (0 == --task_count_) {
     no_more_tasks_.Signal();

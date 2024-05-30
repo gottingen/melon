@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,7 +22,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/selective_channel.h>
 #include <melon/rpc/parallel_channel.h>
 #include "echo.pb.h"
@@ -72,7 +76,7 @@ static void* sender(void* arg) {
             g_latency_recorder << cntl.latency_us();
         } else {
             g_error_count << 1; 
-            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << elp;
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too // fast. You should continue the business logic in a production 
@@ -95,7 +99,7 @@ int main(int argc, char* argv[]) {
     schan_options.backup_request_ms = FLAGS_backup_ms;
     schan_options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_load_balancer.c_str(), &schan_options) != 0) {
-        MLOG(ERROR) << "Fail to init SelectiveChannel";
+        LOG(ERROR) << "Fail to init SelectiveChannel";
         return -1;
     }
 
@@ -108,7 +112,7 @@ int main(int argc, char* argv[]) {
     mutil::EndPoint pt;
     if (str2endpoint(FLAGS_starting_server.c_str(), &pt) != 0 &&
         hostname2endpoint(FLAGS_starting_server.c_str(), &pt) != 0) {
-        MLOG(ERROR) << "Invalid address=`" << FLAGS_starting_server << "'";
+        LOG(ERROR) << "Invalid address=`" << FLAGS_starting_server << "'";
         return -1;
     }
     melon::ChannelOptions options;
@@ -121,7 +125,7 @@ int main(int argc, char* argv[]) {
     }
     if (sub_channel1->Init(os.str().c_str(), FLAGS_load_balancer.c_str(),
                            &options) != 0) {
-        MLOG(ERROR) << "Fail to init ordinary channel";
+        LOG(ERROR) << "Fail to init ordinary channel";
         return -1;
     }
     sub_channels.push_back(sub_channel1);
@@ -131,7 +135,7 @@ int main(int argc, char* argv[]) {
     melon::ParallelChannelOptions pchan_options;
     pchan_options.fail_limit = 1;
     if (sub_channel2->Init(&pchan_options) != 0) {
-        MLOG(ERROR) << "Fail to init sub_channel2";
+        LOG(ERROR) << "Fail to init sub_channel2";
         return -1;
     }
     for (int i = 0; i < 3; ++i) {
@@ -140,11 +144,11 @@ int main(int argc, char* argv[]) {
         options.connection_type = FLAGS_connection_type;
         melon::Channel* c = new melon::Channel;
         if (c->Init(mutil::EndPoint(pt.ip, pt.port++), &options) != 0) {
-            MLOG(ERROR) << "Fail to init sub channel[" << i << "] of pchan";
+            LOG(ERROR) << "Fail to init sub channel[" << i << "] of pchan";
             return -1;
         }
         if (sub_channel2->AddChannel(c, melon::OWNS_CHANNEL, NULL, NULL) != 0) {
-            MLOG(ERROR) << "Fail to add sub channel[" << i << "] into pchan";
+            LOG(ERROR) << "Fail to add sub channel[" << i << "] into pchan";
             return -1;
         }
     }
@@ -153,7 +157,7 @@ int main(int argc, char* argv[]) {
     // Add another selective channel with default options.
     melon::SelectiveChannel* sub_channel3 = new melon::SelectiveChannel;
     if (sub_channel3->Init(FLAGS_load_balancer.c_str(), NULL) != 0) {
-        MLOG(ERROR) << "Fail to init schan";
+        LOG(ERROR) << "Fail to init schan";
         return -1;
     }
     for (int i = 0; i < 3; ++i) {
@@ -166,17 +170,17 @@ int main(int argc, char* argv[]) {
             }
             if (c->Init(os.str().c_str(), FLAGS_load_balancer.c_str(),
                         &options) != 0) {
-                MLOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
+                LOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
                 return -1;
             }
         } else {
             if (c->Init(mutil::EndPoint(pt.ip, pt.port++), &options) != 0) {
-                MLOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
+                LOG(ERROR) << "Fail to init sub channel[" << i << "] of schan";
                 return -1;
             }
         }
         if (sub_channel3->AddChannel(c, NULL)) {
-            MLOG(ERROR) << "Fail to add sub channel[" << i << "] into schan";
+            LOG(ERROR) << "Fail to add sub channel[" << i << "] into schan";
             return -1;
         }
     }
@@ -186,7 +190,7 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < sub_channels.size(); ++i) {
         // note: we don't need the handle for channel removal;
         if (channel.AddChannel(sub_channels[i], NULL/*note*/) != 0) {
-            MLOG(ERROR) << "Fail to add sub_channel[" << i << "]";
+            LOG(ERROR) << "Fail to add sub_channel[" << i << "]";
             return -1;
         }
     }
@@ -194,7 +198,7 @@ int main(int argc, char* argv[]) {
         g_attachment.resize(FLAGS_attachment_size, 'a');
     }
     if (FLAGS_request_size <= 0) {
-        MLOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
+        LOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
         return -1;
     }
     g_request.resize(FLAGS_request_size, 'r');
@@ -205,7 +209,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create pthread";
+                LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -214,7 +218,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create fiber";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -222,11 +226,11 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        MLOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
+        LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    MLOG(INFO) << "EchoClient is going to quit";
+    LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

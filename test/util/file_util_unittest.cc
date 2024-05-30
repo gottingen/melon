@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #if defined(OS_WIN)
 #include <windows.h>
@@ -24,13 +24,13 @@
 #include <set>
 #include <vector>
 
-#include "melon/utility/file_util.h"
-#include "melon/utility/files/file_enumerator.h"
-#include "melon/utility/files/file_path.h"
-#include "melon/utility/files/scoped_file.h"
+#include <melon/utility/file_util.h>
+#include <melon/utility/files/file_enumerator.h>
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/files/scoped_file.h>
 #include "melon/utility/files/scoped_temp_dir.h"
 #include "melon/utility/strings/utf_string_conversions.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 #include <gtest/gtest.h>
 #include <gtest/gtest.h>
 
@@ -449,7 +449,7 @@ TEST_F(FileUtilTest, DevicePathToDriveLetter) {
   // Get a drive letter.
   std::wstring real_drive_letter = temp_dir_.path().value().substr(0, 2);
   if (!isalpha(real_drive_letter[0]) || ':' != real_drive_letter[1]) {
-    MLOG(ERROR) << "Can't get a drive letter to test with.";
+    LOG(ERROR) << "Can't get a drive letter to test with.";
     return;
   }
 

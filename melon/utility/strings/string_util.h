@@ -15,9 +15,9 @@
 
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #include "melon/utility/strings/string16.h"
-#include "melon/utility/strings/string_piece.h"  // For implicit conversions.
+#include <melon/utility/strings/string_piece.h>  // For implicit conversions.
 
 namespace mutil {
 
@@ -362,7 +362,7 @@ inline bool IsHexDigit(Char c) {
 
 template <typename Char>
 inline Char HexDigitToInt(Char c) {
-  DMCHECK(IsHexDigit(c));
+  DCHECK(IsHexDigit(c));
   if (c >= '0' && c <= '9')
     return c - '0';
   if (c >= 'A' && c <= 'F')
@@ -439,7 +439,7 @@ MUTIL_EXPORT void ReplaceSubstringsAfterOffset(std::string* str,
 template <class string_type>
 inline typename string_type::value_type* WriteInto(string_type* str,
                                                    size_t length_with_null) {
-  DMCHECK_GT(length_with_null, 1u);
+  DCHECK_GT(length_with_null, 1u);
   str->reserve(length_with_null);
   str->resize(length_with_null - 1);
   return &((*str)[0]);

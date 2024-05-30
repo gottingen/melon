@@ -1,231 +1,241 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gflags/gflags.h>
-#include "melon/utility/macros.h"                       // MELON_CASSERT
-#include "melon/utility/logging.h"
-#include "melon/fiber/task_group.h"                // TaskGroup
-#include "melon/fiber/task_control.h"              // TaskControl
-#include "melon/fiber/timer_thread.h"
-#include "melon/fiber/list_of_abafree_id.h"
-#include "melon/fiber/fiber.h"
+#include <melon/utility/macros.h>                       // MELON_CASSERT
+#include <turbo/log/logging.h>
+#include <melon/fiber/task_group.h>                // TaskGroup
+#include <melon/fiber/task_control.h>              // TaskControl
+#include <melon/fiber/timer_thread.h>
+#include <melon/fiber/list_of_abafree_id.h>
+#include <melon/fiber/fiber.h>
 
 namespace fiber {
 
-DEFINE_int32(fiber_concurrency, 8 + FIBER_EPOLL_THREAD_NUM,
-             "Number of pthread workers");
+    DEFINE_int32(fiber_concurrency, 8 + FIBER_EPOLL_THREAD_NUM,
+                 "Number of pthread workers");
 
-DEFINE_int32(fiber_min_concurrency, 0,
-            "Initial number of pthread workers which will be added on-demand."
-            " The laziness is disabled when this value is non-positive,"
-            " and workers will be created eagerly according to -fiber_concurrency and fiber_setconcurrency(). ");
+    DEFINE_int32(fiber_min_concurrency, 0,
+                 "Initial number of pthread workers which will be added on-demand."
+                 " The laziness is disabled when this value is non-positive,"
+                 " and workers will be created eagerly according to -fiber_concurrency and fiber_setconcurrency(). ");
 
-DEFINE_int32(fiber_current_tag, FIBER_TAG_DEFAULT, "Set fiber concurrency for this tag");
+    DEFINE_int32(fiber_current_tag, FIBER_TAG_DEFAULT, "Set fiber concurrency for this tag");
 
-DEFINE_int32(fiber_concurrency_by_tag, 0,
-             "Number of pthread workers of FLAGS_fiber_current_tag");
+    DEFINE_int32(fiber_concurrency_by_tag, 0,
+                 "Number of pthread workers of FLAGS_fiber_current_tag");
 
-static bool never_set_fiber_concurrency = true;
-static bool never_set_fiber_concurrency_by_tag = true;
+    static bool never_set_fiber_concurrency = true;
+    static bool never_set_fiber_concurrency_by_tag = true;
 
-static bool validate_fiber_concurrency(const char*, int32_t val) {
-    // fiber_setconcurrency sets the flag on success path which should
-    // not be strictly in a validator. But it's OK for a int flag.
-    return fiber_setconcurrency(val) == 0;
-}
-const int ALLOW_UNUSED register_FLAGS_fiber_concurrency =
-    ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency,
-                                    validate_fiber_concurrency);
-
-static bool validate_fiber_min_concurrency(const char*, int32_t val);
-
-const int ALLOW_UNUSED register_FLAGS_fiber_min_concurrency =
-    ::google::RegisterFlagValidator(&FLAGS_fiber_min_concurrency,
-                                    validate_fiber_min_concurrency);
-
-static bool validate_fiber_current_tag(const char*, int32_t val);
-
-const int ALLOW_UNUSED register_FLAGS_fiber_current_tag =
-    ::google::RegisterFlagValidator(&FLAGS_fiber_current_tag, validate_fiber_current_tag);
-
-static bool validate_fiber_concurrency_by_tag(const char*, int32_t val);
-
-const int ALLOW_UNUSED register_FLAGS_fiber_concurrency_by_tag =
-    ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency_by_tag,
-                                       validate_fiber_concurrency_by_tag);
-
-MELON_CASSERT(sizeof(TaskControl*) == sizeof(mutil::atomic<TaskControl*>), atomic_size_match);
-
-pthread_mutex_t g_task_control_mutex = PTHREAD_MUTEX_INITIALIZER;
-// Referenced in rpc, needs to be extern.
-// Notice that we can't declare the variable as atomic<TaskControl*> which
-// are not constructed before main().
-TaskControl* g_task_control = NULL;
-
-extern MELON_THREAD_LOCAL TaskGroup* tls_task_group;
-extern void (*g_worker_startfn)();
-extern void (*g_tagged_worker_startfn)(fiber_tag_t);
-
-inline TaskControl* get_task_control() {
-    return g_task_control;
-}
-
-inline TaskControl* get_or_new_task_control() {
-    mutil::atomic<TaskControl*>* p = (mutil::atomic<TaskControl*>*)&g_task_control;
-    TaskControl* c = p->load(mutil::memory_order_consume);
-    if (c != NULL) {
-        return c;
+    static bool validate_fiber_concurrency(const char *, int32_t val) {
+        // fiber_setconcurrency sets the flag on success path which should
+        // not be strictly in a validator. But it's OK for a int flag.
+        return fiber_setconcurrency(val) == 0;
     }
-    MELON_SCOPED_LOCK(g_task_control_mutex);
-    c = p->load(mutil::memory_order_consume);
-    if (c != NULL) {
-        return c;
-    }
-    c = new (std::nothrow) TaskControl;
-    if (NULL == c) {
-        return NULL;
-    }
-    int concurrency = FLAGS_fiber_min_concurrency > 0 ?
-        FLAGS_fiber_min_concurrency :
-        FLAGS_fiber_concurrency;
-    if (c->init(concurrency) != 0) {
-        MLOG(ERROR) << "Fail to init g_task_control";
-        delete c;
-        return NULL;
-    }
-    p->store(c, mutil::memory_order_release);
-    return c;
-}
 
-static int add_workers_for_each_tag(int num) {
-    int added = 0;
-    auto c = get_task_control();
-    for (auto i = 0; i < num; ++i) {
-        added += c->add_workers(1, i % FLAGS_task_group_ntags);
-    }
-    return added;
-}
+    const int ALLOW_UNUSED register_FLAGS_fiber_concurrency =
+            ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency,
+                                            validate_fiber_concurrency);
 
-static bool validate_fiber_min_concurrency(const char*, int32_t val) {
-    if (val <= 0) {
-        return true;
-    }
-    if (val < FIBER_MIN_CONCURRENCY || val > FLAGS_fiber_concurrency) {
-        return false;
-    }
-    TaskControl* c = get_task_control();
-    if (!c) {
-        return true;
-    }
-    MELON_SCOPED_LOCK(g_task_control_mutex);
-    int concurrency = c->concurrency();
-    if (val > concurrency) {
-        int added = fiber::add_workers_for_each_tag(val - concurrency);
-        return added == (val - concurrency);
-    } else {
-        return true;
-    }
-}
+    static bool validate_fiber_min_concurrency(const char *, int32_t val);
 
-static bool validate_fiber_current_tag(const char*, int32_t val) {
-    if (val < FIBER_TAG_DEFAULT || val >= FLAGS_task_group_ntags) {
-        return false;
-    }
-    MELON_SCOPED_LOCK(fiber::g_task_control_mutex);
-    auto c = fiber::get_task_control();
-    if (c == NULL) {
-        FLAGS_fiber_concurrency_by_tag = 0;
-        return true;
-    }
-    FLAGS_fiber_concurrency_by_tag = c->concurrency(val);
-    return true;
-}
+    const int ALLOW_UNUSED register_FLAGS_fiber_min_concurrency =
+            ::google::RegisterFlagValidator(&FLAGS_fiber_min_concurrency,
+                                            validate_fiber_min_concurrency);
 
-static bool validate_fiber_concurrency_by_tag(const char*, int32_t val) {
-    return fiber_setconcurrency_by_tag(val, FLAGS_fiber_current_tag) == 0;
-}
+    static bool validate_fiber_current_tag(const char *, int32_t val);
 
-__thread TaskGroup* tls_task_group_nosignal = NULL;
+    const int ALLOW_UNUSED register_FLAGS_fiber_current_tag =
+            ::google::RegisterFlagValidator(&FLAGS_fiber_current_tag, validate_fiber_current_tag);
 
-MUTIL_FORCE_INLINE int
-start_from_non_worker(fiber_t* __restrict tid,
-                      const fiber_attr_t* __restrict attr,
-                      void* (*fn)(void*),
-                      void* __restrict arg) {
-    TaskControl* c = get_or_new_task_control();
-    if (NULL == c) {
-        return ENOMEM;
+    static bool validate_fiber_concurrency_by_tag(const char *, int32_t val);
+
+    const int ALLOW_UNUSED register_FLAGS_fiber_concurrency_by_tag =
+            ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency_by_tag,
+                                            validate_fiber_concurrency_by_tag);
+
+    MELON_CASSERT(sizeof(TaskControl *) == sizeof(mutil::atomic<TaskControl *>), atomic_size_match);
+
+    pthread_mutex_t g_task_control_mutex = PTHREAD_MUTEX_INITIALIZER;
+    // Referenced in rpc, needs to be extern.
+    // Notice that we can't declare the variable as atomic<TaskControl*> which
+    // are not constructed before main().
+    TaskControl *g_task_control = NULL;
+
+    extern MELON_THREAD_LOCAL TaskGroup *tls_task_group;
+
+    extern void (*g_worker_startfn)();
+
+    extern void (*g_tagged_worker_startfn)(fiber_tag_t);
+
+    inline TaskControl *get_task_control() {
+        return g_task_control;
     }
-    auto tag = FIBER_TAG_DEFAULT;
-    if (attr != NULL && attr->tag != FIBER_TAG_INVALID) {
-        tag = attr->tag;
-    }
-    if (attr != NULL && (attr->flags & FIBER_NOSIGNAL)) {
-        // Remember the TaskGroup to insert NOSIGNAL tasks for 2 reasons:
-        // 1. NOSIGNAL is often for creating many fibers in batch,
-        //    inserting into the same TaskGroup maximizes the batch.
-        // 2. fiber_flush() needs to know which TaskGroup to flush.
-        auto g = tls_task_group_nosignal;
-        if (NULL == g) {
-            g = c->choose_one_group(tag);
-            tls_task_group_nosignal = g;
+
+    inline TaskControl *get_or_new_task_control() {
+        mutil::atomic<TaskControl *> *p = (mutil::atomic<TaskControl *> *) &g_task_control;
+        TaskControl *c = p->load(mutil::memory_order_consume);
+        if (c != NULL) {
+            return c;
         }
-        return g->start_background<true>(tid, attr, fn, arg);
+        MELON_SCOPED_LOCK(g_task_control_mutex);
+        c = p->load(mutil::memory_order_consume);
+        if (c != NULL) {
+            return c;
+        }
+        c = new(std::nothrow) TaskControl;
+        if (NULL == c) {
+            return NULL;
+        }
+        int concurrency = FLAGS_fiber_min_concurrency > 0 ?
+                          FLAGS_fiber_min_concurrency :
+                          FLAGS_fiber_concurrency;
+        if (c->init(concurrency) != 0) {
+            LOG(ERROR) << "Fail to init g_task_control";
+            delete c;
+            return NULL;
+        }
+        p->store(c, mutil::memory_order_release);
+        return c;
     }
-    return c->choose_one_group(tag)->start_background<true>(tid, attr, fn, arg);
-}
 
-// Meet one of the three conditions, can run in thread local
-// attr is nullptr
-// tag equal to thread local
-// tag equal to FIBER_TAG_INVALID
-MUTIL_FORCE_INLINE bool can_run_thread_local(const fiber_attr_t* __restrict attr) {
-    return attr == nullptr || attr->tag == fiber::tls_task_group->tag() ||
-           attr->tag == FIBER_TAG_INVALID;
-}
-
-struct TidTraits {
-    static const size_t BLOCK_SIZE = 63;
-    static const size_t MAX_ENTRIES = 65536;
-    static const fiber_t ID_INIT;
-    static bool exists(fiber_t id) { return fiber::TaskGroup::exists(id); }
-};
-const fiber_t TidTraits::ID_INIT = INVALID_FIBER;
-
-typedef ListOfABAFreeId<fiber_t, TidTraits> TidList;
-
-struct TidStopper {
-    void operator()(fiber_t id) const { fiber_stop(id); }
-};
-struct TidJoiner {
-    void operator()(fiber_t & id) const {
-        fiber_join(id, NULL);
-        id = INVALID_FIBER;
+    static int add_workers_for_each_tag(int num) {
+        int added = 0;
+        auto c = get_task_control();
+        for (auto i = 0; i < num; ++i) {
+            added += c->add_workers(1, i % FLAGS_task_group_ntags);
+        }
+        return added;
     }
-};
+
+    static bool validate_fiber_min_concurrency(const char *, int32_t val) {
+        if (val <= 0) {
+            return true;
+        }
+        if (val < FIBER_MIN_CONCURRENCY || val > FLAGS_fiber_concurrency) {
+            return false;
+        }
+        TaskControl *c = get_task_control();
+        if (!c) {
+            return true;
+        }
+        MELON_SCOPED_LOCK(g_task_control_mutex);
+        int concurrency = c->concurrency();
+        if (val > concurrency) {
+            int added = fiber::add_workers_for_each_tag(val - concurrency);
+            return added == (val - concurrency);
+        } else {
+            return true;
+        }
+    }
+
+    static bool validate_fiber_current_tag(const char *, int32_t val) {
+        if (val < FIBER_TAG_DEFAULT || val >= FLAGS_task_group_ntags) {
+            return false;
+        }
+        MELON_SCOPED_LOCK(fiber::g_task_control_mutex);
+        auto c = fiber::get_task_control();
+        if (c == NULL) {
+            FLAGS_fiber_concurrency_by_tag = 0;
+            return true;
+        }
+        FLAGS_fiber_concurrency_by_tag = c->concurrency(val);
+        return true;
+    }
+
+    static bool validate_fiber_concurrency_by_tag(const char *, int32_t val) {
+        return fiber_setconcurrency_by_tag(val, FLAGS_fiber_current_tag) == 0;
+    }
+
+    __thread TaskGroup *tls_task_group_nosignal = NULL;
+
+    MUTIL_FORCE_INLINE int
+    start_from_non_worker(fiber_t *__restrict tid,
+                          const fiber_attr_t *__restrict attr,
+                          void *(*fn)(void *),
+                          void *__restrict arg) {
+        TaskControl *c = get_or_new_task_control();
+        if (NULL == c) {
+            return ENOMEM;
+        }
+        auto tag = FIBER_TAG_DEFAULT;
+        if (attr != NULL && attr->tag != FIBER_TAG_INVALID) {
+            tag = attr->tag;
+        }
+        if (attr != NULL && (attr->flags & FIBER_NOSIGNAL)) {
+            // Remember the TaskGroup to insert NOSIGNAL tasks for 2 reasons:
+            // 1. NOSIGNAL is often for creating many fibers in batch,
+            //    inserting into the same TaskGroup maximizes the batch.
+            // 2. fiber_flush() needs to know which TaskGroup to flush.
+            auto g = tls_task_group_nosignal;
+            if (NULL == g) {
+                g = c->choose_one_group(tag);
+                tls_task_group_nosignal = g;
+            }
+            return g->start_background<true>(tid, attr, fn, arg);
+        }
+        return c->choose_one_group(tag)->start_background<true>(tid, attr, fn, arg);
+    }
+
+    // Meet one of the three conditions, can run in thread local
+    // attr is nullptr
+    // tag equal to thread local
+    // tag equal to FIBER_TAG_INVALID
+    MUTIL_FORCE_INLINE bool can_run_thread_local(const fiber_attr_t *__restrict attr) {
+        return attr == nullptr || attr->tag == fiber::tls_task_group->tag() ||
+               attr->tag == FIBER_TAG_INVALID;
+    }
+
+    struct TidTraits {
+        static const size_t BLOCK_SIZE = 63;
+        static const size_t MAX_ENTRIES = 65536;
+        static const fiber_t ID_INIT;
+
+        static bool exists(fiber_t id) { return fiber::TaskGroup::exists(id); }
+    };
+
+    const fiber_t TidTraits::ID_INIT = INVALID_FIBER;
+
+    typedef ListOfABAFreeId<fiber_t, TidTraits> TidList;
+
+    struct TidStopper {
+        void operator()(fiber_t id) const { fiber_stop(id); }
+    };
+
+    struct TidJoiner {
+        void operator()(fiber_t &id) const {
+            fiber_join(id, NULL);
+            id = INVALID_FIBER;
+        }
+    };
 
 }  // namespace fiber
 
 extern "C" {
 
-int fiber_start_urgent(fiber_t* __restrict tid,
-                         const fiber_attr_t* __restrict attr,
-                         void * (*fn)(void*),
-                         void* __restrict arg) {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+int fiber_start_urgent(fiber_t *__restrict tid,
+                       const fiber_attr_t *__restrict attr,
+                       void *(*fn)(void *),
+                       void *__restrict arg) {
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (g) {
         // if attribute is null use thread local task group
         if (fiber::can_run_thread_local(attr)) {
@@ -235,11 +245,11 @@ int fiber_start_urgent(fiber_t* __restrict tid,
     return fiber::start_from_non_worker(tid, attr, fn, arg);
 }
 
-int fiber_start_background(fiber_t* __restrict tid,
-                             const fiber_attr_t* __restrict attr,
-                             void * (*fn)(void*),
-                             void* __restrict arg) {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+int fiber_start_background(fiber_t *__restrict tid,
+                           const fiber_attr_t *__restrict attr,
+                           void *(*fn)(void *),
+                           void *__restrict arg) {
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (g) {
         // if attribute is null use thread local task group
         if (fiber::can_run_thread_local(attr)) {
@@ -250,7 +260,7 @@ int fiber_start_background(fiber_t* __restrict tid,
 }
 
 void fiber_flush() {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (g) {
         return g->flush_nosignal_tasks();
     }
@@ -272,11 +282,11 @@ int fiber_stop(fiber_t tid) {
 }
 
 int fiber_stopped(fiber_t tid) {
-    return (int)fiber::TaskGroup::is_stopped(tid);
+    return (int) fiber::TaskGroup::is_stopped(tid);
 }
 
 fiber_t fiber_self(void) {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+    fiber::TaskGroup *g = fiber::tls_task_group;
     // note: return 0 for main tasks now, which include main thread and
     // all work threads. So that we can identify main tasks from logs
     // more easily. This is probably questionable in future.
@@ -290,8 +300,8 @@ int fiber_equal(fiber_t t1, fiber_t t2) {
     return t1 == t2;
 }
 
-void fiber_exit(void* retval) {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+void fiber_exit(void *retval) {
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (g != NULL && !g->is_current_main_task()) {
         throw fiber::ExitException(retval);
     } else {
@@ -299,20 +309,20 @@ void fiber_exit(void* retval) {
     }
 }
 
-int fiber_join(fiber_t tid, void** thread_return) {
+int fiber_join(fiber_t tid, void **thread_return) {
     return fiber::TaskGroup::join(tid, thread_return);
 }
 
-int fiber_attr_init(fiber_attr_t* a) {
+int fiber_attr_init(fiber_attr_t *a) {
     *a = FIBER_ATTR_NORMAL;
     return 0;
 }
 
-int fiber_attr_destroy(fiber_attr_t*) {
+int fiber_attr_destroy(fiber_attr_t *) {
     return 0;
 }
 
-int fiber_getattr(fiber_t tid, fiber_attr_t* attr) {
+int fiber_getattr(fiber_t tid, fiber_attr_t *attr) {
     return fiber::TaskGroup::get_attr(tid, attr);
 }
 
@@ -322,7 +332,7 @@ int fiber_getconcurrency(void) {
 
 int fiber_setconcurrency(int num) {
     if (num < FIBER_MIN_CONCURRENCY || num > FIBER_MAX_CONCURRENCY) {
-        MLOG(ERROR) << "Invalid concurrency=" << num;
+        LOG(ERROR) << "Invalid concurrency=" << num;
         return EINVAL;
     }
     if (fiber::FLAGS_fiber_min_concurrency > 0) {
@@ -335,7 +345,7 @@ int fiber_setconcurrency(int num) {
         fiber::FLAGS_fiber_concurrency = num;
         return 0;
     }
-    fiber::TaskControl* c = fiber::get_task_control();
+    fiber::TaskControl *c = fiber::get_task_control();
     if (c != NULL) {
         if (num < c->concurrency()) {
             return EPERM;
@@ -355,9 +365,9 @@ int fiber_setconcurrency(int num) {
         return 0;
     }
     if (fiber::FLAGS_fiber_concurrency != c->concurrency()) {
-        MLOG(ERROR) << "MCHECK failed: fiber_concurrency="
-                   << fiber::FLAGS_fiber_concurrency
-                   << " != tc_concurrency=" << c->concurrency();
+        LOG(ERROR) << "CHECK failed: fiber_concurrency="
+                    << fiber::FLAGS_fiber_concurrency
+                    << " != tc_concurrency=" << c->concurrency();
         fiber::FLAGS_fiber_concurrency = c->concurrency();
     }
     if (num > fiber::FLAGS_fiber_concurrency) {
@@ -391,8 +401,8 @@ int fiber_setconcurrency_by_tag(int num, fiber_tag_t tag) {
     auto tag_ngroup = c->concurrency(tag);
     auto add = num - tag_ngroup;
     if (ngroup + add > fiber::FLAGS_fiber_concurrency) {
-        MLOG(ERROR) << "Fail to set concurrency by tag " << tag
-                   << ", Whole concurrency larger than fiber_concurrency";
+        LOG(ERROR) << "Fail to set concurrency by tag " << tag
+                    << ", Whole concurrency larger than fiber_concurrency";
         return EPERM;
     }
     auto added = 0;
@@ -404,10 +414,10 @@ int fiber_setconcurrency_by_tag(int num, fiber_tag_t tag) {
 }
 
 int fiber_about_to_quit() {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (g != NULL) {
-        fiber::TaskMeta* current_task = g->current_task();
-        if(!(current_task->attr.flags & FIBER_NEVER_QUIT)) {
+        fiber::TaskMeta *current_task = g->current_task();
+        if (!(current_task->attr.flags & FIBER_NEVER_QUIT)) {
             current_task->about_to_quit = true;
         }
         return 0;
@@ -415,13 +425,13 @@ int fiber_about_to_quit() {
     return EPERM;
 }
 
-int fiber_timer_add(fiber_timer_t* id, timespec abstime,
-                      void (*on_timer)(void*), void* arg) {
-    fiber::TaskControl* c = fiber::get_or_new_task_control();
+int fiber_timer_add(fiber_timer_t *id, timespec abstime,
+                    void (*on_timer)(void *), void *arg) {
+    fiber::TaskControl *c = fiber::get_or_new_task_control();
     if (c == NULL) {
         return ENOMEM;
     }
-    fiber::TimerThread* tt = fiber::get_or_create_global_timer_thread();
+    fiber::TimerThread *tt = fiber::get_or_create_global_timer_thread();
     if (tt == NULL) {
         return ENOMEM;
     }
@@ -434,9 +444,9 @@ int fiber_timer_add(fiber_timer_t* id, timespec abstime,
 }
 
 int fiber_timer_del(fiber_timer_t id) {
-    fiber::TaskControl* c = fiber::get_task_control();
+    fiber::TaskControl *c = fiber::get_task_control();
     if (c != NULL) {
-        fiber::TimerThread* tt = fiber::get_global_timer_thread();
+        fiber::TimerThread *tt = fiber::get_global_timer_thread();
         if (tt == NULL) {
             return EINVAL;
         }
@@ -449,7 +459,7 @@ int fiber_timer_del(fiber_timer_t id) {
 }
 
 int fiber_usleep(uint64_t microseconds) {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (NULL != g && !g->is_current_pthread_task()) {
         return fiber::TaskGroup::usleep(&g, microseconds);
     }
@@ -457,7 +467,7 @@ int fiber_usleep(uint64_t microseconds) {
 }
 
 int fiber_yield(void) {
-    fiber::TaskGroup* g = fiber::tls_task_group;
+    fiber::TaskGroup *g = fiber::tls_task_group;
     if (NULL != g && !g->is_current_pthread_task()) {
         fiber::TaskGroup::yield(&g);
         return 0;
@@ -483,16 +493,16 @@ int fiber_set_tagged_worker_startfn(void (*start_fn)(fiber_tag_t)) {
 }
 
 void fiber_stop_world() {
-    fiber::TaskControl* c = fiber::get_task_control();
+    fiber::TaskControl *c = fiber::get_task_control();
     if (c != NULL) {
         c->stop_and_join();
     }
 }
 
-int fiber_list_init(fiber_list_t* list,
-                      unsigned /*size*/,
-                      unsigned /*conflict_size*/) {
-    list->impl = new (std::nothrow) fiber::TidList;
+int fiber_list_init(fiber_list_t *list,
+                    unsigned /*size*/,
+                    unsigned /*conflict_size*/) {
+    list->impl = new(std::nothrow) fiber::TidList;
     if (NULL == list->impl) {
         return ENOMEM;
     }
@@ -504,37 +514,37 @@ int fiber_list_init(fiber_list_t* list,
     return 0;
 }
 
-void fiber_list_destroy(fiber_list_t* list) {
-    delete static_cast<fiber::TidList*>(list->impl);
+void fiber_list_destroy(fiber_list_t *list) {
+    delete static_cast<fiber::TidList *>(list->impl);
     list->impl = NULL;
 }
 
-int fiber_list_add(fiber_list_t* list, fiber_t id) {
+int fiber_list_add(fiber_list_t *list, fiber_t id) {
     if (list->impl == NULL) {
         return EINVAL;
     }
-    return static_cast<fiber::TidList*>(list->impl)->add(id);
+    return static_cast<fiber::TidList *>(list->impl)->add(id);
 }
 
-int fiber_list_stop(fiber_list_t* list) {
+int fiber_list_stop(fiber_list_t *list) {
     if (list->impl == NULL) {
         return EINVAL;
     }
-    static_cast<fiber::TidList*>(list->impl)->apply(fiber::TidStopper());
+    static_cast<fiber::TidList *>(list->impl)->apply(fiber::TidStopper());
     return 0;
 }
 
-int fiber_list_join(fiber_list_t* list) {
+int fiber_list_join(fiber_list_t *list) {
     if (list->impl == NULL) {
         return EINVAL;
     }
-    static_cast<fiber::TidList*>(list->impl)->apply(fiber::TidJoiner());
+    static_cast<fiber::TidList *>(list->impl)->apply(fiber::TidJoiner());
     return 0;
 }
 
 fiber_tag_t fiber_self_tag(void) {
     return fiber::tls_task_group != nullptr ? fiber::tls_task_group->tag()
-                                              : FIBER_TAG_DEFAULT;
+                                            : FIBER_TAG_DEFAULT;
 }
 
 }  // extern "C"

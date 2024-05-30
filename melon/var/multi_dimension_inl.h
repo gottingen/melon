@@ -1,28 +1,31 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#ifndef MELON_VAR_MULTI_DIMENSION_INL_H_
-#define MELON_VAR_MULTI_DIMENSION_INL_H_
+#pragma once
 
 #include <gflags/gflags_declare.h>
 
 namespace melon::var {
 
-    DECLARE_int32(bvar_latency_p1);
-    DECLARE_int32(bvar_latency_p2);
-    DECLARE_int32(bvar_latency_p3);
+    DECLARE_int32(var_latency_p1);
+    DECLARE_int32(var_latency_p2);
+    DECLARE_int32(var_latency_p3);
 
     static const std::string ALLOW_UNUSED
     METRIC_TYPE_COUNTER = "counter";
@@ -69,7 +72,7 @@ namespace melon::var {
     inline
     size_t MultiDimension<T>::init_flatmap(MetricMap &bg) {
         // size = 1 << 13
-        MCHECK_EQ(0, bg.init(8192, 80));
+        CHECK_EQ(0, bg.init(8192, 80));
         return (size_t) 1;
     }
 
@@ -78,7 +81,7 @@ namespace melon::var {
     size_t MultiDimension<T>::count_stats() {
         MetricMapScopedPtr metric_map_ptr;
         if (_metric_map.Read(&metric_map_ptr) != 0) {
-            MLOG(ERROR) << "Fail to read dbd";
+            LOG(ERROR) << "Fail to read dbd";
             return 0;
         }
         return metric_map_ptr->size();
@@ -89,7 +92,7 @@ namespace melon::var {
     void MultiDimension<T>::delete_stats(const key_type &labels_value) {
         if (is_valid_lables_value(labels_value)) {
             // Because there are two copies(foreground and background) in DBD, we need to use an empty tmp_metric,
-            // get the deleted value of second copy into tmp_metric, which can prevent the bvar object from being deleted twice.
+            // get the deleted value of second copy into tmp_metric, which can prevent the var object from being deleted twice.
             op_value_type tmp_metric = NULL;
             auto erase_fn = [&labels_value, &tmp_metric](MetricMap &bg) {
                 auto it = bg.seek(labels_value);
@@ -112,10 +115,10 @@ namespace melon::var {
     void MultiDimension<T>::delete_stats() {
         // Because there are two copies(foreground and background) in DBD, we need to use an empty tmp_map,
         // swap two copies with empty, and get the value of second copy into tmp_map,
-        // then traversal tmp_map and delete bvar object,
-        // which can prevent the bvar object from being deleted twice.
+        // then traversal tmp_map and delete var object,
+        // which can prevent the var object from being deleted twice.
         MetricMap tmp_map;
-        MCHECK_EQ(0, tmp_map.init(8192, 80));
+        CHECK_EQ(0, tmp_map.init(8192, 80));
         auto clear_fn = [&tmp_map](MetricMap &map) {
             if (!tmp_map.empty()) {
                 tmp_map.clear();
@@ -124,7 +127,7 @@ namespace melon::var {
             return (size_t) 1;
         };
         int ret = _metric_map.Modify(clear_fn);
-        MCHECK_EQ(1, ret);
+        CHECK_EQ(1, ret);
         for (auto &kv: tmp_map) {
             delete kv.second;
         }
@@ -139,7 +142,7 @@ namespace melon::var {
         names->clear();
         MetricMapScopedPtr metric_map_ptr;
         if (_metric_map.Read(&metric_map_ptr) != 0) {
-            MLOG(ERROR) << "Fail to read dbd";
+            LOG(ERROR) << "Fail to read dbd";
             return;
         }
         names->reserve(metric_map_ptr->size());
@@ -156,7 +159,7 @@ namespace melon::var {
         }
         MetricMapScopedPtr metric_map_ptr;
         if (_metric_map.Read(&metric_map_ptr) != 0) {
-            MLOG(ERROR) << "Fail to read dbd";
+            LOG(ERROR) << "Fail to read dbd";
             return nullptr;
         }
 
@@ -176,7 +179,7 @@ namespace melon::var {
         {
             MetricMapScopedPtr metric_map_ptr;
             if (_metric_map.Read(&metric_map_ptr) != 0) {
-                MLOG(ERROR) << "Fail to read dbd";
+                LOG(ERROR) << "Fail to read dbd";
                 return nullptr;
             }
 
@@ -188,15 +191,15 @@ namespace melon::var {
             }
 
             if (metric_map_ptr->size() > MAX_MULTI_DIMENSION_STATS_COUNT) {
-                MLOG(ERROR) << "Too many stats seen, overflow detected, max stats count:"
+                LOG(ERROR) << "Too many stats seen, overflow detected, max stats count:"
                            << MAX_MULTI_DIMENSION_STATS_COUNT;
                 return nullptr;
             }
         }
 
         // Because DBD has two copies(foreground and background) MetricMap, both copies need to be modify,
-        // In order to avoid new duplicate bvar object, need use cache_metric to cache the new bvar object,
-        // In this way, when modifying the second copy, can directly use the cache_metric bvar object.
+        // In order to avoid new duplicate var object, need use cache_metric to cache the new var object,
+        // In this way, when modifying the second copy, can directly use the cache_metric var object.
         op_value_type cache_metric = NULL;
         auto insert_fn = [&labels_value, &cache_metric, &do_write](MetricMap &bg) {
             auto bg_metric = bg.seek(labels_value);
@@ -242,12 +245,12 @@ namespace melon::var {
         }
         size_t n = 0;
         for (auto &label_name: label_names) {
-            T *bvar = get_stats_impl(label_name);
-            if (!bvar) {
+            T *var = get_stats_impl(label_name);
+            if (!var) {
                 continue;
             }
             std::ostringstream oss;
-            bvar->describe(oss, options->quote_string);
+            var->describe(oss, options->quote_string);
             std::ostringstream oss_key;
             make_dump_key(oss_key, label_name);
             if (!dumper->dump(oss_key.str(), oss.str())) {
@@ -268,8 +271,8 @@ namespace melon::var {
         }
         size_t n = 0;
         for (auto &label_name: label_names) {
-            melon::var::LatencyRecorder *bvar = get_stats_impl(label_name);
-            if (!bvar) {
+            melon::var::LatencyRecorder *var = get_stats_impl(label_name);
+            if (!var) {
                 continue;
             }
 
@@ -280,29 +283,29 @@ namespace melon::var {
             // latency
             std::ostringstream oss_latency_key;
             make_dump_key(oss_latency_key, label_name, "_latency");
-            if (dumper->dump(oss_latency_key.str(), std::to_string(bvar->latency()))) {
+            if (dumper->dump(oss_latency_key.str(), std::to_string(var->latency()))) {
                 n++;
             }
             // latency_percentiles
             // p1/p2/p3
-            int latency_percentiles[3]{FLAGS_bvar_latency_p1, FLAGS_bvar_latency_p2, FLAGS_bvar_latency_p3};
+            int latency_percentiles[3]{FLAGS_var_latency_p1, FLAGS_var_latency_p2, FLAGS_var_latency_p3};
             for (auto lp: latency_percentiles) {
                 std::ostringstream oss_lp_key;
                 make_dump_key(oss_lp_key, label_name, "_latency", lp);
-                if (dumper->dump(oss_lp_key.str(), std::to_string(bvar->latency_percentile(lp / 100.0)))) {
+                if (dumper->dump(oss_lp_key.str(), std::to_string(var->latency_percentile(lp / 100.0)))) {
                     n++;
                 }
             }
             // 999
             std::ostringstream oss_p999_key;
             make_dump_key(oss_p999_key, label_name, "_latency", 999);
-            if (dumper->dump(oss_p999_key.str(), std::to_string(bvar->latency_percentile(0.999)))) {
+            if (dumper->dump(oss_p999_key.str(), std::to_string(var->latency_percentile(0.999)))) {
                 n++;
             }
             // 9999
             std::ostringstream oss_p9999_key;
             make_dump_key(oss_p9999_key, label_name, "_latency", 9999);
-            if (dumper->dump(oss_p9999_key.str(), std::to_string(bvar->latency_percentile(0.9999)))) {
+            if (dumper->dump(oss_p9999_key.str(), std::to_string(var->latency_percentile(0.9999)))) {
                 n++;
             }
 
@@ -313,7 +316,7 @@ namespace melon::var {
             // max_latency
             std::ostringstream oss_max_latency_key;
             make_dump_key(oss_max_latency_key, label_name, "_max_latency");
-            if (dumper->dump(oss_max_latency_key.str(), std::to_string(bvar->max_latency()))) {
+            if (dumper->dump(oss_max_latency_key.str(), std::to_string(var->max_latency()))) {
                 n++;
             }
 
@@ -324,7 +327,7 @@ namespace melon::var {
             // qps
             std::ostringstream oss_qps_key;
             make_dump_key(oss_qps_key, label_name, "_qps");
-            if (dumper->dump(oss_qps_key.str(), std::to_string(bvar->qps()))) {
+            if (dumper->dump(oss_qps_key.str(), std::to_string(var->qps()))) {
                 n++;
             }
 
@@ -335,7 +338,7 @@ namespace melon::var {
             // count
             std::ostringstream oss_count_key;
             make_dump_key(oss_count_key, label_name, "_count");
-            if (dumper->dump(oss_count_key.str(), std::to_string(bvar->count()))) {
+            if (dumper->dump(oss_count_key.str(), std::to_string(var->count()))) {
                 n++;
             }
         }
@@ -379,7 +382,7 @@ namespace melon::var {
     inline
     bool MultiDimension<T>::is_valid_lables_value(const key_type &labels_value) const {
         if (count_labels() != labels_value.size()) {
-            MLOG(ERROR) << "Invalid labels count";
+            LOG(ERROR) << "Invalid labels count";
             return false;
         }
         return true;
@@ -398,5 +401,3 @@ namespace melon::var {
     }
 
 } // namespace melon::var
-
-#endif // MELON_VAR_MULTI_DIMENSION_INL_H_

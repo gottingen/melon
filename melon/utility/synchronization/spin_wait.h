@@ -15,8 +15,8 @@
 #ifndef MUTIL_SYNCHRONIZATION_SPIN_WAIT_H_
 #define MUTIL_SYNCHRONIZATION_SPIN_WAIT_H_
 
-#include "melon/utility/threading/platform_thread.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/threading/platform_thread.h>
+#include <melon/utility/time/time.h>
 
 // Provide a macro that will wait no longer than 1 second for an asynchronous
 // change is the value of an expression.

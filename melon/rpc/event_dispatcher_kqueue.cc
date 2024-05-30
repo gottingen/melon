@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -29,15 +33,15 @@ EventDispatcher::EventDispatcher()
 {
     _epfd = kqueue();
     if (_epfd < 0) {
-        PMLOG(FATAL) << "Fail to create kqueue";
+        PLOG(FATAL) << "Fail to create kqueue";
         return;
     }
-    MCHECK_EQ(0, mutil::make_close_on_exec(_epfd));
+    CHECK_EQ(0, mutil::make_close_on_exec(_epfd));
 
     _wakeup_fds[0] = -1;
     _wakeup_fds[1] = -1;
     if (pipe(_wakeup_fds) != 0) {
-        PMLOG(FATAL) << "Fail to create pipe";
+        PLOG(FATAL) << "Fail to create pipe";
         return;
     }
 }
@@ -57,12 +61,12 @@ EventDispatcher::~EventDispatcher() {
 
 int EventDispatcher::Start(const fiber_attr_t* consumer_thread_attr) {
     if (_epfd < 0) {
-        MLOG(FATAL) << "kqueue was not created";
+        LOG(FATAL) << "kqueue was not created";
         return -1;
     }
     
     if (_tid != 0) {
-        MLOG(FATAL) << "Already started this dispatcher(" << this
+        LOG(FATAL) << "Already started this dispatcher(" << this
                    << ") in fiber=" << _tid;
         return -1;
     }
@@ -84,7 +88,7 @@ int EventDispatcher::Start(const fiber_attr_t* consumer_thread_attr) {
     int rc = fiber_start_background(
         &_tid, &kqueue_thread_attr, RunThis, this);
     if (rc) {
-        MLOG(FATAL) << "Fail to create kqueue thread: " << berror(rc);
+        LOG(FATAL) << "Fail to create kqueue thread: " << berror(rc);
         return -1;
     }
     return 0;
@@ -200,7 +204,7 @@ void EventDispatcher::Run() {
                 // We've checked _stop, no wake-up will be missed.
                 continue;
             }
-            PMLOG(FATAL) << "Fail to kqueue epfd=" << _epfd;
+            PLOG(FATAL) << "Fail to kqueue epfd=" << _epfd;
             break;
         }
         for (int i = 0; i < n; ++i) {

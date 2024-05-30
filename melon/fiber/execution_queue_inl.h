@@ -1,30 +1,34 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #ifndef  MELON_FIBER_EXECUTION_QUEUE_INL_H_
 #define  MELON_FIBER_EXECUTION_QUEUE_INL_H_
 
-#include "melon/utility/atomicops.h"             // mutil::atomic
-#include "melon/utility/macros.h"                // MELON_CACHELINE_ALIGNMENT
-#include "melon/utility/memory/scoped_ptr.h"     // mutil::scoped_ptr
-#include "melon/utility/logging.h"               // LOG
-#include "melon/utility/time.h"                  // mutil::cpuwide_time_ns
-#include "melon/var/var.h"                  // melon::var::Adder
-#include "melon/fiber/butex.h"              // butex_construct
-#include "melon/utility/synchronization/condition_variable.h"
+#include <melon/utility/atomicops.h>             // mutil::atomic
+#include <melon/utility/macros.h>                // MELON_CACHELINE_ALIGNMENT
+#include <melon/utility/memory/scoped_ptr.h>     // mutil::scoped_ptr
+#include <turbo/log/logging.h>               // LOG
+#include <melon/utility/time.h>                  // mutil::cpuwide_time_ns
+#include <melon/var/var.h>                  // melon::var::Adder
+#include <melon/fiber/butex.h>              // butex_construct
+#include <melon/utility/synchronization/condition_variable.h>
 
 namespace fiber {
 
@@ -95,7 +99,7 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
     void clear_before_return(clear_task_mem clear_func) {
         if (!stop_task) {
             clear_func(this);
-            MCHECK(iterated);
+            CHECK(iterated);
         }
         q = NULL;
         std::unique_lock<mutil::Mutex> lck(mutex);
@@ -103,8 +107,8 @@ struct MELON_CACHELINE_ALIGNMENT TaskNode {
         const int saved_status = status;
         status = UNEXECUTED;
         lck.unlock();
-        MCHECK_NE(saved_status, UNEXECUTED);
-        LOG_IF(WARNING, saved_status == EXECUTING) 
+        CHECK_NE(saved_status, UNEXECUTED);
+        LOG_IF(WARNING, saved_status == EXECUTING)
                 << "Return a executing node, did you return before "
                    "iterator reached the end?";
     }
@@ -478,7 +482,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         TaskNode* old_head, TaskNode** new_tail, 
         bool has_uniterated) {
 
-    MCHECK(old_head->next == NULL);
+    CHECK(old_head->next == NULL);
     // Try to set _head to NULL to mark that the execute is done.
     TaskNode* new_head = old_head;
     TaskNode* desired = NULL;
@@ -492,7 +496,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         // No one added new tasks.
         return return_when_no_more;
     }
-    MCHECK_NE(new_head, old_head);
+    CHECK_NE(new_head, old_head);
     // Above acquire fence pairs release fence of exchange in Write() to make
     // sure that we see all fields of requests set.
 
@@ -512,7 +516,7 @@ inline bool ExecutionQueueBase::_more_tasks(
         p->next = tail;
         tail = p;
         p = saved_next;
-        MCHECK(p != NULL);
+        CHECK(p != NULL);
     } while (p != old_head);
 
     // Link old list with new list.
@@ -571,10 +575,10 @@ inline int ExecutionQueueBase::dereference() {
             }
             return 0;
         }
-        MLOG(FATAL) << "Invalid id=" << id;
+        LOG(FATAL) << "Invalid id=" << id;
         return -1;
     }
-    MLOG(FATAL) << "Over dereferenced id=" << id;
+    LOG(FATAL) << "Over dereferenced id=" << id;
     return -1;
 }
 

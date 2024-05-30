@@ -4,10 +4,10 @@
 
 #include "melon/utility/threading/watchdog.h"
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/synchronization/spin_wait.h"
-#include "melon/utility/threading/platform_thread.h"
-#include "melon/utility/time/time.h"
+#include <melon/utility/threading/platform_thread.h>
+#include <melon/utility/time/time.h>
 #include <gtest/gtest.h>
 
 namespace mutil {
@@ -116,7 +116,7 @@ TEST_F(WatchdogTest, DisarmTest) {
   TimeTicks end = TimeTicks::Now();
 
   if (end - start > TimeDelta::FromMilliseconds(500)) {
-    MLOG(WARNING) << "100ms sleep took over 500ms, making the results of this "
+    LOG(WARNING) << "100ms sleep took over 500ms, making the results of this "
                  << "timing-sensitive test suspicious.  Aborting now.";
     return;
   }

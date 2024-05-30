@@ -1,25 +1,29 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 #include <melon/utility/scoped_lock.h>
 #include <melon/var/latency_recorder.h>
 #include <melon/fiber/unstable.h>
-#include "melon/raft/ballot_box.h"
-#include "melon/raft/util.h"
-#include "melon/raft/fsm_caller.h"
-#include "melon/raft/closure_queue.h"
+#include <melon/raft/ballot_box.h>
+#include <melon/raft/util.h>
+#include <melon/raft/fsm_caller.h>
+#include <melon/raft/closure_queue.h>
 
 namespace melon::raft {
 
@@ -33,7 +37,7 @@ namespace melon::raft {
 
     int BallotBox::init(const BallotBoxOptions &options) {
         if (options.waiter == nullptr || options.closure_queue == nullptr) {
-            MLOG(ERROR) << "waiter is nullptr";
+            LOG(ERROR) << "waiter is nullptr";
             return EINVAL;
         }
         _waiter = options.waiter;
@@ -103,10 +107,10 @@ namespace melon::raft {
 
     int BallotBox::reset_pending_index(int64_t new_pending_index) {
         MELON_SCOPED_LOCK(_mutex);
-        MCHECK(_pending_index == 0 && _pending_meta_queue.empty())
+        CHECK(_pending_index == 0 && _pending_meta_queue.empty())
         << "pending_index " << _pending_index << " pending_meta_queue "
         << _pending_meta_queue.size();
-        MCHECK_GT(new_pending_index, _last_committed_index.load(
+        CHECK_GT(new_pending_index, _last_committed_index.load(
                 mutil::memory_order_relaxed));
         _pending_index = new_pending_index;
         _closure_queue->reset_first_index(new_pending_index);
@@ -117,12 +121,12 @@ namespace melon::raft {
                                        Closure *closure) {
         Ballot bl;
         if (bl.init(conf, old_conf) != 0) {
-            MCHECK(false) << "Fail to init ballot";
+            CHECK(false) << "Fail to init ballot";
             return -1;
         }
 
         MELON_SCOPED_LOCK(_mutex);
-        MCHECK(_pending_index > 0);
+        CHECK(_pending_index > 0);
         _pending_meta_queue.push_back(Ballot());
         _pending_meta_queue.back().swap(bl);
         _closure_queue->append_pending_closure(closure);
@@ -133,7 +137,7 @@ namespace melon::raft {
         // FIXME: it seems that lock is not necessary here
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_pending_index != 0 || !_pending_meta_queue.empty()) {
-            MCHECK(last_committed_index < _pending_index)
+            CHECK(last_committed_index < _pending_index)
             << "node changes to leader, pending_index=" << _pending_index
             << ", parameter last_committed_index=" << last_committed_index;
             return -1;

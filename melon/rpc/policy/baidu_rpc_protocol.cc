@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -19,25 +23,26 @@
 #include <google/protobuf/message.h>            // Message
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "melon/utility/logging.h"                       // LOG()
-#include "melon/utility/time.h"
-#include "melon/utility/iobuf.h"                         // mutil::IOBuf
-#include "melon/utility/raw_pack.h"                      // RawPacker RawUnpacker
-#include "melon/rpc/controller.h"                    // Controller
-#include "melon/rpc/socket.h"                        // Socket
-#include "melon/rpc/server.h"                        // Server
-#include "melon/rpc/span.h"
-#include "melon/rpc/compress.h"                      // ParseFromCompressedData
-#include "melon/rpc/stream_impl.h"
-#include "melon/rpc/dump/rpc_dump.h"                      // SampledRequest
-#include "melon/proto/rpc/melon_rpc_meta.pb.h"      // RpcRequestMeta
-#include "melon/rpc/policy/melon_rpc_protocol.h"
-#include "melon/rpc/policy/most_common_message.h"
-#include "melon/rpc/policy/streaming_rpc_protocol.h"
-#include "melon/rpc/details/usercode_backup_pool.h"
-#include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/details/server_private_accessor.h"
+#include <turbo/log/logging.h>                       // LOG()
+#include <melon/utility/time.h>
+#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/utility/raw_pack.h>                      // RawPacker RawUnpacker
+#include <melon/rpc/controller.h>                    // Controller
+#include <melon/rpc/socket.h>                        // Socket
+#include <melon/rpc/server.h>                        // Server
+#include <melon/rpc/span.h>
+#include <melon/rpc/compress.h>                      // ParseFromCompressedData
+#include <melon/rpc/stream_impl.h>
+#include <melon/rpc/dump/rpc_dump.h>                      // SampledRequest
+#include <melon/proto/rpc/melon_rpc_meta.pb.h>      // RpcRequestMeta
+#include <melon/rpc/policy/melon_rpc_protocol.h>
+#include <melon/rpc/policy/most_common_message.h>
+#include <melon/rpc/policy/streaming_rpc_protocol.h>
+#include <melon/rpc/details/usercode_backup_pool.h>
+#include <melon/rpc/details/controller_private_accessor.h>
+#include <melon/rpc/details/server_private_accessor.h>
 #include <melon/fiber/key.h>
+#include <cinttypes>
 
 
 namespace melon {
@@ -75,16 +80,16 @@ static void SerializeBRPCHeaderAndMeta(
         ::google::protobuf::io::ArrayOutputStream arr_out(header_and_meta + 12, meta_size);
         ::google::protobuf::io::CodedOutputStream coded_out(&arr_out);
         meta.SerializeWithCachedSizes(&coded_out); // not calling ByteSize again
-        MCHECK(!coded_out.HadError());
-        MCHECK_EQ(0, out->append(header_and_meta, sizeof(header_and_meta)));
+        CHECK(!coded_out.HadError());
+        CHECK_EQ(0, out->append(header_and_meta, sizeof(header_and_meta)));
     } else {
         char header[12];
         PackBRPCHeader(header, meta_size, payload_size);
-        MCHECK_EQ(0, out->append(header, sizeof(header)));
+        CHECK_EQ(0, out->append(header, sizeof(header)));
         mutil::IOBufAsZeroCopyOutputStream buf_stream(out);
         ::google::protobuf::io::CodedOutputStream coded_out(&buf_stream);
         meta.SerializeWithCachedSizes(&coded_out);
-        MCHECK(!coded_out.HadError());
+        CHECK(!coded_out.HadError());
     }
 }
 
@@ -111,14 +116,14 @@ ParseResult ParseBRPCMessage(mutil::IOBuf* source, Socket* socket,
     if (body_size > FLAGS_max_body_size) {
         // We need this log to report the body_size to give users some clues
         // which is not printed in InputMessenger.
-        MLOG(ERROR) << "body_size=" << body_size << " from "
+        LOG(ERROR) << "body_size=" << body_size << " from "
                    << socket->remote_side() << " is too large";
         return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
     } else if (source->length() < sizeof(header_buf) + body_size) {
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
     }
     if (meta_size > body_size) {
-        MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+        LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                    << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -213,7 +218,7 @@ static void SendBRPCResponse(int64_t correlation_id,
             s->FillSettings(meta.mutable_stream_settings());
             s->SetHostSocket(sock);
         } else {
-            MLOG(WARNING) << "Stream=" << response_stream_id
+            LOG(WARNING) << "Stream=" << response_stream_id
                          << " was closed before sending response";
         }
     }
@@ -249,7 +254,7 @@ static void SendBRPCResponse(int64_t correlation_id,
                            accessor.remote_stream_settings()->stream_id(),
                            accessor.response_stream()) != 0) {
             const int errcode = errno;
-            PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+            PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
             cntl->SetFailed(errcode, "Fail to write into %s",
                             sock->description().c_str());
             if(stream_ptr) {
@@ -270,7 +275,7 @@ static void SendBRPCResponse(int64_t correlation_id,
         wopt.ignore_eovercrowded = true;
         if (sock->Write(&res_buf, &wopt) != 0) {
             const int errcode = errno;
-            PMLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
+            PLOG_IF(WARNING, errcode != EPIPE) << "Fail to write into " << *sock;
             cntl->SetFailed(errcode, "Fail to write into %s",
                             sock->description().c_str());
             return;
@@ -329,7 +334,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
 
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        MLOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
+        LOG(WARNING) << "Fail to parse RpcMeta from " << *socket;
         socket->SetFailed(EREQUEST, "Fail to parse RpcMeta from %s",
                           socket->description().c_str());
         return;
@@ -350,7 +355,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
 
     std::unique_ptr<Controller> cntl(new (std::nothrow) Controller);
     if (NULL == cntl.get()) {
-        MLOG(WARNING) << "Fail to new Controller";
+        LOG(WARNING) << "Fail to new Controller";
         return;
     }
     std::unique_ptr<google::protobuf::Message> req;
@@ -560,7 +565,7 @@ bool VerifyBRPCRequest(const InputMessageBase* msg_base) {
     
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        MLOG(WARNING) << "Fail to parse RpcRequestMeta";
+        LOG(WARNING) << "Fail to parse RpcRequestMeta";
         return false;
     }
     const Authenticator* auth = server->options().auth;
@@ -581,7 +586,7 @@ void ProcessBRPCResponse(InputMessageBase* msg_base) {
     DestroyingPtr<MostCommonMessage> msg(static_cast<MostCommonMessage*>(msg_base));
     RpcMeta meta;
     if (!ParsePbFromIOBuf(&meta, msg->meta)) {
-        MLOG(WARNING) << "Fail to parse from response meta";
+        LOG(WARNING) << "Fail to parse from response meta";
         return;
     }
 

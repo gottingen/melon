@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -24,12 +28,12 @@
 #include <string>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/var/var.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/var/var.h>
 #include "melon/var/multi_dimension.h"
-#include "melon/utility/third_party/rapidjson/rapidjson.h"
-#include "melon/utility/third_party/rapidjson/document.h"
+#include <melon/utility/third_party/rapidjson/rapidjson.h>
+#include <melon/utility/third_party/rapidjson/document.h>
 
 const size_t OPS_PER_THREAD = 200000;
 
@@ -204,7 +208,7 @@ TEST_F(MultiDimensionTest, mmadder_perf) {
         my_adder->reset();
         oss << i << '\t' << start_perf_test_with_madder(i, my_adder) << '\n';
     }
-    MLOG(INFO) << "Adder performance:\n" << oss.str();
+    LOG(INFO) << "Adder performance:\n" << oss.str();
 }
 
 TEST_F(MultiDimensionTest, mmaxer) {
@@ -227,7 +231,7 @@ TEST_F(MultiDimensionTest, mmaxer_perf) {
         my_maxer->reset();
         oss << i << '\t' << start_perf_test_with_mmaxer(i, my_maxer) << '\n';
     }
-    MLOG(INFO) << "Maxer performance:\n" << oss.str();
+    LOG(INFO) << "Maxer performance:\n" << oss.str();
 }
 
 TEST_F(MultiDimensionTest, mminer) {
@@ -250,7 +254,7 @@ TEST_F(MultiDimensionTest, mminer_perf) {
         my_miner->reset();
         oss << i << '\t' << start_perf_test_with_mminer(i, my_miner) << '\n';
     }
-    MLOG(INFO) << "Miner performance:\n" << oss.str();
+    LOG(INFO) << "Miner performance:\n" << oss.str();
 }
 
 
@@ -274,7 +278,7 @@ TEST_F(MultiDimensionTest, mintrecorder_perf) {
         my_intrecorder->reset();
         oss << i << '\t' << start_perf_test_with_mintrecorder(i, my_intrecorder) << '\n';
     }
-    MLOG(INFO) << "IntRecorder performance:\n" << oss.str();
+    LOG(INFO) << "IntRecorder performance:\n" << oss.str();
 }
 
 TEST_F(MultiDimensionTest, stats) {
@@ -370,7 +374,7 @@ TEST_F(MultiDimensionTest, get_description) {
     *adder2 << 2;
 
     const std::string description = my_madder.get_description();
-    MLOG(INFO) << "description=" << description;
+    LOG(INFO) << "description=" << description;
     MUTIL_RAPIDJSON_NAMESPACE::Document doc;
     doc.Parse(description.c_str());
     ASSERT_FALSE(doc.HasParseError());
@@ -394,23 +398,23 @@ TEST_F(MultiDimensionTest, get_description) {
 }
 
 TEST_F(MultiDimensionTest, mlatencyrecorder) {
-    std::string old_bvar_dump_interval;
-    std::string old_mbvar_dump;
-    std::string old_bvar_latency_p1;
-    std::string old_bvar_latency_p2;
-    std::string old_bvar_latency_p3;
+    std::string old_var_dump_interval;
+    std::string old_mvar_dump;
+    std::string old_var_latency_p1;
+    std::string old_var_latency_p2;
+    std::string old_var_latency_p3;
 
-    google::GetCommandLineOption("bvar_dump_interval", &old_bvar_dump_interval);
-    google::GetCommandLineOption("mbvar_dump", &old_mbvar_dump);
-    google::GetCommandLineOption("bvar_latency_p1", &old_bvar_latency_p1);
-    google::GetCommandLineOption("bvar_latency_p2", &old_bvar_latency_p2);
-    google::GetCommandLineOption("bvar_latency_p3", &old_bvar_latency_p3);
+    google::GetCommandLineOption("var_dump_interval", &old_var_dump_interval);
+    google::GetCommandLineOption("mvar_dump", &old_mvar_dump);
+    google::GetCommandLineOption("var_latency_p1", &old_var_latency_p1);
+    google::GetCommandLineOption("var_latency_p2", &old_var_latency_p2);
+    google::GetCommandLineOption("var_latency_p3", &old_var_latency_p3);
 
-    google::SetCommandLineOption("bvar_dump_interval", "1");
-    google::SetCommandLineOption("mbvar_dump", "true");
-    google::SetCommandLineOption("bvar_latency_p1", "60");
-    google::SetCommandLineOption("bvar_latency_p2", "70");
-    google::SetCommandLineOption("bvar_latency_p3", "80");
+    google::SetCommandLineOption("var_dump_interval", "1");
+    google::SetCommandLineOption("mvar_dump", "true");
+    google::SetCommandLineOption("var_latency_p1", "60");
+    google::SetCommandLineOption("var_latency_p2", "70");
+    google::SetCommandLineOption("var_latency_p3", "80");
 
     melon::var::MultiDimension<melon::var::LatencyRecorder> my_mlatencyrecorder("client_request_count_mlatencyrecorder", labels);
     std::list<std::string> labels_value = {"tc", "get", "200"};
@@ -423,11 +427,11 @@ TEST_F(MultiDimensionTest, mlatencyrecorder) {
     ASSERT_LE(7, my_latencyrecorder->qps());
     ASSERT_EQ(7, my_latencyrecorder->count());
 
-    google::SetCommandLineOption("bvar_dump_interval", old_bvar_dump_interval.c_str());
-    google::SetCommandLineOption("mbvar_dump", old_mbvar_dump.c_str());
-    google::SetCommandLineOption("bvar_latency_p1", old_bvar_latency_p1.c_str());
-    google::SetCommandLineOption("bvar_latency_p2", old_bvar_latency_p2.c_str());
-    google::SetCommandLineOption("bvar_latency_p3", old_bvar_latency_p3.c_str());
+    google::SetCommandLineOption("var_dump_interval", old_var_dump_interval.c_str());
+    google::SetCommandLineOption("mvar_dump", old_mvar_dump.c_str());
+    google::SetCommandLineOption("var_latency_p1", old_var_latency_p1.c_str());
+    google::SetCommandLineOption("var_latency_p2", old_var_latency_p2.c_str());
+    google::SetCommandLineOption("var_latency_p3", old_var_latency_p3.c_str());
 }
 
 TEST_F(MultiDimensionTest, mstatus) {
@@ -493,6 +497,6 @@ TEST_F(MultiDimensionTest, test_hash) {
     oss << "hash_fun1 \t" << perf_hash(hash_fun1) << "\n"
         << "hash_fun2 \t" << perf_hash(hash_fun2) << "\n"
         << "hash_fun3 \t" << perf_hash(hash_fun3) << "\n";
-    MLOG(INFO) << "Hash fun performance:\n" << oss.str();
+    LOG(INFO) << "Hash fun performance:\n" << oss.str();
 }
 

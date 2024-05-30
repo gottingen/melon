@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -20,7 +24,7 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/utility/rand_util.h>
@@ -99,7 +103,7 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_server_num <= 0) {
-        MLOG(ERROR) << "server_num must be positive";
+        LOG(ERROR) << "server_num must be positive";
         return -1;
     }
 
@@ -128,7 +132,7 @@ int main(int argc, char* argv[]) {
                     "example/multi_threaded_echo_fns_c++[%d]", i));
         if (servers[i].AddService(&echo_service_impls[i], 
                                   melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            MLOG(ERROR) << "Fail to add service";
+            LOG(ERROR) << "Fail to add service";
             return -1;
         }
         // Start the server.
@@ -137,20 +141,20 @@ int main(int argc, char* argv[]) {
         options.max_concurrency = FLAGS_max_concurrency;
         const int port = FLAGS_port + i;
         if (servers[i].Start(port, &options) != 0) {
-            MLOG(ERROR) << "Fail to start EchoServer";
+            LOG(ERROR) << "Fail to start EchoServer";
             return -1;
         }
 
         // Intended no truncate so that multiple servers can be added to list
         int fd = open("./server_list", O_APPEND | O_WRONLY | O_CREAT, 0666);
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open server_list";
+            PLOG(ERROR) << "Fail to open server_list";
             return -1;
         }
         char buf[64];
         int nw = snprintf(buf, sizeof(buf), "%s:%d\n", mutil::my_ip_cstr(), port);
         if (write(fd, buf, nw) != nw) {
-            MLOG(ERROR) << "Fail to fully write int fd=" << fd;
+            LOG(ERROR) << "Fail to fully write int fd=" << fd;
         }
         close(fd);
     }
@@ -168,9 +172,9 @@ int main(int argc, char* argv[]) {
             size_t diff = current_num_requests - last_num_requests[i];
             cur_total += diff;
             last_num_requests[i] = current_num_requests;
-            MLOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
+            LOG(INFO) << "S[" << i << "]=" << diff << ' ' << noflush;
         }
-        MLOG(INFO) << "[total=" << cur_total << ']';
+        LOG(INFO) << "[total=" << cur_total << ']';
     }
 
     // Don't forget to stop and join the server otherwise still-running

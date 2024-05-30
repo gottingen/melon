@@ -9,9 +9,9 @@
 #include <string>
 
 #include "melon/utility/base_export.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/strings/string16.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 namespace mutil {
 

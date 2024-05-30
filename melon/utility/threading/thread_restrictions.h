@@ -9,7 +9,7 @@
 #include "melon/utility/basictypes.h"
 
 // See comment at top of thread_checker.h
-#if (!defined(NDEBUG)|| defined(DMCHECK_ALWAYS_ON))
+#if (!defined(NDEBUG)|| defined(DCHECK_ALWAYS_ON))
 #define ENABLE_THREAD_RESTRICTIONS 1
 #else
 #define ENABLE_THREAD_RESTRICTIONS 0
@@ -145,7 +145,7 @@ class MUTIL_EXPORT ThreadRestrictions {
   static bool SetIOAllowed(bool allowed);
 
   // Check whether the current thread is allowed to make IO calls,
-  // and DMCHECK if not.  See the block comment above the class for
+  // and DCHECK if not.  See the block comment above the class for
   // a discussion of where to add these checks.
   static void AssertIOAllowed();
 
@@ -161,7 +161,7 @@ class MUTIL_EXPORT ThreadRestrictions {
   // state. Returns the previous value.
   static void DisallowWaiting();
 
-  // Check whether the current thread is allowed to wait, and DMCHECK if not.
+  // Check whether the current thread is allowed to wait, and DCHECK if not.
   static void AssertWaitAllowed();
 #else
   // Inline the empty definitions of these functions so that they can be

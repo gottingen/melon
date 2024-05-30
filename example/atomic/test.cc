@@ -40,7 +40,7 @@ int get(const int64_t id) {
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
-                MLOG(WARNING) << "Fail to refresh_leader : " << st;
+                LOG(WARNING) << "Fail to refresh_leader : " << st;
                 fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
@@ -49,7 +49,7 @@ int get(const int64_t id) {
         // rpc
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
-            MLOG(ERROR) << "Fail to init channel to " << leader;
+            LOG(ERROR) << "Fail to init channel to " << leader;
             fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -63,7 +63,7 @@ int get(const int64_t id) {
         request.set_id(id);
         stub.get(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(WARNING) << "Fail to send request to " << leader
+            LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
             if (cntl.ErrorCode() == melon::ERPCTIMEDOUT) {
                 return ETIMEDOUT;
@@ -74,7 +74,7 @@ int get(const int64_t id) {
             continue;
         }
         if (!response.success()) {
-            MLOG(WARNING) << "Fail to send request to " << leader
+            LOG(WARNING) << "Fail to send request to " << leader
                          << ", redirecting to "
                          << (response.has_redirect() 
                                 ? response.redirect() : "nowhere");
@@ -101,7 +101,7 @@ int exchange(const int64_t id, const int64_t value) {
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
-                MLOG(WARNING) << "Fail to refresh_leader : " << st;
+                LOG(WARNING) << "Fail to refresh_leader : " << st;
                 fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
@@ -110,7 +110,7 @@ int exchange(const int64_t id, const int64_t value) {
         // rpc
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
-            MLOG(ERROR) << "Fail to init channel to " << leader;
+            LOG(ERROR) << "Fail to init channel to " << leader;
             fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -125,7 +125,7 @@ int exchange(const int64_t id, const int64_t value) {
         request.set_value(value);
         stub.exchange(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(WARNING) << "Fail to send request to " << leader
+            LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
             if (cntl.ErrorCode() == melon::ERPCTIMEDOUT) {
                 return ETIMEDOUT;
@@ -136,7 +136,7 @@ int exchange(const int64_t id, const int64_t value) {
             continue;
         }
         if (!response.success()) {
-            MLOG(WARNING) << "Fail to send request to " << leader
+            LOG(WARNING) << "Fail to send request to " << leader
                          << ", redirecting to "
                          << (response.has_redirect() 
                                 ? response.redirect() : "nowhere");
@@ -145,7 +145,7 @@ int exchange(const int64_t id, const int64_t value) {
             continue;
         }
         // make jepsen parse output of get easily
-        MLOG(INFO) << "Exchange value of id=" << id
+        LOG(INFO) << "Exchange value of id=" << id
                   << " from old_value=" << response.old_value()
                   << " to new_value=" << response.new_value();
         break;
@@ -165,7 +165,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
                         FLAGS_group, FLAGS_timeout_ms);
             if (!st.ok()) {
                 // Not sure about the leader, sleep for a while and the ask again.
-                MLOG(WARNING) << "Fail to refresh_leader : " << st;
+                LOG(WARNING) << "Fail to refresh_leader : " << st;
                 fiber_usleep(FLAGS_timeout_ms * 1000L);
             }
             continue;
@@ -175,7 +175,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         // rpc
         melon::Channel channel;
         if (channel.Init(leader.addr, NULL) != 0) {
-            MLOG(ERROR) << "Fail to init channel to " << leader;
+            LOG(ERROR) << "Fail to init channel to " << leader;
             fiber_usleep(FLAGS_timeout_ms * 1000L);
             continue;
         }
@@ -192,7 +192,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         stub.compare_exchange(&cntl, &request, &response, NULL);
 
         if (cntl.Failed()) {
-            MLOG(WARNING) << "Fail to send request to " << leader
+            LOG(WARNING) << "Fail to send request to " << leader
                          << " : " << cntl.ErrorText();
             if (cntl.ErrorCode() == melon::ERPCTIMEDOUT) {
                 return ETIMEDOUT;
@@ -206,7 +206,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
         if (!response.success()) {
             // A redirect response
             if (!response.has_old_value()) {
-                MLOG(WARNING) << "Fail to send request to " << leader
+                LOG(WARNING) << "Fail to send request to " << leader
                              << ", redirecting to "
                              << (response.has_redirect() 
                                     ? response.redirect() : "nowhere");
@@ -217,7 +217,7 @@ int cas(const int64_t id, const int64_t old_value, const int64_t new_value) {
                 return EIO;
             }
         };
-        MLOG(INFO) << "Received response from " << leader
+        LOG(INFO) << "Received response from " << leader
                   << " old_value=" << response.old_value()
                   << " new_value=" << response.new_value()
                   << " latency=" << cntl.latency_us();
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
 
     // Register configuration of target group to RouteTable
     if (melon::raft::rtb::update_configuration(FLAGS_group, FLAGS_conf) != 0) {
-        MLOG(ERROR) << "Fail to register configuration " << FLAGS_conf
+        LOG(ERROR) << "Fail to register configuration " << FLAGS_conf
                    << " of group " << FLAGS_group;
         return -1;
     }
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
     } else if (FLAGS_atomic_op== "cas") {
         return cas(FLAGS_atomic_id, FLAGS_atomic_val, FLAGS_atomic_new_val);
     } else {
-        MLOG(ERROR) << "unexpected command " << FLAGS_atomic_op;
+        LOG(ERROR) << "unexpected command " << FLAGS_atomic_op;
         return -1;
     }
 

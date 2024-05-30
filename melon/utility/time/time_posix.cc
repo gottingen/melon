@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/time/time.h"
+#include <melon/utility/time/time.h>
 
 #include <stdint.h>
 #include <sys/time.h>
@@ -16,9 +16,9 @@
 #include <ostream>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/port.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #if defined(OS_ANDROID)
 #include "melon/utility/os_compat_android.h"
@@ -78,7 +78,7 @@ mutil::TimeTicks ClockNow(clockid_t clk_id) {
 
   struct timespec ts;
   if (clock_gettime(clk_id, &ts) != 0) {
-    NOTREACHED() << "clock_gettime(" << clk_id << ") failed.";
+    DCHECK(false) << "clock_gettime(" << clk_id << ") failed.";
     return mutil::TimeTicks();
   }
 
@@ -139,8 +139,8 @@ Time Time::Now() {
   struct timeval tv;
   struct timezone tz = { 0, 0 };  // UTC
   if (gettimeofday(&tv, &tz) != 0) {
-    DMCHECK(0) << "Could not determine time of day";
-    PMLOG(ERROR) << "Call to gettimeofday failed.";
+    DCHECK(0) << "Could not determine time of day";
+    PLOG(ERROR) << "Call to gettimeofday failed.";
     // Return null instead of uninitialized |tv| value, which contains random
     // garbage data. This may result in the crash seen in crbug.com/147570.
     return Time();
@@ -315,7 +315,7 @@ TimeTicks TimeTicks::ThreadNow() {
     defined(OS_ANDROID)
   return ClockNow(CLOCK_THREAD_CPUTIME_ID);
 #else
-  NOTREACHED();
+  DCHECK(false);
   return TimeTicks();
 #endif
 }
@@ -352,8 +352,8 @@ TimeTicks TimeTicks::NowFromSystemTraceTime() {
 
 // static
 Time Time::FromTimeVal(struct timeval t) {
-  DMCHECK_LT(t.tv_usec, static_cast<int>(Time::kMicrosecondsPerSecond));
-  DMCHECK_GE(t.tv_usec, 0);
+  DCHECK_LT(t.tv_usec, static_cast<int>(Time::kMicrosecondsPerSecond));
+  DCHECK_GE(t.tv_usec, 0);
   if (t.tv_usec == 0 && t.tv_sec == 0)
     return Time();
   if (t.tv_usec == static_cast<suseconds_t>(Time::kMicrosecondsPerSecond) - 1 &&

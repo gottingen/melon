@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/files/file_enumerator.h"
+#include <melon/utility/files/file_enumerator.h>
 
 #include <dirent.h>
 #include <errno.h>
 #include <fnmatch.h>
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/threading/thread_restrictions.h"
 
 namespace mutil {
@@ -45,7 +45,7 @@ FileEnumerator::FileEnumerator(const FilePath& root_path,
       recursive_(recursive),
       file_type_(file_type) {
   // INCLUDE_DOT_DOT must not be specified if recursive.
-  DMCHECK(!(recursive && (INCLUDE_DOT_DOT & file_type_)));
+  DCHECK(!(recursive && (INCLUDE_DOT_DOT & file_type_)));
   pending_paths_.push(root_path);
 }
 
@@ -59,7 +59,7 @@ FileEnumerator::FileEnumerator(const FilePath& root_path,
       file_type_(file_type),
       pattern_(root_path.Append(pattern).value()) {
   // INCLUDE_DOT_DOT must not be specified if recursive.
-  DMCHECK(!(recursive && (INCLUDE_DOT_DOT & file_type_)));
+  DCHECK(!(recursive && (INCLUDE_DOT_DOT & file_type_)));
   // The Windows version of this code appends the pattern to the root_path,
   // potentially only matching against items in the top-most directory.
   // Do the same here.
@@ -153,7 +153,7 @@ bool FileEnumerator::ReadDirectory(std::vector<FileInfo>* entries,
       // Print the stat() error message unless it was ENOENT and we're
       // following symlinks.
       if (!(errno == ENOENT && !show_links)) {
-        DPMLOG(ERROR) << "Couldn't stat "
+          DLOG(ERROR) << "Couldn't stat "
                      << source.Append(dent->d_name).value();
       }
       memset(&info.stat_, 0, sizeof(info.stat_));

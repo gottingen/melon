@@ -4,7 +4,7 @@
 
 #include "melon/utility/memory/aligned_memory.h"
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 
 #if defined(OS_ANDROID)
 #include <malloc.h>
@@ -13,9 +13,9 @@
 namespace mutil {
 
 void* AlignedAlloc(size_t size, size_t alignment) {
-  DMCHECK_GT(size, 0U);
-  DMCHECK_EQ(alignment & (alignment - 1), 0U);
-  DMCHECK_EQ(alignment % sizeof(void*), 0U);
+  DCHECK_GT(size, 0U);
+  DCHECK_EQ(alignment & (alignment - 1), 0U);
+  DCHECK_EQ(alignment % sizeof(void*), 0U);
   void* ptr = NULL;
 #if defined(COMPILER_MSVC)
   ptr = _aligned_malloc(size, alignment);
@@ -34,12 +34,12 @@ void* AlignedAlloc(size_t size, size_t alignment) {
   // crash if we encounter a failed allocation; maintaining consistent behavior
   // with a normal allocation failure in Chrome.
   if (!ptr) {
-    DMLOG(ERROR) << "If you crashed here, your aligned allocation is incorrect: "
+    DLOG(ERROR) << "If you crashed here, your aligned allocation is incorrect: "
                 << "size=" << size << ", alignment=" << alignment;
-    MCHECK(false);
+    CHECK(false);
   }
   // Sanity check alignment just to be safe.
-  DMCHECK_EQ(reinterpret_cast<uintptr_t>(ptr) & (alignment - 1), 0U);
+  DCHECK_EQ(reinterpret_cast<uintptr_t>(ptr) & (alignment - 1), 0U);
   return ptr;
 }
 

@@ -23,15 +23,10 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/modp_b64/modp_b64.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/symbolize/demangle.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/symbolize/symbolize.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/snappy/snappy-sinksource.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/snappy/snappy-stubs-internal.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/snappy/snappy.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/murmurhash3/murmurhash3.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/arena.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/base64.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/base64url.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/big_endian.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/cpu.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc
@@ -108,7 +103,7 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/version.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/logging.cc
+        #${PROJECT_SOURCE_DIR}/melon/utility/logging.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/class_name.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/errno.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
@@ -125,7 +120,7 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/zero_copy_stream_as_streambuf.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/crc32c.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/iobuf.cpp
+        ${PROJECT_SOURCE_DIR}/melon/utility/iobuf.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/binary_printer.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/recordio.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/popen.cpp

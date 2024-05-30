@@ -4,8 +4,8 @@
 
 #include "melon/utility/files/memory_mapped_file.h"
 
-#include "melon/utility/files/file_path.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/files/file_path.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -20,7 +20,7 @@ bool MemoryMappedFile::Initialize(const FilePath& file_name) {
   file_.Initialize(file_name, File::FLAG_OPEN | File::FLAG_READ);
 
   if (!file_.IsValid()) {
-    DMLOG(ERROR) << "Couldn't open " << file_name.AsUTF8Unsafe();
+    DLOG(ERROR) << "Couldn't open " << file_name.AsUTF8Unsafe();
     return false;
   }
 

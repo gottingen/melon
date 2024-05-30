@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,19 +22,13 @@
 #include <vector>
 #include <iomanip>
 #include <map>
-#include "melon/rpc/controller.h"                // Controller
-#include "melon/rpc/server.h"                    // Server
-#include "melon/rpc/closure_guard.h"             // ClosureGuard
-#include "melon/builtin/prometheus_metrics_service.h"
-#include "melon/builtin/common.h"
-#include "melon/var/var.h"
-
-namespace melon::var {
-    DECLARE_int32(bvar_latency_p1);
-    DECLARE_int32(bvar_latency_p2);
-    DECLARE_int32(bvar_latency_p3);
-    DECLARE_int32(bvar_max_dump_multi_dimension_metric_number);
-}
+#include <melon/rpc/controller.h>                // Controller
+#include <melon/rpc/server.h>                    // Server
+#include <melon/rpc/closure_guard.h>             // ClosureGuard
+#include <melon/builtin/prometheus_metrics_service.h>
+#include <melon/builtin/common.h>
+#include <melon/var/var.h>
+#include <melon/var/config.h>
 
 namespace melon {
 
@@ -60,7 +58,7 @@ namespace melon {
         bool DumpLatencyRecorderSuffix(const mutil::StringPiece &name,
                                        const mutil::StringPiece &desc);
 
-        // 6 is the number of bvars in LatencyRecorder that indicating percentiles
+        // 6 is the number of vars in LatencyRecorder that indicating percentiles
         static const int NPERCENTILES = 6;
 
         struct SummaryItems {
@@ -111,12 +109,12 @@ namespace melon {
     PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const mutil::StringPiece &name,
                                                           const mutil::StringPiece &desc) {
         static std::string latency_names[] = {
-                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p1),
-                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p2),
-                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_bvar_latency_p3),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p1),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p2),
+                mutil::string_printf("_latency_%d", (int) melon::var::FLAGS_var_latency_p3),
                 "_latency_999", "_latency_9999", "_max_latency"
         };
-        MCHECK(NPERCENTILES == arraysize(latency_names));
+        CHECK(NPERCENTILES == arraysize(latency_names));
         const std::string desc_str = desc.as_string();
         mutil::StringPiece metric_name(name);
         for (int i = 0; i < NPERCENTILES; ++i) {
@@ -166,13 +164,13 @@ namespace melon {
         *_os << "# HELP " << si->metric_name << '\n'
              << "# TYPE " << si->metric_name << " summary\n"
              << si->metric_name << "{quantile=\""
-             << (double) (melon::var::FLAGS_bvar_latency_p1) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_var_latency_p1) / 100 << "\"} "
              << si->latency_percentiles[0] << '\n'
              << si->metric_name << "{quantile=\""
-             << (double) (melon::var::FLAGS_bvar_latency_p2) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_var_latency_p2) / 100 << "\"} "
              << si->latency_percentiles[1] << '\n'
              << si->metric_name << "{quantile=\""
-             << (double) (melon::var::FLAGS_bvar_latency_p3) / 100 << "\"} "
+             << (double) (melon::var::FLAGS_var_latency_p3) / 100 << "\"} "
              << si->latency_percentiles[2] << '\n'
              << si->metric_name << "{quantile=\"0.999\"} "
              << si->latency_percentiles[3] << '\n'
@@ -212,7 +210,7 @@ namespace melon {
         }
         os.move_to(*output);
 
-        if (melon::var::FLAGS_bvar_max_dump_multi_dimension_metric_number > 0) {
+        if (melon::var::FLAGS_var_max_dump_multi_dimension_metric_number > 0) {
             PrometheusMetricsDumper dumper_md(&os, g_server_info_prefix);
             const int ndump_md = melon::var::MVariable::dump_exposed(&dumper_md, NULL);
             if (ndump_md < 0) {

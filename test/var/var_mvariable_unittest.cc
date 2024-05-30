@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -24,9 +28,9 @@
 #include <string>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/var/var.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/var/var.h>
 #include "melon/var/multi_dimension.h"
 
 static const int num_thread = 24;
@@ -39,9 +43,9 @@ static const int labels_count = idc_count * method_count * status_count;
 static const std::list<std::string> labels = {"idc", "method", "status"};
 
 struct thread_perf_data {
-    melon::var::MVariable* mbvar;
-    melon::var::Variable*  rbvar;
-    melon::var::Variable*  wbvar;
+    melon::var::MVariable* mvar;
+    melon::var::Variable*  rvar;
+    melon::var::Variable*  wvar;
 };
 
 class MVariableTest : public testing::Test {
@@ -152,20 +156,20 @@ TEST_F(MVariableTest, labels) {
 }
 
 TEST_F(MVariableTest, dump) {
-    std::string old_bvar_dump_interval;
-    std::string old_mbvar_dump;
-    std::string old_mbvar_dump_prefix;
-    std::string old_mbvar_dump_format;
+    std::string old_var_dump_interval;
+    std::string old_mvar_dump;
+    std::string old_mvar_dump_prefix;
+    std::string old_mvar_dump_format;
 
-    google::GetCommandLineOption("bvar_dump_interval", &old_bvar_dump_interval);
-    google::GetCommandLineOption("mbvar_dump", &old_mbvar_dump);
-    google::GetCommandLineOption("mbvar_dump_prefix", &old_mbvar_dump_prefix);
-    google::GetCommandLineOption("mbvar_dump_format", &old_mbvar_dump_format);
+    google::GetCommandLineOption("var_dump_interval", &old_var_dump_interval);
+    google::GetCommandLineOption("mvar_dump", &old_mvar_dump);
+    google::GetCommandLineOption("mvar_dump_prefix", &old_mvar_dump_prefix);
+    google::GetCommandLineOption("mvar_dump_format", &old_mvar_dump_format);
 
-    google::SetCommandLineOption("bvar_dump_interval", "1");
-    google::SetCommandLineOption("mbvar_dump", "true");
-    google::SetCommandLineOption("mbvar_dump_prefix", "my_mdump_prefix");
-    google::SetCommandLineOption("mbvar_dump_format", "common");
+    google::SetCommandLineOption("var_dump_interval", "1");
+    google::SetCommandLineOption("mvar_dump", "true");
+    google::SetCommandLineOption("mvar_dump_prefix", "my_mdump_prefix");
+    google::SetCommandLineOption("mvar_dump_format", "common");
 
     melon::var::MultiDimension<melon::var::Adder<int> > my_madder("dump_adder", labels);
     std::list<std::string> labels_value1 {"gz", "post", "200"};
@@ -217,20 +221,20 @@ TEST_F(MVariableTest, dump) {
     *my_latencyrecorder1 << 3 << 6 << 9;
     sleep(2);
     
-    google::SetCommandLineOption("bvar_dump_interval", old_bvar_dump_interval.c_str());
-    google::SetCommandLineOption("mbvar_dump", old_mbvar_dump.c_str());
-    google::SetCommandLineOption("mbvar_dump_prefix", old_mbvar_dump_prefix.c_str());
-    google::SetCommandLineOption("mbvar_dump_format", old_mbvar_dump_format.c_str());
+    google::SetCommandLineOption("var_dump_interval", old_var_dump_interval.c_str());
+    google::SetCommandLineOption("mvar_dump", old_mvar_dump.c_str());
+    google::SetCommandLineOption("mvar_dump_prefix", old_mvar_dump_prefix.c_str());
+    google::SetCommandLineOption("mvar_dump_format", old_mvar_dump_format.c_str());
 }
 
 TEST_F(MVariableTest, test_describe_exposed) {
     std::list<std::string> labels_value1 {"bj", "get", "200"};
-    std::string bvar_name("request_count_describe");
-    melon::var::MultiDimension<melon::var::Adder<int> > my_madder1(bvar_name, labels);
+    std::string var_name("request_count_describe");
+    melon::var::MultiDimension<melon::var::Adder<int> > my_madder1(var_name, labels);
 
-    std::string describe_str = melon::var::MVariable::describe_exposed(bvar_name);
+    std::string describe_str = melon::var::MVariable::describe_exposed(var_name);
 
     std::ostringstream describe_oss;
-    ASSERT_EQ(0, melon::var::MVariable::describe_exposed(bvar_name, describe_oss));
+    ASSERT_EQ(0, melon::var::MVariable::describe_exposed(var_name, describe_oss));
     ASSERT_STREQ(describe_str.c_str(), describe_oss.str().c_str());
 }

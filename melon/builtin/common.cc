@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -19,13 +23,13 @@
 #include <sys/time.h>
 #include <fcntl.h>                           // O_RDONLY
 #include <gflags/gflags.h>
-#include "melon/utility/logging.h"
-#include "melon/utility/fd_guard.h"                  // fd_guard
-#include "melon/utility/file_util.h"                 // mutil::FilePath
-#include "melon/utility/third_party/murmurhash3/murmurhash3.h"
-#include "melon/utility/process_util.h"              // ReadCommandLine
-#include "melon/rpc/server.h"
-#include "melon/builtin/common.h"
+#include <turbo/log/logging.h>
+#include <melon/utility/fd_guard.h>                  // fd_guard
+#include <melon/utility/file_util.h>                 // mutil::FilePath
+#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/utility/process_util.h>              // ReadCommandLine
+#include <melon/rpc/server.h>
+#include <melon/builtin/common.h>
 
 namespace melon {
 
@@ -46,8 +50,8 @@ namespace melon {
         return agent->find("curl/") == std::string::npos;
     }
 
-// Written by Jack Handy
-// <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
+    // Written by Jack Handy
+    // <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
     inline bool url_wildcmp(const char *wild, const char *str) {
         const char *cp = NULL;
         const char *mp = NULL;
@@ -318,7 +322,7 @@ namespace melon {
     int FileChecksum(const char *file_path, unsigned char *checksum) {
         mutil::fd_guard fd(open(file_path, O_RDONLY));
         if (fd < 0) {
-            PMLOG(ERROR) << "Fail to open `" << file_path << "'";
+            PLOG(ERROR) << "Fail to open `" << file_path << "'";
             return -1;
         }
         char block[16 * 1024];   // 16k each time

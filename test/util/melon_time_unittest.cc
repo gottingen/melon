@@ -1,30 +1,34 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gtest/gtest.h>
-#include "melon/utility/build_config.h"
-
+#include <melon/utility/build_config.h>
+#include <cinttypes>
 #if defined(OS_LINUX)
 #include <syscall.h>                         // SYS_clock_gettime
 #include <unistd.h>                          // syscall
 #endif
 
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <turbo/log/logging.h>
 
 namespace {
 
@@ -33,7 +37,7 @@ TEST(BaiduTimeTest, diff_between_gettimeofday_and_REALTIME) {
     timespec time;
     clock_gettime(CLOCK_REALTIME, &time);
     long t2 = mutil::timespec_to_microseconds(time);
-    MLOG(INFO) << "t1=" << t1 << " t2=" << t2;
+    LOG(INFO) << "t1=" << t1 << " t2=" << t2;
 }
 
 const char* clock_desc[] = {

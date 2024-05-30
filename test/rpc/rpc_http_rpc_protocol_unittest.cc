@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -33,26 +37,26 @@
 #include <unistd.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/policy/http_rpc_protocol.h>
-#include <melon/utility/base64.h>
-#include "melon/rpc/http/http_method.h"
-#include "melon/utility/iobuf.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/files/scoped_file.h"
-#include "melon/utility/fd_guard.h"
-#include "melon/utility/file_util.h"
-#include "melon/rpc/socket.h"
-#include "melon/rpc/acceptor.h"
-#include "melon/rpc/server.h"
-#include "melon/rpc/channel.h"
-#include "melon/rpc/policy/most_common_message.h"
+#include <turbo/strings/escaping.h>
+#include <melon/rpc/http/http_method.h>
+#include <melon/utility/iobuf.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/files/scoped_file.h>
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/file_util.h>
+#include <melon/rpc/socket.h>
+#include <melon/rpc/acceptor.h>
+#include <melon/rpc/server.h>
+#include <melon/rpc/channel.h>
+#include <melon/rpc/policy/most_common_message.h>
 #include "echo.pb.h"
-#include "melon/rpc/policy/http_rpc_protocol.h"
-#include "melon/rpc/policy/http2_rpc_protocol.h"
+#include <melon/rpc/policy/http_rpc_protocol.h>
+#include <melon/rpc/policy/http2_rpc_protocol.h>
 #include "melon/json2pb/pb_to_json.h"
 #include "melon/json2pb/json_to_pb.h"
-#include "melon/rpc/details/method_status.h"
-#include "melon/rpc/dump/rpc_dump.h"
-#include "melon/fiber/unstable.h"
+#include <melon/rpc/details/method_status.h>
+#include <melon/rpc/dump/rpc_dump.h>
+#include <melon/fiber/unstable.h>
 
 namespace melon {
 DECLARE_bool(rpc_dump);
@@ -66,10 +70,6 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
     if (google::SetCommandLineOption("socket_max_unwritten_bytes", "2000000").empty()) {
         std::cerr << "Fail to set -socket_max_unwritten_bytes" << std::endl;
-        return -1;
-    }
-    if (google::SetCommandLineOption("crash_on_fatal_log", "true").empty()) {
-        std::cerr << "Fail to set -crash_on_fatal_log" << std::endl;
         return -1;
     }
     return RUN_ALL_TESTS();
@@ -357,7 +357,7 @@ TEST_F(HttpTest, process_request_failed_socket) {
     melon::policy::HttpContext* msg = MakePostRequestMessage("/EchoService/Echo");
     _socket->SetFailed();
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(0ll, _server._nerror_var.get_value());
     CheckResponseCode(true, 0);
 }
 
@@ -365,12 +365,12 @@ TEST_F(HttpTest, reject_get_to_pb_services_with_required_fields) {
     melon::policy::HttpContext* msg = MakeGetRequestMessage("/EchoService/Echo");
     _server._status = melon::Server::RUNNING;
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(0ll, _server._nerror_var.get_value());
     const melon::Server::MethodProperty* mp =
         _server.FindMethodPropertyByFullName("test.EchoService.Echo");
     ASSERT_TRUE(mp);
     ASSERT_TRUE(mp->status);
-    ASSERT_EQ(1ll, mp->status->_nerror_bvar.get_value());
+    ASSERT_EQ(1ll, mp->status->_nerror_var.get_value());
     CheckResponseCode(false, melon::HTTP_STATUS_BAD_REQUEST);
 }
 
@@ -378,14 +378,14 @@ TEST_F(HttpTest, process_request_logoff) {
     melon::policy::HttpContext* msg = MakePostRequestMessage("/EchoService/Echo");
     _server._status = melon::Server::READY;
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::HTTP_STATUS_SERVICE_UNAVAILABLE);
 }
 
 TEST_F(HttpTest, process_request_wrong_method) {
     melon::policy::HttpContext* msg = MakePostRequestMessage("/NO_SUCH_METHOD");
     ProcessMessage(melon::policy::ProcessHttpRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::HTTP_STATUS_NOT_FOUND);
 }
 
@@ -555,7 +555,7 @@ public:
             CopyPAPrefixedWithSeqNo(buf, c);
             if (pa->Write(buf, sizeof(buf)) != 0) {
                 if (errno == melon::EOVERCROWDED) {
-                    MLOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
+                    LOG_EVERY_N_SEC(INFO, 1) << "full pa=" << pa.get();
                     _ever_full = true;
                     fiber_usleep(10000);
                     continue;
@@ -571,7 +571,7 @@ public:
         if (_done_place == DONE_AFTER_CREATE_PA_BEFORE_DESTROY_PA) {
             done_guard.reset(NULL);
         }
-        MLOG(INFO) << "Destroy pa="  << pa.get();
+        LOG(INFO) << "Destroy pa="  << pa.get();
         pa.reset(NULL);
         if (_done_place == DONE_AFTER_DESTROY_PA) {
             done_guard.reset(NULL);
@@ -598,7 +598,7 @@ public:
         while (true) {
             if (pa->Write(buf, sizeof(buf)) != 0) {
                 if (errno == melon::EOVERCROWDED) {
-                    MLOG_EVERY_SECOND(INFO) << "full pa=" << pa.get();
+                    LOG_EVERY_N_SEC(INFO, 1) << "full pa=" << pa.get();
                     fiber_usleep(10000);
                     continue;
                 } else {
@@ -615,8 +615,8 @@ public:
         
         // Return value of Write after controller has failed should
         // be less than zero.
-        MCHECK_LT(pa->Write(buf, sizeof(buf)), 0);
-        MCHECK_EQ(errno, ECANCELED);
+        CHECK_LT(pa->Write(buf, sizeof(buf)), 0);
+        CHECK_EQ(errno, ECANCELED);
     }
     
     void set_done_place(DonePlace done_place) { _done_place = done_place; }
@@ -715,7 +715,7 @@ public:
         ASSERT_EQ(0, memcmp(_buf.data(), PA_DATA, _buf.size()));
         _destroyed = true;
         _destroying_st = st;
-        MLOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
+        LOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
     }
     bool destroyed() const { return _destroyed; }
     const mutil::Status& destroying_status() const { return _destroying_st; }
@@ -757,7 +757,7 @@ TEST_F(HttpTest, read_long_body_progressively) {
                 for (size_t i = 0; i < 3; ++i) {
                     sleep(1);
                     size_t current_read = reader->read_bytes();
-                    MLOG(INFO) << "read=" << current_read - last_read
+                    LOG(INFO) << "read=" << current_read - last_read
                               << " total=" << current_read;
                     last_read = current_read;
                 }
@@ -805,7 +805,7 @@ TEST_F(HttpTest, read_short_body_progressively) {
             for (size_t i = 0; i < 3; ++i) {
                 sleep(1);
                 size_t current_read = reader->read_bytes();
-                MLOG(INFO) << "read=" << current_read - last_read
+                LOG(INFO) << "read=" << current_read - last_read
                           << " total=" << current_read;
                 last_read = current_read;
             }
@@ -845,7 +845,7 @@ TEST_F(HttpTest, read_progressively_after_cntl_destroys) {
             for (size_t i = 0; i < 3; ++i) {
                 sleep(1);
                 size_t current_read = reader->read_bytes();
-                MLOG(INFO) << "read=" << current_read - last_read
+                LOG(INFO) << "read=" << current_read - last_read
                           << " total=" << current_read;
                 last_read = current_read;
             }
@@ -884,7 +884,7 @@ TEST_F(HttpTest, read_progressively_after_long_delay) {
                 channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
                 ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();
                 ASSERT_TRUE(cntl.response_attachment().empty());
-                MLOG(INFO) << "Sleep 3 seconds to make PA at server-side full";
+                LOG(INFO) << "Sleep 3 seconds to make PA at server-side full";
                 sleep(3);
                 EXPECT_TRUE(svc.ever_full());
                 ASSERT_EQ(0, svc.last_errno());
@@ -894,7 +894,7 @@ TEST_F(HttpTest, read_progressively_after_long_delay) {
                 for (size_t i = 0; i < 3; ++i) {
                     sleep(1);
                     size_t current_read = reader->read_bytes();
-                    MLOG(INFO) << "read=" << current_read - last_read
+                    LOG(INFO) << "read=" << current_read - last_read
                               << " total=" << current_read;
                     last_read = current_read;
                 }
@@ -933,11 +933,11 @@ TEST_F(HttpTest, skip_progressive_reading) {
         ASSERT_TRUE(cntl.response_attachment().empty());
     }
     const size_t old_written_bytes = svc.written_bytes();
-    MLOG(INFO) << "Sleep 3 seconds after destroy of Controller";
+    LOG(INFO) << "Sleep 3 seconds after destroy of Controller";
     sleep(3);
     const size_t new_written_bytes = svc.written_bytes();
     ASSERT_EQ(0, svc.last_errno());
-    MLOG(INFO) << "Server still wrote " << new_written_bytes - old_written_bytes;
+    LOG(INFO) << "Server still wrote " << new_written_bytes - old_written_bytes;
     // The server side still wrote things.
     ASSERT_GT(new_written_bytes - old_written_bytes, (size_t)100000);
 }
@@ -949,7 +949,7 @@ public:
         return mutil::Status(-1, "intended fail at %s:%d", __FILE__, __LINE__);
     }
     void OnEndOfMessage(const mutil::Status& st) {
-        MLOG(INFO) << "Destroy " << this << ": " << st;
+        LOG(INFO) << "Destroy " << this << ": " << st;
         delete this;
     }
 };
@@ -974,7 +974,7 @@ TEST_F(HttpTest, failed_on_read_one_part) {
         ASSERT_TRUE(cntl.response_attachment().empty());
         cntl.ReadProgressiveAttachmentBy(new AlwaysFailRead);
     }
-    MLOG(INFO) << "Sleep 1 second";
+    LOG(INFO) << "Sleep 1 second";
     sleep(1);
     ASSERT_NE(0, svc.last_errno());
 }
@@ -1005,7 +1005,7 @@ TEST_F(HttpTest, broken_socket_stops_progressive_reading) {
         for (size_t i = 0; i < 3; ++i) {
             sleep(1);
             size_t current_read = reader->read_bytes();
-            MLOG(INFO) << "read=" << current_read - last_read
+            LOG(INFO) << "read=" << current_read - last_read
                       << " total=" << current_read;
             last_read = current_read;
         }
@@ -1014,7 +1014,7 @@ TEST_F(HttpTest, broken_socket_stops_progressive_reading) {
     }
     // the socket still holds a ref.
     ASSERT_FALSE(reader->destroyed());
-    MLOG(INFO) << "Stopping the server";
+    LOG(INFO) << "Stopping the server";
     server.Stop(0);
     server.Join();
         
@@ -1041,7 +1041,7 @@ public:
         ASSERT_EQ(0, memcmp(_buf.data(), PA_DATA, _buf.size()));
         _destroyed = true;
         _destroying_st = st;
-        MLOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
+        LOG(INFO) << "Destroy ReadBody=" << this << ", " << st;
         _cntl->response_attachment().append("Sucess");
     }
 private:
@@ -1062,9 +1062,9 @@ public:
 
     void OnEndOfMessage(const mutil::Status& st) {
         melon::ClosureGuard done_guard(_done);
-        MCHECK_EQ(-1, st.error_code());
+        CHECK_EQ(-1, st.error_code());
         _cntl->SetFailed("Must Failed");
-        MLOG(INFO) << "Destroy " << this << ": " << st;
+        LOG(INFO) << "Destroy " << this << ": " << st;
         delete this;
     }
 private:
@@ -1098,7 +1098,7 @@ private:
     void check_header(melon::Controller* cntl) {
         const std::string* test_header = cntl->http_request().GetHeader(TEST_PROGRESSIVE_HEADER);
         GOOGLE_CHECK_NOTNULL(test_header);
-        MCHECK_EQ(*test_header, TEST_PROGRESSIVE_HEADER_VAL);
+        CHECK_EQ(*test_header, TEST_PROGRESSIVE_HEADER_VAL);
     }
 };
 
@@ -1127,9 +1127,9 @@ TEST_F(HttpTest, server_end_read_short_body_progressively) {
         CopyPAPrefixedWithSeqNo(buf, c);
         if (cntl.request_attachment().append(buf, sizeof(buf)) != 0) {
             if (errno == melon::EOVERCROWDED) {
-                MLOG(INFO) << "full msg=" << cntl.request_attachment().to_string();
+                LOG(INFO) << "full msg=" << cntl.request_attachment().to_string();
             } else {
-                MLOG(INFO) << "Error:" << errno;
+                LOG(INFO) << "Error:" << errno;
             }
             break;
         }
@@ -1164,9 +1164,9 @@ TEST_F(HttpTest, server_end_read_failed) {
         CopyPAPrefixedWithSeqNo(buf, c);
         if (cntl.request_attachment().append(buf, sizeof(buf)) != 0) {
             if (errno == melon::EOVERCROWDED) {
-                MLOG(INFO) << "full msg=" << cntl.request_attachment().to_string();
+                LOG(INFO) << "full msg=" << cntl.request_attachment().to_string();
             } else {
-                MLOG(INFO) << "Error:" << errno;
+                LOG(INFO) << "Error:" << errno;
             }
             break;
         }
@@ -1357,21 +1357,21 @@ TEST_F(HttpTest, http2_settings) {
     buf.append(settingsbuf, melon::policy::FRAME_HEAD_SIZE + nb);
 
     melon::policy::H2Context* ctx = new melon::policy::H2Context(_socket.get(), NULL);
-    MCHECK_EQ(ctx->Init(), 0);
+    CHECK_EQ(ctx->Init(), 0);
     _socket->initialize_parsing_context(&ctx);
     ctx->_conn_state = melon::policy::H2_CONNECTION_READY;
     // parse settings
     melon::policy::ParseH2Message(&buf, _socket.get(), false, NULL);
 
     mutil::IOPortal response_buf;
-    MCHECK_EQ(response_buf.append_from_file_descriptor(_pipe_fds[0], 1024),
+    CHECK_EQ(response_buf.append_from_file_descriptor(_pipe_fds[0], 1024),
              (ssize_t)melon::policy::FRAME_HEAD_SIZE);
     melon::policy::H2FrameHead frame_head;
     mutil::IOBufBytesIterator it(response_buf);
     ctx->ConsumeFrameHead(it, &frame_head);
-    MCHECK_EQ(frame_head.type, melon::policy::H2_FRAME_SETTINGS);
-    MCHECK_EQ(frame_head.flags, 0x01 /* H2_FLAGS_ACK */);
-    MCHECK_EQ(frame_head.stream_id, 0);
+    CHECK_EQ(frame_head.type, melon::policy::H2_FRAME_SETTINGS);
+    CHECK_EQ(frame_head.flags, 0x01 /* H2_FLAGS_ACK */);
+    CHECK_EQ(frame_head.stream_id, 0);
     ASSERT_TRUE(ctx->_remote_settings.header_table_size == 8192);
     ASSERT_TRUE(ctx->_remote_settings.max_concurrent_streams == 1024);
     ASSERT_TRUE(ctx->_remote_settings.stream_window_size == (1u << 29) - 1);
@@ -1908,7 +1908,7 @@ void MakeHttpRequestHeaders(mutil::IOBuf* out,
         // characters in this part and even if users did, most of them are
         // invalid and rejected by http_parser_parse_url().
         std::string encoded_user_info;
-        mutil::Base64Encode(user_info, &encoded_user_info);
+        turbo::base64_encode(user_info, &encoded_user_info);
         os << "Authorization: Basic " << encoded_user_info << MELON_CRLF;
     }
     os << MELON_CRLF;  // CRLF before content
@@ -1929,8 +1929,8 @@ void ReadOneResponse(melon::SocketUniquePtr& sock,
     int64_t start_time = mutil::gettimeofday_us();
     while (true) {
         const ssize_t nr = read_buf.append_from_file_descriptor(sock->fd(), 4096);
-        MLOG(INFO) << "nr=" << nr;
-        MLOG(INFO) << mutil::ToPrintableString(read_buf);
+        LOG(INFO) << "nr=" << nr;
+        LOG(INFO) << mutil::ToPrintableString(read_buf);
         ASSERT_TRUE(nr > 0 || (nr < 0 && errno == EAGAIN));
         if (errno == EAGAIN) {
             ASSERT_LT(mutil::gettimeofday_us(), start_time + 1000000L) << "Too long!";
@@ -1972,7 +1972,7 @@ TEST_F(HttpTest, http_expect) {
     header.SetHeader("Content-Length", std::to_string(content.size()));
     mutil::IOBuf header_buf;
     MakeHttpRequestHeaders(&header_buf, &header, ep);
-    MLOG(INFO) << mutil::ToPrintableString(header_buf);
+    LOG(INFO) << mutil::ToPrintableString(header_buf);
     mutil::IOBuf request_buf(header_buf);
     request_buf.append(content);
 

@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,22 +22,23 @@
 #include <sys/mman.h>                             // mmap, munmap, mprotect
 #include <algorithm>                              // std::max
 #include <stdlib.h>                               // posix_memalign
-#include "melon/utility/macros.h"                          // MELON_CASSERT
-#include "melon/utility/memory/singleton_on_pthread_once.h"
-#include "melon/utility/third_party/dynamic_annotations/dynamic_annotations.h" // RunningOnValgrind
-#include "melon/utility/third_party/valgrind/valgrind.h"   // VALGRIND_STACK_REGISTER
-#include "melon/var/passive_status.h"
-#include "melon/fiber/types.h"                        // FIBER_STACKTYPE_*
-#include "melon/fiber/stack.h"
+#include <melon/utility/macros.h>                          // MELON_CASSERT
+#include <melon/utility/memory/singleton_on_pthread_once.h>
+#include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h> // RunningOnValgrind
+#include <melon/utility/third_party/valgrind/valgrind.h>   // VALGRIND_STACK_REGISTER
+#include <melon/var/passive_status.h>
+#include <melon/fiber/types.h>                        // FIBER_STACKTYPE_*
+#include <melon/fiber/stack.h>
 
-DEFINE_int32(stack_size_small, 32768, "size of small stacks");
-DEFINE_int32(stack_size_normal, 1048576, "size of normal stacks");
-DEFINE_int32(stack_size_large, 8388608, "size of large stacks");
-DEFINE_int32(guard_page_size, 4096, "size of guard page, allocate stacks by malloc if it's 0(not recommended)");
-DEFINE_int32(tc_stack_small, 32, "maximum small stacks cached by each thread");
-DEFINE_int32(tc_stack_normal, 8, "maximum normal stacks cached by each thread");
 
 namespace fiber {
+
+    DEFINE_int32(stack_size_small, 32768, "size of small stacks");
+    DEFINE_int32(stack_size_normal, 1048576, "size of normal stacks");
+    DEFINE_int32(stack_size_large, 8388608, "size of large stacks");
+    DEFINE_int32(guard_page_size, 4096, "size of guard page, allocate stacks by malloc if it's 0(not recommended)");
+    DEFINE_int32(tc_stack_small, 32, "maximum small stacks cached by each thread");
+    DEFINE_int32(tc_stack_normal, 8, "maximum normal stacks cached by each thread");
 
 MELON_CASSERT(FIBER_STACKTYPE_PTHREAD == STACK_TYPE_PTHREAD, must_match);
 MELON_CASSERT(FIBER_STACKTYPE_SMALL == STACK_TYPE_SMALL, must_match);
@@ -45,7 +50,7 @@ static mutil::static_atomic<int64_t> s_stack_count = MUTIL_STATIC_ATOMIC_INIT(0)
 static int64_t get_stack_count(void*) {
     return s_stack_count.load(mutil::memory_order_relaxed);
 }
-static melon::var::PassiveStatus<int64_t> bvar_stack_count(
+static melon::var::PassiveStatus<int64_t> var_stack_count(
     "fiber_stack_count", get_stack_count, NULL);
 
 int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) {
@@ -62,7 +67,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
     if (guardsize_in <= 0) {
         void* mem = malloc(stacksize);
         if (NULL == mem) {
-            PMLOG_EVERY_SECOND(ERROR) << "Fail to malloc (size="
+            PLOG_EVERY_N_SEC(ERROR, 1) << "Fail to malloc (size="
                                      << stacksize << ")";
             return -1;
         }
@@ -88,7 +93,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
                                (MAP_PRIVATE | MAP_ANONYMOUS), -1, 0);
 
         if (MAP_FAILED == mem) {
-            PMLOG_EVERY_SECOND(ERROR)
+            PLOG_EVERY_N_SEC(ERROR, 1)
                 << "Fail to mmap size=" << memsize << " stack_count="
                 << s_stack_count.load(mutil::memory_order_relaxed)
                 << ", possibly limited by /proc/sys/vm/max_map_count";
@@ -98,14 +103,14 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
 
         void* aligned_mem = (void*)(((intptr_t)mem + PAGESIZE_M1) & ~PAGESIZE_M1);
         if (aligned_mem != mem) {
-            MLOG_ONCE(ERROR) << "addr=" << mem << " returned by mmap is not "
+            LOG_FIRST_N(ERROR, 1) << "addr=" << mem << " returned by mmap is not "
                 "aligned by pagesize=" << PAGESIZE;
         }
         const int offset = (char*)aligned_mem - (char*)mem;
         if (guardsize <= offset ||
             mprotect(aligned_mem, guardsize - offset, PROT_NONE) != 0) {
             munmap(mem, memsize);
-            PMLOG_EVERY_SECOND(ERROR)
+            PLOG_EVERY_N_SEC(ERROR, 1)
                 << "Fail to mprotect " << (void*)aligned_mem << " length="
                 << guardsize - offset; 
             return -1;

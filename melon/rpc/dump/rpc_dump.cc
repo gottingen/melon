@@ -1,32 +1,36 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <gflags/gflags.h>
 #include <fcntl.h>                    // O_CREAT
-#include "melon/utility/file_util.h"
-#include "melon/utility/raw_pack.h"
-#include "melon/utility/unique_ptr.h"
-#include "melon/utility/fast_rand.h"
-#include "melon/utility/files/file_enumerator.h"
-#include "melon/var/var.h"
-#include "melon/rpc/log.h"
-#include "melon/rpc/reloadable_flags.h"
-#include "melon/rpc/dump/rpc_dump.h"
-#include "melon/rpc/protocol.h"
+#include <melon/utility/file_util.h>
+#include <melon/utility/raw_pack.h>
+#include <melon/utility/unique_ptr.h>
+#include <melon/utility/fast_rand.h>
+#include <melon/utility/files/file_enumerator.h>
+#include <melon/var/var.h>
+#include <melon/rpc/log.h>
+#include <melon/rpc/reloadable_flags.h>
+#include <melon/rpc/dump/rpc_dump.h>
+#include <melon/rpc/protocol.h>
 
 namespace melon::var {
     std::string read_command_name();
@@ -133,7 +137,7 @@ namespace melon {
 // Save gflags which could be reloaded at anytime.
     void RpcDumpContext::SaveFlags() {
         std::string dir;
-        MCHECK(google::GetCommandLineOption("rpc_dump_dir", &dir));
+        CHECK(google::GetCommandLineOption("rpc_dump_dir", &dir));
 
         const size_t pos = dir.find("<app>");
         if (pos != std::string::npos) {
@@ -174,7 +178,7 @@ namespace melon {
             // Make sure the dir exists.
             mutil::File::Error error;
             if (!mutil::CreateDirectoryAndGetError(_dir, &error)) {
-                MLOG(ERROR) << "Fail to create directory=`" << _dir.value()
+                LOG(ERROR) << "Fail to create directory=`" << _dir.value()
                            << "', " << error;
                 return;
             }
@@ -198,7 +202,7 @@ namespace melon {
                                  (unsigned) (cur_file_time - rawtime * 1000000L));
             _cur_fd = open(_cur_filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0666);
             if (_cur_fd < 0) {
-                PMLOG(ERROR) << "Fail to open " << _cur_filename;
+                PLOG(ERROR) << "Fail to open " << _cur_filename;
                 return;
             }
             _last_file_time = cur_file_time;
@@ -210,7 +214,7 @@ namespace melon {
         while (!_unwritten_buf.empty()) {
             if (_unwritten_buf.cut_into_file_descriptor(_cur_fd) < 0) {
                 if (errno != EINTR && errno != EAGAIN) {
-                    PMLOG(ERROR) << "Fail to write into " << _cur_filename;
+                    PLOG(ERROR) << "Fail to write into " << _cur_filename;
                     fail_to_write = true;
                     break;
                 }
@@ -236,7 +240,7 @@ namespace melon {
         const size_t starting_size = buf.size();
         mutil::IOBufAsZeroCopyOutputStream buf_stream(&buf);
         if (!sample->meta.SerializeToZeroCopyStream(&buf_stream)) {
-            MLOG(ERROR) << "Fail to serialize";
+            LOG(ERROR) << "Fail to serialize";
             return false;
         }
         const size_t meta_size = buf.size() - starting_size;
@@ -247,7 +251,7 @@ namespace melon {
         mutil::RawPacker(rpc_header + 4)
                 .pack32(meta_size + sample->request.size())
                 .pack32(meta_size);
-        MCHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
+        CHECK_EQ(0, buf.unsafe_assign(header_area, rpc_header));
         return true;
     }
 
@@ -284,7 +288,7 @@ namespace melon {
                 ssize_t nr = _cur_buf.append_from_file_descriptor(_cur_fd, 524288);
                 if (nr < 0) {
                     if (errno != EAGAIN && errno != EINTR) {
-                        PMLOG(ERROR) << "Fail to read fd=" << _cur_fd;
+                        PLOG(ERROR) << "Fail to read fd=" << _cur_fd;
                         break;
                     }
                 } else if (nr == 0) {  // EOF
@@ -318,7 +322,7 @@ namespace melon {
             return NULL;
         }
         if (*(const uint32_t *) p != *(const uint32_t *) "MRPC") {
-            MLOG(ERROR) << "Unmatched magic string";
+            LOG(ERROR) << "Unmatched magic string";
             *format_error = true;
             return NULL;
         }
@@ -326,14 +330,14 @@ namespace melon {
         uint32_t meta_size;
         mutil::RawUnpacker(p + 4).unpack32(body_size).unpack32(meta_size);
         if (body_size > FLAGS_max_body_size) {
-            MLOG(ERROR) << "Too big body=" << body_size;
+            LOG(ERROR) << "Too big body=" << body_size;
             *format_error = true;
             return NULL;
         } else if (buf.length() < sizeof(backing_buf) + body_size) {
             return NULL;
         }
         if (meta_size > body_size) {
-            MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+            LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                        << body_size;
             *format_error = true;
             return NULL;
@@ -343,7 +347,7 @@ namespace melon {
         buf.cutn(&meta_buf, meta_size);
         std::unique_ptr<SampledRequest> req(new SampledRequest);
         if (!ParsePbFromIOBuf(&req->meta, meta_buf)) {
-            MLOG(ERROR) << "Fail to parse RpcDumpMeta";
+            LOG(ERROR) << "Fail to parse RpcDumpMeta";
             *format_error = true;
             return NULL;
         }

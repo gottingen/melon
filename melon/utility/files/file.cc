@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/files/file.h"
-#include "melon/utility/files/file_path.h"
+#include <melon/utility/files/file.h>
+#include <melon/utility/files/file_path.h>
 
 namespace mutil {
 
@@ -37,7 +37,7 @@ File::File(PlatformFile platform_file)
       created_(false),
       async_(false) {
 #if defined(OS_POSIX)
-  DMCHECK_GE(platform_file, -1);
+  DCHECK_GE(platform_file, -1);
 #endif
 }
 
@@ -120,7 +120,7 @@ std::string File::ErrorToString(Error error) {
       break;
   }
 
-  NOTREACHED();
+  DCHECK(false);
   return "";
 }
 

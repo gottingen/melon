@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -19,9 +23,9 @@
 #include <melon/fiber/execution_queue.h>
 #include <melon/fiber/sys_futex.h>
 #include <melon/fiber/countdown_event.h>
-#include "melon/utility/time.h"
-#include "melon/utility/fast_rand.h"
-#include "melon/utility/gperftools_profiler.h"
+#include <melon/utility/time.h>
+#include <melon/utility/fast_rand.h>
+#include <melon/utility/gperftools_profiler.h>
 
 namespace {
 bool stopped = false;
@@ -62,9 +66,9 @@ void test_single_thread(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 add, &result));
@@ -72,7 +76,7 @@ void test_single_thread(bool use_pthread) {
         expected_result += i;
         ASSERT_EQ(0, fiber::execution_queue_execute(queue_id, i));
     }
-    MLOG(INFO) << "stop";
+    LOG(INFO) << "stop";
     ASSERT_EQ(0, fiber::execution_queue_stop(queue_id));
     ASSERT_NE(0, fiber::execution_queue_execute(queue_id, 0));
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
@@ -124,9 +128,9 @@ void test_rvalue(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 add, &result));
@@ -135,7 +139,7 @@ void test_rvalue(bool use_pthread) {
         RValue v(i);
         ASSERT_EQ(0, fiber::execution_queue_execute(queue_id, std::move(v)));
     }
-    MLOG(INFO) << "stop";
+    LOG(INFO) << "stop";
     ASSERT_EQ(0, fiber::execution_queue_stop(queue_id));
     ASSERT_NE(0, fiber::execution_queue_execute(queue_id, RValue(0)));
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
@@ -211,9 +215,9 @@ void test_performance(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     int64_t result = 0;
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
@@ -236,7 +240,7 @@ void test_performance(bool use_pthread) {
     ProfilerStop();
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
     ASSERT_EQ(pa.expected_value.load(), result);
-    MLOG(INFO) << "With addressed execq, each execution_queue_execute takes "
+    LOG(INFO) << "With addressed execq, each execution_queue_execute takes "
               << pa.total_time.load() / pa.total_num.load()
               << " total_num=" << pa.total_num
               << " ns with " << ARRAY_SIZE(threads) << " threads";
@@ -262,7 +266,7 @@ void test_performance(bool use_pthread) {
     ProfilerStop();
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
     ASSERT_EQ(pa.expected_value.load(), result);
-    MLOG(INFO) << "With id explicitly, execution_queue_execute takes "
+    LOG(INFO) << "With id explicitly, execution_queue_execute takes "
               << pa.total_time.load() / pa.total_num.load()
               << " total_num=" << pa.total_num
               << " ns with " << ARRAY_SIZE(threads) << " threads";
@@ -319,9 +323,9 @@ void test_execute_urgent(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     int64_t result = 0;
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
@@ -355,7 +359,7 @@ void test_execute_urgent(bool use_pthread) {
     for (size_t i = 0; i < ARRAY_SIZE(threads); ++i) {
         pthread_join(threads[i], NULL);
     }
-    MLOG(INFO) << "result=" << result;
+    LOG(INFO) << "result=" << result;
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
     ASSERT_EQ(pa.expected_value.load(), result);
 }
@@ -373,9 +377,9 @@ void test_urgent_task_is_the_last_task(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     int64_t result = 0;
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
@@ -385,7 +389,7 @@ void test_urgent_task_is_the_last_task(bool use_pthread) {
     while (!g_suspending) {
         usleep(10);
     }
-    MLOG(INFO) << "Going to push";
+    LOG(INFO) << "Going to push";
     int64_t expected = 0;
     for (int j = 1; j < 100; ++j) {
         expected += j;
@@ -397,7 +401,7 @@ void test_urgent_task_is_the_last_task(bool use_pthread) {
     g_suspending = false;
     mutil::atomic_thread_fence(mutil::memory_order_acq_rel);
     usleep(10 * 1000);
-    MLOG(INFO) << "going to quit";
+    LOG(INFO) << "going to quit";
     ASSERT_EQ(0, fiber::execution_queue_stop(queue_id));
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
     ASSERT_EQ(expected, result);
@@ -414,7 +418,7 @@ mutil::atomic<int> num_threads(0);
 void* push_thread_with_id(void* arg) {
     fiber::ExecutionQueueId<LongIntTask> id = { (uint64_t)arg };
     int thread_id = num_threads.fetch_add(1, mutil::memory_order_relaxed);
-    MLOG(INFO) << "Start thread" << thread_id;
+    LOG(INFO) << "Start thread" << thread_id;
     for (int i = 0; i < 100000; ++i) {
         fiber::execution_queue_execute(id, ((long)thread_id << 32) | i);
     }
@@ -442,9 +446,9 @@ void test_multi_threaded_order(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 check_order, &disorder_times));
@@ -481,9 +485,9 @@ void test_in_place_task(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 check_running_thread,
@@ -543,9 +547,9 @@ void test_should_start_new_thread_on_more_tasks(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     mutil::atomic<int> futex(0);
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
@@ -578,7 +582,7 @@ TEST_F(ExecutionQueueTest, should_start_new_thread_on_more_tasks) {
 void* inplace_push_thread(void* arg) {
     fiber::ExecutionQueueId<LongIntTask> id = { (uint64_t)arg };
     int thread_id = num_threads.fetch_add(1, mutil::memory_order_relaxed);
-    MLOG(INFO) << "Start thread" << thread_id;
+    LOG(INFO) << "Start thread" << thread_id;
     for (int i = 0; i < 100000; ++i) {
         fiber::execution_queue_execute(id, ((long)thread_id << 32) | i,
                                          &fiber::TASK_OPTIONS_INPLACE);
@@ -593,9 +597,9 @@ void test_inplace_and_order(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 check_order, &disorder_times));
@@ -618,7 +622,7 @@ TEST_F(ExecutionQueueTest, inplace_and_order) {
 }
 
 TEST_F(ExecutionQueueTest, size_of_task_node) {
-    MLOG(INFO) << "sizeof(TaskNode)=" << sizeof(fiber::TaskNode);
+    LOG(INFO) << "sizeof(TaskNode)=" << sizeof(fiber::TaskNode);
 }
 
 int add_with_suspend2(void* meta, fiber::TaskIterator<LongIntTask>& iter) {
@@ -647,9 +651,9 @@ void test_cancel(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     int64_t result = 0;
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
@@ -700,9 +704,9 @@ void test_cancel_self(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 cancel_self, NULL));
@@ -801,7 +805,7 @@ void test_random_cancel(bool use_pthread) {
     ASSERT_EQ(0, fiber::execution_queue_stop(queue_id));
     ASSERT_EQ(0, fiber::execution_queue_join(queue_id));
     ASSERT_EQ(m.sum, m.expected.load());
-    MLOG(INFO) << "sum=" << m.sum << " race_times=" << m.race_times
+    LOG(INFO) << "sum=" << m.sum << " race_times=" << m.race_times
               << " succ_times=" << m.succ_times
               << " fail_times=" << m.fail_times;
 }
@@ -829,9 +833,9 @@ void test_not_do_iterate_at_all(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,
                                                 add2, &result));
@@ -878,9 +882,9 @@ void test_cancel_unexecuted_high_priority_task(bool use_pthread) {
     fiber::ExecutionQueueOptions options;
     options.use_pthread = use_pthread;
     if (options.use_pthread) {
-        MLOG(INFO) << "================ pthread ================";
+        LOG(INFO) << "================ pthread ================";
     } else {
-        MLOG(INFO) << "================ fiber ================";
+        LOG(INFO) << "================ fiber ================";
     }
     int64_t result = 0;
     ASSERT_EQ(0, fiber::execution_queue_start(&queue_id, &options,

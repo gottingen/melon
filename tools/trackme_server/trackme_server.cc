@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -19,7 +23,7 @@
 
 #include <gflags/gflags.h>
 #include <memory>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/utility/files/file_watcher.h>
 #include <melon/utility/files/scoped_file.h>
@@ -74,11 +78,11 @@ public:
         } 
         response->set_new_interval(FLAGS_reporting_interval);
         mutil::EndPoint server_addr;
-        MCHECK_EQ(0, mutil::str2endpoint(request->server_addr().c_str(), &server_addr));
+        CHECK_EQ(0, mutil::str2endpoint(request->server_addr().c_str(), &server_addr));
         // NOTE(gejun): The ip reported is inaccessible in many cases, use 
         // remote_side instead right now.
         server_addr.ip = cntl->remote_side().ip;
-        MLOG(INFO) << "Pinged by " << server_addr << " (r"
+        LOG(INFO) << "Pinged by " << server_addr << " (r"
                   << request->rpc_version() << ")";
     }
 
@@ -93,13 +97,13 @@ int main(int argc, char* argv[]) {
     server.set_version("trackme_server");
     BugsLoader bugs;
     if (!bugs.start(FLAGS_bug_file)) {
-        MLOG(ERROR) << "Fail to start BugsLoader";
+        LOG(ERROR) << "Fail to start BugsLoader";
         return -1;
     }
     TrackMeServiceImpl echo_service_impl(&bugs);
     if (server.AddService(&echo_service_impl, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
     melon::ServerOptions options;
@@ -107,7 +111,7 @@ int main(int argc, char* argv[]) {
     // root cause yet. Set the idle_time to keep connections clean.
     options.idle_timeout_sec = FLAGS_reporting_interval * 2;
     if (server.Start(FLAGS_port, &options) != 0) {
-        MLOG(ERROR) << "Fail to start TrackMeServer";
+        LOG(ERROR) << "Fail to start TrackMeServer";
         return -1;
     }
     server.RunUntilAskedToQuit();
@@ -124,7 +128,7 @@ BugsLoader::BugsLoader()
 bool BugsLoader::start(const std::string& bugs_file) {
     _bugs_file = bugs_file;
     if (pthread_create(&_tid, NULL, run_this, this) != 0) {
-        MLOG(ERROR) << "Fail to create loading thread";
+        LOG(ERROR) << "Fail to create loading thread";
         return false;
     }
     _started = true;
@@ -148,7 +152,7 @@ void BugsLoader::run() {
     // Check status of _bugs_files periodically.
     mutil::FileWatcher fw;
     if (fw.init(_bugs_file.c_str()) < 0) {
-        MLOG(ERROR) << "Fail to init FileWatcher on `" << _bugs_file << "'";
+        LOG(ERROR) << "Fail to init FileWatcher on `" << _bugs_file << "'";
         return;
     }
     while (!_stop) {
@@ -159,7 +163,7 @@ void BugsLoader::run() {
                 break;
             }
             if (change < 0) {
-                MLOG(ERROR) << "`" << _bugs_file << "' was deleted";
+                LOG(ERROR) << "`" << _bugs_file << "' was deleted";
             }
             sleep(1);
         }
@@ -170,7 +174,7 @@ void BugsLoader::run() {
 void BugsLoader::load_bugs() {
     mutil::ScopedFILE fp(fopen(_bugs_file.c_str(), "r"));
     if (!fp) {
-        PMLOG(WARNING) << "Fail to open `" << _bugs_file << '\'';
+        PLOG(WARNING) << "Fail to open `" << _bugs_file << '\'';
         return;
     }
 
@@ -192,23 +196,23 @@ void BugsLoader::load_bugs() {
         }
         long long min_rev;
         if (sp.to_longlong(&min_rev)) {
-            MLOG(WARNING) << "[line" << nline << "] Fail to parse column1 as min_rev";
+            LOG(WARNING) << "[line" << nline << "] Fail to parse column1 as min_rev";
             continue;
         }
         ++sp;
         long long max_rev;
         if (!sp || sp.to_longlong(&max_rev)) {
-            MLOG(WARNING) << "[line" << nline << "] Fail to parse column2 as max_rev";
+            LOG(WARNING) << "[line" << nline << "] Fail to parse column2 as max_rev";
             continue;
         }
         if (max_rev < min_rev) {
-            MLOG(WARNING) << "[line" << nline << "] max_rev=" << max_rev
+            LOG(WARNING) << "[line" << nline << "] max_rev=" << max_rev
                          << " is less than min_rev=" << min_rev;
             continue;
         }
         ++sp;
         if (!sp) {
-            MLOG(WARNING) << "[line" << nline << "] Fail to parse column3 as severity";
+            LOG(WARNING) << "[line" << nline << "] Fail to parse column3 as severity";
             continue;
         }
         melon::TrackMeSeverity severity = melon::TrackMeOK;
@@ -218,12 +222,12 @@ void BugsLoader::load_bugs() {
         } else if (severity_str == "w" || severity_str == "W") {\
             severity = melon::TrackMeWarning;
         } else {
-            MLOG(WARNING) << "[line" << nline << "] Invalid severity=" << severity_str;
+            LOG(WARNING) << "[line" << nline << "] Invalid severity=" << severity_str;
             continue;
         }
         ++sp;
         if (!sp) {
-            MLOG(WARNING) << "[line" << nline << "] Fail to parse column4 as string";
+            LOG(WARNING) << "[line" << nline << "] Fail to parse column4 as string";
             continue;
         }
         // Treat everything until end of the line as description. So don't add 
@@ -236,7 +240,7 @@ void BugsLoader::load_bugs() {
         info.error_text.assign(description.data(), description.size());
         m->push_back(info);
     }
-    MLOG(INFO) << "Loaded " << m->size() << " bugs";
+    LOG(INFO) << "Loaded " << m->size() << " bugs";
     free(line);
     // Just reseting the shared_ptr. Previous BugList will be destroyed when
     // no threads reference it.

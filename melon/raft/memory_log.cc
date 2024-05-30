@@ -1,22 +1,26 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 #include <melon/utility/time.h>
-#include "melon/raft/log_entry.h"
-#include "melon/raft/memory_log.h"
-#include "melon/raft/memory_log.h"
+#include <melon/raft/log_entry.h>
+#include <melon/raft/memory_log.h>
+#include <melon/raft/memory_log.h>
 
 namespace melon::raft {
 
@@ -34,7 +38,7 @@ namespace melon::raft {
         }
         LogEntry *temp = _log_entry_data[index - _first_log_index.load(mutil::memory_order_relaxed)];
         temp->AddRef();
-        MCHECK(temp->id.index == index) << "get_entry entry index not equal. logentry index:"
+        CHECK(temp->id.index == index) << "get_entry entry index not equal. logentry index:"
                                        << temp->id.index << " required_index:" << index;
         lck.unlock();
         return temp;
@@ -47,7 +51,7 @@ namespace melon::raft {
             return 0;
         }
         LogEntry *temp = _log_entry_data.at(index - _first_log_index.load(mutil::memory_order_relaxed));
-        MCHECK(temp->id.index == index) << "get_term entry index not equal. logentry index:"
+        CHECK(temp->id.index == index) << "get_term entry index not equal. logentry index:"
                                        << temp->id.index << " required_index:" << index;
         int64_t ret = temp->id.term;
         lck.unlock();
@@ -58,7 +62,7 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (input_entry->id.index !=
             _last_log_index.load(mutil::memory_order_relaxed) + 1) {
-            MCHECK(false) << "input_entry index=" << input_entry->id.index
+            CHECK(false) << "input_entry index=" << input_entry->id.index
                          << " _last_log_index=" << _last_log_index
                          << " _first_log_index=" << _first_log_index;
             return ERANGE;
@@ -134,7 +138,7 @@ namespace melon::raft {
 
     int MemoryLogStorage::reset(const int64_t next_log_index) {
         if (next_log_index <= 0) {
-            MLOG(ERROR) << "Invalid next_log_index=" << next_log_index;
+            LOG(ERROR) << "Invalid next_log_index=" << next_log_index;
             return EINVAL;
         }
         std::deque<LogEntry *> popped;

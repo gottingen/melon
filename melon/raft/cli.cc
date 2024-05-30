@@ -1,26 +1,30 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/raft/cli.h"
+#include <melon/raft/cli.h>
 
 #include <melon/rpc/channel.h>          // melon::Channel
 #include <melon/rpc/controller.h>       // melon::Controller
-#include "melon/proto/raft/cli.pb.h"                // CliService_Stub
-#include "melon/raft/util.h"
+#include <melon/proto/raft/cli.pb.h>                // CliService_Stub
+#include <melon/raft/util.h>
 
 namespace melon::raft {
     namespace cli {
@@ -100,7 +104,7 @@ namespace melon::raft {
             for (int i = 0; i < response.new_peers_size(); ++i) {
                 new_conf.add_peer(response.new_peers(i));
             }
-            MLOG(INFO) << "Configuration of replication group `" << group_id
+            LOG(INFO) << "Configuration of replication group `" << group_id
                       << "' changed from " << old_conf
                       << " to " << new_conf;
             return mutil::Status::OK();
@@ -138,7 +142,7 @@ namespace melon::raft {
             for (int i = 0; i < response.new_peers_size(); ++i) {
                 new_conf.add_peer(response.new_peers(i));
             }
-            MLOG(INFO) << "Configuration of replication group `" << group_id
+            LOG(INFO) << "Configuration of replication group `" << group_id
                       << "' changed from " << old_conf
                       << " to " << new_conf;
             return mutil::Status::OK();
@@ -202,7 +206,7 @@ namespace melon::raft {
             PeerId leader_id;
             mutil::Status st = get_leader(group_id, conf, &leader_id);
             BRAFT_RETURN_IF(!st.ok(), st);
-            MLOG(INFO) << "conf=" << conf << " leader=" << leader_id
+            LOG(INFO) << "conf=" << conf << " leader=" << leader_id
                       << " new_peers=" << new_peers;
             melon::Channel channel;
             if (channel.Init(leader_id.addr, NULL) != 0) {
@@ -235,7 +239,7 @@ namespace melon::raft {
             for (int i = 0; i < response.new_peers_size(); ++i) {
                 new_conf.add_peer(response.new_peers(i));
             }
-            MLOG(INFO) << "Configuration of replication group `" << group_id
+            LOG(INFO) << "Configuration of replication group `" << group_id
                       << "' changed from " << old_conf
                       << " to " << new_conf;
             return mutil::Status::OK();
@@ -247,7 +251,7 @@ namespace melon::raft {
             mutil::Status st = get_leader(group_id, conf, &leader_id);
             BRAFT_RETURN_IF(!st.ok(), st);
             if (leader_id == peer) {
-                MLOG(INFO) << "peer " << peer << " is already the leader";
+                LOG(INFO) << "peer " << peer << " is already the leader";
                 return mutil::Status::OK();
             }
             melon::Channel channel;

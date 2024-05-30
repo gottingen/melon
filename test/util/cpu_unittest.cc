@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/cpu.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #include <gtest/gtest.h>
 

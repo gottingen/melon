@@ -7,7 +7,7 @@
 #include <string>
 
 #include "melon/utility/debug/leak_annotations.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/synchronization/waitable_event.h"
 #include <gtest/gtest.h>
 

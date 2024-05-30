@@ -5,7 +5,7 @@
 #ifndef MUTIL_STRINGS_SAFE_SPRINTF_H_
 #define MUTIL_STRINGS_SAFE_SPRINTF_H_
 
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -45,7 +45,7 @@ typedef long ssize_t;
 //
 // The only exception to this rule is that in debug builds the code calls
 // RAW_CHECK() to help diagnose problems when the format string does not
-// match the rest of the arguments. In release builds, no MCHECK()s are used,
+// match the rest of the arguments. In release builds, no CHECK()s are used,
 // and SafeSPrintf() instead returns an output string that expands only
 // those arguments that match their format characters. Mismatched arguments
 // are ignored.

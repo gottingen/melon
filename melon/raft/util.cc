@@ -1,44 +1,48 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#include "melon/raft/util.h"
+#include <melon/raft/util.h>
 #include <gflags/gflags.h>
 #include <stdlib.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/raw_pack.h>                     // mutil::RawPacker
 #include <melon/utility/file_util.h>
-#include "melon/raft/raft.h"
+#include <melon/raft/raft.h>
 
 namespace melon::var {
 
-    // Reloading following gflags does not change names of the corresponding bvars.
+    // Reloading following gflags does not change names of the corresponding vars.
     // Avoid reloading in practice.
-    DEFINE_int32(bvar_counter_p1, 80, "First counter percentile");
-    DEFINE_int32(bvar_counter_p2, 90, "Second counter percentile");
-    DEFINE_int32(bvar_counter_p3, 99, "Third counter percentile");
+    DEFINE_int32(var_counter_p1, 80, "First counter percentile");
+    DEFINE_int32(var_counter_p2, 90, "Second counter percentile");
+    DEFINE_int32(var_counter_p3, 99, "Third counter percentile");
 
     static bool valid_percentile(const char *, int32_t v) {
         return v > 0 && v < 100;
     }
 
-    const bool ALLOW_UNUSED dummy_bvar_counter_p1 = google::RegisterFlagValidator(
-            &FLAGS_bvar_counter_p1, valid_percentile);
-    const bool ALLOW_UNUSED dummy_bvar_counter_p2 = google::RegisterFlagValidator(
-            &FLAGS_bvar_counter_p2, valid_percentile);
-    const bool ALLOW_UNUSED dummy_bvar_counter_p3 = google::RegisterFlagValidator(
-            &FLAGS_bvar_counter_p3, valid_percentile);
+    const bool ALLOW_UNUSED dummy_var_counter_p1 = google::RegisterFlagValidator(
+            &FLAGS_var_counter_p1, valid_percentile);
+    const bool ALLOW_UNUSED dummy_var_counter_p2 = google::RegisterFlagValidator(
+            &FLAGS_var_counter_p2, valid_percentile);
+    const bool ALLOW_UNUSED dummy_var_counter_p3 = google::RegisterFlagValidator(
+            &FLAGS_var_counter_p3, valid_percentile);
 
     namespace detail {
 
@@ -75,17 +79,17 @@ namespace melon::var {
 
         static int64_t get_p1_counter(void *arg) {
             CounterRecorder *cr = static_cast<CounterRecorder *>(arg);
-            return cr->counter_percentile(FLAGS_bvar_counter_p1 / 100.0);
+            return cr->counter_percentile(FLAGS_var_counter_p1 / 100.0);
         }
 
         static int64_t get_p2_counter(void *arg) {
             CounterRecorder *cr = static_cast<CounterRecorder *>(arg);
-            return cr->counter_percentile(FLAGS_bvar_counter_p2 / 100.0);
+            return cr->counter_percentile(FLAGS_var_counter_p2 / 100.0);
         }
 
         static int64_t get_p3_counter(void *arg) {
             CounterRecorder *cr = static_cast<CounterRecorder *>(arg);
-            return cr->counter_percentile(FLAGS_bvar_counter_p3 / 100.0);
+            return cr->counter_percentile(FLAGS_var_counter_p3 / 100.0);
         }
 
         static Vector<int64_t, 4> get_counters(void *arg) {
@@ -95,9 +99,9 @@ namespace melon::var {
             // other values and make other curves on the plotted graph small and
             // hard to read.ggggnnn
             Vector<int64_t, 4> result;
-            result[0] = cb->get_number(FLAGS_bvar_counter_p1 / 100.0);
-            result[1] = cb->get_number(FLAGS_bvar_counter_p2 / 100.0);
-            result[2] = cb->get_number(FLAGS_bvar_counter_p3 / 100.0);
+            result[0] = cb->get_number(FLAGS_var_counter_p1 / 100.0);
+            result[1] = cb->get_number(FLAGS_var_counter_p2 / 100.0);
+            result[2] = cb->get_number(FLAGS_var_counter_p3 / 100.0);
             result[3] = cb->get_number(0.999);
             return result;
         }
@@ -134,7 +138,7 @@ namespace melon::var {
     int CounterRecorder::expose(const mutil::StringPiece &prefix1,
                                 const mutil::StringPiece &prefix2) {
         if (prefix2.empty()) {
-            MLOG(ERROR) << "Parameter[prefix2] is empty";
+            LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
         mutil::StringPiece prefix = prefix2;
@@ -142,7 +146,7 @@ namespace melon::var {
         if (prefix.ends_with("counter") || prefix.ends_with("Counter")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
-                MLOG(ERROR) << "Invalid prefix2=" << prefix2;
+                LOG(ERROR) << "Invalid prefix2=" << prefix2;
                 return -1;
             }
         }
@@ -172,15 +176,15 @@ namespace melon::var {
             return -1;
         }
         char namebuf[32];
-        snprintf(namebuf, sizeof(namebuf), "counter_%d", (int) FLAGS_bvar_counter_p1);
+        snprintf(namebuf, sizeof(namebuf), "counter_%d", (int) FLAGS_var_counter_p1);
         if (_counter_p1.expose_as(prefix, namebuf, DISPLAY_ON_PLAIN_TEXT) != 0) {
             return -1;
         }
-        snprintf(namebuf, sizeof(namebuf), "counter_%d", (int) FLAGS_bvar_counter_p2);
+        snprintf(namebuf, sizeof(namebuf), "counter_%d", (int) FLAGS_var_counter_p2);
         if (_counter_p2.expose_as(prefix, namebuf, DISPLAY_ON_PLAIN_TEXT) != 0) {
             return -1;
         }
-        snprintf(namebuf, sizeof(namebuf), "counter_%u", (int) FLAGS_bvar_counter_p3);
+        snprintf(namebuf, sizeof(namebuf), "counter_%u", (int) FLAGS_var_counter_p3);
         if (_counter_p3.expose_as(prefix, namebuf, DISPLAY_ON_PLAIN_TEXT) != 0) {
             return -1;
         }
@@ -197,9 +201,9 @@ namespace melon::var {
             return -1;
         }
         snprintf(namebuf, sizeof(namebuf), "%d%%,%d%%,%d%%,99.9%%",
-                 (int) FLAGS_bvar_counter_p1, (int) FLAGS_bvar_counter_p2,
-                 (int) FLAGS_bvar_counter_p3);
-        MCHECK_EQ(0, _counter_percentiles.set_vector_names(namebuf));
+                 (int) FLAGS_var_counter_p1, (int) FLAGS_var_counter_p2,
+                 (int) FLAGS_var_counter_p3);
+        CHECK_EQ(0, _counter_percentiles.set_vector_names(namebuf));
         return 0;
     }
 
@@ -252,27 +256,27 @@ namespace melon::raft {
 
     void run_closure_in_fiber(google::protobuf::Closure *closure,
                                 bool in_pthread) {
-        DMCHECK(closure);
+        DCHECK(closure);
         fiber_t tid;
         fiber_attr_t attr = (in_pthread)
                               ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
         int ret = fiber_start_background(&tid, &attr, run_closure, closure);
         if (0 != ret) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             return closure->Run();
         }
     }
 
     void run_closure_in_fiber_nosig(google::protobuf::Closure *closure,
                                       bool in_pthread) {
-        DMCHECK(closure);
+        DCHECK(closure);
         fiber_t tid;
         fiber_attr_t attr = (in_pthread)
                               ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
         attr = attr | FIBER_NOSIGNAL;
         int ret = fiber_start_background(&tid, &attr, run_closure, closure);
         if (0 != ret) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             return closure->Run();
         }
     }
@@ -291,7 +295,7 @@ namespace melon::raft {
             } else if (errno == EINTR) {
                 continue;
             } else {
-                MLOG(WARNING) << "read failed, err: " << berror()
+                LOG(WARNING) << "read failed, err: " << berror()
                              << " fd: " << fd << " offset: " << orig_offset << " size: " << size;
                 return -1;
             }
@@ -313,7 +317,7 @@ namespace melon::raft {
             } else if (errno == EINTR) {
                 continue;
             } else {
-                MLOG(WARNING) << "write falied, err: " << berror()
+                LOG(WARNING) << "write falied, err: " << berror()
                              << " fd: " << fd << " offset: " << orig_offset << " size: " << size;
                 return -1;
             }
@@ -333,14 +337,14 @@ namespace melon::raft {
             char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
             if (_seg_len > 0) {
                 ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
-                MCHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
+                CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
             }
 
             // start new segment
             _seg_offset = offset;
             _seg_len = len;
             _seg_header = _data.reserve(sizeof(seg_header));
-            MCHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
+            CHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
             _data.append(data);
         }
     }
@@ -355,14 +359,14 @@ namespace melon::raft {
             char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
             if (_seg_len > 0) {
                 ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
-                MCHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
+                CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
             }
 
             // start new segment
             _seg_offset = offset;
             _seg_len = len;
             _seg_header = _data.reserve(sizeof(seg_header));
-            MCHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
+            CHECK(_seg_header != mutil::IOBuf::INVALID_AREA);
             _data.append(data, len);
         }
     }
@@ -371,7 +375,7 @@ namespace melon::raft {
         char seg_header[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
         if (_seg_len > 0) {
             ::mutil::RawPacker(seg_header).pack64(_seg_offset).pack32(_seg_len);
-            MCHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
+            CHECK_EQ(0, _data.unsafe_assign(_seg_header, seg_header));
         }
 
         _seg_offset = 0;
@@ -386,7 +390,7 @@ namespace melon::raft {
 
         char header_buf[sizeof(uint64_t) + sizeof(uint32_t)] = {0};
         size_t header_len = _data.cutn(header_buf, sizeof(header_buf));
-        MCHECK_EQ(header_len, sizeof(header_buf)) << "header_len: " << header_len;
+        CHECK_EQ(header_len, sizeof(header_buf)) << "header_len: " << header_len;
 
         uint64_t seg_offset = 0;
         uint32_t seg_len = 0;
@@ -394,7 +398,7 @@ namespace melon::raft {
 
         *offset = seg_offset;
         size_t body_len = _data.cutn(data, seg_len);
-        MCHECK_EQ(body_len, seg_len) << "seg_len: " << seg_len << " body_len: " << body_len;
+        CHECK_EQ(body_len, seg_len) << "seg_len: " << seg_len << " body_len: " << body_len;
         return seg_len;
     }
 

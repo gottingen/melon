@@ -1,27 +1,32 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/fiber/fiber.h"                  // fiber_session_xx
-#include "melon/fiber/unstable.h"                 // fiber_timer_add
-#include "melon/utility/atomicops.h"
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/parallel_channel.h"
+#include <melon/fiber/fiber.h>                  // fiber_session_xx
+#include <melon/fiber/unstable.h>                 // fiber_timer_add
+#include <melon/utility/atomicops.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/rpc/details/controller_private_accessor.h>
+#include <melon/rpc/parallel_channel.h>
+#include <cinttypes>
 
 
 namespace melon {
@@ -153,7 +158,7 @@ public:
                     d->sub_done_map(i) = done_index++;
                 }
             }
-            MCHECK_EQ(ndone, done_index);
+            CHECK_EQ(ndone, done_index);
         }
         return d;
     }
@@ -190,7 +195,7 @@ public:
             _cntl->_error_code = 0;
             _cntl->_error_text.clear();
         } else {
-            MCHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
+            CHECK(ECANCELED == ec || ERPCTIMEDOUT == ec) << "ec=" << ec;
         }
         OnSubDoneRun(NULL);
     }
@@ -288,7 +293,7 @@ public:
             fiber_attr_t attr = (FLAGS_usercode_in_pthread ?
                                    FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
             if (fiber_start_background(&bh, &attr, RunOnComplete, this) != 0) {
-                MLOG(FATAL) << "Fail to start fiber";
+                LOG(FATAL) << "Fail to start fiber";
                 OnComplete();
             }
         } else {
@@ -388,7 +393,7 @@ public:
             _cntl->OnRPCEnd(mutil::gettimeofday_us());
             user_done->Run();
         }
-        MCHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
+        CHECK_EQ(0, fiber_session_unlock_and_destroy(saved_cid));
     }
 
     int sub_done_size() const { return _ndone; }
@@ -461,7 +466,7 @@ int ParallelChannel::AddChannel(ChannelBase* sub_channel,
                                 CallMapper* call_mapper,
                                 ResponseMerger* merger) {
     if (NULL == sub_channel) {
-        MLOG(ERROR) << "Param[sub_channel] is NULL";
+        LOG(ERROR) << "Param[sub_channel] is NULL";
         return -1;
     }
     if (_chans.capacity() == 0) {
@@ -481,7 +486,7 @@ int ParallelChannel::AddChannel(ChannelBase* sub_channel,
                                 const mutil::intrusive_ptr<CallMapper>& call_mapper,
                                 const mutil::intrusive_ptr<ResponseMerger>& merger) {
     if (NULL == sub_channel) {
-        MLOG(ERROR) << "Param[sub_channel] is NULL";
+        LOG(ERROR) << "Param[sub_channel] is NULL";
         return -1;
     }
     if (_chans.capacity() == 0) {
@@ -540,7 +545,7 @@ void ParallelChannel::Reset() {
         std::unique(_chans.begin(), _chans.end(), EqualChannelPtr())
         - _chans.begin();
     for (size_t i = 0; i < uniq_size; ++i) {
-        MCHECK_EQ(_chans[i].ownership, OWNS_CHANNEL);
+        CHECK_EQ(_chans[i].ownership, OWNS_CHANNEL);
         delete _chans[i].chan;
     }
     _chans.clear();
@@ -563,7 +568,7 @@ void* ParallelChannel::RunDoneAndDestroy(void* arg) {
     // Save call_id from the controller which may be deleted after Run().
     const fiber_session_t cid = c->call_id();
     done->Run();
-    MCHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
+    CHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
     return NULL;
 }
 
@@ -582,7 +587,7 @@ void ParallelChannel::CallMethod(
     const CallId cid = cntl->call_id();
     const int rc = fiber_session_lock(cid, NULL);
     if (rc != 0) {
-        MCHECK_EQ(EINVAL, rc);
+        CHECK_EQ(EINVAL, rc);
         if (!cntl->FailedInline()) {
             cntl->SetFailed(EINVAL, "Fail to lock call_id=%" PRId64, cid.value);
         }
@@ -693,7 +698,7 @@ void ParallelChannel::CallMethod(
         cntl->_deadline_us = -1;
     }
     d->SaveThreadInfoOfCallsite();
-    MCHECK_EQ(0, fiber_session_unlock(cid));
+    CHECK_EQ(0, fiber_session_unlock(cid));
     // Don't touch `cntl' and `d' again (for async RPC)
     
     for (int i = 0, j = 0; i < nchan; ++i) {
@@ -733,11 +738,11 @@ FAIL:
                 return;
             }
             cntl->_done = NULL;
-            MLOG(FATAL) << "Fail to start fiber";
+            LOG(FATAL) << "Fail to start fiber";
         }
         done->Run();
     }
-    MCHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
+    CHECK_EQ(0, fiber_session_unlock_and_destroy(cid));
 }
 
 int ParallelChannel::Weight() {

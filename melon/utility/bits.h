@@ -8,7 +8,7 @@
 #define MUTIL_BITS_H_
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 
 namespace mutil {
 namespace bits {
@@ -27,7 +27,7 @@ inline int Log2Floor(uint32_t n) {
       log += shift;
     }
   }
-  DMCHECK_EQ(value, 1u);
+  DCHECK_EQ(value, 1u);
   return log;
 }
 

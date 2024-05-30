@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,16 +22,16 @@
 #include <gflags/gflags.h>
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/utility/string_printf.h"
-#include "melon/utility/third_party/rapidjson/document.h"
-#include "melon/utility/third_party/rapidjson/stringbuffer.h"
-#include "melon/utility/third_party/rapidjson/prettywriter.h"
-#include "melon/utility/time/time.h"
-#include "melon/fiber/fiber.h"
-#include "melon/rpc/log.h"
-#include "melon/rpc/channel.h"
-#include "melon/naming/file_naming_service.h"
-#include "melon/naming/consul_naming_service.h"
+#include <melon/utility/string_printf.h>
+#include <melon/utility/third_party/rapidjson/document.h>
+#include <melon/utility/third_party/rapidjson/stringbuffer.h>
+#include <melon/utility/third_party/rapidjson/prettywriter.h>
+#include <melon/utility/time/time.h>
+#include <melon/fiber/fiber.h>
+#include <melon/rpc/log.h>
+#include <melon/rpc/channel.h>
+#include <melon/naming/file_naming_service.h>
+#include <melon/naming/consul_naming_service.h>
 
 
 namespace melon::naming {
@@ -65,7 +69,7 @@ namespace melon::naming {
         if (FLAGS_consul_enable_degrade_to_file_naming_service && !_backup_file_loaded) {
             _backup_file_loaded = true;
             const std::string file(FLAGS_consul_file_naming_service_dir + service_name);
-            MLOG(INFO) << "Load server list from " << file;
+            LOG(INFO) << "Load server list from " << file;
             FileNamingService fns;
             return fns.GetServers(file.c_str(), servers);
         }
@@ -80,7 +84,7 @@ namespace melon::naming {
             opt.connect_timeout_ms = FLAGS_consul_connect_timeout_ms;
             opt.timeout_ms = (FLAGS_consul_blocking_query_wait_secs + 10) * mutil::Time::kMillisecondsPerSecond;
             if (_channel.Init(FLAGS_consul_agent_addr.c_str(), "rr", &opt) != 0) {
-                MLOG(ERROR) << "Fail to init channel to consul at " << FLAGS_consul_agent_addr;
+                LOG(ERROR) << "Fail to init channel to consul at " << FLAGS_consul_agent_addr;
                 return DegradeToOtherServiceIfNeeded(service_name, servers);
             }
             _consul_connected = true;
@@ -103,7 +107,7 @@ namespace melon::naming {
         cntl.http_request().uri() = consul_url;
         _channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to access " << consul_url << ": "
+            LOG(ERROR) << "Fail to access " << consul_url << ": "
                        << cntl.ErrorText();
             return DegradeToOtherServiceIfNeeded(service_name, servers);
         }
@@ -111,13 +115,13 @@ namespace melon::naming {
         const std::string *index = cntl.http_response().GetHeader(kConsulIndex);
         if (index != nullptr) {
             if (*index == _consul_index) {
-                MLOG_EVERY_N(INFO, 100) << "There is no service changed for the list of "
+                LOG_EVERY_N(INFO, 100) << "There is no service changed for the list of "
                                        << service_name
                                        << ", consul_index: " << _consul_index;
                 return -1;
             }
         } else {
-            MLOG(ERROR) << "Failed to parse consul index of " << service_name << ".";
+            LOG(ERROR) << "Failed to parse consul index of " << service_name << ".";
             return -1;
         }
 
@@ -129,7 +133,7 @@ namespace melon::naming {
         MUTIL_RAPIDJSON_NAMESPACE::Document services;
         services.Parse(cntl.response_attachment().to_string().c_str());
         if (!services.IsArray()) {
-            MLOG(ERROR) << "The consul's response for "
+            LOG(ERROR) << "The consul's response for "
                        << service_name << " is not a json array";
             return -1;
         }
@@ -137,7 +141,7 @@ namespace melon::naming {
         for (MUTIL_RAPIDJSON_NAMESPACE::SizeType i = 0; i < services.Size(); ++i) {
             auto itr_service = services[i].FindMember("Service");
             if (itr_service == services[i].MemberEnd()) {
-                MLOG(ERROR) << "No service info in node: "
+                LOG(ERROR) << "No service info in node: "
                            << RapidjsonValueToString(services[i]);
                 continue;
             }
@@ -149,7 +153,7 @@ namespace melon::naming {
                 !itr_address->value.IsString() ||
                 itr_port == service.MemberEnd() ||
                 !itr_port->value.IsUint()) {
-                MLOG(ERROR) << "Service with no valid address or port: "
+                LOG(ERROR) << "Service with no valid address or port: "
                            << RapidjsonValueToString(service);
                 continue;
             }
@@ -158,7 +162,7 @@ namespace melon::naming {
             if (str2endpoint(service["Address"].GetString(),
                              service["Port"].GetUint(),
                              &end_point) != 0) {
-                MLOG(ERROR) << "Service with illegal address or port: "
+                LOG(ERROR) << "Service with illegal address or port: "
                            << RapidjsonValueToString(service);
                 continue;
             }
@@ -174,13 +178,13 @@ namespace melon::naming {
                         if (tag.IsString()) {
                             node.tag = tag.GetString();
                         } else {
-                            MLOG(ERROR) << "First tag returned by consul is not string, service: "
+                            LOG(ERROR) << "First tag returned by consul is not string, service: "
                                        << RapidjsonValueToString(service);
                             continue;
                         }
                     }
                 } else {
-                    MLOG(ERROR) << "Service tags returned by consul is not json array, service: "
+                    LOG(ERROR) << "Service tags returned by consul is not json array, service: "
                                << RapidjsonValueToString(service);
                     continue;
                 }
@@ -196,7 +200,7 @@ namespace melon::naming {
         _consul_index = *index;
 
         if (servers->empty() && !services.Empty()) {
-            MLOG(ERROR) << "All service about " << service_name
+            LOG(ERROR) << "All service about " << service_name
                        << " from consul is invalid, refuse to update servers";
             return -1;
         }
@@ -241,12 +245,12 @@ namespace melon::naming {
                         RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                         return 0;
                     }
-                    PMLOG(FATAL) << "Fail to sleep";
+                    PLOG(FATAL) << "Fail to sleep";
                     return -1;
                 }
             }
         }
-        MCHECK(false);
+        CHECK(false);
         return -1;
     }
 

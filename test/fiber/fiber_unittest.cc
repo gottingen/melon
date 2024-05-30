@@ -1,29 +1,33 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <execinfo.h>
 #include <gtest/gtest.h>
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/gperftools_profiler.h"
-#include "melon/fiber/fiber.h"
-#include "melon/fiber/unstable.h"
-#include "melon/fiber/task_meta.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <turbo/log/logging.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/gperftools_profiler.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/unstable.h>
+#include <melon/fiber/task_meta.h>
 
 namespace fiber {
     extern __thread fiber::LocalStorage tls_bls;
@@ -46,11 +50,11 @@ protected:
 };
 
 TEST_F(FiberTest, sizeof_task_meta) {
-    MLOG(INFO) << "sizeof(TaskMeta)=" << sizeof(fiber::TaskMeta);
+    LOG(INFO) << "sizeof(TaskMeta)=" << sizeof(fiber::TaskMeta);
 }
 
 void* unrelated_pthread(void*) {
-    MLOG(INFO) << "I did not call any fiber function, "
+    LOG(INFO) << "I did not call any fiber function, "
         "I should begin and end without any problem";
     return (void*)(intptr_t)1;
 }
@@ -103,14 +107,14 @@ TEST_F(FiberTest, call_fiber_functions_before_tls_created) {
 mutil::atomic<bool> stop(false);
 
 void* sleep_for_awhile(void* arg) {
-    MLOG(INFO) << "sleep_for_awhile(" << arg << ")";
+    LOG(INFO) << "sleep_for_awhile(" << arg << ")";
     fiber_usleep(100000L);
-    MLOG(INFO) << "sleep_for_awhile(" << arg << ") wakes up";
+    LOG(INFO) << "sleep_for_awhile(" << arg << ") wakes up";
     return NULL;
 }
 
 void* just_exit(void* arg) {
-    MLOG(INFO) << "just_exit(" << arg << ")";
+    LOG(INFO) << "just_exit(" << arg << ")";
     fiber_exit(NULL);
     EXPECT_TRUE(false) << "just_exit(" << arg << ") should never be here";
     return NULL;
@@ -118,7 +122,7 @@ void* just_exit(void* arg) {
 
 void* repeated_sleep(void* arg) {
     for (size_t i = 0; !stop; ++i) {
-        MLOG(INFO) << "repeated_sleep(" << arg << ") i=" << i;
+        LOG(INFO) << "repeated_sleep(" << arg << ") i=" << i;
         fiber_usleep(1000000L);
     }
     return NULL;
@@ -130,19 +134,19 @@ void* spin_and_log(void* arg) {
     size_t i = 0;
     while (!stop) {
         if (every_1s) {
-            MLOG(INFO) << "spin_and_log(" << arg << ")=" << i++;
+            LOG(INFO) << "spin_and_log(" << arg << ")=" << i++;
         }
     }
     return NULL;
 }
 
 void* do_nothing(void* arg) {
-    MLOG(INFO) << "do_nothing(" << arg << ")";
+    LOG(INFO) << "do_nothing(" << arg << ")";
     return NULL;
 }
 
 void* launcher(void* arg) {
-    MLOG(INFO) << "launcher(" << arg << ")";
+    LOG(INFO) << "launcher(" << arg << ")";
     for (size_t i = 0; !stop; ++i) {
         fiber_t th;
         fiber_start_urgent(&th, NULL, do_nothing, (void*)i);
@@ -156,13 +160,13 @@ void* stopper(void*) {
     // never yields CPU) is scheduled to main thread, main thread cannot get
     // to run again.
     fiber_usleep(5*1000000L);
-    MLOG(INFO) << "about to stop";
+    LOG(INFO) << "about to stop";
     stop = true;
     return NULL;
 }
 
 void* misc(void* arg) {
-    MLOG(INFO) << "misc(" << arg << ")";
+    LOG(INFO) << "misc(" << arg << ")";
     fiber_t th[8];
     EXPECT_EQ(0, fiber_start_urgent(&th[0], NULL, sleep_for_awhile, (void*)2));
     EXPECT_EQ(0, fiber_start_urgent(&th[1], NULL, just_exit, (void*)3));
@@ -179,10 +183,10 @@ void* misc(void* arg) {
 }
 
 TEST_F(FiberTest, sanity) {
-    MLOG(INFO) << "main thread " << pthread_self();
+    LOG(INFO) << "main thread " << pthread_self();
     fiber_t th1;
     ASSERT_EQ(0, fiber_start_urgent(&th1, NULL, misc, (void*)1));
-    MLOG(INFO) << "back to main thread " << th1 << " " << pthread_self();
+    LOG(INFO) << "back to main thread " << th1 << " " << pthread_self();
     ASSERT_EQ(0, fiber_join(th1, NULL));
 }
 
@@ -220,7 +224,7 @@ TEST_F(FiberTest, backtrace) {
 
 void* show_self(void*) {
     EXPECT_NE(0ul, fiber_self());
-    MLOG(INFO) << "fiber_self=" << fiber_self();
+    LOG(INFO) << "fiber_self=" << fiber_self();
     return NULL;
 }
 
@@ -271,7 +275,7 @@ void* adding_func(void* arg) {
         }
         fiber_usleep(sleep_in_adding_func);
         if (t1) {
-            MLOG(INFO) << "elapse is " << mutil::cpuwide_time_us() - t1 << "ns";
+            LOG(INFO) << "elapse is " << mutil::cpuwide_time_us() - t1 << "ns";
         }
     } else {
         s->fetch_add(1);
@@ -313,7 +317,7 @@ TEST_F(FiberTest, small_threads) {
             for (size_t i = 0; i < N; ++i) {
                 fiber_join(th[i], NULL);
             }
-            MLOG(INFO) << "[Round " << j + 1 << "] fiber_start_urgent takes "
+            LOG(INFO) << "[Round " << j + 1 << "] fiber_start_urgent takes "
                       << tm.n_elapsed()/N << "ns, sum=" << s;
             ASSERT_EQ(N * (j + 1), (size_t)s);
         
@@ -404,7 +408,7 @@ TEST_F(FiberTest, start_latency_when_high_idle) {
             warmup = false;
         }
     }
-    MLOG(INFO) << "start_urgent=" << elp1 / REP << "ns start_background="
+    LOG(INFO) << "start_urgent=" << elp1 / REP << "ns start_background="
               << elp2 / REP << "ns";
 }
 
@@ -517,7 +521,7 @@ static const fiber_attr_t FIBER_ATTR_NORMAL_WITH_SPAN =
 void* test_parent_span(void* p) {
     uint64_t *q = (uint64_t *)p;
     *q = (uint64_t)(fiber::tls_bls.rpcz_parent_span);
-    MLOG(INFO) << "span id in thread is " << *q;
+    LOG(INFO) << "span id in thread is " << *q;
     return NULL;
 }
 
@@ -526,7 +530,7 @@ TEST_F(FiberTest, test_span) {
     uint64_t p2 = 0;
 
     uint64_t target = 0xBADBEAFUL;
-    MLOG(INFO) << "target span id is " << target;
+    LOG(INFO) << "target span id is " << target;
 
     fiber::tls_bls.rpcz_parent_span = (void*)target;
     fiber_t th1;

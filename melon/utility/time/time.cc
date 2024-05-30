@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/time/time.h"
+#include <melon/utility/time/time.h>
 
 #include <limits>
 #include <ostream>
 
 #include "melon/utility/float_util.h"
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -117,7 +117,7 @@ time_t Time::ToTimeT() const {
     return std::numeric_limits<time_t>::max();
   }
   if (std::numeric_limits<int64_t>::max() - kTimeTToMicrosecondsOffset <= us_) {
-    DMLOG(WARNING) << "Overflow when converting mutil::Time with internal " <<
+    DLOG(WARNING) << "Overflow when converting mutil::Time with internal " <<
                      "value " << us_ << " to time_t.";
     return std::numeric_limits<time_t>::max();
   }

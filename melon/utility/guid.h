@@ -9,7 +9,7 @@
 
 #include "melon/utility/base_export.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 namespace mutil {
 

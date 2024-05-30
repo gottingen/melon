@@ -11,7 +11,7 @@
 namespace mutil {
 
 // Full implementation of NonThreadSafe, for debug mode or for occasional
-// temporary use in release mode e.g. when you need to MCHECK on a thread
+// temporary use in release mode e.g. when you need to CHECK on a thread
 // bug that only occurs in the wild.
 //
 // Note: You should almost always use the NonThreadSafe class to get

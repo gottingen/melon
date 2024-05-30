@@ -1,36 +1,41 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#include "melon/utility/compat.h"
+#include <melon/utility/compat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/utsname.h>                           // uname
 #include <fcntl.h>
 #include <gtest/gtest.h>
 #include <pthread.h>
-#include "melon/utility/gperftools_profiler.h"
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/fd_utility.h"
-#include "melon/utility/logging.h"
-#include "melon/fiber/task_control.h"
-#include "melon/fiber/task_group.h"
-#include "melon/fiber/interrupt_pthread.h"
-#include "melon/fiber/fiber.h"
-#include "melon/fiber/unstable.h"
+#include <melon/utility/gperftools_profiler.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/fd_utility.h>
+#include <turbo/log/logging.h>
+#include <melon/fiber/task_control.h>
+#include <melon/fiber/task_group.h>
+#include <melon/fiber/interrupt_pthread.h>
+#include <melon/fiber/fiber.h>
+#include <melon/fiber/unstable.h>
+#include <turbo/log/internal/globals.h>
 #if defined(OS_MACOSX)
 #include <sys/types.h>                           // struct kevent
 #include <sys/event.h>                           // kevent(), kqueue()
@@ -84,13 +89,13 @@ void* process_thread(void* arg) {
     //printf("begin to process fd=%d\n", m->fd);
     ssize_t n = read(m->fd, &count, sizeof(count));
     if (n != sizeof(count)) {
-        MLOG(FATAL) << "Should not happen in this test";
+        LOG(FATAL) << "Should not happen in this test";
         return NULL;
     }
     count += NCLIENT;
     //printf("write result=%lu to fd=%d\n", count, m->fd);
     if (write(m->fd, &count, sizeof(count)) != sizeof(count)) {
-        MLOG(FATAL) << "Should not happen in this test";
+        LOG(FATAL) << "Should not happen in this test";
         return NULL;
     }
 #ifdef CREATE_THREAD_TO_PROCESS
@@ -154,9 +159,9 @@ void* epoll_thread(void* arg) {
                 continue;
             }
 #if defined(OS_LINUX)
-            PMLOG(FATAL) << "Fail to epoll_wait";
+            PLOG(FATAL) << "Fail to epoll_wait";
 #elif defined(OS_MACOSX)
-            PMLOG(FATAL) << "Fail to kevent";
+            PLOG(FATAL) << "Fail to kevent";
 #endif
             break;
         }
@@ -190,7 +195,7 @@ void* client_thread(void* arg) {
     ClientMeta* m = (ClientMeta*)arg;
     for (size_t i = 0; i < m->times; ++i) {
         if (write(m->fd, &m->count, sizeof(m->count)) != sizeof(m->count)) {
-            MLOG(FATAL) << "Should not happen in this test";
+            LOG(FATAL) << "Should not happen in this test";
             return NULL;
         }
 #ifdef RUN_CLIENT_IN_FIBER
@@ -208,7 +213,7 @@ void* client_thread(void* arg) {
         ssize_t rc = read(m->fd, &m->count, sizeof(m->count));
 #endif
         if (rc != sizeof(m->count)) {
-            PMLOG(FATAL) << "Should not happen in this test, rc=" << rc;
+            PLOG(FATAL) << "Should not happen in this test, rc=" << rc;
             return NULL;
         }
     }
@@ -323,7 +328,7 @@ TEST(FDTest, ping_pong) {
     }
     tm.stop();
     ProfilerStop();
-    MLOG(INFO) << "tid=" << REP*NCLIENT*1000000L/tm.u_elapsed();
+    LOG(INFO) << "tid=" << REP*NCLIENT*1000000L/tm.u_elapsed();
     stop = true;
     for (size_t i = 0; i < NEPOLL; ++i) {
 #if defined(OS_LINUX)
@@ -442,6 +447,7 @@ void* close_the_fd(void* arg) {
 }
 
 TEST(FDTest, invalid_epoll_events) {
+    turbo::log_internal::SetExitOnDFatal(false);
     errno = 0;
 #if defined(OS_LINUX)
     ASSERT_EQ(-1, fiber_fd_wait(-1, EPOLLIN));
@@ -476,6 +482,7 @@ TEST(FDTest, invalid_epoll_events) {
     ASSERT_LT(tm.m_elapsed(), 20);
     ASSERT_EQ(0, fiber_join(th, NULL));
     ASSERT_EQ(0, fiber_close(fds[0]));
+        turbo::log_internal::SetExitOnDFatal(true);
 }
 
 void* wait_for_the_fd(void* arg) {

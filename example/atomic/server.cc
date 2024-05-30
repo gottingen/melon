@@ -16,7 +16,7 @@
 #include <melon/fiber/fiber.h>
 #include <gflags/gflags.h>
 #include <melon/utility/containers/flat_map.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/server.h>
@@ -82,7 +82,7 @@ public:
         : _node(NULL)
         , _leader_term(-1)
     {
-        MCHECK_EQ(0, _value_map.init(FLAGS_map_capacity));
+        CHECK_EQ(0, _value_map.init(FLAGS_map_capacity));
     }
 
     ~Atomic() {
@@ -94,7 +94,7 @@ public:
         mutil::EndPoint addr(mutil::my_ip(), FLAGS_port);
         melon::raft::NodeOptions node_options;
         if (node_options.initial_conf.parse_from(FLAGS_conf) != 0) {
-            MLOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
+            LOG(ERROR) << "Fail to parse configuration `" << FLAGS_conf << '\'';
             return -1;
         }
         node_options.election_timeout_ms = FLAGS_election_timeout_ms;
@@ -108,7 +108,7 @@ public:
         node_options.disable_cli = FLAGS_disable_cli;
         melon::raft::Node* node = new melon::raft::Node(FLAGS_group, melon::raft::PeerId(addr));
         if (node->init(node_options) != 0) {
-            MLOG(ERROR) << "Fail to init raft node";
+            LOG(ERROR) << "Fail to init raft node";
             delete node;
             return -1;
         }
@@ -169,7 +169,7 @@ friend class AtomicClosure;
         log.push_back((uint8_t)type);
         mutil::IOBufAsZeroCopyOutputStream wrapper(&log);
         if (!request->SerializeToZeroCopyStream(&wrapper)) {
-            MLOG(ERROR) << "Fail to serialize request";
+            LOG(ERROR) << "Fail to serialize request";
             response->set_success(false);
             return;
         }
@@ -237,14 +237,14 @@ friend class AtomicClosure;
                 cas(data, request, response);
                 break;
             default:
-                MCHECK(false) << "Unknown type=" << static_cast<int>(type);
+                CHECK(false) << "Unknown type=" << static_cast<int>(type);
                 break;
             }
 
             // The purpose of following logs is to help you understand the way
             // this StateMachine works.
             // Remove these logs in performance-sensitive servers.
-            LOG_IF(INFO, FLAGS_log_applied_task) 
+            LOG_IF(INFO, FLAGS_log_applied_task)
                     << "Handled operation " << op 
                     << " on id=" << response->id()
                     << " at log_index=" << iter.index()
@@ -273,7 +273,7 @@ friend class AtomicClosure;
     }
 
     int on_snapshot_load(melon::raft::SnapshotReader* reader) {
-        MCHECK_EQ(-1, _leader_term) << "Leader is not supposed to load snapshot";
+        CHECK_EQ(-1, _leader_term) << "Leader is not supposed to load snapshot";
         _value_map.clear();
         std::string snapshot_path = reader->get_path();
         snapshot_path.append("/data");
@@ -288,28 +288,28 @@ friend class AtomicClosure;
 
     void on_leader_start(int64_t term) {
         _leader_term.store(term, mutil::memory_order_release);
-        MLOG(INFO) << "Node becomes leader";
+        LOG(INFO) << "Node becomes leader";
     }
 
     void on_leader_stop(const mutil::Status& status) {
         _leader_term.store(-1, mutil::memory_order_release);
-        MLOG(INFO) << "Node stepped down : " << status;
+        LOG(INFO) << "Node stepped down : " << status;
     }
 
     void on_shutdown() {
-        MLOG(INFO) << "This node is down";
+        LOG(INFO) << "This node is down";
     }
     void on_error(const ::melon::raft::Error& e) {
-        MLOG(ERROR) << "Met raft error " << e;
+        LOG(ERROR) << "Met raft error " << e;
     }
     void on_configuration_committed(const ::melon::raft::Configuration& conf) {
-        MLOG(INFO) << "Configuration of this group is " << conf;
+        LOG(INFO) << "Configuration of this group is " << conf;
     }
     void on_stop_following(const ::melon::raft::LeaderChangeContext& ctx) {
-        MLOG(INFO) << "Node stops following " << ctx;
+        LOG(INFO) << "Node stops following " << ctx;
     }
     void on_start_following(const ::melon::raft::LeaderChangeContext& ctx) {
-        MLOG(INFO) << "Node start following " << ctx;
+        LOG(INFO) << "Node start following " << ctx;
     }
 
     // end of @melon::raft::StateMachine
@@ -325,7 +325,7 @@ friend class AtomicClosure;
         } else {
             mutil::IOBufAsZeroCopyInputStream wrapper(data);
             GetRequest req;
-            MCHECK(req.ParseFromZeroCopyStream(&wrapper));
+            CHECK(req.ParseFromZeroCopyStream(&wrapper));
             id = req.id();
         }
         int64_t* const v = _value_map.seek(id);
@@ -350,7 +350,7 @@ friend class AtomicClosure;
         } else {
             mutil::IOBufAsZeroCopyInputStream wrapper(data);
             ExchangeRequest req;
-            MCHECK(req.ParseFromZeroCopyStream(&wrapper));
+            CHECK(req.ParseFromZeroCopyStream(&wrapper));
             id = req.id();
             value = req.value();
         }
@@ -379,7 +379,7 @@ friend class AtomicClosure;
         } else {
             mutil::IOBufAsZeroCopyInputStream wrapper(data);
             CompareExchangeRequest req;
-            MCHECK(req.ParseFromZeroCopyStream(&wrapper));
+            CHECK(req.ParseFromZeroCopyStream(&wrapper));
             id = req.id();
             value = req.new_value();
             expected = req.expected_value();
@@ -407,7 +407,7 @@ friend class AtomicClosure;
         for (size_t i = 0; i < sc->values.size(); ++i) {
             os << sc->values[i].first << ' ' << sc->values[i].second << '\n';
         }
-        MCHECK_EQ(0, sc->writer->add_file("data"));
+        CHECK_EQ(0, sc->writer->add_file("data"));
         return NULL;
     }
 
@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
     // Add your service into RPC rerver
     if (server.AddService(&service, 
                           melon::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        MLOG(ERROR) << "Fail to add service";
+        LOG(ERROR) << "Fail to add service";
         return -1;
     }
     // raft can share the same RPC server. Notice the second parameter, because
@@ -486,7 +486,7 @@ int main(int argc, char* argv[]) {
     // address of this server is impossible to get before the server starts. You
     // have to specify the address of the server.
     if (melon::raft::add_service(&server, FLAGS_port) != 0) {
-        MLOG(ERROR) << "Fail to add raft service";
+        LOG(ERROR) << "Fail to add raft service";
         return -1;
     }
 
@@ -496,23 +496,23 @@ int main(int argc, char* argv[]) {
     // Notice the default options of server is used here. Check out details from
     // the doc of melon if you would like change some options;
     if (server.Start(FLAGS_port, NULL) != 0) {
-        MLOG(ERROR) << "Fail to start Server";
+        LOG(ERROR) << "Fail to start Server";
         return -1;
     }
 
     // It's ok to start Atomic;
     if (atomic.start() != 0) {
-        MLOG(ERROR) << "Fail to start Atomic";
+        LOG(ERROR) << "Fail to start Atomic";
         return -1;
     }
 
-    MLOG(INFO) << "Atomic service is running on " << server.listen_address();
+    LOG(INFO) << "Atomic service is running on " << server.listen_address();
     // Wait until 'CTRL-C' is pressed. then Stop() and Join() the service
     while (!melon::IsAskedToQuit()) {
         sleep(1);
     }
 
-    MLOG(INFO) << "Atomic service is going to quit";
+    LOG(INFO) << "Atomic service is going to quit";
 
     // Stop counter before server
     atomic.shutdown();

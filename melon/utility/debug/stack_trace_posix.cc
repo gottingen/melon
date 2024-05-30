@@ -33,13 +33,13 @@
 #include "melon/utility/basictypes.h"
 #include "melon/utility/debug/debugger.h"
 #include "melon/utility/debug/proc_maps_linux.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <turbo/log/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/memory/singleton.h"
 #include "melon/utility/numerics/safe_conversions.h"
 #include "melon/utility/posix/eintr_wrapper.h"
-#include "melon/utility/strings/string_number_conversions.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/strings/string_number_conversions.h>
+#include <melon/utility/build_config.h>
 
 #if defined(USE_SYMBOLIZE)
 #include "melon/utility/third_party/symbolize/symbolize.h"
@@ -593,13 +593,13 @@ class SandboxSymbolizeHelper {
     // Reads /proc/self/maps.
     std::string contents;
     if (!ReadProcMaps(&contents)) {
-      MLOG(ERROR) << "Failed to read /proc/self/maps";
+      LOG(ERROR) << "Failed to read /proc/self/maps";
       return false;
     }
 
     // Parses /proc/self/maps.
     if (!ParseProcMaps(contents, &regions_)) {
-      MLOG(ERROR) << "Failed to parse the contents of /proc/self/maps";
+      LOG(ERROR) << "Failed to parse the contents of /proc/self/maps";
       return false;
     }
 
@@ -648,7 +648,7 @@ class SandboxSymbolizeHelper {
           if (fd >= 0) {
             modules_.emplace(region.path, fd);
           } else {
-            MLOG(WARNING) << "Failed to open file: " << region.path
+            LOG(WARNING) << "Failed to open file: " << region.path
                          << "\n  Error: " << strerror(errno);
           }
         }
@@ -680,7 +680,7 @@ class SandboxSymbolizeHelper {
     std::map<std::string, int>::iterator it;
     for (it = modules_.begin(); it != modules_.end(); ++it) {
       int ret = IGNORE_EINTR(close(it->second));
-      DMCHECK(!ret);
+      DCHECK(!ret);
       it->second = -1;
     }
     modules_.clear();

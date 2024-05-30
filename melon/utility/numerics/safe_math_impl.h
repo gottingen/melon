@@ -11,9 +11,9 @@
 #include <cstdlib>
 #include <limits>
 
-#include "melon/utility/macros.h"
+#include <melon/utility/macros.h>
 #include "melon/utility/numerics/safe_conversions.h"
-#include "melon/utility/type_traits.h"
+#include <melon/utility/type_traits.h>
 
 namespace mutil {
 namespace internal {
@@ -296,7 +296,7 @@ CheckedAbs(T value, RangeConstraint* validity) {
   template <typename T>                                          \
   typename enable_if<std::numeric_limits<T>::is_iec559, T>::type \
   Checked##NAME(T, T, RangeConstraint*) {                        \
-    NOTREACHED();                                                \
+    DCHECK(false);                                                \
     return 0;                                                    \
   }
 
@@ -420,7 +420,7 @@ class CheckedNumericState<T, NUMERIC_FLOATING> {
         break;
 
       default:
-        NOTREACHED();
+        DCHECK(false);
     }
   }
 

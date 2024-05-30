@@ -1,25 +1,29 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include "melon/fiber/sys_futex.h"
-#include "melon/fiber/timer_thread.h"
-#include "melon/fiber/fiber.h"
-#include "melon/utility/logging.h"
+#include <melon/fiber/sys_futex.h>
+#include <melon/fiber/timer_thread.h>
+#include <melon/fiber/fiber.h>
+#include <turbo/log/logging.h>
 
 namespace {
 
@@ -50,9 +54,9 @@ namespace {
             timespec current_time;
             clock_gettime(CLOCK_REALTIME, &current_time);
             if (_name) {
-                MLOG(INFO) << "Run `" << _name << "' task_id=" << _task_id;
+                LOG(INFO) << "Run `" << _name << "' task_id=" << _task_id;
             } else {
-                MLOG(INFO) << "Run task_id=" << _task_id;
+                LOG(INFO) << "Run task_id=" << _task_id;
             }
             _run_times.push_back(current_time);
             const int saved_sleep_ms = _sleep_ms;
@@ -67,7 +71,7 @@ namespace {
                 _sleep_ms = 0;
                 fiber::futex_wake_private(&_sleep_ms, 1);
             } else {
-                MLOG(ERROR) << "No need to wakeup "
+                LOG(ERROR) << "No need to wakeup "
                            << (_name ? _name : "") << " task_id=" << _task_id;
             }
         }
@@ -124,7 +128,7 @@ namespace {
         keeper5.schedule(&timer_thread);
 
         // sleep 1 second, and unschedule task2
-        MLOG(INFO) << "Sleep 1s";
+        LOG(INFO) << "Sleep 1s";
         sleep(1);
         timer_thread.unschedule(keeper2._task_id);
         timer_thread.unschedule(keeper4._task_id);
@@ -135,14 +139,14 @@ namespace {
         const timespec keeper6_addtime = mutil::seconds_from_now(0);
 
         // sleep 10 seconds and stop.
-        MLOG(INFO) << "Sleep 2s";
+        LOG(INFO) << "Sleep 2s";
         sleep(2);
-        MLOG(INFO) << "Stop timer_thread";
+        LOG(INFO) << "Stop timer_thread";
         mutil::Timer tm;
         tm.start();
         timer_thread.stop_and_join();
         tm.stop();
-        MLOG(INFO) << "tm stop()";
+        LOG(INFO) << "tm stop()";
         ASSERT_LE(tm.m_elapsed(), 15);
 
         // verify all runs in expected time range.
@@ -152,7 +156,7 @@ namespace {
         keeper4.expect_not_run();
         keeper5.expect_not_run();
         keeper6.expect_first_run(keeper6_addtime);
-        MLOG(INFO) << "tm end()";
+        LOG(INFO) << "tm end()";
     }
 
     // If the scheduled time is before start time, then should run it

@@ -6,7 +6,7 @@
 #define MUTIL_MAC_BUNDLE_LOCATIONS_H_
 
 #include "melon/utility/base_export.h"
-#include "melon/utility/files/file_path.h"
+#include <melon/utility/files/file_path.h>
 
 #if defined(__OBJC__)
 #import <Foundation/Foundation.h>

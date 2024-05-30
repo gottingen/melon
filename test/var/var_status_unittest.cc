@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -22,9 +26,9 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/var/var.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/var/var.h>
 #include <gtest/gtest.h>
 
 namespace {
@@ -46,7 +50,7 @@ TEST_F(StatusTest, status) {
     std::vector<std::string> vars;
     melon::var::Variable::list_exposed(&vars);
         for (auto v : vars) {
-            MLOG(ERROR) << v;
+            LOG(ERROR) << v;
         }
     ASSERT_EQ(1UL, vars.size());
     ASSERT_EQ("var1", vars[0]);
@@ -116,7 +120,7 @@ TEST_F(StatusTest, status) {
     ASSERT_EQ("var2_again", vars[3]);
 
     melon::var::Status<void*> st5((void*)19UL);
-    MLOG(INFO) << st5;
+    LOG(INFO) << st5;
     ASSERT_EQ("0x13", st5.get_description());
 }
 
@@ -130,7 +134,7 @@ int64_t print2(void* arg) {
 
 TEST_F(StatusTest, passive_status) {
     melon::var::BasicPassiveStatus<std::string> st1("var11", print1, (void*)9UL);
-    MLOG(INFO) << st1;
+    LOG(INFO) << st1;
     std::ostringstream ss;
     ASSERT_EQ(0, melon::var::Variable::describe_exposed("var11", ss));
     ASSERT_EQ("0x9", ss.str());

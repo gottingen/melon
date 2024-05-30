@@ -1,30 +1,34 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#include "nacos_naming_service.h"
+#include <melon/naming/nacos_naming_service.h>
 
 #include <gflags/gflags.h>
 
 #include <set>
 
-#include "melon/rpc/http/http_status_code.h"
-#include "melon/rpc/log.h"
-#include "melon/utility/iobuf.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/third_party/rapidjson/document.h"
+#include <melon/rpc/http/http_status_code.h>
+#include <melon/rpc/log.h>
+#include <melon/utility/iobuf.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/third_party/rapidjson/document.h>
 
 namespace melon::naming {
 
@@ -47,7 +51,7 @@ namespace melon::naming {
         const int ret = _channel.Init(FLAGS_nacos_address.c_str(),
                                       FLAGS_nacos_load_balancer.c_str(), &opt);
         if (ret != 0) {
-            MLOG(ERROR) << "Fail to init channel to nacos at "
+            LOG(ERROR) << "Fail to init channel to nacos at "
                        << FLAGS_nacos_address;
         }
         return ret;
@@ -67,7 +71,7 @@ namespace melon::naming {
 
         _channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to access " << FLAGS_nacos_service_auth_path << ": "
+            LOG(ERROR) << "Fail to access " << FLAGS_nacos_service_auth_path << ": "
                        << cntl.ErrorText();
             return -1;
         }
@@ -75,11 +79,11 @@ namespace melon::naming {
         MUTIL_RAPIDJSON_NAMESPACE::Document doc;
         if (doc.Parse(cntl.response_attachment().to_string().c_str())
                 .HasParseError()) {
-            MLOG(ERROR) << "Failed to parse nacos auth response";
+            LOG(ERROR) << "Failed to parse nacos auth response";
             return -1;
         }
         if (!doc.IsObject()) {
-            MLOG(ERROR) << "The nacos's auth response for " << service_name
+            LOG(ERROR) << "The nacos's auth response for " << service_name
                        << " is not a json object";
             return -1;
         }
@@ -88,7 +92,7 @@ namespace melon::naming {
         if (iter != doc.MemberEnd() && iter->value.IsString()) {
             _access_token = iter->value.GetString();
         } else {
-            MLOG(ERROR) << "The nacos's auth response for " << service_name
+            LOG(ERROR) << "The nacos's auth response for " << service_name
                        << " has no accessToken field";
             return -1;
         }
@@ -120,12 +124,12 @@ namespace melon::naming {
         cntl.http_request().uri() = _nacos_url;
         _channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
-            MLOG(ERROR) << "Fail to access " << _nacos_url << ": "
+            LOG(ERROR) << "Fail to access " << _nacos_url << ": "
                        << cntl.ErrorText();
             return -1;
         }
         if (cntl.http_response().status_code() != HTTP_STATUS_OK) {
-            MLOG(ERROR) << "Failed to request nacos, http status code: "
+            LOG(ERROR) << "Failed to request nacos, http status code: "
                        << cntl.http_response().status_code();
             return -1;
         }
@@ -133,24 +137,24 @@ namespace melon::naming {
         MUTIL_RAPIDJSON_NAMESPACE::Document doc;
         if (doc.Parse(cntl.response_attachment().to_string().c_str())
                 .HasParseError()) {
-            MLOG(ERROR) << "Failed to parse nacos response";
+            LOG(ERROR) << "Failed to parse nacos response";
             return -1;
         }
         if (!doc.IsObject()) {
-            MLOG(ERROR) << "The nacos's response for " << service_name
+            LOG(ERROR) << "The nacos's response for " << service_name
                        << " is not a json object";
             return -1;
         }
 
         auto it_hosts = doc.FindMember("hosts");
         if (it_hosts == doc.MemberEnd()) {
-            MLOG(ERROR) << "The nacos's response for " << service_name
+            LOG(ERROR) << "The nacos's response for " << service_name
                        << " has no hosts member";
             return -1;
         }
         auto &hosts = it_hosts->value;
         if (!hosts.IsArray()) {
-            MLOG(ERROR) << "hosts member in nacos response is not an array";
+            LOG(ERROR) << "hosts member in nacos response is not an array";
             return -1;
         }
 
@@ -158,20 +162,20 @@ namespace melon::naming {
         for (auto it = hosts.Begin(); it != hosts.End(); ++it) {
             auto &host = *it;
             if (!host.IsObject()) {
-                MLOG(ERROR) << "host member in nacos response is not an object";
+                LOG(ERROR) << "host member in nacos response is not an object";
                 continue;
             }
 
             auto it_ip = host.FindMember("ip");
             if (it_ip == host.MemberEnd() || !it_ip->value.IsString()) {
-                MLOG(ERROR) << "host in nacos response has not ip";
+                LOG(ERROR) << "host in nacos response has not ip";
                 continue;
             }
             auto &ip = it_ip->value;
 
             auto it_port = host.FindMember("port");
             if (it_port == host.MemberEnd() || !it_port->value.IsInt()) {
-                MLOG(ERROR) << "host in nacos response has not port";
+                LOG(ERROR) << "host in nacos response has not port";
                 continue;
             }
             auto &port = it_port->value;
@@ -179,7 +183,7 @@ namespace melon::naming {
             auto it_enabled = host.FindMember("enabled");
             if (it_enabled == host.MemberEnd() || !(it_enabled->value.IsBool()) ||
                 !(it_enabled->value.GetBool())) {
-                MLOG(INFO) << "nacos " << ip.GetString() << ":" << port.GetInt()
+                LOG(INFO) << "nacos " << ip.GetString() << ":" << port.GetInt()
                           << " is not enabled";
                 continue;
             }
@@ -187,14 +191,14 @@ namespace melon::naming {
             auto it_healthy = host.FindMember("healthy");
             if (it_healthy == host.MemberEnd() || !(it_healthy->value.IsBool()) ||
                 !(it_healthy->value.GetBool())) {
-                MLOG(INFO) << "nacos " << ip.GetString() << ":" << port.GetInt()
+                LOG(INFO) << "nacos " << ip.GetString() << ":" << port.GetInt()
                           << " is not healthy";
                 continue;
             }
 
             mutil::EndPoint end_point;
             if (str2endpoint(ip.GetString(), port.GetUint(), &end_point) != 0) {
-                MLOG(ERROR) << "ncos service with illegal address or port: "
+                LOG(ERROR) << "ncos service with illegal address or port: "
                            << ip.GetString() << ":" << port.GetUint();
                 continue;
             }
@@ -213,7 +217,7 @@ namespace melon::naming {
         nodes->assign(presence.begin(), presence.end());
 
         if (nodes->empty() && hosts.Size() != 0) {
-            MLOG(ERROR) << "All service about " << service_name
+            LOG(ERROR) << "All service about " << service_name
                        << " from nacos is invalid, refuse to update servers";
             return -1;
         }

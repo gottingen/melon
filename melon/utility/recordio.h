@@ -17,7 +17,7 @@
 #ifndef MUTIL_RECORDIO_H
 #define MUTIL_RECORDIO_H
 
-#include "melon/utility/iobuf.h"
+#include <melon/utility/iobuf.h>
 #include <memory>
 
 namespace mutil {
@@ -84,7 +84,7 @@ private:
 //        // Handle the rec
 //    }
 //    if (rd.last_error() != RecordReader::END_OF_READER) {
-//        MLOG(FATAL) << "Critical error occurred";
+//        LOG(FATAL) << "Critical error occurred";
 //    }
 class RecordReader {
 public:

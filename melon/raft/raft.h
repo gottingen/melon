@@ -1,30 +1,33 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#ifndef MELON_RAFT_RAFT_H_
-#define MELON_RAFT_RAFT_H_
+#pragma once
 
 #include <string>
 
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/iobuf.h>
 #include <melon/utility/status.h>
 #include <melon/rpc/callback.h>
-#include "melon/raft/configuration.h"
-#include "melon/proto/raft/enum.pb.h"
-#include "melon/proto/raft/errno.pb.h"
+#include <melon/raft/configuration.h>
+#include <melon/proto/raft/enum.pb.h>
+#include <melon/proto/raft/errno.pb.h>
 
 template<typename T>
 class scoped_refptr;
@@ -51,8 +54,8 @@ namespace melon::raft {
 
     const PeerId ANY_PEER(mutil::EndPoint(mutil::IP_ANY, 0), 0);
 
-// Raft-specific closure which encloses a mutil::Status to report if the
-// operation was successful.
+    // Raft-specific closure which encloses a mutil::Status to report if the
+    // operation was successful.
     class Closure : public google::protobuf::Closure {
     public:
         mutil::Status &status() { return _st; }
@@ -114,7 +117,7 @@ namespace melon::raft {
         return os;
     }
 
-// Basic message structure of libraft
+    // Basic message structure of libraft
     struct Task {
         Task() : data(NULL), done(NULL), expected_term(-1) {}
 
@@ -132,15 +135,15 @@ namespace melon::raft {
 
     class IteratorImpl;
 
-// Iterator over a batch of committed tasks
-//
-// Example:
-// void YouStateMachine::on_apply(melon::raft::Iterator& iter) {
-//     for (; iter.valid(); iter.next()) {
-//         melon::ClosureGuard done_guard(iter.done());
-//         process(iter.data());
-//     }
-// }
+    // Iterator over a batch of committed tasks
+    //
+    // Example:
+    // void YouStateMachine::on_apply(melon::raft::Iterator& iter) {
+    //     for (; iter.valid(); iter.next()) {
+    //         melon::ClosureGuard done_guard(iter.done());
+    //         process(iter.data());
+    //     }
+    // }
     class Iterator {
         DISALLOW_COPY_AND_ASSIGN(Iterator);
 
@@ -841,23 +844,23 @@ namespace melon::raft {
 
     };
 
-// Bootstrap a non-empty raft node, 
+    // Bootstrap a non-empty raft node,
     int bootstrap(const BootstrapOptions &options);
 
-// Attach raft services to |server|, this makes the raft services share the same
-// listening address with the user services.
-//
-// NOTE: Now we only allow the backing Server to be started with a specific
-// listen address, if the Server is going to be started from a range of ports, 
-// the behavior is undefined.
-// Returns 0 on success, -1 otherwise.
+    // Attach raft services to |server|, this makes the raft services share the same
+    // listening address with the user services.
+    //
+    // NOTE: Now we only allow the backing Server to be started with a specific
+    // listen address, if the Server is going to be started from a range of ports,
+    // the behavior is undefined.
+    // Returns 0 on success, -1 otherwise.
     int add_service(melon::Server *server, const mutil::EndPoint &listen_addr);
 
     int add_service(melon::Server *server, int port);
 
     int add_service(melon::Server *server, const char *listen_ip_and_port);
 
-// GC
+    // GC
     struct GCOptions {
         // Versioned-groupid of this raft instance.
         // Version is necessary because instance with the same groupid may be created
@@ -878,5 +881,3 @@ namespace melon::raft {
     int gc_raft_data(const GCOptions &gc_options);
 
 }  //  namespace melon::raft
-
-#endif // MELON_RAFT_RAFT_H_

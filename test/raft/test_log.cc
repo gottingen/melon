@@ -13,10 +13,12 @@
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/utility/files/dir_reader_posix.h>
 #include <melon/utility/string_printf.h>
-#include <melon/utility/logging.h>
-#include "melon/raft/util.h"
-#include "melon/raft/log.h"
-#include "melon/raft/storage.h"
+#include <turbo/log/logging.h>
+#include <melon/raft/util.h>
+#include <melon/raft/log.h>
+#include <melon/raft/storage.h>
+#include <melon/raft/config.h>
+#include <cinttypes>
 
 namespace melon::raft {
 DECLARE_bool(raft_trace_append_entry_latency);
@@ -850,11 +852,11 @@ TEST_F(LogStorageTest, configuration) {
     melon::raft::ConfigurationEntry pair;
     configuration_manager->get(2 + 100000*5, &pair);
     ASSERT_EQ(2, pair.id.index);
-    MLOG(INFO) << pair.conf;
+    LOG(INFO) << pair.conf;
 
     configuration_manager->get(2 + 100000*5 + 1, &pair);
     ASSERT_EQ(2+100000*5+1, pair.id.index);
-    MLOG(INFO) << pair.conf;
+    LOG(INFO) << pair.conf;
 
     storage2->truncate_suffix(400000);
     configuration_manager->get(400000, &pair);
@@ -1223,7 +1225,7 @@ TEST_F(LogStorageTest, append_close_load_append_with_io_metric) {
     ASSERT_NE(0, metric.append_entry_time_us);
     ASSERT_NE(0, metric.sync_segment_time_us);
 
-    MLOG(INFO) << metric;
+    LOG(INFO) << metric;
 
     delete storage;
     delete configuration_manager;

@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,25 +22,25 @@
 #include <execinfo.h>
 #include <dlfcn.h>                               // dlsym
 #include <fcntl.h>                               // O_RDONLY
-#include "melon/utility/atomicops.h"
-#include "melon/var/var.h"
-#include "melon/var/collector.h"
-#include "melon/utility/macros.h"                         // MELON_CASSERT
-#include "melon/utility/containers/flat_map.h"
-#include "melon/utility/iobuf.h"
-#include "melon/utility/fd_guard.h"
-#include "melon/utility/files/file.h"
-#include "melon/utility/files/file_path.h"
-#include "melon/utility/file_util.h"
-#include "melon/utility/unique_ptr.h"
-#include "melon/utility/third_party/murmurhash3/murmurhash3.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/object_pool.h"
-#include "melon/fiber/butex.h"                       // butex_*
-#include "melon/fiber/processor.h"                   // cpu_relax, barrier
-#include "melon/fiber/mutex.h"                       // fiber_mutex_t
-#include "melon/fiber/sys_futex.h"
-#include "melon/fiber/log.h"
+#include <melon/utility/atomicops.h>
+#include <melon/var/var.h>
+#include <melon/var/collector.h>
+#include <melon/utility/macros.h>                         // MELON_CASSERT
+#include <melon/utility/containers/flat_map.h>
+#include <melon/utility/iobuf.h>
+#include <melon/utility/fd_guard.h>
+#include <melon/utility/files/file.h>
+#include <melon/utility/files/file_path.h>
+#include <melon/utility/file_util.h>
+#include <melon/utility/unique_ptr.h>
+#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/object_pool.h>
+#include <melon/fiber/butex.h>                       // butex_*
+#include <melon/fiber/processor.h>                   // cpu_relax, barrier
+#include <melon/fiber/mutex.h>                       // fiber_mutex_t
+#include <melon/fiber/sys_futex.h>
+#include <melon/fiber/log.h>
 
 extern "C" {
 extern void* __attribute__((weak)) _dl_sym(void* handle, const char* symbol, void* caller);
@@ -152,7 +156,7 @@ void ContentionProfiler::init_if_needed() {
     if (!_init) {
         // Already output nanoseconds, always set cycles/second to 1000000000.
         _disk_buf.append("--- contention\ncycles/second=1000000000\n");
-        MCHECK_EQ(0, _dedup_map.init(1024, 60));
+        CHECK_EQ(0, _dedup_map.init(1024, 60));
         _init = true;
     }
 }
@@ -211,7 +215,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
                     if (errno == EINTR) {
                         continue;
                     }
-                    PMLOG(ERROR) << "Fail to read /proc/self/maps";
+                    PLOG(ERROR) << "Fail to read /proc/self/maps";
                     break;
                 }
                 if (nr == 0) {
@@ -220,7 +224,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
                 }
             }
         } else {
-            PMLOG(ERROR) << "Fail to open /proc/self/maps";
+            PLOG(ERROR) << "Fail to open /proc/self/maps";
         }
     }
     // Write _disk_buf into _filename
@@ -228,7 +232,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     mutil::FilePath path(_filename);
     mutil::FilePath dir = path.DirName();
     if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
-        MLOG(ERROR) << "Fail to create directory=`" << dir.value()
+        LOG(ERROR) << "Fail to create directory=`" << dir.value()
                    << "', " << error;
         return;
     }
@@ -240,7 +244,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
     }
     mutil::fd_guard fd(open(_filename.c_str(), O_WRONLY|O_CREAT|flag, 0666));
     if (fd < 0) {
-        PMLOG(ERROR) << "Fail to open " << _filename;
+        PLOG(ERROR) << "Fail to open " << _filename;
         return;
     }
     // Write once normally, write until empty in the end.
@@ -250,7 +254,7 @@ void ContentionProfiler::flush_to_disk(bool ending) {
             if (errno == EINTR) {
                 continue;
             }
-            PMLOG(ERROR) << "Fail to write into " << _filename;
+            PLOG(ERROR) << "Fail to write into " << _filename;
             return;
         }
         BT_VLOG << "Write " << nw << " bytes into " << _filename;
@@ -313,7 +317,7 @@ static int64_t get_nconflicthash(void*) {
 // Start profiling contention.
 bool ContentionProfilerStart(const char* filename) {
     if (filename == NULL) {
-        MLOG(ERROR) << "Parameter [filename] is NULL";
+        LOG(ERROR) << "Parameter [filename] is NULL";
         return false;
     }
     // g_cp is also the flag marking start/stop.
@@ -358,7 +362,7 @@ void ContentionProfilerStop() {
             return;
         }
     }
-    MLOG(ERROR) << "Contention profiler is not started!";
+    LOG(ERROR) << "Contention profiler is not started!";
 }
 
 MUTIL_FORCE_INLINE bool

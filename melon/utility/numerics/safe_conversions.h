@@ -7,7 +7,7 @@
 
 #include <limits>
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/numerics/safe_conversions_impl.h"
 
 namespace mutil {
@@ -22,16 +22,16 @@ inline bool IsValueInRangeForNumericType(Src value) {
 
 // checked_cast<> is analogous to static_cast<> for numeric types,
 // except that it CHECKs that the specified numeric conversion will not
-// overflow or underflow. NaN source will always trigger a MCHECK.
+// overflow or underflow. NaN source will always trigger a CHECK.
 template <typename Dst, typename Src>
 inline Dst checked_cast(Src value) {
-  MCHECK(IsValueInRangeForNumericType<Dst>(value));
+  CHECK(IsValueInRangeForNumericType<Dst>(value));
   return static_cast<Dst>(value);
 }
 
 // saturated_cast<> is analogous to static_cast<> for numeric types, except
 // that the specified numeric conversion will saturate rather than overflow or
-// underflow. NaN assignment to an integral will trigger a MCHECK condition.
+// underflow. NaN assignment to an integral will trigger a CHECK condition.
 template <typename Dst, typename Src>
 inline Dst saturated_cast(Src value) {
   // Optimization for floating point values, which already saturate.
@@ -50,11 +50,11 @@ inline Dst saturated_cast(Src value) {
 
     // Should fail only on attempting to assign NaN to a saturated integer.
     case internal::RANGE_INVALID:
-      MCHECK(false);
+      CHECK(false);
       return std::numeric_limits<Dst>::max();
   }
 
-  NOTREACHED();
+  DCHECK(false);
   return static_cast<Dst>(value);
 }
 

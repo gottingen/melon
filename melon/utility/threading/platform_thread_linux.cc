@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/threading/platform_thread.h"
+#include <melon/utility/threading/platform_thread.h>
 
 #include <errno.h>
 #include <sched.h>
 
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <turbo/log/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/safe_strerror_posix.h"
 #include "melon/utility/threading/thread_id_name_manager.h"
 #include "melon/utility/threading/thread_restrictions.h"
@@ -37,7 +37,7 @@ int ThreadNiceValue(ThreadPriority priority) {
     case kThreadPriority_Display:
       return -6;
     default:
-      NOTREACHED() << "Unknown priority.";
+      DCHECK(false) << "Unknown priority.";
       return 0;
   }
 }
@@ -70,7 +70,7 @@ void PlatformThread::SetName(const char* name) {
   int err = prctl(PR_SET_NAME, name);
   // We expect EPERM failures in sandboxed processes, just ignore those.
   if (err < 0 && errno != EPERM)
-    DPMLOG(ERROR) << "prctl(PR_SET_NAME)";
+      DLOG(ERROR) << "prctl(PR_SET_NAME)";
 #endif  //  !defined(OS_NACL)
 }
 
@@ -90,10 +90,10 @@ void PlatformThread::SetThreadPriority(PlatformThreadHandle handle,
   // the 'process identifier', not affecting the rest of the threads in the
   // process. Setting this priority will only succeed if the user has been
   // granted permission to adjust nice values on the system.
-  DMCHECK_NE(handle.id_, kInvalidThreadId);
+  DCHECK_NE(handle.id_, kInvalidThreadId);
   const int kNiceSetting = ThreadNiceValue(priority);
   if (setpriority(PRIO_PROCESS, handle.id_, kNiceSetting)) {
-    DVPMLOG(1) << "Failed to set nice value of thread ("
+      DVLOG(1) << "Failed to set nice value of thread ("
               << handle.id_ << ") to " << kNiceSetting;
   }
 #endif  //  !defined(OS_NACL)

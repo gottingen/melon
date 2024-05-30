@@ -1,29 +1,33 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <gflags/gflags.h>
-#include <stdio.h>                                      // getline
+#include <cstdio>                                      // getline
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include "melon/fiber/fiber.h"                            // fiber_usleep
-#include "melon/utility/iobuf.h"
-#include "melon/rpc/log.h"
-#include "melon/rpc/channel.h"
-#include "melon/naming/remote_file_naming_service.h"
+#include <melon/fiber/fiber.h>                            // fiber_usleep
+#include <melon/utility/iobuf.h>
+#include <melon/rpc/log.h>
+#include <melon/rpc/channel.h>
+#include <melon/naming/remote_file_naming_service.h>
 
 
 namespace melon::naming {
@@ -59,7 +63,7 @@ namespace melon::naming {
                                             std::vector<ServerNode> *servers) {
         servers->clear();
 
-        if (_channel == NULL) {
+        if (_channel == nullptr) {
             mutil::StringPiece tmpname(service_name_cstr);
             size_t pos = tmpname.find("://");
             mutil::StringPiece proto;
@@ -71,7 +75,7 @@ namespace melon::naming {
                 proto = "http";
             }
             if (proto != "bns" && proto != "http") {
-                MLOG(ERROR) << "Invalid protocol=`" << proto
+                LOG(ERROR) << "Invalid protocol=`" << proto
                            << "\' in service_name=" << service_name_cstr;
                 return -1;
             }
@@ -95,7 +99,7 @@ namespace melon::naming {
             opt.timeout_ms = FLAGS_remote_file_timeout_ms;
             std::unique_ptr<Channel> chan(new Channel);
             if (chan->Init(_server_addr.c_str(), "rr", &opt) != 0) {
-                MLOG(ERROR) << "Fail to init channel to " << _server_addr;
+                LOG(ERROR) << "Fail to init channel to " << _server_addr;
                 return -1;
             }
             _channel.swap(chan);
@@ -103,9 +107,9 @@ namespace melon::naming {
 
         Controller cntl;
         cntl.http_request().uri() = _path;
-        _channel->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        _channel->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
-            MLOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
+            LOG(WARNING) << "Fail to access " << _server_addr << _path << ": "
                          << cntl.ErrorText();
             return -1;
         }
@@ -125,7 +129,7 @@ namespace melon::naming {
             mutil::EndPoint point;
             if (str2endpoint(addr.data(), &point) != 0 &&
                 hostname2endpoint(addr.data(), &point) != 0) {
-                MLOG(ERROR) << "Invalid address=`" << addr << '\'';
+                LOG(ERROR) << "Invalid address=`" << addr << '\'';
                 continue;
             }
             ServerNode node;

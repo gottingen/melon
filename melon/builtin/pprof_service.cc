@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -20,21 +24,21 @@
 #include <limits>
 #include <sys/stat.h>
 #include <fcntl.h>                          // O_RDONLY
-#include "melon/utility/string_printf.h"             // string_printf
-#include "melon/utility/string_splitter.h"           // StringSplitter
-#include "melon/utility/file_util.h"                 // mutil::FilePath
-#include "melon/utility/files/scoped_file.h"         // ScopedFILE
-#include "melon/utility/time.h"
-#include "melon/utility/popen.h"                    // mutil::read_command_output
-#include "melon/utility/process_util.h"             // mutil::ReadCommandLine
-#include "melon/rpc/log.h"
-#include "melon/rpc/controller.h"                // Controller
-#include "melon/rpc/closure_guard.h"             // ClosureGuard
-#include "melon/builtin/pprof_service.h"
-#include "melon/builtin/common.h"
-#include "melon/rpc/details/tcmalloc_extension.h"
-#include "melon/fiber/fiber.h"                // fiber_usleep
-#include "melon/utility/fd_guard.h"
+#include <melon/utility/string_printf.h>             // string_printf
+#include <melon/utility/string_splitter.h>           // StringSplitter
+#include <melon/utility/file_util.h>                 // mutil::FilePath
+#include <melon/utility/files/scoped_file.h>         // ScopedFILE
+#include <melon/utility/time.h>
+#include <melon/utility/popen.h>                    // mutil::read_command_output
+#include <melon/utility/process_util.h>           // mutil::ReadCommandLine
+#include <melon/rpc/log.h>
+#include <melon/rpc/controller.h>                // Controller
+#include <melon/rpc/closure_guard.h>             // ClosureGuard
+#include <melon/builtin/pprof_service.h>
+#include <melon/builtin/common.h>
+#include <melon/rpc/details/tcmalloc_extension.h>
+#include <melon/fiber/fiber.h>                // fiber_usleep
+#include <melon/utility/fd_guard.h>
 
 extern "C" {
 #if defined(OS_LINUX)
@@ -122,7 +126,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for cpu profile for "
+        LOG(INFO) << client_info.str() << " requests for cpu profile for "
                   << sleep_sec << " seconds";
 
         char prof_name[256];
@@ -141,7 +145,7 @@ namespace melon {
             return;
         }
         if (fiber_usleep(sleep_sec * 1000000L) != 0) {
-            PMLOG(WARNING) << "Profiling has been interrupted";
+            PLOG(WARNING) << "Profiling has been interrupted";
         }
         ProfilerStop();
 
@@ -179,7 +183,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for contention profile for "
+        LOG(INFO) << client_info.str() << " requests for contention profile for "
                   << sleep_sec << " seconds";
 
         char prof_name[256];
@@ -192,7 +196,7 @@ namespace melon {
             return;
         }
         if (fiber_usleep(sleep_sec * 1000000L) != 0) {
-            PMLOG(WARNING) << "Profiling has been interrupted";
+            PLOG(WARNING) << "Profiling has been interrupted";
         }
         fiber::ContentionProfilerStop();
 
@@ -232,7 +236,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for heap profile";
+        LOG(INFO) << client_info.str() << " requests for heap profile";
 
         std::string obj;
         malloc_ext->GetHeapSample(&obj);
@@ -262,7 +266,7 @@ namespace melon {
         } else {
             client_info << "(no auth)";
         }
-        MLOG(INFO) << client_info.str() << " requests for growth profile";
+        LOG(INFO) << client_info.str() << " requests for growth profile";
 
         std::string obj;
         malloc_ext->GetHeapGrowthStacks(&obj);
@@ -299,7 +303,7 @@ namespace melon {
         std::stringstream ss;
         const int rc = mutil::read_command_output(ss, cmd.c_str());
         if (rc < 0) {
-            MLOG(ERROR) << "Fail to popen `" << cmd << "'";
+            LOG(ERROR) << "Fail to popen `" << cmd << "'";
             return -1;
         }
         std::string line;

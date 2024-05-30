@@ -1,21 +1,25 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#include "melon/raft/repeated_timer_task.h"
-#include "melon/raft/util.h"
+#include <melon/raft/repeated_timer_task.h>
+#include <melon/raft/util.h>
 
 namespace melon::raft {
 
@@ -23,8 +27,8 @@ namespace melon::raft {
             : _timeout_ms(0), _stopped(true), _running(false), _destroyed(true), _invoking(false) {}
 
     RepeatedTimerTask::~RepeatedTimerTask() {
-        MCHECK(!_running) << "Is still running";
-        MCHECK(_destroyed) << "destroy() must be invoked before descrution";
+        CHECK(!_running) << "Is still running";
+        CHECK(_destroyed) << "destroy() must be invoked before descrution";
     }
 
     int RepeatedTimerTask::init(int timeout_ms) {
@@ -40,7 +44,7 @@ namespace melon::raft {
         MELON_SCOPED_LOCK(_mutex);
         BRAFT_RETURN_IF(_stopped);
         _stopped = true;
-        MCHECK(_running);
+        CHECK(_running);
         const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             _running = false;
@@ -56,7 +60,7 @@ namespace melon::raft {
         run();
         lck.lock();
         _invoking = false;
-        MCHECK(_running);
+        CHECK(_running);
         if (_stopped) {
             _running = false;
             if (_destroyed) {
@@ -112,7 +116,7 @@ namespace melon::raft {
         fiber_t tid;
         if (fiber_start_background(
                 &tid, NULL, run_on_timedout_in_new_thread, arg) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             run_on_timedout_in_new_thread(arg);
         }
     }
@@ -122,7 +126,7 @@ namespace melon::raft {
                 mutil::milliseconds_from_now(adjust_timeout_ms(_timeout_ms));
         if (fiber_timer_add(&_timer, _next_duetime, on_timedout, this) != 0) {
             lck.unlock();
-            MLOG(ERROR) << "Fail to add timer";
+            LOG(ERROR) << "Fail to add timer";
             return on_timedout(this);
         }
     }
@@ -130,7 +134,7 @@ namespace melon::raft {
     void RepeatedTimerTask::reset() {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         BRAFT_RETURN_IF(_stopped);
-        MCHECK(_running);
+        CHECK(_running);
         const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             return schedule(lck);
@@ -142,7 +146,7 @@ namespace melon::raft {
         std::unique_lock<raft_mutex_t> lck(_mutex);
         _timeout_ms = timeout_ms;
         BRAFT_RETURN_IF(_stopped);
-        MCHECK(_running);
+        CHECK(_running);
         const int rc = fiber_timer_del(_timer);
         if (rc == 0) {
             return schedule(lck);
@@ -155,7 +159,7 @@ namespace melon::raft {
         BRAFT_RETURN_IF(_destroyed);
         _destroyed = true;
         if (!_running) {
-            MCHECK(_stopped);
+            CHECK(_stopped);
             lck.unlock();
             on_destroy();
             return;
@@ -169,7 +173,7 @@ namespace melon::raft {
             on_destroy();
             return;
         }
-        MCHECK(_running);
+        CHECK(_running);
     }
 
     void RepeatedTimerTask::describe(std::ostream &os, bool use_html) {

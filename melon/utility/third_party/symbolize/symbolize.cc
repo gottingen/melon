@@ -60,7 +60,7 @@
 
 #include "symbolize.h"
 #include "demangle.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 
 _START_GOOGLE_NAMESPACE_
 

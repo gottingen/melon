@@ -1,25 +1,28 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef  MELON_VAR_SCOPED_TIMER_H_
-#define  MELON_VAR_SCOPED_TIMER_H_
+#pragma once
 
-#include "melon/utility/time.h"
+#include <melon/utility/time.h>
 
-// Accumulate microseconds spent by scopes into bvar, useful for debugging.
+// Accumulate microseconds spent by scopes into var, useful for debugging.
 // Example:
 //   melon::var::Adder<int64_t> g_function1_spent;
 //   ...
@@ -30,18 +33,18 @@
 //     ...
 //   }
 // To check how many microseconds the function spend in last second, you
-// can wrap the bvar within PerSecond and make it viewable from /vars
+// can wrap the var within PerSecond and make it viewable from /vars
 //   melon::var::PerSecond<melon::var::Adder<int64_t> > g_function1_spent_second(
 //     "function1_spent_second", &g_function1_spent);
 namespace melon::var {
     template<typename T>
     class ScopedTimer {
     public:
-        explicit ScopedTimer(T &bvar)
-                : _start_time(mutil::cpuwide_time_us()), _bvar(&bvar) {}
+        explicit ScopedTimer(T &var)
+                : _start_time(mutil::cpuwide_time_us()), _var(&var) {}
 
         ~ScopedTimer() {
-            *_bvar << (mutil::cpuwide_time_us() - _start_time);
+            *_var << (mutil::cpuwide_time_us() - _start_time);
         }
 
         void reset() { _start_time = mutil::cpuwide_time_us(); }
@@ -50,8 +53,6 @@ namespace melon::var {
         DISALLOW_COPY_AND_ASSIGN(ScopedTimer);
 
         int64_t _start_time;
-        T *_bvar;
+        T *_var;
     };
 } // namespace melon::var
-
-#endif  // MELON_VAR_SCOPED_TIMER_H_

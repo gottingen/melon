@@ -33,8 +33,8 @@ TEST_F(ChecksumTest, benchmark) {
     timer.stop();
     const long crc_elp = timer.u_elapsed();
 
-    MLOG(INFO) << "murmurhash32_TP=" << sizeof(data) * N / (double)mur_elp << "MB/s"
+    LOG(INFO) << "murmurhash32_TP=" << sizeof(data) * N / (double)mur_elp << "MB/s"
               << " base_crc32_TP=" << sizeof(data) * N / (double)crc_elp << "MB/s";
-    MLOG(INFO) << "base_is_fast_crc32_support=" << mutil::crc32c::IsFastCrc32Supported();
+    LOG(INFO) << "base_is_fast_crc32_support=" << mutil::crc32c::IsFastCrc32Supported();
 
 }

@@ -14,8 +14,8 @@
 #include <string.h>  // For memcpy.
 #include <stdlib.h>
 
-#include "melon/utility/compiler_specific.h"  // For ALLOW_UNUSED.
-#include "melon/utility/string_printf.h"      // For mutil::string_printf().
+#include <melon/utility/compiler_specific.h>  // For ALLOW_UNUSED.
+#include <melon/utility/string_printf.h>      // For mutil::string_printf().
 
 // There must be many copy-paste versions of these macros which are same
 // things, undefine them to avoid conflict.
@@ -447,7 +447,7 @@ namespace {  /*anonymous namespace */                           \
 #define ASSERT_LOG(fmt, ...)                                            \
     do {                                                                \
         std::string log = mutil::string_printf(fmt, ## __VA_ARGS__);    \
-        MLOG(FATAL) << log;                                              \
+        LOG(FATAL) << log;                                              \
     } while (false)
 
 // Assert macro that can crash the process to generate a dump.

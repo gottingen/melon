@@ -10,14 +10,14 @@
 // A portable implementation of crc32c, optimized to handle
 // four bytes at a time.
 
-#include "melon/utility/crc32c.h"
+#include <melon/utility/crc32c.h>
 
 #include <string.h>
 #include <stdint.h>
 #ifdef __SSE4_2__
 #include <nmmintrin.h>
 #endif
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 namespace mutil {
 namespace crc32c {

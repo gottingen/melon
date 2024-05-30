@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,15 +22,15 @@
 #ifndef MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
 #define MELON_RPC_POLICY_HTTP2_RPC_PROTOCOL_H_
 
-#include "melon/rpc/policy/http_rpc_protocol.h"   // HttpContext
-#include "melon/rpc/input_message_base.h"
-#include "melon/rpc/protocol.h"
-#include "melon/rpc/http/hpack.h"
-#include "melon/rpc/stream_creator.h"
-#include "melon/rpc/controller.h"
+#include <melon/rpc/policy/http_rpc_protocol.h>   // HttpContext
+#include <melon/rpc/input_message_base.h>
+#include <melon/rpc/protocol.h>
+#include <melon/rpc/http/hpack.h>
+#include <melon/rpc/stream_creator.h>
+#include <melon/rpc/controller.h>
 
 #ifndef NDEBUG
-#include "melon/var/var.h"
+#include <melon/var/var.h>
 #endif
 
 namespace melon {
@@ -115,17 +119,17 @@ enum H2StreamState {
 const char* H2StreamState2Str(H2StreamState);
 
 #ifndef NDEBUG
-struct H2Bvars {
+struct H2Vars {
     melon::var::Adder<int> h2_unsent_request_count;
     melon::var::Adder<int> h2_stream_context_count;
 
-    H2Bvars()
+    H2Vars()
         : h2_unsent_request_count("h2_unsent_request_count")
         , h2_stream_context_count("h2_stream_context_count") {
     }
 };
-inline H2Bvars* get_h2_bvars() {
-    return mutil::get_leaky_singleton<H2Bvars>();
+inline H2Vars* get_h2_vars() {
+    return mutil::get_leaky_singleton<H2Vars>();
 }
 #endif
 
@@ -170,12 +174,12 @@ private:
         , _stream_id(0)
         , _cntl(c) {
 #ifndef NDEBUG
-        get_h2_bvars()->h2_unsent_request_count << 1;
+        get_h2_vars()->h2_unsent_request_count << 1;
 #endif
     }
     ~H2UnsentRequest() {
 #ifndef NDEBUG
-        get_h2_bvars()->h2_unsent_request_count << -1;
+        get_h2_vars()->h2_unsent_request_count << -1;
 #endif
     }
     H2UnsentRequest(const H2UnsentRequest&);
@@ -397,7 +401,7 @@ friend void InitFrameHandlers();
 
 inline int H2Context::AllocateClientStreamId() {
     if (RunOutStreams()) {
-        MLOG(WARNING) << "Fail to allocate new client stream, _last_sent_stream_id="
+        LOG(WARNING) << "Fail to allocate new client stream, _last_sent_stream_id="
             << _last_sent_stream_id;
         return -1;
     }

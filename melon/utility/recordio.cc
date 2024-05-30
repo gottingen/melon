@@ -1,23 +1,27 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gflags/gflags.h>
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/recordio.h"
-#include "melon/utility/sys_byteorder.h"
+#include <melon/utility/sys_byteorder.h>
 
 namespace mutil {
 
@@ -91,10 +95,10 @@ mutil::IOBuf* Record::MutableMeta(const char* name_cstr, bool null_on_found) {
         }
     }
     if (name.size() > MAX_NAME_SIZE) {
-        MLOG(ERROR) << "Too long name=" << name;
+        LOG(ERROR) << "Too long name=" << name;
         return NULL;
     } else if (name.empty()) {
-        MLOG(ERROR) << "Empty name";
+        LOG(ERROR) << "Empty name";
         return NULL;
     }
     NamedMeta p;
@@ -111,10 +115,10 @@ mutil::IOBuf* Record::MutableMeta(const std::string& name, bool null_on_found) {
         }
     }
     if (name.size() > MAX_NAME_SIZE) {
-        MLOG(ERROR) << "Too long name" << name;
+        LOG(ERROR) << "Too long name" << name;
         return NULL;
     } else if (name.empty()) {
-        MLOG(ERROR) << "Empty name";
+        LOG(ERROR) << "Empty name";
         return NULL;
     }
     NamedMeta p;
@@ -205,7 +209,7 @@ bool RecordReader::CutUntilNextRecordCandidate() {
             if (*(const uint32_t*)dummy == *(const uint32_t*)MELON_RECORDIO_MAGIC) {
                 _cutter.pop_front(i);
                 _ncut += i;
-                MLOG(INFO) << "Found record candidate after " << _ncut - old_ncut << " bytes";
+                LOG(INFO) << "Found record candidate after " << _ncut - old_ncut << " bytes";
                 return true;
             }
         }
@@ -224,7 +228,7 @@ int RecordReader::CutRecord(Record* rec) {
     }
     void* dummy = headbuf;  // suppressing strict-aliasing warning
     if (*(const uint32_t*)dummy != *(const uint32_t*)MELON_RECORDIO_MAGIC) {
-        MLOG(ERROR) << "Invalid magic_num="
+        LOG(ERROR) << "Invalid magic_num="
                    << mutil::PrintedAsBinary(std::string((char*)headbuf, 4))
                    << ", offset=" << offset();
         return -1;
@@ -236,7 +240,7 @@ int RecordReader::CutRecord(Record* rec) {
     // addition overflows
     const size_t data_size = (tmp & 0x7FFFFFFF);
     if (checksum != headbuf[8]) {
-        MLOG(ERROR) << "Unmatched checksum of 0x"
+        LOG(ERROR) << "Unmatched checksum of 0x"
                    << std::hex << tmp << std::dec
                    << "(metabit=" << has_meta
                    << " size=" << data_size
@@ -246,7 +250,7 @@ int RecordReader::CutRecord(Record* rec) {
         return -1;
     }
     if (data_size > (size_t)FLAGS_recordio_max_record_size) {
-        MLOG(ERROR) << "data_size=" << data_size
+        LOG(ERROR) << "data_size=" << data_size
                    << " is larger than -recordio_max_record_size="
                    << FLAGS_recordio_max_record_size
                    << ", offset=" << offset();
@@ -261,7 +265,7 @@ int RecordReader::CutRecord(Record* rec) {
     size_t consumed_bytes = 0;
     while (has_meta) {
         char name_size_buf = 0;
-        MCHECK(_cutter.cut1(&name_size_buf));
+        CHECK(_cutter.cut1(&name_size_buf));
         const size_t name_size = (uint8_t)name_size_buf;
         std::string name;
         _cutter.cutn(&name, name_size);
@@ -271,14 +275,14 @@ int RecordReader::CutRecord(Record* rec) {
         const size_t meta_size = (tmp & 0x7FFFFFFF);
         _ncut += 5 + name_size;
         if (consumed_bytes + 5 + name_size + meta_size > data_size) {
-            MLOG(ERROR) << name << ".meta_size=" << meta_size
+            LOG(ERROR) << name << ".meta_size=" << meta_size
                        << " is inconsistent with its data_size=" << data_size
                        << ", offset=" << offset();
             return -1;
         }
         mutil::IOBuf* meta = rec->MutableMeta(name, true/*null_on_found*/);
         if (meta == NULL) {
-            MLOG(ERROR) << "Fail to add meta=" << name
+            LOG(ERROR) << "Fail to add meta=" << name
                        << ", offset=" << offset();
             return -1;
         }
@@ -290,10 +294,10 @@ int RecordReader::CutRecord(Record* rec) {
     const size_t cut_bytes = _cutter.cutn(rec->MutablePayload(), data_size - consumed_bytes);
     const size_t after_payload_size = rec->Payload().size();
     if (cut_bytes != after_payload_size) {
-        MLOG(ERROR) << "cut_bytes=" << cut_bytes << " does not match after_payload_size=" << after_payload_size << " previous_size=" << previous_payload_size << " data_size=" << data_size << " consumed_bytes=" << consumed_bytes;
+        LOG(ERROR) << "cut_bytes=" << cut_bytes << " does not match after_payload_size=" << after_payload_size << " previous_size=" << previous_payload_size << " data_size=" << data_size << " consumed_bytes=" << consumed_bytes;
     }
     if (cut_bytes != data_size - consumed_bytes) {
-        MLOG(ERROR) << "cut_bytes=" << cut_bytes << " does not match input=" << data_size - consumed_bytes;
+        LOG(ERROR) << "cut_bytes=" << cut_bytes << " does not match input=" << data_size - consumed_bytes;
     }
     _ncut += cut_bytes;
     return 1;
@@ -310,7 +314,7 @@ int RecordWriter::WriteWithoutFlush(const Record& rec) {
     for (size_t i = 0; i < rec.MetaCount(); ++i) {
         auto& s = rec.MetaAt(i);
         if (s.name.size() > MAX_NAME_SIZE) {
-            MLOG(ERROR) << "Too long name=" << s.name;
+            LOG(ERROR) << "Too long name=" << s.name;
             _buf.pop_back(_buf.size() - old_size);
             return -1;
         }
@@ -321,7 +325,7 @@ int RecordWriter::WriteWithoutFlush(const Record& rec) {
         memcpy(p, s.name.data(), s.name.size());
         p += s.name.size();
         if (s.data->size() > 0x7FFFFFFFULL) {
-            MLOG(ERROR) << "Meta named `" << s.name << "' is too long, size="
+            LOG(ERROR) << "Meta named `" << s.name << "' is too long, size="
                        << s.data->size();
             _buf.pop_back(_buf.size() - old_size);
             return -1;
@@ -341,7 +345,7 @@ int RecordWriter::WriteWithoutFlush(const Record& rec) {
     *(uint32_t*)dummy = *(const uint32_t*)MELON_RECORDIO_MAGIC;
     const size_t data_size = _buf.size() - old_size - sizeof(headbuf);
     if (data_size > 0x7FFFFFFFULL) {
-        MLOG(ERROR) << "data_size=" << data_size << " is too long";
+        LOG(ERROR) << "data_size=" << data_size << " is too long";
         _buf.pop_back(_buf.size() - old_size);
         return -1;
     }

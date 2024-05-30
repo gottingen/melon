@@ -3,7 +3,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/util.h"
 #include "melon/raft/snapshot_throttle.h"
@@ -75,7 +75,7 @@ TEST_F(TestUsageSuits, throttle_functioning) {
         int64_t now = mutil::cpuwide_time_us();
         int64_t aligning_time = melon::raft::caculate_check_time_us(now, cycles);
         ASSERT_TRUE(aligning_time % cycle_time == 0);
-        MLOG(INFO) << "Time now: " << now << ", aligning time: " << aligning_time;
+        LOG(INFO) << "Time now: " << now << ", aligning time: " << aligning_time;
     }
 
     int64_t request_1 = 1 * 1024 * 1024;
@@ -141,7 +141,7 @@ TEST_F(TestUsageSuits, throttle_functioning) {
     int64_t expect_throughput = run_time * limit;
     ASSERT_LE(arg.total_throughput, 1.1 * expect_throughput);
     ASSERT_GE(arg.total_throughput, 0.9 * expect_throughput);
-    MLOG(INFO) << "Total throughput in run_time: " << arg.total_throughput
+    LOG(INFO) << "Total throughput in run_time: " << arg.total_throughput
               << " Upper bound: " << 1.1 * expect_throughput
               << " Lowwer bound: " << 0.9 * expect_throughput;  
     

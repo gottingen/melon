@@ -1,24 +1,28 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#include "melon/raft/cli_service.h"
+#include <melon/raft/cli_service.h>
 
 #include <melon/rpc/controller.h>       // melon::Controller
-#include "melon/raft/node_manager.h"          // NodeManager
-#include "melon/raft/closure_helper.h"        // NewCallback
+#include <melon/raft/node_manager.h>          // NodeManager
+#include <melon/raft/closure_helper.h>        // NewCallback
 
 namespace melon::raft {
 
@@ -71,7 +75,7 @@ namespace melon::raft {
                             request->peer_id().c_str());
             return;
         }
-        MLOG(WARNING) << "Receive AddPeerRequest to " << node->node_id()
+        LOG(WARNING) << "Receive AddPeerRequest to " << node->node_id()
                      << " from " << cntl->remote_side()
                      << ", adding " << request->peer_id();
         Closure *add_peer_done = NewCallback(
@@ -124,7 +128,7 @@ namespace melon::raft {
                             request->peer_id().c_str());
             return;
         }
-        MLOG(WARNING) << "Receive RemovePeerRequest to " << node->node_id()
+        LOG(WARNING) << "Receive RemovePeerRequest to " << node->node_id()
                      << " from " << cntl->remote_side()
                      << ", removing " << request->peer_id();
         Closure *remove_peer_done = NewCallback(
@@ -155,7 +159,7 @@ namespace melon::raft {
             }
             new_peers.add_peer(peer);
         }
-        MLOG(WARNING) << "Receive set_peer to " << node->node_id()
+        LOG(WARNING) << "Receive set_peer to " << node->node_id()
                      << " from " << cntl->remote_side();
         st = node->reset_peers(new_peers);
         if (!st.ok()) {

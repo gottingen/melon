@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -19,12 +19,12 @@
 #include <vector>
 
 #include "melon/utility/basictypes.h"
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/memory/singleton.h"
 #include "melon/utility/strings/utf_string_conversion_utils.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include "melon/utility/third_party/icu/icu_utf.h"
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 // Remove when this entire file is in namespace mutil.
 using mutil::char16;
@@ -206,12 +206,12 @@ bool TrimString(const std::string& input,
 void TruncateUTF8ToByteSize(const std::string& input,
                             const size_t byte_size,
                             std::string* output) {
-  DMCHECK(output);
+  DCHECK(output);
   if (byte_size > input.length()) {
     *output = input;
     return;
   }
-  DMCHECK_LE(byte_size, static_cast<uint32_t>(kint32max));
+  DCHECK_LE(byte_size, static_cast<uint32_t>(kint32max));
   // Note: This cast is necessary because CBU8_NEXT uses int32s.
   int32_t truncation_length = static_cast<int32_t>(byte_size);
   int32_t char_index = truncation_length - 1;
@@ -518,7 +518,7 @@ void DoReplaceSubstringsAfterOffset(StringType* str,
   if ((start_offset == StringType::npos) || (start_offset >= str->length()))
     return;
 
-  DMCHECK(!find_this.empty());
+  DCHECK(!find_this.empty());
   for (size_t offs(str->find(find_this, start_offset));
       offs != StringType::npos; offs = str->find(find_this, offs)) {
     str->replace(offs, find_this.length(), replace_with);
@@ -656,7 +656,7 @@ OutStringType DoReplaceStringPlaceholders(const FormatStringType& format_string,
     if ('$' == *i) {
       if (i + 1 != format_string.end()) {
         ++i;
-        DMCHECK('$' == *i || '1' <= *i) << "Invalid placeholder: " << *i;
+        DCHECK('$' == *i || '1' <= *i) << "Invalid placeholder: " << *i;
         if ('$' == *i) {
           while (i != format_string.end() && '$' == *i) {
             formatted.push_back('$');
@@ -718,7 +718,7 @@ string16 ReplaceStringPlaceholders(const string16& format_string,
   subst.push_back(a);
   string16 result = ReplaceStringPlaceholders(format_string, subst, &offsets);
 
-  DMCHECK_EQ(1U, offsets.size());
+  DCHECK_EQ(1U, offsets.size());
   if (offset)
     *offset = offsets[0];
   return result;

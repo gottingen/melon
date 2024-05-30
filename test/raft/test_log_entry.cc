@@ -15,7 +15,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/iobuf.h>
 #include "melon/raft/log_entry.h"
 

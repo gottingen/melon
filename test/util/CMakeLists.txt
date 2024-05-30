@@ -19,8 +19,6 @@ SET(TEST_UTILITY_SOURCES
         bounded_queue_unittest
         at_exit_unittest
         atomicops_unittest
-        base64_unittest
-        base64url_unittest
         big_endian_unittest
         bits_unittest
         hash_tables_unittest
@@ -30,7 +28,6 @@ SET(TEST_UTILITY_SOURCES
         stack_container_unittest
         mpsc_queue_unittest
         cpu_unittest
-        crash_logging_unittest
         leak_tracker_unittest
         environment_unittest
         dir_reader_posix_unittest
@@ -46,7 +43,7 @@ SET(TEST_UTILITY_SOURCES
         ref_counted_unittest
         scoped_ptr_unittest
         scoped_vector_unittest
-        singleton_unittest
+        #singleton_unittest
         weak_ptr_unittest
         observer_list_unittest
         file_descriptor_shuffle_unittest
@@ -83,7 +80,6 @@ SET(TEST_UTILITY_SOURCES
         watchdog_unittest
         time_unittest
         version_unittest
-        logging_unittest
         cacheline_unittest
         class_name_unittest
         endpoint_unittest
@@ -107,7 +103,6 @@ SET(TEST_UTILITY_SOURCES
         object_pool_unittest
         test_switches
         scoped_locale
-        utility_unittest_main
         resource_pool_unittest
 )
 

@@ -1,19 +1,23 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#include "melon/raft/log.h"
+#include <melon/raft/log.h>
 
 #include <gflags/gflags.h>
 #include <melon/utility/files/dir_reader_posix.h>            // mutil::DirReaderPosix
@@ -24,11 +28,13 @@
 #include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
 #include <melon/rpc/reloadable_flags.h>             //
 
-#include "melon/proto/raft/local_storage.pb.h"
-#include "melon/raft/log_entry.h"
-#include "melon/raft/protobuf_file.h"
-#include "melon/raft/util.h"
-#include "melon/raft/fsync.h"
+#include <melon/proto/raft/local_storage.pb.h>
+#include <melon/raft/log_entry.h>
+#include <melon/raft/protobuf_file.h>
+#include <melon/raft/util.h>
+#include <melon/raft/fsync.h>
+#include <melon/raft/config.h>
+#include <cinttypes>
 
 //#define BRAFT_SEGMENT_OPEN_PATTERN "log_inprogress_%020ld"
 //#define BRAFT_SEGMENT_CLOSED_PATTERN "log_%020ld_%020ld"
@@ -41,7 +47,6 @@ namespace melon::raft {
     using ::mutil::RawPacker;
     using ::mutil::RawUnpacker;
 
-    DECLARE_bool(raft_trace_append_entry_latency);
     DEFINE_int32(raft_max_segment_size, 8 * 1024 * 1024 /*8M*/,
                  "Max size of one segment file");
     MELON_VALIDATE_GFLAG(raft_max_segment_size, melon::PositiveInteger);
@@ -97,7 +102,7 @@ namespace melon::raft {
 
     int Segment::create() {
         if (!_is_open) {
-            MCHECK(false) << "Create on a closed segment at first_index="
+            CHECK(false) << "Create on a closed segment at first_index="
                          << _first_index << " in " << _path;
             return -1;
         }
@@ -121,7 +126,7 @@ namespace melon::raft {
             case CHECKSUM_CRC32:
                 return (value == crc32(data, len));
             default:
-                MLOG(ERROR) << "Unknown checksum_type=" << checksum_type;
+                LOG(ERROR) << "Unknown checksum_type=" << checksum_type;
                 return false;
         }
     }
@@ -134,7 +139,7 @@ namespace melon::raft {
             case CHECKSUM_CRC32:
                 return (value == crc32(data));
             default:
-                MLOG(ERROR) << "Unknown checksum_type=" << checksum_type;
+                LOG(ERROR) << "Unknown checksum_type=" << checksum_type;
                 return false;
         }
     }
@@ -146,7 +151,7 @@ namespace melon::raft {
             case CHECKSUM_CRC32:
                 return crc32(data, len);
             default:
-                MCHECK(false) << "Unknown checksum_type=" << checksum_type;
+                CHECK(false) << "Unknown checksum_type=" << checksum_type;
                 abort();
                 return 0;
         }
@@ -159,7 +164,7 @@ namespace melon::raft {
             case CHECKSUM_CRC32:
                 return crc32(data);
             default:
-                MCHECK(false) << "Unknown checksum_type=" << checksum_type;
+                CHECK(false) << "Unknown checksum_type=" << checksum_type;
                 abort();
                 return 0;
         }
@@ -193,7 +198,7 @@ namespace melon::raft {
         tmp.data_checksum = data_checksum;
         if (!verify_checksum(tmp.checksum_type,
                              p, ENTRY_HEADER_SIZE - 4, header_checksum)) {
-            MLOG(ERROR) << "Found corrupted header at offset=" << offset
+            LOG(ERROR) << "Found corrupted header at offset=" << offset
                        << ", header=" << tmp << ", path: " << _path;
             return -1;
         }
@@ -210,10 +215,10 @@ namespace melon::raft {
             } else if (buf.length() > ENTRY_HEADER_SIZE + data_len) {
                 buf.pop_back(buf.length() - ENTRY_HEADER_SIZE - data_len);
             }
-            MCHECK_EQ(buf.length(), ENTRY_HEADER_SIZE + data_len);
+            CHECK_EQ(buf.length(), ENTRY_HEADER_SIZE + data_len);
             buf.pop_front(ENTRY_HEADER_SIZE);
             if (!verify_checksum(tmp.checksum_type, buf, tmp.data_checksum)) {
-                MLOG(ERROR) << "Found corrupted data at offset="
+                LOG(ERROR) << "Found corrupted data at offset="
                            << offset + ENTRY_HEADER_SIZE
                            << " header=" << tmp
                            << " path: " << _path;
@@ -243,7 +248,7 @@ namespace melon::raft {
         int64_t entry_cursor = _offset_and_term[meta_index].first;
         int64_t next_cursor = (index < _last_index.load(mutil::memory_order_relaxed))
                               ? _offset_and_term[meta_index + 1].first : _bytes;
-        DMCHECK_LT(entry_cursor, next_cursor);
+        DCHECK_LT(entry_cursor, next_cursor);
         meta->offset = entry_cursor;
         meta->term = _offset_and_term[meta_index].second;
         meta->length = next_cursor - entry_cursor;
@@ -263,7 +268,7 @@ namespace melon::raft {
         }
         _fd = ::open(path.c_str(), O_RDWR);
         if (_fd < 0) {
-            MLOG(ERROR) << "Fail to open " << path << ", " << berror();
+            LOG(ERROR) << "Fail to open " << path << ", " << berror();
             return -1;
         }
         mutil::make_close_on_exec(_fd);
@@ -271,7 +276,7 @@ namespace melon::raft {
         // get file size
         struct stat st_buf;
         if (fstat(_fd, &st_buf) != 0) {
-            MLOG(ERROR) << "Fail to get the stat of " << path << ", " << berror();
+            LOG(ERROR) << "Fail to get the stat of " << path << ", " << berror();
             ::close(_fd);
             _fd = -1;
             return -1;
@@ -314,7 +319,7 @@ namespace melon::raft {
                     ConfigurationEntry conf_entry(*entry);
                     configuration_manager->add(conf_entry);
                 } else {
-                    MLOG(ERROR) << "fail to parse configuration meta, path: " << _path
+                    LOG(ERROR) << "fail to parse configuration meta, path: " << _path
                                << " entry_off " << entry_off;
                     ret = -1;
                     break;
@@ -328,13 +333,13 @@ namespace melon::raft {
         const int64_t last_index = _last_index.load(mutil::memory_order_relaxed);
         if (ret == 0 && !_is_open) {
             if (actual_last_index < last_index) {
-                MLOG(ERROR) << "data lost in a full segment, path: " << _path
+                LOG(ERROR) << "data lost in a full segment, path: " << _path
                            << " first_index: " << _first_index << " expect_last_index: "
                            << last_index << " actual_last_index: " << actual_last_index;
                 ret = -1;
             } else if (actual_last_index > last_index) {
                 // FIXME(zhengpengfei): should we ignore garbage entries silently
-                MLOG(ERROR) << "found garbage in a full segment, path: " << _path
+                LOG(ERROR) << "found garbage in a full segment, path: " << _path
                            << " first_index: " << _first_index << " expect_last_index: "
                            << last_index << " actual_last_index: " << actual_last_index;
                 ret = -1;
@@ -351,7 +356,7 @@ namespace melon::raft {
 
         // truncate last uncompleted entry
         if (entry_off != file_size) {
-            MLOG(INFO) << "truncate last uncompleted write entry, path: " << _path
+            LOG(INFO) << "truncate last uncompleted write entry, path: " << _path
                       << " first_index: " << _first_index << " old_size: " << file_size << " new_size: " << entry_off;
             ret = ftruncate_uninterrupted(_fd, entry_off);
         }
@@ -369,7 +374,7 @@ namespace melon::raft {
             return EINVAL;
         } else if (entry->id.index !=
                    _last_index.load(mutil::memory_order_consume) + 1) {
-            MCHECK(false) << "entry->index=" << entry->id.index
+            CHECK(false) << "entry->index=" << entry->id.index
                          << " _last_index=" << _last_index
                          << " _first_index=" << _first_index;
             return ERANGE;
@@ -385,18 +390,18 @@ namespace melon::raft {
             case ENTRY_TYPE_CONFIGURATION: {
                 mutil::Status status = serialize_configuration_meta(entry, data);
                 if (!status.ok()) {
-                    MLOG(ERROR) << "Fail to serialize ConfigurationPBMeta, path: "
+                    LOG(ERROR) << "Fail to serialize ConfigurationPBMeta, path: "
                                << _path;
                     return -1;
                 }
             }
                 break;
             default:
-                MLOG(FATAL) << "unknow entry type: " << entry->type
+                LOG(FATAL) << "unknow entry type: " << entry->type
                            << ", path: " << _path;
                 return -1;
         }
-        MCHECK_LE(data.length(), 1ul << 56ul);
+        CHECK_LE(data.length(), 1ul << 56ul);
         char header_buf[ENTRY_HEADER_SIZE];
         const uint32_t meta_field = (entry->type << 24) | (_checksum_type << 16);
         RawPacker packer(header_buf);
@@ -416,7 +421,7 @@ namespace melon::raft {
             const ssize_t n = mutil::IOBuf::cut_multiple_into_file_descriptor(
                     _fd, pieces + start, ARRAY_SIZE(pieces) - start);
             if (n < 0) {
-                MLOG(ERROR) << "Fail to write to fd=" << _fd
+                LOG(ERROR) << "Fail to write to fd=" << _fd
                            << ", path: " << _path << berror();
                 return -1;
             }
@@ -436,7 +441,7 @@ namespace melon::raft {
         if (_last_index < _first_index) {
             return 0;
         }
-        //MCHECK(_is_open);
+        //CHECK(_is_open);
         if (will_sync) {
             if (!FLAGS_raft_sync) {
                 return 0;
@@ -469,7 +474,7 @@ namespace melon::raft {
                 ok = false;
                 break;
             }
-            MCHECK_EQ(meta.term, header.term);
+            CHECK_EQ(meta.term, header.term);
             entry = new LogEntry();
             entry->AddRef();
             switch (header.type) {
@@ -477,12 +482,12 @@ namespace melon::raft {
                     entry->data.swap(data);
                     break;
                 case ENTRY_TYPE_NO_OP:
-                    MCHECK(data.empty()) << "Data of NO_OP must be empty";
+                    CHECK(data.empty()) << "Data of NO_OP must be empty";
                     break;
                 case ENTRY_TYPE_CONFIGURATION: {
                     mutil::Status status = parse_configuration_meta(data, entry);
                     if (!status.ok()) {
-                        MLOG(WARNING) << "Fail to parse ConfigurationPBMeta, path: "
+                        LOG(WARNING) << "Fail to parse ConfigurationPBMeta, path: "
                                      << _path;
                         ok = false;
                         break;
@@ -490,7 +495,7 @@ namespace melon::raft {
                 }
                     break;
                 default:
-                    MCHECK(false) << "Unknown entry type, path: " << _path;
+                    CHECK(false) << "Unknown entry type, path: " << _path;
                     break;
             }
 
@@ -518,7 +523,7 @@ namespace melon::raft {
     }
 
     int Segment::close(bool will_sync) {
-        MCHECK(_is_open);
+        CHECK(_is_open);
 
         std::string old_path(_path);
         mutil::string_appendf(&old_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
@@ -528,7 +533,7 @@ namespace melon::raft {
                               _first_index, _last_index.load());
 
         // TODO: optimize index memory usage by reconstruct vector
-        MLOG(INFO) << "close a full segment. Current first_index: " << _first_index
+        LOG(INFO) << "close a full segment. Current first_index: " << _first_index
                   << " last_index: " << _last_index
                   << " raft_sync_segments: " << FLAGS_raft_sync_segments
                   << " will_sync: " << will_sync
@@ -588,7 +593,7 @@ namespace melon::raft {
             tmp_path.append(".tmp");
             ret = ::rename(path.c_str(), tmp_path.c_str());
             if (ret != 0) {
-                PMLOG(ERROR) << "Fail to rename " << path << " to " << tmp_path;
+                PLOG(ERROR) << "Fail to rename " << path << " to " << tmp_path;
                 break;
             }
 
@@ -600,7 +605,7 @@ namespace melon::raft {
                 run_unlink(file_path);
             }
 
-            MLOG(INFO) << "Unlinked segment `" << path << '\'';
+            LOG(INFO) << "Unlinked segment `" << path << '\'';
         } while (0);
 
         return ret;
@@ -650,7 +655,7 @@ namespace melon::raft {
         // seek fd
         off_t ret_off = ::lseek(_fd, truncate_size, SEEK_SET);
         if (ret_off < 0) {
-            PMLOG(ERROR) << "Fail to lseek fd=" << _fd << " to size=" << truncate_size
+            PLOG(ERROR) << "Fail to lseek fd=" << _fd << " to size=" << truncate_size
                         << " path: " << _path;
             return -1;
         }
@@ -665,7 +670,7 @@ namespace melon::raft {
 
     int SegmentLogStorage::init(ConfigurationManager *configuration_manager) {
         if (FLAGS_raft_max_segment_size < 0) {
-            MLOG(FATAL) << "FLAGS_raft_max_segment_size " << FLAGS_raft_max_segment_size
+            LOG(FATAL) << "FLAGS_raft_max_segment_size " << FLAGS_raft_max_segment_size
                        << " must be greater than or equal to 0 ";
             return -1;
         }
@@ -673,16 +678,16 @@ namespace melon::raft {
         mutil::File::Error e;
         if (!mutil::CreateDirectoryAndGetError(
                 dir_path, &e, FLAGS_raft_create_parent_directories)) {
-            MLOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
+            LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             return -1;
         }
 
         if (mutil::crc32c::IsFastCrc32Supported()) {
             _checksum_type = CHECKSUM_CRC32;
-            MLOG_ONCE(INFO) << "Use crc32c as the checksum type of appending entries";
+            LOG_FIRST_N(INFO, 1) << "Use crc32c as the checksum type of appending entries";
         } else {
             _checksum_type = CHECKSUM_MURMURHASH32;
-            MLOG_ONCE(INFO) << "Use murmurhash32 as the checksum type of appending entries";
+            LOG_FIRST_N(INFO, 1) << "Use murmurhash32 as the checksum type of appending entries";
         }
 
         int ret = 0;
@@ -690,7 +695,7 @@ namespace melon::raft {
         do {
             ret = load_meta();
             if (ret != 0 && errno == ENOENT) {
-                MLOG(WARNING) << _path << " is empty";
+                LOG(WARNING) << _path << " is empty";
                 is_empty = true;
             } else if (ret != 0) {
                 break;
@@ -725,7 +730,7 @@ namespace melon::raft {
         }
         if (_last_log_index.load(mutil::memory_order_relaxed) + 1
             != entries.front()->id.index) {
-            MLOG(FATAL) << "There's gap between appending entries and _last_log_index"
+            LOG(FATAL) << "There's gap between appending entries and _last_log_index"
                        << " path: " << _path;
             return -1;
         }
@@ -823,7 +828,7 @@ namespace melon::raft {
                 // _log_storage is empty
                 _last_log_index.store(first_index_kept - 1);
             } else {
-                MCHECK(_open_segment->first_index() <= first_index_kept);
+                CHECK(_open_segment->first_index() <= first_index_kept);
             }
         } else {
             // _log_storage is empty
@@ -845,7 +850,7 @@ namespace melon::raft {
         // the deleting fails or the process crashes (which is unlikely to happen).
         // The new process would see the latest `first_log_index'
         if (save_meta(first_index_kept) != 0) { // NOTE
-            PMLOG(ERROR) << "Fail to save meta, path: " << _path;
+            PLOG(ERROR) << "Fail to save meta, path: " << _path;
             return -1;
         }
         std::vector<scoped_refptr<Segment> > popped;
@@ -914,7 +919,7 @@ namespace melon::raft {
                 popped.push_back(last_segment);
                 _segments.erase(last_segment->first_index());
                 if (_open_segment) {
-                    MCHECK(_open_segment.get() == last_segment.get());
+                    CHECK(_open_segment.get() == last_segment.get());
                     _open_segment = NULL;
                 }
             }
@@ -934,7 +939,7 @@ namespace melon::raft {
             ret = last_segment->truncate(last_index_kept);
             if (ret == 0 && closed && last_segment->is_open()) {
                 MELON_SCOPED_LOCK(_mutex);
-                MCHECK(!_open_segment);
+                CHECK(!_open_segment);
                 _segments.erase(last_segment->first_index());
                 _open_segment.swap(last_segment);
             }
@@ -945,7 +950,7 @@ namespace melon::raft {
 
     int SegmentLogStorage::reset(const int64_t next_log_index) {
         if (next_log_index <= 0) {
-            MLOG(ERROR) << "Invalid next_log_index=" << next_log_index
+            LOG(ERROR) << "Invalid next_log_index=" << next_log_index
                        << " path: " << _path;
             return EINVAL;
         }
@@ -966,7 +971,7 @@ namespace melon::raft {
         lck.unlock();
         // NOTE: see the comments in truncate_prefix
         if (save_meta(next_log_index) != 0) {
-            PMLOG(ERROR) << "Fail to save meta, path: " << _path;
+            PLOG(ERROR) << "Fail to save meta, path: " << _path;
             return -1;
         }
         for (size_t i = 0; i < popped.size(); ++i) {
@@ -979,7 +984,7 @@ namespace melon::raft {
     int SegmentLogStorage::list_segments(bool is_empty) {
         mutil::DirReaderPosix dir_reader(_path.c_str());
         if (!dir_reader.IsValid()) {
-            MLOG(WARNING) << "directory reader failed, maybe NOEXIST or PERMISSION."
+            LOG(WARNING) << "directory reader failed, maybe NOEXIST or PERMISSION."
                          << " path: " << _path;
             return -1;
         }
@@ -995,7 +1000,7 @@ namespace melon::raft {
                 segment_path.append(dir_reader.name());
                 ::unlink(segment_path.c_str());
 
-                MLOG(WARNING) << "unlink unused segment, path: " << segment_path;
+                LOG(WARNING) << "unlink unused segment, path: " << segment_path;
 
                 continue;
             }
@@ -1006,7 +1011,7 @@ namespace melon::raft {
             match = sscanf(dir_reader.name(), BRAFT_SEGMENT_CLOSED_PATTERN,
                            &first_index, &last_index);
             if (match == 2) {
-                MLOG(INFO) << "restore closed segment, path: " << _path
+                LOG(INFO) << "restore closed segment, path: " << _path
                           << " first_index: " << first_index
                           << " last_index: " << last_index;
                 Segment *segment = new Segment(_path, first_index, last_index, _checksum_type);
@@ -1023,7 +1028,7 @@ namespace melon::raft {
                     _open_segment = new Segment(_path, first_index, _checksum_type);
                     continue;
                 } else {
-                    MLOG(WARNING) << "open segment conflict, path: " << _path
+                    LOG(WARNING) << "open segment conflict, path: " << _path
                                  << " first_index: " << first_index;
                     return -1;
                 }
@@ -1036,27 +1041,27 @@ namespace melon::raft {
         for (it = _segments.begin(); it != _segments.end();) {
             Segment *segment = it->second.get();
             if (segment->first_index() > segment->last_index()) {
-                MLOG(WARNING) << "closed segment is bad, path: " << _path
+                LOG(WARNING) << "closed segment is bad, path: " << _path
                              << " first_index: " << segment->first_index()
                              << " last_index: " << segment->last_index();
                 return -1;
             } else if (last_log_index != -1 &&
                        segment->first_index() != last_log_index + 1) {
-                MLOG(WARNING) << "closed segment not in order, path: " << _path
+                LOG(WARNING) << "closed segment not in order, path: " << _path
                              << " first_index: " << segment->first_index()
                              << " last_log_index: " << last_log_index;
                 return -1;
             } else if (last_log_index == -1 &&
                        _first_log_index.load(mutil::memory_order_acquire)
                        < segment->first_index()) {
-                MLOG(WARNING) << "closed segment has hole, path: " << _path
+                LOG(WARNING) << "closed segment has hole, path: " << _path
                              << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << segment->first_index()
                              << " last_index: " << segment->last_index();
                 return -1;
             } else if (last_log_index == -1 &&
                        _first_log_index > segment->last_index()) {
-                MLOG(WARNING) << "closed segment need discard, path: " << _path
+                LOG(WARNING) << "closed segment need discard, path: " << _path
                              << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << segment->first_index()
                              << " last_index: " << segment->last_index();
@@ -1071,15 +1076,15 @@ namespace melon::raft {
         if (_open_segment) {
             if (last_log_index == -1 &&
                 _first_log_index.load(mutil::memory_order_relaxed) < _open_segment->first_index()) {
-                MLOG(WARNING) << "open segment has hole, path: " << _path
+                LOG(WARNING) << "open segment has hole, path: " << _path
                              << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << _open_segment->first_index();
             } else if (last_log_index != -1 && _open_segment->first_index() != last_log_index + 1) {
-                MLOG(WARNING) << "open segment has hole, path: " << _path
+                LOG(WARNING) << "open segment has hole, path: " << _path
                              << " first_log_index: " << _first_log_index.load(mutil::memory_order_relaxed)
                              << " first_index: " << _open_segment->first_index();
             }
-            MCHECK_LE(last_log_index, _open_segment->last_index());
+            CHECK_LE(last_log_index, _open_segment->last_index());
         }
 
         return 0;
@@ -1092,7 +1097,7 @@ namespace melon::raft {
         SegmentMap::iterator it;
         for (it = _segments.begin(); it != _segments.end(); ++it) {
             Segment *segment = it->second.get();
-            MLOG(INFO) << "load closed segment, path: " << _path
+            LOG(INFO) << "load closed segment, path: " << _path
                       << " first_index: " << segment->first_index()
                       << " last_index: " << segment->last_index();
             ret = segment->load(configuration_manager);
@@ -1104,14 +1109,14 @@ namespace melon::raft {
 
         // open segment
         if (_open_segment) {
-            MLOG(INFO) << "load open segment, path: " << _path
+            LOG(INFO) << "load open segment, path: " << _path
                       << " first_index: " << _open_segment->first_index();
             ret = _open_segment->load(configuration_manager);
             if (ret != 0) {
                 return ret;
             }
             if (_first_log_index.load() > _open_segment->last_index()) {
-                MLOG(WARNING) << "open segment need discard, path: " << _path
+                LOG(WARNING) << "open segment need discard, path: " << _path
                              << " first_log_index: " << _first_log_index.load()
                              << " first_index: " << _open_segment->first_index()
                              << " last_index: " << _open_segment->last_index();
@@ -1141,8 +1146,8 @@ namespace melon::raft {
         int ret = pb_file.save(&meta, raft_sync_meta());
 
         timer.stop();
-        PMLOG_IF(ERROR, ret != 0) << "Fail to save meta to " << meta_path;
-        MLOG(INFO) << "log save_meta " << meta_path << " first_log_index: " << log_index
+        PLOG_IF(ERROR, ret != 0) << "Fail to save meta to " << meta_path;
+        LOG(INFO) << "log save_meta " << meta_path << " first_log_index: " << log_index
                   << " time: " << timer.u_elapsed();
         return ret;
     }
@@ -1157,14 +1162,14 @@ namespace melon::raft {
         ProtoBufFile pb_file(meta_path);
         LogPBMeta meta;
         if (0 != pb_file.load(&meta)) {
-            PMLOG_IF(ERROR, errno != ENOENT) << "Fail to load meta from " << meta_path;
+            PLOG_IF(ERROR, errno != ENOENT) << "Fail to load meta from " << meta_path;
             return -1;
         }
 
         _first_log_index.store(meta.first_log_index());
 
         timer.stop();
-        MLOG(INFO) << "log load_meta " << meta_path << " first_log_index: " << meta.first_log_index()
+        LOG(INFO) << "log load_meta " << meta_path << " first_log_index: " << meta.first_log_index()
                   << " time: " << timer.u_elapsed();
         return 0;
     }
@@ -1195,7 +1200,7 @@ namespace melon::raft {
                         break;
                     }
                 }
-                PMLOG(ERROR) << "Fail to close old open_segment or create new open_segment"
+                PLOG(ERROR) << "Fail to close old open_segment or create new open_segment"
                             << " path: " << _path;
                 // Failed, revert former changes
                 MELON_SCOPED_LOCK(_mutex);
@@ -1225,13 +1230,13 @@ namespace melon::raft {
 
         if (_open_segment && index >= _open_segment->first_index()) {
             *ptr = _open_segment;
-            MCHECK(ptr->get() != NULL);
+            CHECK(ptr->get() != NULL);
         } else {
-            MCHECK(!_segments.empty());
+            CHECK(!_segments.empty());
             SegmentMap::iterator it = _segments.upper_bound(index);
             SegmentMap::iterator saved_it = it;
             --it;
-            MCHECK(it != saved_it);
+            CHECK(it != saved_it);
             *ptr = it->second;
         }
         return 0;
@@ -1270,12 +1275,12 @@ namespace melon::raft {
     mutil::Status SegmentLogStorage::gc_instance(const std::string &uri) const {
         mutil::Status status;
         if (gc_dir(uri) != 0) {
-            MLOG(WARNING) << "Failed to gc log storage from path " << _path;
+            LOG(WARNING) << "Failed to gc log storage from path " << _path;
             status.set_error(EINVAL, "Failed to gc log storage from path %s",
                              uri.c_str());
             return status;
         }
-        MLOG(INFO) << "Succeed to gc log storage from path " << uri;
+        LOG(INFO) << "Succeed to gc log storage from path " << uri;
         return status;
     }
 

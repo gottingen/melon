@@ -1,23 +1,27 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 // A client sending requests to server asynchronously every 1 second.
 
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/time.h>
 #include <melon/rpc/channel.h>
 #include <melon/var/var.h>
@@ -55,7 +59,7 @@ void DisplayStage(const test::Stage& stage) {
         << "Stage:[" << stage.lower_bound() << ':' 
         << stage.upper_bound() <<  "]"
         << " , Type:" << type;
-    MLOG(INFO) << ss.str();
+    LOG(INFO) << ss.str();
 }
 
 uint32_t cast_func(void* arg) {
@@ -65,21 +69,21 @@ uint32_t cast_func(void* arg) {
 mutil::atomic<uint32_t> g_timeout(0);
 mutil::atomic<uint32_t> g_error(0);
 mutil::atomic<uint32_t> g_succ(0);
-melon::var::PassiveStatus<uint32_t> g_timeout_bvar(cast_func, &g_timeout);
-melon::var::PassiveStatus<uint32_t> g_error_bvar(cast_func, &g_error);
-melon::var::PassiveStatus<uint32_t> g_succ_bvar(cast_func, &g_succ);
+melon::var::PassiveStatus<uint32_t> g_timeout_var(cast_func, &g_timeout);
+melon::var::PassiveStatus<uint32_t> g_error_var(cast_func, &g_error);
+melon::var::PassiveStatus<uint32_t> g_succ_var(cast_func, &g_succ);
 melon::var::LatencyRecorder g_latency_rec;
 
 void LoadCaseSet(test::TestCaseSet* case_set, const std::string& file_path) {
     std::ifstream ifs(file_path.c_str(), std::ios::in);  
     if (!ifs) {
-        MLOG(FATAL) << "Fail to open case set file: " << file_path;
+        LOG(FATAL) << "Fail to open case set file: " << file_path;
     }
     std::string case_set_json((std::istreambuf_iterator<char>(ifs)),  
                               std::istreambuf_iterator<char>()); 
     std::string err;
     if (!json2pb::JsonToProtoMessage(case_set_json, case_set, &err)) {
-        MLOG(FATAL)
+        LOG(FATAL)
             << "Fail to trans case_set from json to protobuf message: "
             << err;
     }
@@ -94,10 +98,10 @@ void HandleEchoResponse(
 
     if (cntl->Failed() && cntl->ErrorCode() == melon::ERPCTIMEDOUT) {
         g_timeout.fetch_add(1, mutil::memory_order_relaxed);
-        MLOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
+        LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else if (cntl->Failed()) {
         g_error.fetch_add(1, mutil::memory_order_relaxed);
-        MLOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
+        LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else {
         g_succ.fetch_add(1, mutil::memory_order_relaxed);
         g_latency_rec << cntl->latency_us();
@@ -106,9 +110,9 @@ void HandleEchoResponse(
 }
 
 void Expose() {
-    g_timeout_bvar.expose_as("cl", "timeout");
-    g_error_bvar.expose_as("cl", "failed");
-    g_succ_bvar.expose_as("cl", "succ");
+    g_timeout_var.expose_as("cl", "timeout");
+    g_error_var.expose_as("cl", "failed");
+    g_succ_var.expose_as("cl", "succ");
     g_latency_rec.expose("cl");
 }
 
@@ -169,7 +173,7 @@ void RunUpdateTask(void* data) {
 
 void RunCase(test::ControlService_Stub &cntl_stub, 
              const test::TestCase& test_case) {
-    MLOG(INFO) << "Running case:`" << test_case.case_name() << '\'';
+    LOG(INFO) << "Running case:`" << test_case.case_name() << '\'';
     melon::Channel channel;
     melon::ChannelOptions options;
     options.protocol = FLAGS_protocol;
@@ -177,7 +181,7 @@ void RunCase(test::ControlService_Stub &cntl_stub,
     options.timeout_ms = FLAGS_timeout_ms;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_echo_server.c_str(), &options) != 0) {
-        MLOG(FATAL) << "Fail to initialize channel";
+        LOG(FATAL) << "Fail to initialize channel";
     }
     test::EchoService_Stub echo_stub(&channel);
 
@@ -186,7 +190,7 @@ void RunCase(test::ControlService_Stub &cntl_stub,
     melon::Controller cntl;
     cntl_req.set_message("StartCase");
     cntl_stub.Notify(&cntl, &cntl_req, &cntl_rsp, NULL);
-    MCHECK(!cntl.Failed()) << "control failed";
+    CHECK(!cntl.Failed()) << "control failed";
 
     TestCaseContext context(test_case);
     fiber::get_global_timer_thread()->schedule(RunUpdateTask, &context,
@@ -203,13 +207,13 @@ void RunCase(test::ControlService_Stub &cntl_stub,
         ::usleep(context.interval_us.load(mutil::memory_order_relaxed));
     }
 
-    MLOG(INFO) << "Waiting to stop case: `" << test_case.case_name() << '\'';
+    LOG(INFO) << "Waiting to stop case: `" << test_case.case_name() << '\'';
     ::sleep(FLAGS_case_interval);
     cntl.Reset();
     cntl_req.set_message("StopCase");
     cntl_stub.Notify(&cntl, &cntl_req, &cntl_rsp, NULL);
-    MCHECK(!cntl.Failed()) << "control failed";
-    MLOG(INFO) << "Case `" << test_case.case_name() << "' finshed:";
+    CHECK(!cntl.Failed()) << "control failed";
+    LOG(INFO) << "Case `" << test_case.case_name() << "' finshed:";
 }
 
 int main(int argc, char* argv[]) {
@@ -224,7 +228,7 @@ int main(int argc, char* argv[]) {
     options.timeout_ms = FLAGS_timeout_ms;
 
     if (channel.Init(FLAGS_cntl_server.c_str(), &options) != 0) {
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
     test::ControlService_Stub cntl_stub(&channel);
@@ -237,10 +241,10 @@ int main(int argc, char* argv[]) {
     test::NotifyResponse cntl_rsp;
     cntl_req.set_message("ResetCaseSet");
     cntl_stub.Notify(&cntl, &cntl_req, &cntl_rsp, NULL);
-    MCHECK(!cntl.Failed()) << "Cntl Failed";
+    CHECK(!cntl.Failed()) << "Cntl Failed";
     for (int i = 0; i < case_set.test_case_size(); ++i) {
         RunCase(cntl_stub, case_set.test_case(i));
     }
-    MLOG(INFO) << "EchoClient is going to quit";
+    LOG(INFO) << "EchoClient is going to quit";
     return 0;
 }

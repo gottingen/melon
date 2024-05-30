@@ -1,21 +1,25 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/rpc/details/load_balancer_with_naming.h"
+#include <melon/rpc/details/load_balancer_with_naming.h>
 
 
 namespace melon {
@@ -33,11 +37,11 @@ int LoadBalancerWithNaming::Init(const char* ns_url, const char* lb_name,
         return -1;
     }
     if (GetNamingServiceThread(&_nsthread_ptr, ns_url, options) != 0) {
-        MLOG(ERROR) << "Fail to get NamingServiceThread";
+        LOG(ERROR) << "Fail to get NamingServiceThread";
         return -1;
     }
     if (_nsthread_ptr->AddWatcher(this, filter) != 0) {
-        MLOG(ERROR) << "Fail to add watcher into _server_list";
+        LOG(ERROR) << "Fail to add watcher into _server_list";
         return -1;
     }
     return 0;

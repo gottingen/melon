@@ -59,51 +59,65 @@ set(CARBIN_DEPS_INCLUDE "")
 ############################################################
 # gflags
 ############################################################
-carbin_find_gflags()
-message(STATUS "GFLAGS_INCLUDE_PATH: ${GFLAGS_INCLUDE_PATH}")
-message(STATUS "GFLAGS_DEV_FOUND : ${GFLAGS_DEV_FOUND}")
-if (NOT GFLAGS_DEV_FOUND)
+carbin_find_static_gflags()
+if (NOT GFLAGS_STATIC_FOUND)
     message(FATAL_ERROR "Fail to find gflags")
 endif ()
-list(APPEND CARBIN_DEPS_INCLUDE ${GFLAGS_INCLUDE_PATH})
+list(APPEND CARBIN_DEPS_INCLUDE ${GFLAGS_INCLUDE_DIR})
 ############################################################
 # leveldb
 ############################################################
-carbin_find_leveldb()
-if (NOT LEVELDB_DEV_FOUND)
+carbin_find_static_leveldb()
+if (NOT LEVELDB_STATIC_FOUND)
     message(FATAL_ERROR "Fail to find leveldb")
 endif ()
-list(APPEND CARBIN_DEPS_INCLUDE ${LEVELDB_INCLUDE_PATH})
+list(APPEND CARBIN_DEPS_INCLUDE ${LEVELDB_INCLUDE_DIR})
 ############################################################
 # protobuf
 ############################################################
 find_package(Protobuf REQUIRED)
-list(APPEND CARBIN_DEPS_INCLUDE ${PROTOBUF_INCLUDE_DIRS})
-find_library(PROTOC_LIB NAMES protoc)
-if (NOT PROTOC_LIB)
-    message(FATAL_ERROR "Fail to find protoc lib")
-endif ()
-############################################################
-# openssl
-############################################################
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(OPENSSL_ROOT_DIR
-            "/usr/local/opt/openssl" # Homebrew installed OpenSSL
-    )
-endif ()
+carbin_print("Protobuf include dir: ${PROTOBUF_INCLUDE_DIRS}")
+carbin_print("Protobuf libraries: ${PROTOBUF_LIBRARY}")
+carbin_print("Protobuf protoc: ${PROTOBUF_PROTOC_EXECUTABLE}")
+carbin_print("Protobuf protoc: ${PROTOBUF_PROTOC_LIBRARY}")
 
+list(APPEND CARBIN_DEPS_INCLUDE ${PROTOBUF_INCLUDE_DIRS})
+
+############################################################
+# openssl using static openssl
+############################################################
+set(OPENSSL_ROOT_DIR ${EA_ROOT})
 find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+message(STATUS "OpenSSL ssl library: ${OPENSSL_SSL_LIBRARY}")
+message(STATUS "OpenSSL crypto library: ${OPENSSL_CRYPTO_LIBRARY}")
 
 list(APPEND CARBIN_DEPS_INCLUDE ${OPENSSL_INCLUDE_DIR})
 
 ############################################################
 # zlib
 ############################################################
-carbin_find_zlib()
-if (NOT ZLIB_DEV_FOUND)
+carbin_find_static_zlib()
+if (NOT ZLIB_STATIC_FOUND)
     message(FATAL_ERROR "Fail to find zlib")
 endif ()
-list(APPEND CARBIN_DEPS_INCLUDE ${ZLIB_INCLUDE_PATH})
+list(APPEND CARBIN_DEPS_INCLUDE ${ZLIB_INCLUDE_DIR})
+
+############################################################
+# snappy
+############################################################
+carbin_find_static_snappy()
+if (NOT SNAPPY_STATIC_FOUND)
+    message(FATAL_ERROR "Fail to find snappy")
+endif ()
+list(APPEND CARBIN_DEPS_INCLUDE ${SNAPPY_INCLUDE_DIR})
+
+############################################################
+# turbo
+############################################################
+find_package(turbo 0.5.6 REQUIRED)
+get_target_property(TURBO_STATIC_LIB turbo::turbo_static LOCATION)
+carbin_print("Turbo static lib: ${TURBO_STATIC_LIB}")
 ############################################################
 #
 # add you libs to the CARBIN_DEPS_LINK variable eg as turbo
@@ -111,17 +125,20 @@ list(APPEND CARBIN_DEPS_INCLUDE ${ZLIB_INCLUDE_PATH})
 # CARBIN_SYSTEM_DYLINK, using it for fun.
 ##########################################################
 set(MELON_DEPS_LINK
-        ${GFLAGS_SHARED_LIB}
-        ${PROTOBUF_LIBRARIES}
-        ${LEVELDB_SHARED_LIB}
-        ${PROTOC_LIB}
-        ${OPENSSL_CRYPTO_LIBRARY}
+        ${GFLAGS_STATIC_LIB}
+        ${PROTOBUF_LIBRARY}
+        ${PROTOBUF_PROTOC_LIBRARY}
+        ${LEVELDB_STATIC_LIB}
         ${OPENSSL_SSL_LIBRARY}
-        ${ZLIB_SHARED_LIB}
+        ${OPENSSL_CRYPTO_LIBRARY}
+        ${ZLIB_STATIC_LIB}
+        ${SNAPPY_STATIC_LIB}
+        ${TURBO_STATIC_LIB}
         ${CARBIN_SYSTEM_DYLINK}
         )
 list(REMOVE_DUPLICATES MELON_DEPS_LINK)
 list(REMOVE_DUPLICATES CARBIN_DEPS_INCLUDE)
+include_directories(${CARBIN_DEPS_INCLUDE})
 carbin_print_list_label("Denpendcies:" MELON_DEPS_LINK)
 carbin_print_list_label("Denpendcies:" CARBIN_DEPS_INCLUDE)
 

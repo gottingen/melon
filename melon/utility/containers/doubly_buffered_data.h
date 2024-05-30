@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -22,15 +26,15 @@
 #include <deque>
 #include <vector>                                       // std::vector
 #include <pthread.h>
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/thread_local.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/type_traits.h"
-#include "melon/utility/errno.h"
-#include "melon/utility/atomicops.h"
-#include "melon/utility/unique_ptr.h"
-#include "melon/utility/type_traits.h"
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/thread_local.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/type_traits.h>
+#include <melon/utility/errno.h>
+#include <melon/utility/atomicops.h>
+#include <melon/utility/unique_ptr.h>
+#include <melon/utility/type_traits.h>
 
 namespace mutil {
 
@@ -287,13 +291,13 @@ public:
 
     inline static DoublyBufferedData::Wrapper* get_or_create_tls_data(WrapperTLSId id) {
         if (MELON_UNLIKELY(id < 0)) {
-            MCHECK(false) << "Invalid id=" << id;
+            CHECK(false) << "Invalid id=" << id;
             return NULL;
         }
         if (_s_tls_blocks == NULL) {
             _s_tls_blocks = new (std::nothrow) std::vector<ThreadBlock*>;
             if (MELON_UNLIKELY(_s_tls_blocks == NULL)) {
-                MLOG(FATAL) << "Fail to create vector, " << berror();
+                LOG(FATAL) << "Fail to create vector, " << berror();
                 return NULL;
             }
             mutil::thread_atexit(_destroy_tls_blocks);
@@ -473,7 +477,7 @@ DoublyBufferedData<T, TLS, AllowFiberSuspended>::AddWrapper(
         return w;
     }
     if (w->_control != NULL) {
-        MLOG(FATAL) << "Get wrapper from tls but control != this";
+        LOG(FATAL) << "Get wrapper from tls but control != this";
         return NULL;
     }
     try {
@@ -607,7 +611,7 @@ size_t DoublyBufferedData<T, TLS, AllowFiberSuspended>::Modify(Fn& fn) {
     }
 
     const size_t ret2 = fn(_data[bg_index]);
-    MCHECK_EQ(ret2, ret) << "index=" << _index.load(mutil::memory_order_relaxed);
+    CHECK_EQ(ret2, ret) << "index=" << _index.load(mutil::memory_order_relaxed);
     return ret2;
 }
 

@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/file_util.h>
 
 #include <melon/rpc/server.h>
@@ -11,7 +11,7 @@
 #include "melon/raft/util.h"
 #include "melon/raft/remote_file_copier.h"
 #include "melon/raft/file_system_adaptor.h"
-
+#include <cinttypes>
 namespace melon::raft {
 DECLARE_bool(raft_file_check_hole);
 }
@@ -92,7 +92,7 @@ TEST_F(FileServiceTest, hole_file) {
     int ret = 0;
     ASSERT_EQ(0, system("rm -rf a; rm -rf b; rm -rf c; mkdir a;"));
 
-    MLOG(INFO) << "build hole file";
+    LOG(INFO) << "build hole file";
     int fd = ::open("./a/hole.data", O_CREAT | O_TRUNC | O_WRONLY, 0644);
     ASSERT_GE(fd, 0);
     for (int i = 0; i < 1000; i++) {

@@ -4,7 +4,7 @@
 
 #include "melon/utility/mac/bundle_locations.h"
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/mac/foundation_util.h"
 #include "melon/utility/strings/sys_string_conversions.h"
 
@@ -59,7 +59,7 @@ static void AssignOverridePath(const FilePath& file_path,
                                NSBundle** override_bundle) {
   NSString* path = mutil::SysUTF8ToNSString(file_path.value());
   NSBundle* new_bundle = [NSBundle bundleWithPath:path];
-  DMCHECK(new_bundle) << "Failed to load the bundle at " << file_path.value();
+  DCHECK(new_bundle) << "Failed to load the bundle at " << file_path.value();
   AssignOverrideBundle(new_bundle, override_bundle);
 }
 

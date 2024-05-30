@@ -1,48 +1,52 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/utility/compat.h"                        // OS_MACOSX
-#include "melon/utility/ssl_compat.h"                    // BIO_fd_non_fatal_error
+#include <melon/utility/compat.h>                        // OS_MACOSX
+#include <melon/utility/ssl_compat.h>                    // BIO_fd_non_fatal_error
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <netinet/tcp.h>                         // getsockopt
 #include <gflags/gflags.h>
-#include "melon/fiber/unstable.h"                    // fiber_timer_del
-#include "melon/utility/fd_utility.h"                     // make_non_blocking
-#include "melon/utility/fd_guard.h"                       // fd_guard
-#include "melon/utility/time.h"                           // cpuwide_time_us
-#include "melon/utility/object_pool.h"                    // get_object
-#include "melon/utility/logging.h"                        // MCHECK
-#include "melon/utility/macros.h"
-#include "melon/utility/class_name.h"                     // mutil::class_name
-#include "melon/rpc/log.h"
-#include "melon/rpc/reloadable_flags.h"          // MELON_VALIDATE_GFLAG
-#include "melon/proto/rpc/errno.pb.h"
-#include "melon/rpc/event_dispatcher.h"          // RemoveConsumer
-#include "melon/rpc/socket.h"
-#include "melon/rpc/describable.h"               // Describable
-#include "melon/rpc/circuit_breaker.h"           // CircuitBreaker
-#include "melon/rpc/input_messenger.h"
-#include "melon/rpc/details/sparse_minute_counter.h"
-#include "melon/rpc/stream_impl.h"
-#include "melon/rpc/shared_object.h"
-#include "melon/rpc/policy/rtmp_protocol.h"  // FIXME
-#include "melon/rpc/periodic_task.h"
-#include "melon/rpc/details/health_check.h"
+#include <melon/fiber/unstable.h>                    // fiber_timer_del
+#include <melon/utility/fd_utility.h>                     // make_non_blocking
+#include <melon/utility/fd_guard.h>                       // fd_guard
+#include <melon/utility/time.h>                           // cpuwide_time_us
+#include <melon/utility/object_pool.h>                    // get_object
+#include <turbo/log/logging.h>                        // CHECK
+#include <melon/utility/macros.h>
+#include <melon/utility/class_name.h>                     // mutil::class_name
+#include <melon/rpc/log.h>
+#include <melon/rpc/reloadable_flags.h>          // MELON_VALIDATE_GFLAG
+#include <melon/proto/rpc/errno.pb.h>
+#include <melon/rpc/event_dispatcher.h>          // RemoveConsumer
+#include <melon/rpc/socket.h>
+#include <melon/rpc/describable.h>               // Describable
+#include <melon/rpc/circuit_breaker.h>           // CircuitBreaker
+#include <melon/rpc/input_messenger.h>
+#include <melon/rpc/details/sparse_minute_counter.h>
+#include <melon/rpc/stream_impl.h>
+#include <melon/rpc/shared_object.h>
+#include <melon/rpc/policy/rtmp_protocol.h>  // FIXME
+#include <melon/rpc/periodic_task.h>
+#include <melon/rpc/details/health_check.h>
 
 
 #if defined(OS_MACOSX)
@@ -276,7 +280,7 @@ namespace melon {
     }
 
     void Socket::CreateVarsOnce() {
-        MCHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
+        CHECK_EQ(0, pthread_once(&s_create_vars_once, CreateVars));
     }
 
 // Used by ConnectionService
@@ -440,7 +444,7 @@ namespace melon {
     }
 
     void Socket::ReturnSuccessfulWriteRequest(Socket::WriteRequest *p) {
-        DMCHECK(p->data.empty());
+        DCHECK(p->data.empty());
         AddOutputMessages(1);
         const fiber_session_t id_wait = p->id_wait;
         mutil::return_object(p);
@@ -474,7 +478,7 @@ namespace melon {
     }
 
     void Socket::ReleaseAllFailedWriteRequests(Socket::WriteRequest *req) {
-        MCHECK(Failed());
+        CHECK(Failed());
         pthread_mutex_lock(&_id_wait_list_mutex);
         const int error_code = non_zero_error_code();
         const std::string error_text = _error_text;
@@ -513,7 +517,7 @@ namespace melon {
 
         // Make the fd non-blocking.
         if (mutil::make_non_blocking(fd) != 0) {
-            PMLOG(ERROR) << "Fail to set fd=" << fd << " to non-blocking";
+            PLOG(ERROR) << "Fail to set fd=" << fd << " to non-blocking";
             return -1;
         }
         // turn off nagling.
@@ -521,13 +525,13 @@ namespace melon {
         mutil::make_no_delay(fd);
         if (_tos > 0 &&
             setsockopt(fd, IPPROTO_IP, IP_TOS, &_tos, sizeof(_tos)) != 0) {
-            PMLOG(ERROR) << "Fail to set tos of fd=" << fd << " to " << _tos;
+            PLOG(ERROR) << "Fail to set tos of fd=" << fd << " to " << _tos;
         }
 
         if (FLAGS_socket_send_buffer_size > 0) {
             int buff_size = FLAGS_socket_send_buffer_size;
             if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff_size, sizeof(buff_size)) != 0) {
-                PMLOG(ERROR) << "Fail to set sndbuf of fd=" << fd << " to "
+                PLOG(ERROR) << "Fail to set sndbuf of fd=" << fd << " to "
                             << buff_size;
             }
         }
@@ -535,7 +539,7 @@ namespace melon {
         if (FLAGS_socket_recv_buffer_size > 0) {
             int buff_size = FLAGS_socket_recv_buffer_size;
             if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size)) != 0) {
-                PMLOG(ERROR) << "Fail to set rcvbuf of fd=" << fd << " to "
+                PLOG(ERROR) << "Fail to set rcvbuf of fd=" << fd << " to "
                             << buff_size;
             }
         }
@@ -544,7 +548,7 @@ namespace melon {
 
         if (_on_edge_triggered_events) {
             if (GetGlobalEventDispatcher(fd, _fiber_tag).AddConsumer(id(), fd) != 0) {
-                PMLOG(ERROR) << "Fail to add SocketId=" << id()
+                PLOG(ERROR) << "Fail to add SocketId=" << id()
                             << " into EventDispatcher";
                 _fd.store(-1, mutil::memory_order_release);
                 return -1;
@@ -561,7 +565,7 @@ namespace melon {
         int keepalive = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive,
                        sizeof(keepalive)) != 0) {
-            PMLOG(ERROR) << "Fail to set keepalive of fd=" << fd;
+            PLOG(ERROR) << "Fail to set keepalive of fd=" << fd;
             return;
         }
 
@@ -570,7 +574,7 @@ namespace melon {
             if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE,
                            &_keepalive_options->keepalive_idle_s,
                            sizeof(_keepalive_options->keepalive_idle_s)) != 0) {
-                PMLOG(ERROR) << "Fail to set keepidle of fd=" << fd;
+                PLOG(ERROR) << "Fail to set keepidle of fd=" << fd;
             }
         }
 
@@ -578,7 +582,7 @@ namespace melon {
             if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL,
                            &_keepalive_options->keepalive_interval_s,
                            sizeof(_keepalive_options->keepalive_interval_s)) != 0) {
-                PMLOG(ERROR) << "Fail to set keepintvl of fd=" << fd;
+                PLOG(ERROR) << "Fail to set keepintvl of fd=" << fd;
             }
         }
 
@@ -586,7 +590,7 @@ namespace melon {
             if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT,
                            &_keepalive_options->keepalive_count,
                            sizeof(_keepalive_options->keepalive_count)) != 0) {
-                PMLOG(ERROR) << "Fail to set keepcnt of fd=" << fd;
+                PLOG(ERROR) << "Fail to set keepcnt of fd=" << fd;
             }
         }
 #elif defined(OS_MACOSX)
@@ -594,7 +598,7 @@ namespace melon {
             if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE,
                            &_keepalive_options->keepalive_idle_s,
                            sizeof(_keepalive_options->keepalive_idle_s)) != 0) {
-                PMLOG(ERROR) << "Fail to set keepidle of fd=" << fd;
+                PLOG(ERROR) << "Fail to set keepidle of fd=" << fd;
             }
         }
 
@@ -602,7 +606,7 @@ namespace melon {
             if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL,
                            &_keepalive_options->keepalive_interval_s,
                            sizeof(_keepalive_options->keepalive_interval_s)) != 0) {
-                PMLOG(ERROR) << "Fail to set keepintvl of fd=" << fd;
+                PLOG(ERROR) << "Fail to set keepintvl of fd=" << fd;
             }
         }
 
@@ -610,7 +614,7 @@ namespace melon {
             if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT,
                            &_keepalive_options->keepalive_count,
                            sizeof(_keepalive_options->keepalive_count)) != 0) {
-                PMLOG(ERROR) << "Fail to set keepcnt of fd=" << fd;
+                PLOG(ERROR) << "Fail to set keepcnt of fd=" << fd;
             }
         }
 #endif
@@ -623,11 +627,11 @@ namespace melon {
         mutil::ResourceId<Socket> slot;
         Socket *const m = mutil::get_resource(&slot, Forbidden());
         if (m == NULL) {
-            MLOG(FATAL) << "Fail to get_resource<Socket>";
+            LOG(FATAL) << "Fail to get_resource<Socket>";
             return -1;
         }
         g_vars->nsocket << 1;
-        MCHECK(NULL == m->_shared_part.load(mutil::memory_order_relaxed));
+        CHECK(NULL == m->_shared_part.load(mutil::memory_order_relaxed));
         m->_nevent.store(0, mutil::memory_order_relaxed);
         m->_keytable_pool = options.keytable_pool;
         m->_tos = 0;
@@ -645,7 +649,7 @@ namespace melon {
                         1, mutil::memory_order_release)), slot);
         m->_preferred_index = -1;
         m->_hc_count = 0;
-        MCHECK(m->_read_buf.empty());
+        CHECK(m->_read_buf.empty());
         const int64_t cpuwide_now = mutil::cpuwide_time_us();
         m->_last_readtime_us.store(cpuwide_now, mutil::memory_order_relaxed);
         m->reset_parsing_context(options.initial_parsing_context);
@@ -657,7 +661,7 @@ namespace melon {
         m->_auth_flag_error.store(0, mutil::memory_order_relaxed);
         const int rc2 = fiber_session_create(&m->_auth_id, NULL, NULL);
         if (rc2) {
-            MLOG(ERROR) << "Fail to create auth_id: " << berror(rc2);
+            LOG(ERROR) << "Fail to create auth_id: " << berror(rc2);
             m->SetFailed(rc2, "Fail to create auth_id: %s", berror(rc2));
             return -1;
         }
@@ -681,7 +685,7 @@ namespace melon {
         // NOTE: last two params are useless in fiber > r32787
         const int rc = fiber_session_list_init(&m->_id_wait_list, 512, 512);
         if (rc) {
-            MLOG(ERROR) << "Fail to init _id_wait_list: " << berror(rc);
+            LOG(ERROR) << "Fail to init _id_wait_list: " << berror(rc);
             m->SetFailed(rc, "Fail to init _id_wait_list: %s", berror(rc));
             return -1;
         }
@@ -689,12 +693,12 @@ namespace melon {
         m->_unwritten_bytes.store(0, mutil::memory_order_relaxed);
         m->_keepalive_options = options.keepalive_options;
         m->_fiber_tag = options.fiber_tag;
-        MCHECK(NULL == m->_write_head.load(mutil::memory_order_relaxed));
+        CHECK(NULL == m->_write_head.load(mutil::memory_order_relaxed));
         // Must be last one! Internal fields of this Socket may be access
         // just after calling ResetFileDescriptor.
         if (m->ResetFileDescriptor(options.fd) != 0) {
             const int saved_errno = errno;
-            PMLOG(ERROR) << "Fail to ResetFileDescriptor";
+            PLOG(ERROR) << "Fail to ResetFileDescriptor";
             m->SetFailed(saved_errno, "Fail to ResetFileDescriptor: %s",
                          berror(saved_errno));
             return -1;
@@ -712,12 +716,12 @@ namespace melon {
             // inconsistent states to be seen by others.
             vref = _versioned_ref.load(mutil::memory_order_acquire);
             if (VersionOfVRef(vref) != id_ver + 1) {
-                MLOG(WARNING) << "SocketId=" << _this_id << " is already alive or recycled";
+                LOG(WARNING) << "SocketId=" << _this_id << " is already alive or recycled";
                 return -1;
             }
             if (NRefOfVRef(vref) > expected_nref) {
                 if (fiber_usleep(1000L/*FIXME*/) < 0) {
-                    PMLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
+                    PLOG_IF(FATAL, errno != ESTOP) << "Fail to sleep";
                     return -1;
                 }
             } else if (NRefOfVRef(vref) < expected_nref) {
@@ -767,7 +771,7 @@ namespace melon {
         fiber_session_error(_auth_id, 0);
         const int rc = fiber_session_create(&_auth_id, NULL, NULL);
         if (rc != 0) {
-            MLOG(FATAL) << "Fail to create _auth_id, " << berror(rc);
+            LOG(FATAL) << "Fail to create _auth_id, " << berror(rc);
             return -1;
         }
 
@@ -796,14 +800,14 @@ namespace melon {
         uint64_t vref = _versioned_ref.load(mutil::memory_order_relaxed);
         _additional_ref_status.store(REF_REVIVING, mutil::memory_order_relaxed);
         while (1) {
-            MCHECK_EQ(id_ver + 1, VersionOfVRef(vref));
+            CHECK_EQ(id_ver + 1, VersionOfVRef(vref));
 
             int32_t nref = NRefOfVRef(vref);
             if (nref <= 1) {
                 // Set status to REF_RECYLED since no one uses this socket
                 _additional_ref_status.store(REF_RECYCLED, mutil::memory_order_relaxed);
-                MCHECK_EQ(1, nref);
-                MLOG(WARNING) << *this << " was abandoned during revival";
+                CHECK_EQ(1, nref);
+                LOG(WARNING) << *this << " was abandoned during revival";
                 return;
             }
             // +1 is the additional ref added in Create(). TODO(gejun): we should
@@ -817,7 +821,7 @@ namespace melon {
                 if (_user) {
                     _user->AfterRevived(this);
                 } else {
-                    MLOG(INFO) << "Revived " << *this << " (Connectable)";
+                    LOG(INFO) << "Revived " << *this << " (Connectable)";
                 }
                 return;
             }
@@ -868,7 +872,7 @@ namespace melon {
 
     int Socket::SetFailed(int error_code, const char *error_fmt, ...) {
         if (error_code == 0) {
-            MCHECK(false) << "error_code is 0";
+            CHECK(false) << "error_code is 0";
             error_code = EFAILEDSOCKET;
         }
         const uint32_t id_ver = VersionOfSocketId(_this_id);
@@ -919,7 +923,7 @@ namespace melon {
                 fiber::butex_wake_all(_epollout_butex);
 
                 // Wake up all unresponded RPC.
-                MCHECK_EQ(0, fiber_session_list_reset2_pthreadsafe(
+                CHECK_EQ(0, fiber_session_list_reset2_pthreadsafe(
                         &_id_wait_list, error_code, error_text,
                         &_id_wait_list_mutex));
 
@@ -950,7 +954,7 @@ namespace melon {
     void Socket::FeedbackCircuitBreaker(int error_code, int64_t latency_us) {
         if (!GetOrNewSharedPart()->circuit_breaker.OnCallEnd(error_code, latency_us)) {
             if (SetFailed(main_socket_id()) == 0) {
-                MLOG(ERROR) << "Socket[" << *this << "] isolated by circuit breaker";
+                LOG(ERROR) << "Socket[" << *this << "] isolated by circuit breaker";
             }
         }
     }
@@ -1103,7 +1107,7 @@ namespace melon {
     bool Socket::IsWriteComplete(Socket::WriteRequest *old_head,
                                  bool singular_node,
                                  Socket::WriteRequest **new_tail) {
-        MCHECK(NULL == old_head->next);
+        CHECK(NULL == old_head->next);
         // Try to set _write_head to NULL to mark that the write is done.
         WriteRequest *new_head = old_head;
         WriteRequest *desired = NULL;
@@ -1121,7 +1125,7 @@ namespace melon {
             }
             return return_when_no_more;
         }
-        MCHECK_NE(new_head, old_head);
+        CHECK_NE(new_head, old_head);
         // Above acquire fence pairs release fence of exchange in Write() to make
         // sure that we see all fields of requests set.
 
@@ -1138,7 +1142,7 @@ namespace melon {
             p->next = tail;
             tail = p;
             p = saved_next;
-            MCHECK(p != NULL);
+            CHECK(p != NULL);
         } while (p != old_head);
 
         // Link old list with new list.
@@ -1191,28 +1195,28 @@ namespace melon {
         struct sockaddr_storage serv_addr;
         socklen_t addr_size = 0;
         if (mutil::endpoint2sockaddr(remote_side(), &serv_addr, &addr_size) != 0) {
-            PMLOG(ERROR) << "Fail to get sockaddr";
+            PLOG(ERROR) << "Fail to get sockaddr";
             return -1;
         }
         mutil::fd_guard sockfd(socket(serv_addr.ss_family, SOCK_STREAM, 0));
         if (sockfd < 0) {
-            PMLOG(ERROR) << "Fail to create socket";
+            PLOG(ERROR) << "Fail to create socket";
             return -1;
         }
-        MCHECK_EQ(0, mutil::make_close_on_exec(sockfd));
+        CHECK_EQ(0, mutil::make_close_on_exec(sockfd));
         // We need to do async connect (to manage the timeout by ourselves).
-        MCHECK_EQ(0, mutil::make_non_blocking(sockfd));
+        CHECK_EQ(0, mutil::make_non_blocking(sockfd));
 
         const int rc = ::connect(
                 sockfd, (struct sockaddr *) &serv_addr, addr_size);
         if (rc != 0 && errno != EINPROGRESS) {
-            PMLOG(WARNING) << "Fail to connect to " << remote_side();
+            PLOG(WARNING) << "Fail to connect to " << remote_side();
             return -1;
         }
         if (on_connect) {
             EpollOutRequest *req = new(std::nothrow) EpollOutRequest;
             if (req == NULL) {
-                MLOG(FATAL) << "Fail to new EpollOutRequest";
+                LOG(FATAL) << "Fail to new EpollOutRequest";
                 return -1;
             }
             req->fd = sockfd;
@@ -1226,7 +1230,7 @@ namespace melon {
             options.fiber_tag = _fiber_tag;
             options.user = req;
             if (Socket::Create(options, &connect_id) != 0) {
-                MLOG(FATAL) << "Fail to create Socket";
+                LOG(FATAL) << "Fail to create Socket";
                 delete req;
                 return -1;
             }
@@ -1234,14 +1238,14 @@ namespace melon {
             // `connect_id'. We hold an additional reference here to
             // ensure `req' to be valid in this scope
             SocketUniquePtr s;
-            MCHECK_EQ(0, Socket::Address(connect_id, &s));
+            CHECK_EQ(0, Socket::Address(connect_id, &s));
 
             // Add `sockfd' into epoll so that `HandleEpollOutRequest' will
             // be called with `req' when epoll event reaches
             if (GetGlobalEventDispatcher(sockfd, _fiber_tag).AddEpollOut(connect_id, sockfd, false) !=
                 0) {
                 const int saved_errno = errno;
-                PMLOG(WARNING) << "Fail to add fd=" << sockfd << " into epoll";
+                PLOG(WARNING) << "Fail to add fd=" << sockfd << " into epoll";
                 s->SetFailed(saved_errno, "Fail to add fd=%d into epoll: %s",
                              (int) sockfd, berror(saved_errno));
                 return -1;
@@ -1258,7 +1262,7 @@ namespace melon {
                                          HandleEpollOutTimeout,
                                          (void *) connect_id);
                 if (rc) {
-                    MLOG(ERROR) << "Fail to add timer: " << berror(rc);
+                    LOG(ERROR) << "Fail to add timer: " << berror(rc);
                     s->SetFailed(rc, "Fail to add timer: %s", berror(rc));
                     return -1;
                 }
@@ -1266,7 +1270,7 @@ namespace melon {
 
         } else {
             if (WaitEpollOut(sockfd, false, abstime) != 0) {
-                PMLOG(WARNING) << "Fail to wait EPOLLOUT of fd=" << sockfd;
+                PLOG(WARNING) << "Fail to wait EPOLLOUT of fd=" << sockfd;
                 return -1;
             }
             if (CheckConnected(sockfd) != 0) {
@@ -1283,17 +1287,17 @@ namespace melon {
         int err = 0;
         socklen_t errlen = sizeof(err);
         if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &errlen) < 0) {
-            PMLOG(ERROR) << "Fail to getsockopt of fd=" << sockfd;
+            PLOG(ERROR) << "Fail to getsockopt of fd=" << sockfd;
             return -1;
         }
         if (err != 0) {
-            MCHECK_NE(err, EINPROGRESS);
+            CHECK_NE(err, EINPROGRESS);
             errno = err;
             return -1;
         }
 
         mutil::EndPoint local_point;
-        MCHECK_EQ(0, mutil::get_local_side(sockfd, &local_point));
+        CHECK_EQ(0, mutil::get_local_side(sockfd, &local_point));
         LOG_IF(INFO, FLAGS_log_connected)
         << "Connected to " << remote_side()
         << " via fd=" << (int) sockfd << " SocketId=" << id()
@@ -1364,7 +1368,7 @@ namespace melon {
         }
         EpollOutRequest *req = dynamic_cast<EpollOutRequest *>(s->user());
         if (req == NULL) {
-            MLOG(FATAL) << "Impossible! SocketUser MUST be EpollOutRequest here";
+            LOG(FATAL) << "Impossible! SocketUser MUST be EpollOutRequest here";
             return;
         }
         s->HandleEpollOutRequest(ETIMEDOUT, req);
@@ -1396,7 +1400,7 @@ namespace melon {
             fiber_t th;
             if (fiber_start_background(
                     &th, &FIBER_ATTR_NORMAL, KeepWrite, req) != 0) {
-                PMLOG(WARNING) << "Fail to start KeepWrite";
+                PLOG(WARNING) << "Fail to start KeepWrite";
                 KeepWrite(req);
             }
         } else {
@@ -1440,7 +1444,7 @@ namespace melon {
                 thrd_func.release();
                 return 0;
             } else {
-                PMLOG(ERROR) << "Fail to start fiber";
+                PLOG(ERROR) << "Fail to start fiber";
                 // Fall through with non zero `err'
             }
         }
@@ -1452,7 +1456,7 @@ namespace melon {
         mutil::fd_guard sockfd(fd);
         WriteRequest *req = static_cast<WriteRequest *>(data);
         Socket *s = req->socket;
-        MCHECK_GE(sockfd, 0);
+        CHECK_GE(sockfd, 0);
         if (err == 0 && s->CheckConnected(sockfd) == 0
             && s->ResetFileDescriptor(sockfd) == 0) {
             if (s->_app_connect) {
@@ -1518,7 +1522,7 @@ namespace melon {
             return SetError(opt.id_wait, EINVAL);
         }
         if (opt.pipelined_count > MAX_PIPELINED_COUNT) {
-            MLOG(ERROR) << "pipelined_count=" << opt.pipelined_count
+            LOG(ERROR) << "pipelined_count=" << opt.pipelined_count
                        << " is too large";
             return SetError(opt.id_wait, EOVERFLOW);
         }
@@ -1554,7 +1558,7 @@ namespace melon {
             opt = *options_in;
         }
         if (opt.pipelined_count > MAX_PIPELINED_COUNT) {
-            MLOG(ERROR) << "pipelined_count=" << opt.pipelined_count
+            LOG(ERROR) << "pipelined_count=" << opt.pipelined_count
                        << " is too large";
             return SetError(opt.id_wait, EOVERFLOW);
         }
@@ -1641,7 +1645,7 @@ namespace melon {
             if (errno != EAGAIN && errno != EOVERCROWDED) {
                 saved_errno = errno;
                 // EPIPE is common in pooled connections + backup requests.
-                PMLOG_IF(WARNING, errno != EPIPE) << "Fail to write into " << *this;
+                PLOG_IF(WARNING, errno != EPIPE) << "Fail to write into " << *this;
                 SetFailed(saved_errno, "Fail to write into %s: %s",
                           description().c_str(), berror(saved_errno));
                 goto FAIL_TO_WRITE;
@@ -1659,7 +1663,7 @@ namespace melon {
         req->socket = ptr_for_keep_write.release();
         if (fiber_start_background(&th, &FIBER_ATTR_NORMAL,
                                    KeepWrite, req) != 0) {
-            MLOG(FATAL) << "Fail to start KeepWrite";
+            LOG(FATAL) << "Fail to start KeepWrite";
             KeepWrite(req);
         }
         return 0;
@@ -1695,7 +1699,7 @@ namespace melon {
             if (nw < 0) {
                 if (errno != EAGAIN && errno != EOVERCROWDED) {
                     const int saved_errno = errno;
-                    PMLOG(WARNING) << "Fail to keep-write into " << *s;
+                    PLOG(WARNING) << "Fail to keep-write into " << *s;
                     s->SetFailed(saved_errno, "Fail to keep-write into %s: %s",
                                  s->description().c_str(), berror(saved_errno));
                     break;
@@ -1727,7 +1731,7 @@ namespace melon {
                 const int rc = s->WaitEpollOut(s->fd(), pollin, &duetime);
                 if (rc < 0 && errno != ETIMEDOUT) {
                     const int saved_errno = errno;
-                    PMLOG(WARNING) << "Fail to wait epollout of " << *s;
+                    PLOG(WARNING) << "Fail to wait epollout of " << *s;
                     s->SetFailed(saved_errno, "Fail to wait epollout of %s: %s",
                                  s->description().c_str(), berror(saved_errno));
                     break;
@@ -1740,7 +1744,7 @@ namespace melon {
             // Return when there's no more WriteRequests and req is completely
             // written.
             if (s->IsWriteComplete(cur_tail, (req == cur_tail), &cur_tail)) {
-                MCHECK_EQ(cur_tail, req);
+                CHECK_EQ(cur_tail, req);
                 s->ReturnSuccessfulWriteRequest(req);
                 return NULL;
             }
@@ -1770,7 +1774,7 @@ namespace melon {
             }
         }
 
-        MCHECK_EQ(SSL_CONNECTED, ssl_state());
+        CHECK_EQ(SSL_CONNECTED, ssl_state());
         if (_conn) {
             // TODO: Separate SSL stuff from SocketConnection
             MELON_SCOPED_LOCK(_ssl_session_mutex);
@@ -1798,12 +1802,12 @@ namespace melon {
             default: {
                 const unsigned long e = ERR_get_error();
                 if (e != 0) {
-                    MLOG(WARNING) << "Fail to write into ssl_fd=" << fd() << ": "
+                    LOG(WARNING) << "Fail to write into ssl_fd=" << fd() << ": "
                                  << SSLError(e);
                     errno = ESSL;
                 } else {
                     // System error with corresponding errno set
-                    PMLOG(WARNING) << "Fail to write into ssl_fd=" << fd();
+                    PLOG(WARNING) << "Fail to write into ssl_fd=" << fd();
                 }
                 break;
             }
@@ -1814,7 +1818,7 @@ namespace melon {
     int Socket::SSLHandshake(int fd, bool server_mode) {
         if (_ssl_ctx == NULL) {
             if (server_mode) {
-                MLOG(ERROR) << "Lack SSL configuration to handle SSL request";
+                LOG(ERROR) << "Lack SSL configuration to handle SSL request";
                 return -1;
             }
             return 0;
@@ -1827,7 +1831,7 @@ namespace melon {
         }
         _ssl_session = CreateSSLSession(_ssl_ctx->raw_ctx, id(), fd, server_mode);
         if (_ssl_session == NULL) {
-            MLOG(ERROR) << "Fail to CreateSSLSession";
+            LOG(ERROR) << "Fail to CreateSSLSession";
             return -1;
         }
 #if defined(SSL_CTRL_SET_TLSEXT_HOSTNAME)
@@ -1851,7 +1855,7 @@ namespace melon {
                     unsigned int alpn_proto_length;
                     SSL_get0_alpn_selected(_ssl_session, &alpn_proto, &alpn_proto_length);
                     if (!alpn_proto) {
-                        MLOG(ERROR) << "Server returned no ALPN protocol";
+                        LOG(ERROR) << "Server returned no ALPN protocol";
                         return -1;
                     }
 
@@ -1866,7 +1870,7 @@ namespace melon {
                                     alpn_protocol
                             ) == _ssl_ctx->alpn_protocols.end()
                             ) {
-                        MLOG(ERROR) << "Server returned unacceptable ALPN protocol: "
+                        LOG(ERROR) << "Server returned unacceptable ALPN protocol: "
                                    << alpn_protocol;
                         return -1;
                     }
@@ -1903,12 +1907,12 @@ namespace melon {
                     const unsigned long e = ERR_get_error();
                     if (ssl_error == SSL_ERROR_ZERO_RETURN || e == 0) {
                         errno = ECONNRESET;
-                        MLOG(ERROR) << "SSL connection was shutdown by peer: " << _remote_side;
+                        LOG(ERROR) << "SSL connection was shutdown by peer: " << _remote_side;
                     } else if (ssl_error == SSL_ERROR_SYSCALL) {
-                        PMLOG(ERROR) << "Fail to SSL_do_handshake";
+                        PLOG(ERROR) << "Fail to SSL_do_handshake";
                     } else {
                         errno = ESSL;
-                        MLOG(ERROR) << "Fail to SSL_do_handshake: " << SSLError(e);
+                        LOG(ERROR) << "Fail to SSL_do_handshake: " << SSLError(e);
                     }
                     return -1;
                 }
@@ -1937,7 +1941,7 @@ namespace melon {
                     break;
 
                 case SSL_CONNECTED:
-                    MCHECK(false) << "Impossible to reach here";
+                    CHECK(false) << "Impossible to reach here";
                     break;
 
                 case SSL_OFF:
@@ -1950,11 +1954,11 @@ namespace melon {
                 errno = ESSL;
                 return -1;
             }
-            MCHECK(_rdma_state == RDMA_OFF);
+            CHECK(_rdma_state == RDMA_OFF);
             return _read_buf.append_from_file_descriptor(fd(), size_hint);
         }
 
-        MCHECK_EQ(SSL_CONNECTED, ssl_state());
+        CHECK_EQ(SSL_CONNECTED, ssl_state());
         int ssl_error = 0;
         ssize_t nr = 0;
         {
@@ -1980,7 +1984,7 @@ namespace melon {
                 if (nr == 0) {
                     // Socket EOF or SSL session EOF
                 } else if (e != 0) {
-                    MLOG(WARNING) << "Fail to read from ssl_fd=" << fd()
+                    LOG(WARNING) << "Fail to read from ssl_fd=" << fd()
                                  << ": " << SSLError(e);
                     errno = ESSL;
                 } else {
@@ -1989,7 +1993,7 @@ namespace melon {
                                            ssl_error != SSL_ERROR_SYSCALL) ||
                                           BIO_fd_non_fatal_error(errno) != 0 ||
                                           nr < 0;
-                    PMLOG_IF(WARNING, is_fatal_error) << "Fail to read from ssl_fd=" << fd();
+                    PLOG_IF(WARNING, is_fatal_error) << "Fail to read from ssl_fd=" << fd();
                 }
                 break;
             }
@@ -2030,18 +2034,18 @@ namespace melon {
             if (error_code != 0) {
                 SetFailed(error_code, "Fail to authenticate %s", description().c_str());
             }
-            MCHECK_EQ(0, fiber_session_unlock_and_destroy(_auth_id));
+            CHECK_EQ(0, fiber_session_unlock_and_destroy(_auth_id));
         }
     }
 
     AuthContext *Socket::mutable_auth_context() {
         if (_auth_context != NULL) {
-            MLOG(FATAL) << "Impossible! This function is supposed to be called "
+            LOG(FATAL) << "Impossible! This function is supposed to be called "
                           "only once when verification succeeds in server side";
             return NULL;
         }
         _auth_context = new(std::nothrow) AuthContext();
-        MCHECK(_auth_context);
+        CHECK(_auth_context);
         return _auth_context;
     }
 
@@ -2058,9 +2062,9 @@ namespace melon {
         }
         if (s->fd() < 0) {
 #if defined(OS_LINUX)
-            MCHECK(!(events & EPOLLIN)) << "epoll_events=" << events;
+            CHECK(!(events & EPOLLIN)) << "epoll_events=" << events;
 #elif defined(OS_MACOSX)
-            MCHECK((short)events != EVFILT_READ) << "kqueue filter=" << events;
+            CHECK((short)events != EVFILT_READ) << "kqueue filter=" << events;
 #endif
             return -1;
         }
@@ -2087,7 +2091,7 @@ namespace melon {
             if (FLAGS_usercode_in_coroutine) {
                 ProcessEvent(p);
             } else if (fiber_start_urgent(&tid, &attr, ProcessEvent, p) != 0) {
-                MLOG(FATAL) << "Fail to start ProcessEvent";
+                LOG(FATAL) << "Fail to start ProcessEvent";
                 ProcessEvent(p);
             }
         }
@@ -2385,7 +2389,7 @@ namespace melon {
 
     int Socket::CheckHealth() {
         if (_hc_count == 0) {
-            MLOG(INFO) << "Checking " << *this;
+            LOG(INFO) << "Checking " << *this;
         }
         const timespec duetime =
                 mutil::milliseconds_from_now(FLAGS_health_check_timeout_ms);
@@ -2415,7 +2419,7 @@ namespace melon {
         _stream_mutex.lock();
         if (_stream_set == NULL) {
             _stream_mutex.unlock();
-            MCHECK(false) << "AddStream was not called";
+            CHECK(false) << "AddStream was not called";
             return -1;
         }
         _stream_set->erase(stream_id);
@@ -2424,7 +2428,7 @@ namespace melon {
     }
 
     void Socket::ResetAllStreams() {
-        DMCHECK(Failed());
+        DCHECK(Failed());
         std::set<StreamId> saved_stream_set;
         _stream_mutex.lock();
         if (_stream_set != NULL) {
@@ -2445,7 +2449,7 @@ namespace melon {
     }
 
     void SocketUser::AfterRevived(Socket *ptr) {
-        MLOG(INFO) << "Revived " << *ptr << " (Connectable)";
+        LOG(INFO) << "Revived " << *ptr << " (Connectable)";
     }
 
 ////////// SocketPool //////////////
@@ -2564,7 +2568,7 @@ namespace melon {
             if (!_shared_part.compare_exchange_strong(
                     expected, shared_part, mutil::memory_order_acq_rel)) {
                 shared_part->RemoveRefManually();
-                MCHECK(expected);
+                CHECK(expected);
                 shared_part = expected;
             }
         }
@@ -2583,12 +2587,12 @@ namespace melon {
 
     int Socket::GetPooledSocket(SocketUniquePtr *pooled_socket) {
         if (pooled_socket == NULL) {
-            MLOG(ERROR) << "pooled_socket is NULL";
+            LOG(ERROR) << "pooled_socket is NULL";
             return -1;
         }
         SharedPart *main_sp = GetOrNewSharedPart();
         if (main_sp == NULL) {
-            MLOG(ERROR) << "_shared_part is NULL";
+            LOG(ERROR) << "_shared_part is NULL";
             return -1;
         }
         // Create socket_pool optimistically.
@@ -2607,7 +2611,7 @@ namespace melon {
             if (!main_sp->socket_pool.compare_exchange_strong(
                     expected, socket_pool, mutil::memory_order_acq_rel)) {
                 delete socket_pool;
-                MCHECK(expected);
+                CHECK(expected);
                 socket_pool = expected;
             }
         }
@@ -2615,7 +2619,7 @@ namespace melon {
             return -1;
         }
         (*pooled_socket)->ShareStats(this);
-        MCHECK((*pooled_socket)->parsing_context() == NULL)
+        CHECK((*pooled_socket)->parsing_context() == NULL)
         << "context=" << (*pooled_socket)->parsing_context()
         << " is not NULL when " << *(*pooled_socket) << " is got from"
                                                         " SocketPool, the protocol implementation is buggy";
@@ -2625,18 +2629,18 @@ namespace melon {
     int Socket::ReturnToPool() {
         SharedPart *sp = _shared_part.exchange(NULL, mutil::memory_order_acquire);
         if (sp == NULL) {
-            MLOG(ERROR) << "_shared_part is NULL";
+            LOG(ERROR) << "_shared_part is NULL";
             SetFailed(EINVAL, "_shared_part is NULL");
             return -1;
         }
         SocketPool *pool = sp->socket_pool.load(mutil::memory_order_consume);
         if (pool == NULL) {
-            MLOG(ERROR) << "_shared_part->socket_pool is NULL";
+            LOG(ERROR) << "_shared_part->socket_pool is NULL";
             SetFailed(EINVAL, "_shared_part->socket_pool is NULL");
             sp->RemoveRefManually();
             return -1;
         }
-        MCHECK(parsing_context() == NULL)
+        CHECK(parsing_context() == NULL)
         << "context=" << parsing_context() << " is not released when "
         << *this << " is returned to SocketPool, the protocol "
                     "implementation is buggy";
@@ -2691,7 +2695,7 @@ namespace melon {
 
     int Socket::GetShortSocket(SocketUniquePtr *short_socket) {
         if (short_socket == NULL) {
-            MLOG(ERROR) << "short_socket is NULL";
+            LOG(ERROR) << "short_socket is NULL";
             return -1;
         }
         SocketId id;
@@ -2724,7 +2728,7 @@ namespace melon {
             }
             do {
                 if (GetShortSocket(&tmp_sock) != 0) {
-                    MLOG(ERROR) << "Fail to get short socket from " << *this;
+                    LOG(ERROR) << "Fail to get short socket from " << *this;
                     return -1;
                 }
                 if (checkfn == NULL || checkfn(tmp_sock.get())) {

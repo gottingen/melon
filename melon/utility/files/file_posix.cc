@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/files/file.h"
+#include <melon/utility/files/file.h>
 
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "melon/utility/files/file_path.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/files/file_path.h>
+#include <turbo/log/logging.h>
 #include "melon/utility/posix/eintr_wrapper.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include "melon/utility/threading/thread_restrictions.h"
@@ -170,7 +170,7 @@ void File::Info::FromStat(const stat_wrapper_t& stat_info) {
 // TODO(erikkay): does it make sense to support FLAG_EXCLUSIVE_* here?
 void File::InitializeUnsafe(const FilePath& name, uint32_t flags) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(!IsValid());
+  DCHECK(!IsValid());
 
   int open_flags = 0;
   if (flags & FLAG_CREATE)
@@ -179,19 +179,19 @@ void File::InitializeUnsafe(const FilePath& name, uint32_t flags) {
   created_ = false;
 
   if (flags & FLAG_CREATE_ALWAYS) {
-    DMCHECK(!open_flags);
-    DMCHECK(flags & FLAG_WRITE);
+    DCHECK(!open_flags);
+    DCHECK(flags & FLAG_WRITE);
     open_flags = O_CREAT | O_TRUNC;
   }
 
   if (flags & FLAG_OPEN_TRUNCATED) {
-    DMCHECK(!open_flags);
-    DMCHECK(flags & FLAG_WRITE);
+    DCHECK(!open_flags);
+    DCHECK(flags & FLAG_WRITE);
     open_flags = O_TRUNC;
   }
 
   if (!open_flags && !(flags & FLAG_OPEN) && !(flags & FLAG_OPEN_ALWAYS)) {
-    NOTREACHED();
+    DCHECK(false);
     errno = EOPNOTSUPP;
     error_details_ = FILE_ERROR_FAILED;
     return;
@@ -205,7 +205,7 @@ void File::InitializeUnsafe(const FilePath& name, uint32_t flags) {
              !(flags & FLAG_WRITE_ATTRIBUTES) &&
              !(flags & FLAG_APPEND) &&
              !(flags & FLAG_OPEN_ALWAYS)) {
-    NOTREACHED();
+    DCHECK(false);
   }
 
   if (flags & FLAG_TERMINAL_DEVICE)
@@ -276,7 +276,7 @@ void File::Close() {
 
 int64_t File::Seek(Whence whence, int64_t offset) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
 
 #if defined(OS_ANDROID)
   COMPILE_ASSERT(sizeof(int64_t) == sizeof(off64_t), off64_t_64_bit);
@@ -291,7 +291,7 @@ int64_t File::Seek(Whence whence, int64_t offset) {
 
 int File::Read(int64_t offset, char* data, int size) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -311,7 +311,7 @@ int File::Read(int64_t offset, char* data, int size) {
 
 int File::ReadAtCurrentPos(char* data, int size) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -330,14 +330,14 @@ int File::ReadAtCurrentPos(char* data, int size) {
 
 int File::ReadNoBestEffort(int64_t offset, char* data, int size) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
 
   return HANDLE_EINTR(pread(file_.get(), data, size, offset));
 }
 
 int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -350,7 +350,7 @@ int File::Write(int64_t offset, const char* data, int size) {
   if (IsOpenAppend(file_.get()))
     return WriteAtCurrentPos(data, size);
 
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -370,7 +370,7 @@ int File::Write(int64_t offset, const char* data, int size) {
 
 int File::WriteAtCurrentPos(const char* data, int size) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -390,7 +390,7 @@ int File::WriteAtCurrentPos(const char* data, int size) {
 
 int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   if (size < 0)
     return -1;
 
@@ -398,7 +398,7 @@ int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
 }
 
 int64_t File::GetLength() {
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
 
   stat_wrapper_t file_info;
   if (CallFstat(file_.get(), &file_info))
@@ -409,19 +409,19 @@ int64_t File::GetLength() {
 
 bool File::SetLength(int64_t length) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   return !CallFtruncate(file_.get(), length);
 }
 
 bool File::Flush() {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
   return !CallFsync(file_.get());
 }
 
 bool File::SetTimes(Time last_access_time, Time last_modified_time) {
   mutil::ThreadRestrictions::AssertIOAllowed();
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
 
   timeval times[2];
   times[0] = last_access_time.ToTimeVal();
@@ -431,7 +431,7 @@ bool File::SetTimes(Time last_access_time, Time last_modified_time) {
 }
 
 bool File::GetInfo(Info* info) {
-  DMCHECK(IsValid());
+  DCHECK(IsValid());
 
   stat_wrapper_t file_info;
   if (CallFstat(file_.get(), &file_info))
@@ -479,7 +479,7 @@ File::Error File::OSErrorToFileError(int saved_errno) {
 }
 
 void File::SetPlatformFile(PlatformFile file) {
-  DMCHECK(!file_.is_valid());
+  DCHECK(!file_.is_valid());
   file_.reset(file);
 }
 

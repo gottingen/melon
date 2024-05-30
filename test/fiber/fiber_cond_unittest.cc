@@ -1,29 +1,34 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <map>
 #include <gtest/gtest.h>
-#include "melon/utility/atomicops.h"
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/gperftools_profiler.h"
-#include "melon/fiber/fiber.h"
+#include <melon/utility/atomicops.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/scoped_lock.h>
+#include <melon/utility/gperftools_profiler.h>
+#include <melon/fiber/fiber.h>
 #include "melon/fiber/condition_variable.h"
-#include "melon/fiber/stack.h"
+#include <melon/fiber/stack.h>
+#include <cinttypes>
 
 namespace {
 struct Arg {
@@ -273,7 +278,7 @@ TEST(CondTest, ping_pong) {
         ASSERT_EQ(0, fiber_join(threads[i], NULL));
     }
     ProfilerStop();
-    MLOG(INFO) << "total_count=" << arg.total_count.load();
+    LOG(INFO) << "total_count=" << arg.total_count.load();
 }
 
 struct BroadcastArg {
@@ -431,16 +436,16 @@ static void launch_many_fibers() {
         tids.push_back(t0);
     }
     tm.stop();
-    MLOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
+    LOG(INFO) << "Creating fibers took " << tm.u_elapsed() << " us";
     usleep(3 * 1000 * 1000L);
     c.Signal();
     g_stop = true;
     fiber_join(tid, NULL);
     for (size_t i = 0; i < tids.size(); ++i) {
-        MLOG_EVERY_SECOND(INFO) << "Joined " << i << " threads";
+        LOG_EVERY_N_SEC(INFO, 1) << "Joined " << i << " threads";
         fiber_join(tids[i], NULL);
     }
-    MLOG_EVERY_SECOND(INFO) << "Joined " << tids.size() << " threads";
+    LOG_EVERY_N_SEC(INFO, 1) << "Joined " << tids.size() << " threads";
 }
 
 TEST(CondTest, too_many_fibers_from_pthread) {

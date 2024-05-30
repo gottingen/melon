@@ -1,29 +1,33 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/rpc/details/health_check.h"
-#include "melon/rpc/socket.h"
-#include "melon/rpc/channel.h"
-#include "melon/rpc/controller.h"
-#include "melon/rpc/details/controller_private_accessor.h"
-#include "melon/rpc/global.h"
-#include "melon/rpc/log.h"
-#include "melon/fiber/unstable.h"
-#include "melon/fiber/fiber.h"
+#include <melon/rpc/details/health_check.h>
+#include <melon/rpc/socket.h>
+#include <melon/rpc/channel.h>
+#include <melon/rpc/controller.h>
+#include <melon/rpc/details/controller_private_accessor.h>
+#include <melon/rpc/global.h>
+#include <melon/rpc/log.h>
+#include <melon/fiber/unstable.h>
+#include <melon/fiber/fiber.h>
 
 namespace melon {
 
@@ -80,7 +84,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
                  << " was abandoned during health checking";
         return;
     }
-    MLOG(INFO) << "Checking path=" << ptr->remote_side() << FLAGS_health_check_path;
+    LOG(INFO) << "Checking path=" << ptr->remote_side() << FLAGS_health_check_path;
     OnAppHealthCheckDone* done = new OnAppHealthCheckDone;
     done->id = id;
     done->interval_s = check_interval_s;
@@ -90,7 +94,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
     options.timeout_ms =
         std::min((int64_t)FLAGS_health_check_timeout_ms, check_interval_s * 1000);
     if (done->channel.Init(id, &options) != 0) {
-        MLOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
+        LOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
         ptr->_ninflight_app_health_check.fetch_sub(
                     1, mutil::memory_order_relaxed);
         delete done;
@@ -160,7 +164,7 @@ HealthCheckTask::HealthCheckTask(SocketId id)
 bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
     SocketUniquePtr ptr;
     const int rc = Socket::AddressFailedAsWell(_id, &ptr);
-    MCHECK(rc != 0);
+    CHECK(rc != 0);
     if (rc < 0) {
         RPC_VLOG << "SocketId=" << _id
                  << " was abandoned before health checking";
@@ -187,7 +191,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
     if (_first_time) {  // Only check at first time.
         _first_time = false;
         if (ptr->WaitAndReset(2/*note*/) != 0) {
-            MLOG(INFO) << "Cancel checking " << *ptr;
+            LOG(INFO) << "Cancel checking " << *ptr;
             ptr->AfterHCCompleted();
             return false;
         }
@@ -220,7 +224,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
         ptr->AfterHCCompleted();
         return false;
     } else if (hc == ESTOP) {
-        MLOG(INFO) << "Cancel checking " << *ptr;
+        LOG(INFO) << "Cancel checking " << *ptr;
         ptr->AfterHCCompleted();
         return false;
     }

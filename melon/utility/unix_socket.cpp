@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -19,8 +23,8 @@
 #include <sys/types.h>                          // socket
 #include <sys/socket.h>                         // ^
 #include <sys/un.h>                             // unix domain socket
-#include "melon/utility/fd_guard.h"                     // fd_guard
-#include "melon/utility/logging.h"
+#include <melon/utility/fd_guard.h>                     // fd_guard
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -31,19 +35,19 @@ int unix_socket_listen(const char* sockname, bool remove_previous_file) {
 
     fd_guard fd(socket(AF_LOCAL, SOCK_STREAM, 0));
     if (fd < 0) {
-        PMLOG(ERROR) << "Fail to create unix socket";
+        PLOG(ERROR) << "Fail to create unix socket";
         return -1;
     }
     if (remove_previous_file) {
         remove(sockname);
     }
     if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
-        PMLOG(ERROR) << "Fail to bind sockfd=" << fd << " as unix socket="
+        PLOG(ERROR) << "Fail to bind sockfd=" << fd << " as unix socket="
                     << sockname;
         return -1;
     }
     if (listen(fd, SOMAXCONN) != 0) {
-        PMLOG(ERROR) << "Fail to listen to sockfd=" << fd;
+        PLOG(ERROR) << "Fail to listen to sockfd=" << fd;
         return -1;
     }
     return fd.release();
@@ -60,11 +64,11 @@ int unix_socket_connect(const char* sockname) {
 
     fd_guard fd(socket(AF_LOCAL, SOCK_STREAM, 0));
     if (fd < 0) {
-        PMLOG(ERROR) << "Fail to create unix socket";
+        PLOG(ERROR) << "Fail to create unix socket";
         return -1;
     }
     if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
-        PMLOG(ERROR) << "Fail to connect to unix socket=" << sockname
+        PLOG(ERROR) << "Fail to connect to unix socket=" << sockname
                     << " via sockfd=" << fd;
         return -1;
     }

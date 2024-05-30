@@ -1,29 +1,32 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef  MELON_VAR_RECORDER_H_
-#define  MELON_VAR_RECORDER_H_
+#pragma once
 
-#include <stdint.h>                              // int64_t uint64_t
-#include "melon/utility/macros.h"                         // MELON_CASSERT
-#include "melon/utility/logging.h"                        // LOG
-#include "melon/var/detail/combiner.h"                // detail::AgentCombiner
-#include "melon/var/variable.h"
-#include "melon/var/window.h"
-#include "melon/var/detail/sampler.h"
+#include <cstdint>                              // int64_t uint64_t
+#include <melon/utility/macros.h>                         // MELON_CASSERT
+#include <turbo/log/logging.h>                        // LOG
+#include <melon/var/detail/combiner.h>                // detail::AgentCombiner
+#include <melon/var/variable.h>
+#include <melon/var/window.h>
+#include <melon/var/detail/sampler.h>
 
 namespace melon::var {
 
@@ -84,7 +87,7 @@ namespace melon::var {
 // Example:
 //   IntRecorder latency;
 //   latency << 1 << 3 << 5;
-//   MCHECK_EQ(3, latency.average());
+//   CHECK_EQ(3, latency.average());
     class IntRecorder : public Variable {
     public:
         // Compressing format:
@@ -253,19 +256,19 @@ namespace melon::var {
             // Truncate to be max or min of int. We're using 44 bits to store the
             // sum thus following aggregations are not likely to be over/underflow.
             if (!name().empty()) {
-                MLOG(WARNING) << "Input=" << sample << " to `" << name()
+                LOG(WARNING) << "Input=" << sample << " to `" << name()
                              << "\' " << reason;
             } else if (!_debug_name.empty()) {
-                MLOG(WARNING) << "Input=" << sample << " to `" << _debug_name
+                LOG(WARNING) << "Input=" << sample << " to `" << _debug_name
                              << "\' " << reason;
             } else {
-                MLOG(WARNING) << "Input=" << sample << " to IntRecorder("
+                LOG(WARNING) << "Input=" << sample << " to IntRecorder("
                              << (void *) this << ") " << reason;
             }
         }
         agent_type *agent = _combiner.get_or_create_tls_agent();
         if (MELON_UNLIKELY(!agent)) {
-            MLOG(FATAL) << "Fail to create agent";
+            LOG(FATAL) << "Fail to create agent";
             return *this;
         }
         uint64_t n;
@@ -292,5 +295,3 @@ namespace melon::var {
     }
 
 }  // namespace melon::var
-
-#endif  // MELON_VAR_RECORDER_H_

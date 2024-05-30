@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,7 +22,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/memcache/memcache.h>
@@ -58,7 +62,7 @@ static void* sender(void* arg) {
     }
     melon::MemcacheRequest request;
     for (int i = 0; i < FLAGS_batch; ++i) {
-        MCHECK(request.Get(kvs[i].first));
+        CHECK(request.Get(kvs[i].first));
     }
     while (!melon::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
@@ -75,18 +79,18 @@ static void* sender(void* arg) {
             for (int i = 0; i < FLAGS_batch; ++i) {
                 uint32_t flags;
                 if (!response.PopGet(&value, &flags, NULL)) {
-                    MLOG(INFO) << "Fail to GET the key, " << response.LastError();
+                    LOG(INFO) << "Fail to GET the key, " << response.LastError();
                     melon::AskToQuit();
                     return NULL;
                 }
-                MCHECK(flags == 0xdeadbeef + base_index + i)
+                CHECK(flags == 0xdeadbeef + base_index + i)
                     << "flags=" << flags;
-                MCHECK(kvs[i].second == value)
+                CHECK(kvs[i].second == value)
                     << "base=" << base_index << " i=" << i << " value=" << value;
             }
         } else {
             g_error_count << 1; 
-            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << elp;
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -123,7 +127,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
-        MLOG(ERROR) << "Fail to initialize channel";
+        LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
@@ -136,27 +140,27 @@ int main(int argc, char* argv[]) {
         if (!request.Set(mutil::string_printf("%s%d", FLAGS_key.c_str(), i),
                          mutil::string_printf("%s%d", FLAGS_value.c_str(), i),
                          0xdeadbeef + i, FLAGS_exptime, 0)) {
-            MLOG(ERROR) << "Fail to SET " << i << "th request";
+            LOG(ERROR) << "Fail to SET " << i << "th request";
             return -1;
         }
     }
     channel.CallMethod(NULL, &cntl, &request, &response, NULL);
     if (cntl.Failed()) {
-        MLOG(ERROR) << "Fail to access memcache, " << cntl.ErrorText();
+        LOG(ERROR) << "Fail to access memcache, " << cntl.ErrorText();
         return -1;
     }
     for (int i = 0; i < FLAGS_batch * FLAGS_thread_num; ++i) {
         if (!response.PopSet(NULL)) {
-            MLOG(ERROR) << "Fail to SET memcache, i=" << i
+            LOG(ERROR) << "Fail to SET memcache, i=" << i
                        << ", " << response.LastError();
             return -1;
         }
     }
     if (FLAGS_exptime > 0) {
-        MLOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num
+        LOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num
                   << " values, expired after " << FLAGS_exptime << " seconds";
     } else {
-        MLOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num
+        LOG(INFO) << "Set " << FLAGS_batch * FLAGS_thread_num
                   << " values, never expired";
     }
     
@@ -166,7 +170,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create pthread";
+                LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -175,7 +179,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create fiber";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -183,11 +187,11 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        MLOG(INFO) << "Accessing memcache server at qps=" << g_latency_recorder.qps(1)
+        LOG(INFO) << "Accessing memcache server at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
-    MLOG(INFO) << "memcache_client is going to quit";
+    LOG(INFO) << "memcache_client is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);

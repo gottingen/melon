@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 #include "melon/utility/memory/singleton.h"
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 
 namespace mutil {
 namespace {
@@ -96,12 +96,12 @@ void ThreadIdNameManager::RemoveName(PlatformThreadHandle::Handle handle,
   ThreadHandleToInternedNameMap::iterator handle_to_name_iter =
       thread_handle_to_interned_name_.find(handle);
 
-  DMCHECK(handle_to_name_iter != thread_handle_to_interned_name_.end());
+  DCHECK(handle_to_name_iter != thread_handle_to_interned_name_.end());
   thread_handle_to_interned_name_.erase(handle_to_name_iter);
 
   ThreadIdToHandleMap::iterator id_to_handle_iter =
       thread_id_to_handle_.find(id);
-  DMCHECK((id_to_handle_iter!= thread_id_to_handle_.end()));
+  DCHECK((id_to_handle_iter!= thread_id_to_handle_.end()));
   // The given |id| may have been re-used by the system. Make sure the
   // mapping points to the provided |handle| before removal.
   if (id_to_handle_iter->second != handle)

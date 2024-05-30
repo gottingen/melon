@@ -7,7 +7,7 @@
 #include <errno.h>
 
 #include "melon/utility/scoped_clear_errno.h"
-#include "melon/utility/strings/string_util.h"
+#include <melon/utility/strings/string_util.h>
 #include "melon/utility/strings/utf_string_conversions.h"
 
 // gcc7 reports that the first arg to vsnprintfT in StringAppendVT is NULL,
@@ -92,7 +92,7 @@ static void StringAppendVT(StringType* dst,
       // That should be plenty, don't try anything larger.  This protects
       // against huge allocations when using vsnprintfT implementations that
       // return -1 for reasons other than overflow without setting errno.
-      DMLOG(WARNING) << "Unable to printf the requested string due to size.";
+      DLOG(WARNING) << "Unable to printf the requested string due to size.";
       return;
     }
 

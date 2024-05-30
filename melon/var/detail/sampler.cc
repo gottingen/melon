@@ -1,27 +1,31 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gflags/gflags.h>
-#include "melon/utility/threading/platform_thread.h"
-#include "melon/utility/time.h"
-#include "melon/utility/memory/singleton_on_pthread_once.h"
-#include "melon/var/reducer.h"
-#include "melon/var/detail/sampler.h"
-#include "melon/var/passive_status.h"
-#include "melon/var/window.h"
+#include <melon/utility/threading/platform_thread.h>
+#include <melon/utility/time.h>
+#include <melon/utility/memory/singleton_on_pthread_once.h>
+#include <melon/var/reducer.h>
+#include <melon/var/detail/sampler.h>
+#include <melon/var/passive_status.h>
+#include <melon/var/window.h>
 
 namespace melon::var {
     namespace detail {
@@ -87,7 +91,7 @@ namespace melon::var {
             void create_sampling_thread() {
                 const int rc = pthread_create(&_tid, NULL, sampling_thread, this);
                 if (rc != 0) {
-                    MLOG(FATAL) << "Fail to create sampling_thread, " << berror(rc);
+                    LOG(FATAL) << "Fail to create sampling_thread, " << berror(rc);
                 } else {
                     _created = true;
                     if (!registered_atfork) {
@@ -105,7 +109,7 @@ namespace melon::var {
             void run();
 
             static void *sampling_thread(void *arg) {
-                mutil::PlatformThread::SetName("bvar_sampler");
+                mutil::PlatformThread::SetName("var_sampler");
                 static_cast<SamplerCollector *>(arg)->run();
                 return NULL;
             }
@@ -122,14 +126,14 @@ namespace melon::var {
         };
 
 #ifndef UNIT_TEST
-        static PassiveStatus<double> *s_cumulated_time_bvar = NULL;
-        static melon::var::PerSecond<melon::var::PassiveStatus<double> > *s_sampling_thread_usage_bvar = NULL;
+        static PassiveStatus<double> *s_cumulated_time_var = NULL;
+        static melon::var::PerSecond<melon::var::PassiveStatus<double> > *s_sampling_thread_usage_var = NULL;
 #endif
 
-        DEFINE_int32(bvar_sampler_thread_start_delay_us, 10000, "bvar sampler thread start delay us");
+        DEFINE_int32(var_sampler_thread_start_delay_us, 10000, "var sampler thread start delay us");
 
         void SamplerCollector::run() {
-            ::usleep(FLAGS_bvar_sampler_thread_start_delay_us);
+            ::usleep(FLAGS_var_sampler_thread_start_delay_us);
 
 #ifndef UNIT_TEST
             // NOTE:
@@ -137,14 +141,14 @@ namespace melon::var {
             //   may be abandoned at any time after forking.
             // * They can't created inside the constructor of SamplerCollector as well,
             //   which results in deadlock.
-            if (s_cumulated_time_bvar == NULL) {
-                s_cumulated_time_bvar =
+            if (s_cumulated_time_var == NULL) {
+                s_cumulated_time_var =
                         new PassiveStatus<double>(get_cumulated_time, this);
             }
-            if (s_sampling_thread_usage_bvar == NULL) {
-                s_sampling_thread_usage_bvar =
+            if (s_sampling_thread_usage_var == NULL) {
+                s_sampling_thread_usage_var =
                         new melon::var::PerSecond<melon::var::PassiveStatus<double> >(
-                                "bvar_sampler_collector_usage", s_cumulated_time_bvar, 10);
+                                "var_sampler_collector_usage", s_cumulated_time_var, 10);
             }
 #endif
 
@@ -185,7 +189,7 @@ namespace melon::var {
                 } else {
                     if (++consecutive_nosleep >= WARN_NOSLEEP_THRESHOLD) {
                         consecutive_nosleep = 0;
-                        MLOG(WARNING) << "bvar is busy at sampling for "
+                        LOG(WARNING) << "var is busy at sampling for "
                                      << WARN_NOSLEEP_THRESHOLD << " seconds!";
                     }
                 }
@@ -196,12 +200,12 @@ namespace melon::var {
 
         Sampler::~Sampler() {}
 
-        DEFINE_bool(bvar_enable_sampling, true, "is enable bvar sampling");
+        DEFINE_bool(var_enable_sampling, true, "is enable var sampling");
 
         void Sampler::schedule() {
             // since the SamplerCollector is initialized before the program starts
             // flags will not take effect if used in the SamplerCollector constructor
-            if (FLAGS_bvar_enable_sampling) {
+            if (FLAGS_var_enable_sampling) {
                 *mutil::get_leaky_singleton<SamplerCollector>() << this;
             }
         }

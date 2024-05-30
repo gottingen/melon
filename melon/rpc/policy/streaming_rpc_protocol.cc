@@ -1,35 +1,39 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
-#include "melon/rpc/policy/streaming_rpc_protocol.h"
-
+#include <melon/rpc/policy/streaming_rpc_protocol.h>
+#include <cinttypes>
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include "melon/utility/macros.h"
-#include "melon/utility/logging.h"                       // LOG()
-#include "melon/utility/time.h"
-#include "melon/utility/iobuf.h"                         // mutil::IOBuf
-#include "melon/utility/raw_pack.h"                      // RawPacker RawUnpacker
-#include "melon/rpc/log.h"
-#include "melon/rpc/socket.h"                        // Socket
-#include "melon/proto/rpc/streaming_rpc_meta.pb.h"         // StreamFrameMeta
-#include "melon/rpc/policy/most_common_message.h"
-#include "melon/rpc/stream_impl.h"
+#include <melon/utility/macros.h>
+#include <turbo/log/logging.h>                       // LOG()
+#include <melon/utility/time.h>
+#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/utility/raw_pack.h>                      // RawPacker RawUnpacker
+#include <melon/rpc/log.h>
+#include <melon/rpc/socket.h>                        // Socket
+#include <melon/proto/rpc/streaming_rpc_meta.pb.h>         // StreamFrameMeta
+#include <melon/rpc/policy/most_common_message.h>
+#include <melon/rpc/stream_impl.h>
 
 
 namespace melon {
@@ -51,7 +55,7 @@ void PackStreamMessage(mutil::IOBuf* out,
         .pack32(meta_length);
     out->append(head, ARRAY_SIZE(head));
     mutil::IOBufAsZeroCopyOutputStream wrapper(out);
-    MCHECK(fm.SerializeToZeroCopyStream(&wrapper));
+    CHECK(fm.SerializeToZeroCopyStream(&wrapper));
     if (data != NULL) {
         out->append(*data);
     }
@@ -83,7 +87,7 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
     }
     if (MELON_UNLIKELY(meta_size > body_size)) {
-        MLOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
+        LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                    << body_size;
         // Pop the message
         source->pop_front(sizeof(header_buf) + body_size);
@@ -98,12 +102,12 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
     do {
         StreamFrameMeta fm;
         if (!ParsePbFromIOBuf(&fm, meta_buf)) {
-            MLOG(WARNING) << "Fail to Parse StreamFrameMeta from " << *socket;
+            LOG(WARNING) << "Fail to Parse StreamFrameMeta from " << *socket;
             break;
         }
         SocketUniquePtr ptr;
         if (Socket::Address((SocketId)fm.stream_id(), &ptr) != 0) {
-            RPC_VLOG_IF(fm.frame_type() != FRAME_TYPE_RST 
+            RPC_VLOG_IF(fm.frame_type() != FRAME_TYPE_RST
                             && fm.frame_type() != FRAME_TYPE_CLOSE
                             && fm.frame_type() != FRAME_TYPE_FEEDBACK)
                    << "Fail to find stream=" << fm.stream_id();
@@ -123,11 +127,11 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
 }
 
 void ProcessStreamingMessage(InputMessageBase* /*msg*/) {
-    MCHECK(false) << "Should never be called";
+    CHECK(false) << "Should never be called";
 }
 
 void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
-    MCHECK(sock != NULL);
+    CHECK(sock != NULL);
     StreamFrameMeta fm;
     fm.set_stream_id(remote_stream_id);
     fm.set_frame_type(FRAME_TYPE_RST);
@@ -138,7 +142,7 @@ void SendStreamRst(Socket *sock, int64_t remote_stream_id) {
 
 void SendStreamClose(Socket *sock, int64_t remote_stream_id,
                      int64_t source_stream_id) {
-    MCHECK(sock != NULL);
+    CHECK(sock != NULL);
     StreamFrameMeta fm;
     fm.set_stream_id(remote_stream_id);
     fm.set_source_stream_id(source_stream_id);

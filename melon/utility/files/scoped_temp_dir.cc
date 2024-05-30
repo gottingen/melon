@@ -4,8 +4,8 @@
 
 #include "melon/utility/files/scoped_temp_dir.h"
 
-#include "melon/utility/file_util.h"
-#include "melon/utility/logging.h"
+#include <melon/utility/file_util.h>
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -14,7 +14,7 @@ ScopedTempDir::ScopedTempDir() {
 
 ScopedTempDir::~ScopedTempDir() {
   if (!path_.empty() && !Delete())
-    DMLOG(WARNING) << "Could not delete temp dir in dtor.";
+    DLOG(WARNING) << "Could not delete temp dir in dtor.";
 }
 
 bool ScopedTempDir::CreateUniqueTempDir() {

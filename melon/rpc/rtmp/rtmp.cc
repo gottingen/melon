@@ -1,32 +1,36 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <gflags/gflags.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h> // StringOutputStream
-#include "melon/fiber/fiber.h"                      // fiber_session_xx
-#include "melon/fiber/unstable.h"                     // fiber_timer_del
-#include "melon/rpc/log.h"
-#include "melon/rpc/callback.h"                   // Closure
-#include "melon/rpc/channel.h"                    // Channel
-#include "melon/rpc/socket_map.h"                 // SocketMap
-#include "melon/rpc/socket.h"                     // Socket
-#include "melon/rpc/policy/rtmp_protocol.h"       // policy::*
-#include "melon/rpc/rtmp/rtmp.h"
-#include "melon/rpc/rtmp/rtmp_utils.h"
+#include <melon/fiber/fiber.h>                      // fiber_session_xx
+#include <melon/fiber/unstable.h>                     // fiber_timer_del
+#include <melon/rpc/log.h>
+#include <melon/rpc/callback.h>                   // Closure
+#include <melon/rpc/channel.h>                    // Channel
+#include <melon/rpc/socket_map.h>                 // SocketMap
+#include <melon/rpc/socket.h>                     // Socket
+#include <melon/rpc/policy/rtmp_protocol.h>       // policy::*
+#include <melon/rpc/rtmp/rtmp.h>
+#include <melon/rpc/rtmp/rtmp_utils.h>
 
 
 namespace melon {
@@ -36,21 +40,21 @@ DEFINE_bool(rtmp_server_close_connection_on_error, true,
             " RtmpConnectRequest.stream_multiplexing to true are not affected"
             " by this flag");
 
-struct RtmpBvars {
+struct RtmpVars {
     melon::var::Adder<int> client_count;
     melon::var::Adder<int> client_stream_count;
     melon::var::Adder<int> retrying_client_stream_count;
     melon::var::Adder<int> server_stream_count;
 
-    RtmpBvars()
+    RtmpVars()
         : client_count("rtmp_client_count")
         , client_stream_count("rtmp_client_stream_count")
         , retrying_client_stream_count("rtmp_retrying_client_stream_count")
         , server_stream_count("rtmp_server_stream_count") {
     }
 };
-inline RtmpBvars* get_rtmp_bvars() {
-    return mutil::get_leaky_singleton<RtmpBvars>();
+inline RtmpVars* get_rtmp_vars() {
+    return mutil::get_leaky_singleton<RtmpVars>();
 }
 
 namespace policy {
@@ -195,7 +199,7 @@ mutil::Status FlvReader::ReadHeader() {
         }
         const char flv_header_signature[3] = { 'F', 'L', 'V' };
         if (memcmp(p, flv_header_signature, sizeof(flv_header_signature)) != 0) {
-            MLOG(FATAL) << "Fail to parse FLV header";
+            LOG(FATAL) << "Fail to parse FLV header";
             return mutil::Status(EINVAL, "Fail to parse FLV header");
         }
         _buf->pop_front(sizeof(header_buf));
@@ -241,7 +245,7 @@ mutil::Status FlvReader::Read(RtmpVideoMessage* msg) {
     }
     _buf->pop_front(11);
     char first_byte = 0;
-    MCHECK(_buf->cut1(&first_byte));
+    CHECK(_buf->cut1(&first_byte));
     msg->timestamp = timestamp;
     msg->frame_type = (FlvVideoFrameType)((first_byte >> 4) & 0xF);
     msg->codec = (FlvVideoCodec)(first_byte & 0xF);
@@ -269,7 +273,7 @@ mutil::Status FlvReader::Read(RtmpAudioMessage* msg) {
     }
     _buf->pop_front(11);
     char first_byte = 0;
-    MCHECK(_buf->cut1(&first_byte));
+    CHECK(_buf->cut1(&first_byte));
     msg->timestamp = timestamp;
     msg->codec = (FlvAudioCodec)((first_byte >> 4) & 0xF);
     msg->rate = (FlvSoundRate)((first_byte >> 2) & 0x3);
@@ -935,13 +939,13 @@ bool AVCNaluIterator::next_as_annexb() {
 bool AVCNaluIterator::next_as_ibmf() {
     // The value of this field shall be one of 0, 1, or 3 corresponding to a
     // length encoded with 1, 2, or 4 bytes, respectively.
-    MCHECK_NE(_length_size_minus1, 2u);
+    CHECK_NE(_length_size_minus1, 2u);
 
     if (_data->empty()) {
         return false;
     }
     if (_data->size() < _length_size_minus1 + 1) {
-        MLOG(ERROR) << "Not enough data to decode length of NALU";
+        LOG(ERROR) << "Not enough data to decode length of NALU";
         return false;
     }
     int32_t nalu_length = 0;
@@ -959,11 +963,11 @@ bool AVCNaluIterator::next_as_ibmf() {
     // maybe stream is invalid format.
     // see: https://github.com/ossrs/srs/issues/183
     if (nalu_length < 0) {
-        MLOG(ERROR) << "Invalid nalu_length=" << nalu_length;
+        LOG(ERROR) << "Invalid nalu_length=" << nalu_length;
         return false;
     }
     if (_data->size() < _length_size_minus1 + 1 + nalu_length) {
-        MLOG(ERROR) << "Not enough data to decode NALU";
+        LOG(ERROR) << "Not enough data to decode NALU";
         return false;
     }
     _data->pop_front(_length_size_minus1 + 1);
@@ -995,10 +999,10 @@ class RtmpClientImpl : public SharedObject {
 friend class RtmpClientStream;
 public:
     RtmpClientImpl() {
-        get_rtmp_bvars()->client_count << 1;
+        get_rtmp_vars()->client_count << 1;
     }
     ~RtmpClientImpl() {
-        get_rtmp_bvars()->client_count << -1;
+        get_rtmp_vars()->client_count << -1;
         RPC_VLOG << "Destroying RtmpClientImpl=" << this;
     }
 
@@ -1040,7 +1044,7 @@ void RtmpConnect::StartConnect(
     policy::RtmpContext* ctx =
         static_cast<policy::RtmpContext*>(s->parsing_context());
     if (ctx == NULL) {
-        MLOG(FATAL) << "RtmpContext of " << *s << " is NULL";
+        LOG(FATAL) << "RtmpContext of " << *s << " is NULL";
         return done(EINVAL, data);
     }
 
@@ -1048,7 +1052,7 @@ void RtmpConnect::StartConnect(
     if (_client_options && _client_options->simplified_rtmp) {
         ctx->set_simplified_rtmp(true);
         if (ctx->SendConnectRequest(s->remote_side(), s->fd(), true) != 0) {
-            MLOG(ERROR) << s->remote_side() << ": Fail to send simple connect";
+            LOG(ERROR) << s->remote_side() << ": Fail to send simple connect";
             return done(EINVAL, data);
         }
         ctx->SetState(s->remote_side(), policy::RtmpContext::STATE_RECEIVED_S2);
@@ -1062,7 +1066,7 @@ void RtmpConnect::StartConnect(
     // Initiate the rtmp handshake.
     bool is_simple_handshake = false;
     if (policy::SendC0C1(s->fd(), &is_simple_handshake) != 0) {
-        MLOG(ERROR) << s->remote_side() << ": Fail to send C0 C1";
+        LOG(ERROR) << s->remote_side() << ": Fail to send C0 C1";
         return done(EINVAL, data);
     }
     if (is_simple_handshake) {
@@ -1074,7 +1078,7 @@ void RtmpConnect::StopConnect(Socket* s) {
     policy::RtmpContext* ctx =
         static_cast<policy::RtmpContext*>(s->parsing_context());
     if (ctx == NULL) {
-        MLOG(FATAL) << "RtmpContext of " << *s << " is NULL";
+        LOG(FATAL) << "RtmpContext of " << *s << " is NULL";
     } else {
         ctx->OnConnected(EFAILEDSOCKET);
     }
@@ -1110,7 +1114,7 @@ int RtmpClientImpl::CommonInit(const RtmpClientOptions& options) {
     SocketMapOptions sm_options;
     sm_options.socket_creator = new RtmpSocketCreator(_connect_options);
     if (_socket_map.Init(sm_options) != 0) {
-        MLOG(ERROR) << "Fail to init _socket_map";
+        LOG(ERROR) << "Fail to init _socket_map";
         return -1;
     }
     return 0;
@@ -1184,7 +1188,7 @@ int RtmpClient::Init(mutil::EndPoint server_addr_and_port,
                      const RtmpClientOptions& options) {
     mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
-        MLOG(FATAL) << "Fail to new RtmpClientImpl";
+        LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
     }
     if (tmp->Init(server_addr_and_port, options) != 0) {
@@ -1198,7 +1202,7 @@ int RtmpClient::Init(const char* server_addr_and_port,
                      const RtmpClientOptions& options) {
     mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
-        MLOG(FATAL) << "Fail to new RtmpClientImpl";
+        LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
     }
     if (tmp->Init(server_addr_and_port, options) != 0) {
@@ -1212,7 +1216,7 @@ int RtmpClient::Init(const char* server_addr, int port,
                      const RtmpClientOptions& options) {
     mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
-        MLOG(FATAL) << "Fail to new RtmpClientImpl";
+        LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
     }
     if (tmp->Init(server_addr, port, options) != 0) {
@@ -1227,7 +1231,7 @@ int RtmpClient::Init(const char* naming_service_url,
                      const RtmpClientOptions& options) {
     mutil::intrusive_ptr<RtmpClientImpl> tmp(new (std::nothrow) RtmpClientImpl);
     if (tmp == NULL) {
-        MLOG(FATAL) << "Fail to new RtmpClientImpl";
+        LOG(FATAL) << "Fail to new RtmpClientImpl";
         return -1;
     }
     if (tmp->Init(naming_service_url, load_balancer_name, options) != 0) {
@@ -1266,7 +1270,7 @@ int RtmpStreamBase::SendMessage(uint32_t timestamp,
         return -1;
     }
     if (_chunk_stream_id == 0) {
-        MLOG(ERROR) << "SendXXXMessage can't be called before play() is received";
+        LOG(ERROR) << "SendXXXMessage can't be called before play() is received";
         errno = EPERM;
         return -1;
     }
@@ -1300,7 +1304,7 @@ int RtmpStreamBase::SendCuePoint(const RtmpCuePoint& cuepoint) {
         WriteAMFString(RTMP_AMF0_ON_CUE_POINT, &ostream);
         WriteAMFObject(cuepoint.data, &ostream);
         if (!ostream.good()) {
-            MLOG(ERROR) << "Fail to serialize cuepoint";
+            LOG(ERROR) << "Fail to serialize cuepoint";
             return -1;
         }
     }
@@ -1316,7 +1320,7 @@ int RtmpStreamBase::SendMetaData(const RtmpMetaData& metadata,
         WriteAMFString(name, &ostream);
         WriteAMFObject(metadata.data, &ostream);
         if (!ostream.good()) {
-            MLOG(ERROR) << "Fail to serialize metadata";
+            LOG(ERROR) << "Fail to serialize metadata";
             return -1;
         }
     }
@@ -1324,7 +1328,7 @@ int RtmpStreamBase::SendMetaData(const RtmpMetaData& metadata,
 }
 
 int RtmpStreamBase::SendSharedObjectMessage(const RtmpSharedObjectMessage&) {
-    MCHECK(false) << "Not supported yet";
+    CHECK(false) << "Not supported yet";
     return -1;
 }
 
@@ -1334,7 +1338,7 @@ int RtmpStreamBase::SendAudioMessage(const RtmpAudioMessage& msg) {
         return -1;
     }
     if (_chunk_stream_id == 0) {
-        MLOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
+        LOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
         errno = EPERM;
         return -1;
     }
@@ -1365,7 +1369,7 @@ int RtmpStreamBase::SendAACMessage(const RtmpAACMessage& msg) {
         return -1;
     }
     if (_chunk_stream_id == 0) {
-        MLOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
+        LOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
         errno = EPERM;
         return -1;
     }
@@ -1392,7 +1396,7 @@ int RtmpStreamBase::SendAACMessage(const RtmpAACMessage& msg) {
 }
 
 int RtmpStreamBase::SendUserMessage(void*) {
-    MCHECK(false) << "You should implement your own SendUserMessage";
+    CHECK(false) << "You should implement your own SendUserMessage";
     return 0; 
 }
 
@@ -1402,15 +1406,15 @@ int RtmpStreamBase::SendVideoMessage(const RtmpVideoMessage& msg) {
         return -1;
     }
     if (_chunk_stream_id == 0) {
-        MLOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
+        LOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
         errno = EPERM;
         return -1;
     }
     if (!policy::is_video_frame_type_valid(msg.frame_type)) {
-        MLOG(WARNING) << "Invalid frame_type=" << (int)msg.frame_type;
+        LOG(WARNING) << "Invalid frame_type=" << (int)msg.frame_type;
     }
     if (!policy::is_video_codec_valid(msg.codec)) {
-        MLOG(WARNING) << "Invalid codec=" << (int)msg.codec;
+        LOG(WARNING) << "Invalid codec=" << (int)msg.codec;
     }
     if (_paused) {
         errno = EPERM;
@@ -1435,12 +1439,12 @@ int RtmpStreamBase::SendAVCMessage(const RtmpAVCMessage& msg) {
         return -1;
     }
     if (_chunk_stream_id == 0) {
-        MLOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
+        LOG(ERROR) << __FUNCTION__ << " can't be called before play() is received";
         errno = EPERM;
         return -1;
     }
     if (!policy::is_video_frame_type_valid(msg.frame_type)) {
-        MLOG(WARNING) << "Invalid frame_type=" << (int)msg.frame_type;
+        LOG(WARNING) << "Invalid frame_type=" << (int)msg.frame_type;
     }
     if (_paused) {
         errno = EPERM;
@@ -1482,32 +1486,32 @@ void RtmpStreamBase::SignalError() {
 void RtmpStreamBase::OnFirstMessage() {}
 
 void RtmpStreamBase::OnUserData(void*) {
-    MLOG(INFO) << remote_side() << '[' << stream_id()
+    LOG(INFO) << remote_side() << '[' << stream_id()
               << "] ignored UserData{}";
 }
 
 void RtmpStreamBase::OnCuePoint(RtmpCuePoint* cuepoint) {
-    MLOG(INFO) << remote_side() << '[' << stream_id()
+    LOG(INFO) << remote_side() << '[' << stream_id()
               << "] ignored CuePoint{" << cuepoint->data << '}';
 }
 
 void RtmpStreamBase::OnMetaData(RtmpMetaData* metadata, const mutil::StringPiece& name) {
-    MLOG(INFO) << remote_side() << '[' << stream_id()
+    LOG(INFO) << remote_side() << '[' << stream_id()
               << "] ignored MetaData{" << metadata->data << '}'
               << " name{" << name << '}';
 }
 
 void RtmpStreamBase::OnSharedObjectMessage(RtmpSharedObjectMessage*) {
-    MLOG(ERROR) << remote_side() << '[' << stream_id()
+    LOG(ERROR) << remote_side() << '[' << stream_id()
                << "] ignored SharedObjectMessage{}";
 }
 
 void RtmpStreamBase::OnAudioMessage(RtmpAudioMessage* msg) {
-    MLOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored " << *msg;
+    LOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored " << *msg;
 }
 
 void RtmpStreamBase::OnVideoMessage(RtmpVideoMessage* msg) {
-    MLOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored " << *msg;
+    LOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored " << *msg;
 }
 
 void RtmpStreamBase::OnStop() {
@@ -1518,12 +1522,12 @@ bool RtmpStreamBase::BeginProcessingMessage(const char* fun_name) {
     std::unique_lock<mutil::Mutex> mu(_call_mutex);
     if (_stopped) {
         mu.unlock();
-        MLOG(ERROR) << fun_name << " is called after OnStop()";
+        LOG(ERROR) << fun_name << " is called after OnStop()";
         return false;
     }
     if (_processing_msg) {
         mu.unlock();
-        MLOG(ERROR) << "Impossible: Another OnXXXMessage is being called!";
+        LOG(ERROR) << "Impossible: Another OnXXXMessage is being called!";
         return false;
     }
     _processing_msg = true;
@@ -1590,7 +1594,7 @@ void RtmpStreamBase::CallOnStop() {
         std::unique_lock<mutil::Mutex> mu(_call_mutex);
         if (_stopped) {
             mu.unlock();
-            MLOG(ERROR) << "OnStop() was called more than once";
+            LOG(ERROR) << "OnStop() was called more than once";
             return;
         }
         _stopped = true;
@@ -1617,12 +1621,12 @@ RtmpClientStream::RtmpClientStream()
     , _from_socketmap(true)
     , _created_stream_with_play_or_publish(false)
     , _state(STATE_UNINITIALIZED) {
-    get_rtmp_bvars()->client_stream_count << 1;
+    get_rtmp_vars()->client_stream_count << 1;
     _self_ref.reset(this);
 }
 
 RtmpClientStream::~RtmpClientStream() {
-    get_rtmp_bvars()->client_stream_count << -1;
+    get_rtmp_vars()->client_stream_count << -1;
 }
 
 void RtmpClientStream::Destroy() {
@@ -1728,7 +1732,7 @@ StreamUserData* RtmpClientStream::OnCreatingStream(
 int RtmpClientStream::RunOnFailed(fiber_session_t id, void* data, int) {
     mutil::intrusive_ptr<RtmpClientStream> stream(
         static_cast<RtmpClientStream*>(data), false);
-    MCHECK(stream->_rtmpsock);
+    CHECK(stream->_rtmpsock);
     // Must happen after NotifyOnFailed which is after all other callsites
     // to OnStopInternal().
     stream->OnStopInternal();
@@ -1747,7 +1751,7 @@ void RtmpClientStream::OnFailedToCreateStream() {
         case STATE_CREATED:
             _state = STATE_ERROR;
             mu.unlock();
-            MCHECK(false) << "Impossible";
+            CHECK(false) << "Impossible";
             break;
         case STATE_ERROR:
         case STATE_DESTROYING:
@@ -1790,12 +1794,12 @@ void RtmpClientStream::DestroyStreamCreator(Controller* cntl) {
             cntl->ErrorCode() != ERTMPCREATESTREAM) {
             // ^ ERTMPCREATESTREAM is triggered by receiving "_error" command,
             // RemoveTransaction should already be called.
-            MCHECK_LT(cntl->log_id(), (uint64_t)std::numeric_limits<uint32_t>::max());
+            CHECK_LT(cntl->log_id(), (uint64_t)std::numeric_limits<uint32_t>::max());
             const uint32_t transaction_id = cntl->log_id();
             policy::RtmpContext* rtmp_ctx =
                 static_cast<policy::RtmpContext*>(_rtmpsock->parsing_context());
             if (rtmp_ctx == NULL) {
-                MLOG(FATAL) << "RtmpContext must be created";
+                LOG(FATAL) << "RtmpContext must be created";
             } else {
                 policy::RtmpTransactionHandler* handler =
                     rtmp_ctx->RemoveTransaction(transaction_id);
@@ -1813,7 +1817,7 @@ void RtmpClientStream::DestroyStreamCreator(Controller* cntl) {
         std::unique_lock<mutil::Mutex> mu(_state_mutex);
         switch (_state) {
         case STATE_CREATING:
-            MCHECK(_rtmpsock);
+            CHECK(_rtmpsock);
             rc = fiber_session_create(&onfail_id, this, RunOnFailed);
             if (rc) {
                 cntl->SetFailed(ENOMEM, "Fail to create _onfail_id: %s", berror(rc));
@@ -1829,7 +1833,7 @@ void RtmpClientStream::DestroyStreamCreator(Controller* cntl) {
         case STATE_CREATED:
             _state = STATE_ERROR;
             mu.unlock();
-            MCHECK(false) << "Impossible";
+            CHECK(false) << "Impossible";
             return OnStopInternal();
         case STATE_ERROR:
         case STATE_DESTROYING:
@@ -1856,7 +1860,7 @@ void RtmpClientStream::OnStopInternal() {
             WriteAMFString(RTMP_AMF0_COMMAND_CLOSE_STREAM, &ostream);
             WriteAMFUint32(0, &ostream);
             WriteAMFNull(&ostream);
-            MCHECK(ostream.good());
+            CHECK(ostream.good());
         }
         SocketMessagePtr<policy::RtmpUnsentMessage> msg1(new policy::RtmpUnsentMessage);
         msg1->header.message_length = req_buf1.size();
@@ -1874,7 +1878,7 @@ void RtmpClientStream::OnStopInternal() {
             WriteAMFUint32(0, &ostream);
             WriteAMFNull(&ostream);
             WriteAMFUint32(_message_stream_id, &ostream);
-            MCHECK(ostream.good());
+            CHECK(ostream.good());
         }
         policy::RtmpUnsentMessage* msg2 = policy::MakeUnsentControlMessage(
             policy::RTMP_MESSAGE_COMMAND_AMF0, req_buf2);
@@ -1882,7 +1886,7 @@ void RtmpClientStream::OnStopInternal() {
 
         if (policy::WriteWithoutOvercrowded(_rtmpsock.get(), msg1) != 0) {
             if (errno != EFAILEDSOCKET) {
-                PMLOG(WARNING) << "Fail to send closeStream/deleteStream to "
+                PLOG(WARNING) << "Fail to send closeStream/deleteStream to "
                               << _rtmpsock->remote_side() << "["
                               << _message_stream_id << "]";
                 // Close the connection to make sure the server-side knows the
@@ -1897,10 +1901,10 @@ void RtmpClientStream::OnStopInternal() {
     if (ctx != NULL) {
         if (!ctx->RemoveMessageStream(this)) {
             // The stream is not registered yet. Is this normal?
-            MLOG(ERROR) << "Fail to remove stream_id=" << _message_stream_id;
+            LOG(ERROR) << "Fail to remove stream_id=" << _message_stream_id;
         }
     } else {
-        MLOG(FATAL) << "RtmpContext of " << *_rtmpsock << " is NULL";
+        LOG(FATAL) << "RtmpContext of " << *_rtmpsock << " is NULL";
     }
     if (_from_socketmap) {
         _client_impl->socket_map().Remove(SocketMapKey(_rtmpsock->remote_side()),
@@ -1923,12 +1927,12 @@ int RtmpClientStream::Play(const RtmpPlayOptions& opt) {
         return -1;
     }
     if (opt.stream_name.empty()) {
-        MLOG(ERROR) << "Empty stream_name";
+        LOG(ERROR) << "Empty stream_name";
         errno = EINVAL;
         return -1;
     }
     if (_client_impl == NULL) {
-        MLOG(ERROR) << "The client stream is not created yet";
+        LOG(ERROR) << "The client stream is not created yet";
         errno = EPERM;
         return -1;
     }
@@ -1943,7 +1947,7 @@ int RtmpClientStream::Play(const RtmpPlayOptions& opt) {
         WriteAMFNumber(opt.start, &ostream);
         WriteAMFNumber(opt.duration, &ostream);
         WriteAMFBool(opt.reset, &ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     SocketMessagePtr<policy::RtmpUnsentMessage> msg1(new policy::RtmpUnsentMessage);
     msg1->header.message_length = req_buf.size();
@@ -1982,7 +1986,7 @@ int RtmpClientStream::Play2(const RtmpPlay2Options& opt) {
         WriteAMFNull(&ostream);
         WriteAMFObject(opt, &ostream);
         if (!ostream.good()) {
-            MLOG(ERROR) << "Fail to serialize play2 request";
+            LOG(ERROR) << "Fail to serialize play2 request";
             errno = EINVAL;
             return -1;
         }
@@ -2024,7 +2028,7 @@ int RtmpClientStream::Publish(const mutil::StringPiece& name,
         WriteAMFNull(&ostream);
         WriteAMFString(name, &ostream);
         WriteAMFString(RtmpPublishType2Str(type), &ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     return SendMessage(0, policy::RTMP_MESSAGE_COMMAND_AMF0, req_buf);
 }
@@ -2038,7 +2042,7 @@ int RtmpClientStream::Seek(double offset_ms) {
         WriteAMFUint32(0, &ostream);
         WriteAMFNull(&ostream);
         WriteAMFNumber(offset_ms, &ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     return SendMessage(0, policy::RTMP_MESSAGE_COMMAND_AMF0, req_buf);    
 }
@@ -2053,14 +2057,14 @@ int RtmpClientStream::Pause(bool pause_or_unpause, double offset_ms) {
         WriteAMFNull(&ostream);
         WriteAMFBool(pause_or_unpause, &ostream);
         WriteAMFNumber(offset_ms, &ostream);
-        MCHECK(ostream.good());
+        CHECK(ostream.good());
     }
     return SendMessage(0, policy::RTMP_MESSAGE_COMMAND_AMF0, req_buf);
 }
 
 void RtmpClientStream::OnStatus(const RtmpInfo& info) {
     if (info.level() == RTMP_INFO_LEVEL_ERROR) {
-        MLOG(WARNING) << remote_side() << '[' << stream_id()
+        LOG(WARNING) << remote_side() << '[' << stream_id()
                      << "] " << info.code() << ": " << info.description();
         return SignalError();
     } else if (info.level() == RTMP_INFO_LEVEL_STATUS) {
@@ -2098,7 +2102,7 @@ public:
 void OnClientStreamCreated::Run() {
     std::unique_ptr<OnClientStreamCreated> delete_self(this);
     if (cntl.Failed()) {
-        MLOG(WARNING) << "Fail to create stream=" << stream->rtmp_url()
+        LOG(WARNING) << "Fail to create stream=" << stream->rtmp_url()
                      << ": " << cntl.ErrorText();
         return;
     }
@@ -2113,19 +2117,19 @@ void OnClientStreamCreated::Run() {
         RtmpPlayOptions play_opt;
         play_opt.stream_name = options.play_name;
         if (stream->Play(play_opt) != 0) {
-            MLOG(WARNING) << "Fail to play " << options.play_name;
+            LOG(WARNING) << "Fail to play " << options.play_name;
             return stream->SignalError();
         }
     }
     if (!options.publish_name.empty()) {
         do_nothing = false;
         if (stream->Publish(options.publish_name, options.publish_type) != 0) {
-            MLOG(WARNING) << "Fail to publish " << stream->rtmp_url();
+            LOG(WARNING) << "Fail to publish " << stream->rtmp_url();
             return stream->SignalError();
         }
     }
     if (do_nothing) {
-        MLOG(ERROR) << "play_name and publish_name are both empty";
+        LOG(ERROR) << "play_name and publish_name are both empty";
         return stream->SignalError();
     }
 }
@@ -2133,14 +2137,14 @@ void OnClientStreamCreated::Run() {
 void RtmpClientStream::Init(const RtmpClient* client,
                             const RtmpClientStreamOptions& options) {
     if (client->_impl == NULL) {
-        MLOG(FATAL) << "RtmpClient is not initialized";
+        LOG(FATAL) << "RtmpClient is not initialized";
         return OnStopInternal();
     }
     {
         std::unique_lock<mutil::Mutex> mu(_state_mutex);
         if (_state == STATE_DESTROYING || _state == STATE_ERROR) {
             // already Destroy()-ed or SignalError()-ed
-            MLOG(WARNING) << "RtmpClientStream=" << this << " was already "
+            LOG(WARNING) << "RtmpClientStream=" << this << " was already "
                 "Destroy()-ed, stop Init()";
             return;
         }
@@ -2173,7 +2177,7 @@ void RtmpClientStream::Init(const RtmpClient* client,
         case STATE_CREATING:
         case STATE_CREATED:
             mu.unlock();
-            MLOG(ERROR) << "RtmpClientStream::Init() is called by multiple "
+            LOG(ERROR) << "RtmpClientStream::Init() is called by multiple "
                 "threads simultaneously";
             return done->CancelBeforeCallMethod();
         case STATE_ERROR:
@@ -2223,14 +2227,14 @@ RtmpRetryingClientStream::RtmpRetryingClientStream()
     , _last_retry_start_time_us(0)
     , _create_timer_id(0)
     , _sub_stream_creator(NULL) {
-    get_rtmp_bvars()->retrying_client_stream_count << 1;
+    get_rtmp_vars()->retrying_client_stream_count << 1;
     _self_ref.reset(this);
 }
 
 RtmpRetryingClientStream::~RtmpRetryingClientStream() {
     delete _sub_stream_creator;
     _sub_stream_creator = NULL;
-    get_rtmp_bvars()->retrying_client_stream_count << -1;
+    get_rtmp_vars()->retrying_client_stream_count << -1;
 }
 
 void RtmpRetryingClientStream::CallOnStopIfNeeded() {
@@ -2279,12 +2283,12 @@ void RtmpRetryingClientStream::Init(
     SubStreamCreator* sub_stream_creator,
     const RtmpRetryingClientStreamOptions& options) {
     if (sub_stream_creator == NULL) {
-        MLOG(ERROR) << "sub_stream_creator is NULL";
+        LOG(ERROR) << "sub_stream_creator is NULL";
         return CallOnStopIfNeeded();
     }
     _sub_stream_creator = sub_stream_creator;
     if (_destroying.load(mutil::memory_order_relaxed)) {
-        MLOG(WARNING) << "RtmpRetryingClientStream=" << this << " was already "
+        LOG(WARNING) << "RtmpRetryingClientStream=" << this << " was already "
             "Destroy()-ed, stop Init()";
         return;
     }
@@ -2439,7 +2443,7 @@ void RtmpRetryingClientStream::OnSubStreamStop(RtmpStreamBase* sub_stream) {
         if (fiber_timer_add(&_create_timer_id,
                               mutil::microseconds_from_now(wait_us),
                               OnRecreateTimer, this) != 0) {
-            MLOG(ERROR) << "Fail to create timer";
+            LOG(ERROR) << "Fail to create timer";
             return CallOnStopIfNeeded();
         }
         _has_timer_ever = true;
@@ -2561,7 +2565,7 @@ mutil::EndPoint RtmpRetryingClientStream::local_side() const {
 
 // =========== RtmpService ===============
 void RtmpService::OnPingResponse(const mutil::EndPoint&, uint32_t) {
-    // TODO: put into some bvars?
+    // TODO: put into some vars?
 }
 
 RtmpServerStream::RtmpServerStream()
@@ -2569,15 +2573,15 @@ RtmpServerStream::RtmpServerStream()
     , _client_supports_stream_multiplexing(false)
     , _is_publish(false)
     , _onfail_id(INVALID_FIBER_ID) {
-    get_rtmp_bvars()->server_stream_count << 1;
+    get_rtmp_vars()->server_stream_count << 1;
 }
 
 RtmpServerStream::~RtmpServerStream() {
-    get_rtmp_bvars()->server_stream_count << -1;
+    get_rtmp_vars()->server_stream_count << -1;
 }
 
 void RtmpServerStream::Destroy() {
-    MCHECK(false) << "You're not supposed to call Destroy() for server-side streams";
+    CHECK(false) << "You're not supposed to call Destroy() for server-side streams";
 }
 
 void RtmpServerStream::OnPlay(const RtmpPlayOptions& opt,
@@ -2592,7 +2596,7 @@ void RtmpServerStream::OnPlay(const RtmpPlayOptions& opt,
 }
 
 void RtmpServerStream::OnPlay2(const RtmpPlay2Options& opt) {
-    MLOG(ERROR) << remote_side() << '[' << stream_id()
+    LOG(ERROR) << remote_side() << '[' << stream_id()
                << "] ignored play2{" << opt.ShortDebugString() << '}';
 }
 
@@ -2607,13 +2611,13 @@ void RtmpServerStream::OnPublish(const std::string& name,
 }
 
 int RtmpServerStream::OnSeek(double offset_ms) {
-    MLOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored seek("
+    LOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored seek("
                << offset_ms << ")";
     return -1;
 }
 
 int RtmpServerStream::OnPause(bool pause, double offset_ms) {
-    MLOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored "
+    LOG(ERROR) << remote_side() << '[' << stream_id() << "] ignored "
                << (pause ? "pause" : "unpause")
                << "(offset_ms=" << offset_ms << ")";
     return -1;
@@ -2671,7 +2675,7 @@ int RtmpServerStream::SendStopMessage(const mutil::StringPiece& error_desc) {
     msg->body = req_buf;
     
     if (policy::WriteWithoutOvercrowded(_rtmpsock.get(), msg) != 0) {
-        PMLOG_IF(WARNING, errno != EFAILEDSOCKET)
+        PLOG_IF(WARNING, errno != EFAILEDSOCKET)
             << _rtmpsock->remote_side() << '[' << _message_stream_id
             << "]: Fail to send " << info.code() << ": " << error_desc;
         return -1;
@@ -2695,7 +2699,7 @@ int RtmpServerStream::SendStreamDry() {
 int RtmpServerStream::RunOnFailed(fiber_session_t id, void* data, int) {
     mutil::intrusive_ptr<RtmpServerStream> stream(
         static_cast<RtmpServerStream*>(data), false);
-    MCHECK(stream->_rtmpsock);
+    CHECK(stream->_rtmpsock);
     stream->OnStopInternal();
     fiber_session_unlock_and_destroy(id);
     return 0;
@@ -2708,7 +2712,7 @@ void RtmpServerStream::OnStopInternal() {
     policy::RtmpContext* ctx =
         static_cast<policy::RtmpContext*>(_rtmpsock->parsing_context());
     if (ctx == NULL) {
-        MLOG(FATAL) << _rtmpsock->remote_side() << ": RtmpContext of "
+        LOG(FATAL) << _rtmpsock->remote_side() << ": RtmpContext of "
                    << *_rtmpsock << " is NULL";
         return CallOnStop();
     }

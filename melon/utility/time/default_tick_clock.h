@@ -6,7 +6,7 @@
 #define MUTIL_DEFAULT_TICK_CLOCK_H_
 
 #include "melon/utility/base_export.h"
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #include "melon/utility/time/tick_clock.h"
 
 namespace mutil {

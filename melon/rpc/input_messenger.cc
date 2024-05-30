@@ -1,32 +1,36 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <gflags/gflags.h>
-#include "melon/utility/fd_guard.h"                      // fd_guard
-#include "melon/utility/logging.h"                       // MCHECK
-#include "melon/utility/time.h"                          // cpuwide_time_us
-#include "melon/utility/fd_utility.h"                    // make_non_blocking
-#include "melon/fiber/fiber.h"                     // fiber_start_background
-#include "melon/fiber/unstable.h"                   // fiber_flush
-#include "melon/var/var.h"                          // melon::var::Adder
-#include "melon/proto/rpc/options.pb.h"               // ProtocolType
-#include "melon/rpc/reloadable_flags.h"         // MELON_VALIDATE_GFLAG
-#include "melon/rpc/protocol.h"                 // ListProtocols
-#include "melon/rpc/input_messenger.h"
+#include <melon/utility/fd_guard.h>                      // fd_guard
+#include <turbo/log/logging.h>                       // CHECK
+#include <melon/utility/time.h>                          // cpuwide_time_us
+#include <melon/utility/fd_utility.h>                    // make_non_blocking
+#include <melon/fiber/fiber.h>                     // fiber_start_background
+#include <melon/fiber/unstable.h>                   // fiber_flush
+#include <melon/var/var.h>                          // melon::var::Adder
+#include <melon/proto/rpc/options.pb.h>               // ProtocolType
+#include <melon/rpc/reloadable_flags.h>         // MELON_VALIDATE_GFLAG
+#include <melon/rpc/protocol.h>                 // ListProtocols
+#include <melon/rpc/input_messenger.h>
 
 
 namespace melon {
@@ -118,7 +122,7 @@ ParseResult InputMessenger::CutInputMessage(
                     continue;
                 } else {
                     // The protocol is fixed at client-side, no need to try others.
-                    MLOG(ERROR) << "Fail to parse response from " << m->remote_side()
+                    LOG(ERROR) << "Fail to parse response from " << m->remote_side()
                         << " by " << _handlers[preferred].name 
                         << " at client-side";
                     return MakeParseError(PARSE_ERROR_ABSOLUTELY_WRONG);
@@ -237,14 +241,14 @@ int InputMessenger::ProcessNewMessage(
                 m->_last_msg_size += (last_size - m->_read_buf.length());
                 break;
             } else if (pr.error() == PARSE_ERROR_TRY_OTHERS) {
-                MLOG(WARNING)
+                LOG(WARNING)
                     << "Close " << *m << " due to unknown message: "
                     << mutil::ToPrintable(m->_read_buf);
                 m->SetFailed(EINVAL, "Close %s due to unknown message",
                                 m->description().c_str());
                 return -1;
             } else {
-                MLOG(WARNING) << "Close " << *m << ": " << pr.error_str();
+                LOG(WARNING) << "Close " << *m << ": " << pr.error_str();
                 m->SetFailed(EINVAL, "Close %s: %s",
                                 m->description().c_str(), pr.error_str());
                 return -1;
@@ -284,7 +288,7 @@ int InputMessenger::ProcessNewMessage(
         QueueMessage(last_msg.release(), &num_fiber_created,
                             m->_keytable_pool);
         if (_handlers[index].process == NULL) {
-            MLOG(ERROR) << "process of index=" << index << " is NULL";
+            LOG(ERROR) << "process of index=" << index << " is NULL";
             continue;
         }
         m->ReAddress(&msg->_socket);
@@ -300,7 +304,7 @@ int InputMessenger::ProcessNewMessage(
                     m->SetAuthentication(0);
                 } else {
                     m->SetAuthentication(ERPCAUTH);
-                    MLOG(WARNING) << "Fail to authenticate " << *m;
+                    LOG(WARNING) << "Fail to authenticate " << *m;
                     m->SetFailed(ERPCAUTH, "Fail to authenticate %s",
                                     m->description().c_str());
                     return -1;
@@ -372,7 +376,7 @@ void InputMessenger::OnNewMessages(Socket* m) {
                     continue;  // just retry
                 }
                 const int saved_errno = errno;
-                PMLOG(WARNING) << "Fail to read from " << *m;
+                PLOG(WARNING) << "Fail to read from " << *m;
                 m->SetFailed(saved_errno, "Fail to read from %s: %s",
                              m->description().c_str(), berror(saved_errno));
                 return;
@@ -411,31 +415,31 @@ InputMessenger::~InputMessenger() {
 int InputMessenger::AddHandler(const InputMessageHandler& handler) {
     if (handler.parse == NULL || handler.process == NULL 
             || handler.name == NULL) {
-        MCHECK(false) << "Invalid argument";
+        CHECK(false) << "Invalid argument";
         return -1;
     }
     MELON_SCOPED_LOCK(_add_handler_mutex);
     if (NULL == _handlers) {
         _handlers = new (std::nothrow) InputMessageHandler[_capacity];
         if (NULL == _handlers) {
-            MLOG(FATAL) << "Fail to new array of InputMessageHandler";
+            LOG(FATAL) << "Fail to new array of InputMessageHandler";
             return -1;
         }
         memset(_handlers, 0, sizeof(*_handlers) * _capacity);
         _non_protocol = false;
     }
     if (_non_protocol) {
-        MCHECK(false) << "AddNonProtocolHandler was invoked";
+        CHECK(false) << "AddNonProtocolHandler was invoked";
         return -1;
     }
     ProtocolType type = FindProtocolOfHandler(handler);
     if (type == PROTOCOL_UNKNOWN) {
-        MCHECK(false) << "Adding a handler which doesn't belong to any protocol";
+        CHECK(false) << "Adding a handler which doesn't belong to any protocol";
         return -1;
     }
     const int index = type;
     if (index >= (int)_capacity) {
-        MLOG(FATAL) << "Can't add more handlers than " << _capacity;
+        LOG(FATAL) << "Can't add more handlers than " << _capacity;
         return -1;
     }
     if (_handlers[index].parse == NULL) {
@@ -443,8 +447,8 @@ int InputMessenger::AddHandler(const InputMessageHandler& handler) {
         _handlers[index] = handler;
     } else if (_handlers[index].parse != handler.parse 
                || _handlers[index].process != handler.process) {
-        MCHECK(_handlers[index].parse == handler.parse);
-        MCHECK(_handlers[index].process == handler.process);
+        CHECK(_handlers[index].parse == handler.parse);
+        CHECK(_handlers[index].process == handler.process);
         return -1;
     }
     if (index > _max_index.load(mutil::memory_order_relaxed)) {
@@ -456,21 +460,21 @@ int InputMessenger::AddHandler(const InputMessageHandler& handler) {
 int InputMessenger::AddNonProtocolHandler(const InputMessageHandler& handler) {
     if (handler.parse == NULL || handler.process == NULL 
             || handler.name == NULL) {
-        MCHECK(false) << "Invalid argument";
+        CHECK(false) << "Invalid argument";
         return -1;
     }
     MELON_SCOPED_LOCK(_add_handler_mutex);
     if (NULL == _handlers) {
         _handlers = new (std::nothrow) InputMessageHandler[_capacity];
         if (NULL == _handlers) {
-            MLOG(FATAL) << "Fail to new array of InputMessageHandler";
+            LOG(FATAL) << "Fail to new array of InputMessageHandler";
             return -1;
         }
         memset(_handlers, 0, sizeof(*_handlers) * _capacity);
         _non_protocol = true;
     }
     if (!_non_protocol) {
-        MCHECK(false) << "AddHandler was invoked";
+        CHECK(false) << "AddHandler was invoked";
         return -1;
     }
     const int index = _max_index.load(mutil::memory_order_relaxed) + 1;

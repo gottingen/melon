@@ -7,7 +7,7 @@
 #ifndef MUTIL_ATOMICOPS_INTERNALS_LOONGARCH64_GCC_H_
 #define MUTIL_ATOMICOPS_INTERNALS_LOONGARCH64_GCC_H_
 
-#include "melon/utility/atomicops.h"
+#include <melon/utility/atomicops.h>
 #include "melon/utility/atomicops_internals_loongarch64_gcc.h"
 
 namespace mutil {

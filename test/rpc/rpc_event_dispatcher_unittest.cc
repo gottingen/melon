@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -22,12 +26,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <gtest/gtest.h>
-#include "melon/utility/gperftools_profiler.h"
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/fd_utility.h"
-#include "melon/rpc/event_dispatcher.h"
-#include "melon/rpc/details/has_epollrdhup.h"
+#include <melon/utility/gperftools_profiler.h>
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/fd_utility.h>
+#include <melon/rpc/event_dispatcher.h>
+#include <melon/rpc/details/has_epollrdhup.h>
 
 class EventDispatcherTest : public ::testing::Test{
 protected:
@@ -41,7 +45,7 @@ protected:
 };
 
 TEST_F(EventDispatcherTest, has_epollrdhup) {
-    MLOG(INFO) << melon::has_epollrdhup;
+    LOG(INFO) << melon::has_epollrdhup;
 }
 
 TEST_F(EventDispatcherTest, versioned_ref) {
@@ -98,7 +102,7 @@ struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
                 pthread_mutex_lock(&err_fd_mutex);
                 err_fd.push_back(m->fd());
                 pthread_mutex_unlock(&err_fd_mutex);
-                MLOG(WARNING) << "Another end closed fd=" << m->fd();
+                LOG(WARNING) << "Another end closed fd=" << m->fd();
                 return -1;
             } else if (n > 0) {
                 e->bytes += n;
@@ -114,7 +118,7 @@ struct MELON_CACHELINE_ALIGNMENT SocketExtra : public melon::SocketUser {
                 } else if (errno == EINTR) {
                     continue;
                 } else {
-                    PMLOG(WARNING) << "Fail to read fd=" << m->fd();
+                    PLOG(WARNING) << "Fail to read fd=" << m->fd();
                     return -1;
                 }
             }
@@ -157,7 +161,7 @@ void* client_thread(void* arg) {
         }
         if (n < 0) {
             if (errno != EINTR) {
-                PMLOG(WARNING) << "Fail to write fd=" << m->fd;
+                PLOG(WARNING) << "Fail to write fd=" << m->fd;
                 break;
             }
         } else {
@@ -217,7 +221,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         ASSERT_EQ(0, pthread_create(&cth[i], NULL, client_thread, cm[i]));
     }
     
-    MLOG(INFO) << "Begin to profile... (5 seconds)";
+    LOG(INFO) << "Begin to profile... (5 seconds)";
     ProfilerStart("event_dispatcher.prof");
     mutil::Timer tm;
     tm.start();
@@ -226,7 +230,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
     
     tm.stop();
     ProfilerStop();
-    MLOG(INFO) << "End profiling";
+    LOG(INFO) << "End profiling";
     
     size_t client_bytes = 0;
     size_t server_bytes = 0;
@@ -234,7 +238,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
         client_bytes += cm[i]->bytes;
         server_bytes += sm[i]->bytes;
     }
-    MLOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
+    LOG(INFO) << "client_tp=" << client_bytes / (double)tm.u_elapsed()
               << "MB/s server_tp=" << server_bytes / (double)tm.u_elapsed() 
               << "MB/s";
 
@@ -261,7 +265,7 @@ TEST_F(EventDispatcherTest, dispatch_tasks) {
     ASSERT_EQ(NCLIENT, copy1.size());
     const mutil::ResourcePoolInfo info
         = mutil::describe_resources<melon::Socket>();
-    MLOG(INFO) << info;
+    LOG(INFO) << info;
 #ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
     ASSERT_EQ(NCLIENT, info.free_item_num - old_info.free_item_num);
 #endif

@@ -6,7 +6,7 @@
 #define MUTIL_PORT_H_
 
 #include <stdarg.h>
-#include "melon/utility/build_config.h"
+#include <melon/utility/build_config.h>
 
 // DEPRECATED: Use ...LL and ...ULL suffixes.
 // TODO(viettrungluu): Delete these. These are only here until |GG_(U)INT64_C|

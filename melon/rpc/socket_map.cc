@@ -1,31 +1,35 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 
 #include <gflags/gflags.h>
 #include <map>
-#include "melon/fiber/fiber.h"
-#include "melon/utility/time.h"
-#include "melon/utility/scoped_lock.h"
-#include "melon/utility/logging.h"
-#include "melon/rpc/log.h"
-#include "melon/rpc/protocol.h"
-#include "melon/rpc/input_messenger.h"
-#include "melon/rpc/reloadable_flags.h"
-#include "melon/rpc/socket_map.h"
+#include <melon/fiber/fiber.h>
+#include <melon/utility/time.h>
+#include <melon/utility/scoped_lock.h>
+#include <turbo/log/logging.h>
+#include <melon/rpc/log.h>
+#include <melon/rpc/protocol.h>
+#include <melon/rpc/input_messenger.h>
+#include <melon/rpc/reloadable_flags.h>
+#include <melon/rpc/socket_map.h>
 
 namespace melon {
 
@@ -71,7 +75,7 @@ static void CreateClientSideSocketMap() {
     options.idle_timeout_second_dynamic = &FLAGS_idle_timeout_second;
     options.defer_close_second_dynamic = &FLAGS_defer_close_second;
     if (socket_map->Init(options) != 0) {
-        MLOG(FATAL) << "Fail to init SocketMap";
+        LOG(FATAL) << "Fail to init SocketMap";
         exit(1);
     }
     g_socket_map.store(socket_map, mutil::memory_order_release);
@@ -134,8 +138,8 @@ SocketMapOptions::SocketMapOptions()
 }
 
 SocketMap::SocketMap()
-    : _exposed_in_bvar(false)
-    , _this_map_bvar(NULL)
+    : _exposed_in_var(false)
+    , _this_map_var(NULL)
     , _has_close_idle_thread(false) {
 }
 
@@ -161,12 +165,12 @@ SocketMap::~SocketMap() {
             }
         }
         if (nleft) {
-            MLOG(ERROR) << err.str();
+            LOG(ERROR) << err.str();
         }
     }
 
-    delete _this_map_bvar;
-    _this_map_bvar = NULL;
+    delete _this_map_var;
+    _this_map_var = NULL;
 
     delete _options.socket_creator;
     _options.socket_creator = NULL;
@@ -174,23 +178,23 @@ SocketMap::~SocketMap() {
 
 int SocketMap::Init(const SocketMapOptions& options) {
     if (_options.socket_creator != NULL) {
-        MLOG(ERROR) << "Already initialized";
+        LOG(ERROR) << "Already initialized";
         return -1;
     }
     _options = options;
     if (_options.socket_creator == NULL) {
-        MLOG(ERROR) << "SocketOptions.socket_creator must be set";
+        LOG(ERROR) << "SocketOptions.socket_creator must be set";
         return -1;
     }
     if (_map.init(_options.suggested_map_size, 70) != 0) {
-        MLOG(ERROR) << "Fail to init _map";
+        LOG(ERROR) << "Fail to init _map";
         return -1;
     }
     if (_options.idle_timeout_second_dynamic != NULL ||
         _options.idle_timeout_second > 0) {
         if (fiber_start_background(&_close_idle_thread, NULL,
                                      RunWatchConnections, this) != 0) {
-            MLOG(FATAL) << "Fail to start fiber";
+            LOG(FATAL) << "Fail to start fiber";
             return -1;
         }
         _has_close_idle_thread = true;
@@ -212,12 +216,12 @@ void SocketMap::PrintSocketMap(std::ostream& os, void* arg) {
     static_cast<SocketMap*>(arg)->Print(os);
 }
 
-void SocketMap::ShowSocketMapInBvarIfNeed() {
+void SocketMap::ShowSocketMapInVarIfNeed() {
     if (FLAGS_show_socketmap_in_vars &&
-        !_exposed_in_bvar.exchange(true, mutil::memory_order_release)) {
+        !_exposed_in_var.exchange(true, mutil::memory_order_release)) {
         char namebuf[32];
         int len = snprintf(namebuf, sizeof(namebuf), "rpc_socketmap_%p", this);
-        _this_map_bvar = new melon::var::PassiveStatus<std::string>(
+        _this_map_var = new melon::var::PassiveStatus<std::string>(
             mutil::StringPiece(namebuf, len), PrintSocketMap, this);
     }
 }
@@ -225,7 +229,7 @@ void SocketMap::ShowSocketMapInBvarIfNeed() {
 int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
                       const std::shared_ptr<SocketSSLContext>& ssl_ctx,
                       bool use_rdma) {
-    ShowSocketMapInBvarIfNeed();
+    ShowSocketMapInVarIfNeed();
 
     std::unique_lock<mutil::Mutex> mu(_mutex);
     SingleConnection* sc = _map.seek(key);
@@ -250,7 +254,7 @@ int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
     opt.initial_ssl_ctx = ssl_ctx;
     opt.use_rdma = use_rdma;
     if (_options.socket_creator->CreateSocket(opt, &tmp_id) != 0) {
-        PMLOG(FATAL) << "Fail to create socket to " << key.peer;
+        PLOG(FATAL) << "Fail to create socket to " << key.peer;
         return -1;
     }
     // Add a reference to make sure that sc->socket is always accessible. Not
@@ -258,7 +262,7 @@ int SocketMap::Insert(const SocketMapKey& key, SocketId* id,
     // The ref will be removed at entry's removal.
     SocketUniquePtr ptr;
     if (Socket::Address(tmp_id, &ptr) != 0) {
-        MLOG(FATAL) << "Fail to address SocketId=" << tmp_id;
+        LOG(FATAL) << "Fail to address SocketId=" << tmp_id;
         return -1;
     }
     ptr->SetHCRelatedRefHeld(); // set held status
@@ -276,7 +280,7 @@ void SocketMap::Remove(const SocketMapKey& key, SocketId expected_id) {
 void SocketMap::RemoveInternal(const SocketMapKey& key,
                                SocketId expected_id,
                                bool remove_orphan) {
-    ShowSocketMapInBvarIfNeed();
+    ShowSocketMapInVarIfNeed();
 
     std::unique_lock<mutil::Mutex> mu(_mutex);
     SingleConnection* sc = _map.seek(key);

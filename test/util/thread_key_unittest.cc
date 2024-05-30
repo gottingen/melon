@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,8 +22,8 @@
 #include <gflags/gflags.h>
 
 #include "melon/utility/thread_key.h"
-#include "melon/utility/fast_rand.h"
-#include "melon/fiber/fiber.h"
+#include <melon/utility/fast_rand.h>
+#include <melon/fiber/fiber.h>
 
 namespace mutil {
 namespace {
@@ -114,7 +118,7 @@ void* THreadKeyCreateAndDeleteFunc(void* arg) {
 }
 
 TEST(ThreadLocalTest, thread_key_create_and_delete) {
-    MLOG(INFO) << "numeric_limits<uint32_t>::max()=" << std::numeric_limits<uint32_t>::max();
+    LOG(INFO) << "numeric_limits<uint32_t>::max()=" << std::numeric_limits<uint32_t>::max();
     g_stopped = false;
     const int thread_num = 8;
     pthread_t threads[thread_num];
@@ -360,7 +364,7 @@ void ThreadKeyPerfTest(int thread_num, bool test_pthread_key) {
     } else {
         ASSERT_EQ(0, mutil::thread_key_delete(thread_key));
     }
-    MLOG(INFO) << (test_pthread_key ? "pthread_key" : "thread_key")
+    LOG(INFO) << (test_pthread_key ? "pthread_key" : "thread_key")
               << " thread_num=" << thread_num
               << " count=" << count
               << " average_time=" << wait_time / (double)count;
@@ -432,7 +436,7 @@ void ThreadLocalPerfTest(int thread_num) {
         wait_time += args[i].elapse_ns;
         count += args[i].counter;
     }
-    MLOG(INFO) << "ThreadLocal thread_num=" << thread_num
+    LOG(INFO) << "ThreadLocal thread_num=" << thread_num
               << " count=" << count
               << " average_time=" << wait_time / (double)count;
 }

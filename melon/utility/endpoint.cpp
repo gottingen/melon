@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -27,12 +31,12 @@
 #include <sys/socket.h>                        // SO_REUSEADDR SO_REUSEPORT
 #include <memory>
 #include <gflags/gflags.h>
-#include "melon/utility/build_config.h"                // OS_MACOSX
-#include "melon/utility/fd_guard.h"                    // fd_guard
-#include "melon/utility/endpoint.h"                    // ip_t
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/singleton_on_pthread_once.h"
-#include "melon/utility/strings/string_piece.h"
+#include <melon/utility/build_config.h>                // OS_MACOSX
+#include <melon/utility/fd_guard.h>                    // fd_guard
+#include <melon/utility/endpoint.h>                    // ip_t
+#include <turbo/log/logging.h>
+#include <melon/utility/memory/singleton_on_pthread_once.h>
+#include <melon/utility/strings/string_piece.h>
 
 //supported since Linux 3.9.
 DEFINE_bool(reuse_port, false, "Enable SO_REUSEPORT for all listened sockets");
@@ -82,7 +86,7 @@ void EndPoint::reset(void) {
 EndPoint::EndPoint(ip_t ip2, int port2) : ip(ip2), port(port2) {
     // Should never construct an extended endpoint by this way
     if (ExtendedEndPoint::is_extended(*this)) {
-        MCHECK(0) << "EndPoint construct with value that points to an extended EndPoint";
+        CHECK(0) << "EndPoint construct with value that points to an extended EndPoint";
         ip = IP_ANY;
         port = 0;
     }
@@ -403,7 +407,7 @@ int tcp_connect(EndPoint point, int* self_port) {
         if (get_local_side(sockfd, &pt) == 0) {
             *self_port = pt.port;
         } else {
-            MCHECK(false) << "Fail to get the local port of sockfd=" << sockfd;
+            CHECK(false) << "Fail to get the local port of sockfd=" << sockfd;
         }
     }
     return sockfd.release();
@@ -428,7 +432,7 @@ int tcp_listen(EndPoint point) {
             return -1;
         }
 #else
-        MLOG(ERROR) << "Missing def of SO_REUSEADDR while -reuse_addr is on";
+        LOG(ERROR) << "Missing def of SO_REUSEADDR while -reuse_addr is on";
         return -1;
 #endif
     }
@@ -438,10 +442,10 @@ int tcp_listen(EndPoint point) {
         const int on = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT,
                        &on, sizeof(on)) != 0) {
-            MLOG(WARNING) << "Fail to setsockopt SO_REUSEPORT of sockfd=" << sockfd;
+            LOG(WARNING) << "Fail to setsockopt SO_REUSEPORT of sockfd=" << sockfd;
         }
 #else
-        MLOG(ERROR) << "Missing def of SO_REUSEPORT while -reuse_port is on";
+        LOG(ERROR) << "Missing def of SO_REUSEPORT while -reuse_port is on";
         return -1;
 #endif
     }

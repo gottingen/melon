@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,15 +22,15 @@
 #include <unistd.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/class_name.h>
-#include "melon/raft/raft.h"
-#include "melon/raft/node.h"
-#include "melon/raft/storage.h"
-#include "melon/raft/node_manager.h"
-#include "melon/raft/log.h"
-#include "melon/raft/memory_log.h"
-#include "melon/raft/raft_meta.h"
-#include "melon/raft/snapshot.h"
-#include "melon/raft/fsm_caller.h"            // IteratorImpl
+#include <melon/raft/raft.h>
+#include <melon/raft/node.h>
+#include <melon/raft/storage.h>
+#include <melon/raft/node_manager.h>
+#include <melon/raft/log.h>
+#include <melon/raft/memory_log.h>
+#include <melon/raft/raft_meta.h>
+#include <melon/raft/snapshot.h>
+#include <melon/raft/fsm_caller.h>            // IteratorImpl
 
 namespace melon::raft {
 
@@ -80,7 +84,7 @@ namespace melon::raft {
 // Non-static for unit test
     void global_init_once_or_die() {
         if (pthread_once(&global_init_once, global_init_or_die_impl) != 0) {
-            PMLOG(FATAL) << "Fail to pthread_once";
+            PLOG(FATAL) << "Fail to pthread_once";
             exit(-1);
         }
     }
@@ -98,7 +102,7 @@ namespace melon::raft {
     int add_service(melon::Server *server, const char *listen_ip_and_port) {
         mutil::EndPoint addr;
         if (mutil::str2endpoint(listen_ip_and_port, &addr) != 0) {
-            MLOG(ERROR) << "Fail to parse `" << listen_ip_and_port << "'";
+            LOG(ERROR) << "Fail to parse `" << listen_ip_and_port << "'";
             return -1;
         }
         return add_service(server, addr);
@@ -115,18 +119,18 @@ namespace melon::raft {
         mutil::Status status = LogStorage::destroy(log_uri);
         if (!status.ok()) {
             is_success = false;
-            MLOG(WARNING) << "Group " << vgid << " failed to gc raft log, uri " << log_uri;
+            LOG(WARNING) << "Group " << vgid << " failed to gc raft log, uri " << log_uri;
         }
         // TODO encode vgid into raft_meta_uri ?
         status = RaftMetaStorage::destroy(raft_meta_uri, vgid);
         if (!status.ok()) {
             is_success = false;
-            MLOG(WARNING) << "Group " << vgid << " failed to gc raft stable, uri " << raft_meta_uri;
+            LOG(WARNING) << "Group " << vgid << " failed to gc raft stable, uri " << raft_meta_uri;
         }
         status = SnapshotStorage::destroy(snapshot_uri);
         if (!status.ok()) {
             is_success = false;
-            MLOG(WARNING) << "Group " << vgid << " failed to gc raft snapshot, uri " << snapshot_uri;
+            LOG(WARNING) << "Group " << vgid << " failed to gc raft snapshot, uri " << snapshot_uri;
         }
         return is_success ? 0 : -1;
     }
@@ -275,8 +279,8 @@ namespace melon::raft {
 
     void StateMachine::on_snapshot_save(SnapshotWriter *writer, Closure *done) {
         (void) writer;
-        MCHECK(done);
-        MLOG(ERROR) << mutil::class_name_str(*this)
+        CHECK(done);
+        LOG(ERROR) << mutil::class_name_str(*this)
                    << " didn't implement on_snapshot_save";
         done->status().set_error(-1, "%s didn't implement on_snapshot_save",
                                  mutil::class_name_str(*this).c_str());
@@ -285,7 +289,7 @@ namespace melon::raft {
 
     int StateMachine::on_snapshot_load(SnapshotReader *reader) {
         (void) reader;
-        MLOG(ERROR) << mutil::class_name_str(*this)
+        LOG(ERROR) << mutil::class_name_str(*this)
                    << " didn't implement on_snapshot_load"
                    << " while a snapshot is saved in " << reader->get_path();
         return -1;
@@ -296,7 +300,7 @@ namespace melon::raft {
     void StateMachine::on_leader_stop(const mutil::Status &) {}
 
     void StateMachine::on_error(const Error &e) {
-        MLOG(ERROR) << "Encountered an error=" << e << " on StateMachine "
+        LOG(ERROR) << "Encountered an error=" << e << " on StateMachine "
                    << mutil::class_name_str(*this)
                    << ", it's highly recommended to implement this interface"
                       " as raft stops working since some error ocurrs,"

@@ -1,33 +1,36 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef  MELON_VAR_WINDOW_H_
-#define  MELON_VAR_WINDOW_H_
+#pragma once
 
 #include <limits>                                 // std::numeric_limits
 #include <math.h>                                 // round
 #include <gflags/gflags_declare.h>
-#include "melon/utility/logging.h"                         // LOG
-#include "melon/var/detail/sampler.h"
-#include "melon/var/detail/series.h"
-#include "melon/var/variable.h"
+#include <turbo/log/logging.h>                         // LOG
+#include <melon/var/detail/sampler.h>
+#include <melon/var/detail/series.h>
+#include <melon/var/variable.h>
 
 namespace melon::var {
 
-    DECLARE_int32(bvar_dump_interval);
+    DECLARE_int32(var_dump_interval);
 
     enum SeriesFrequency {
         SERIES_IN_WINDOW = 0,
@@ -81,9 +84,9 @@ namespace melon::var {
             };
 
             WindowBase(R *var, time_t window_size)
-                    : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_bvar_dump_interval),
+                    : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
                       _sampler(var->get_sampler()), _series_sampler(NULL) {
-                MCHECK_EQ(0, _sampler->set_window_size(_window_size));
+                CHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
 
             ~WindowBase() {
@@ -163,7 +166,7 @@ namespace melon::var {
 
     // Get data within a time window.
     // The time unit is 1 second fixed.
-    // Window relies on other bvar which should be constructed before this window
+    // Window relies on other var which should be constructed before this window
     // and destructs after this window.
 
     // R must:
@@ -200,7 +203,7 @@ namespace melon::var {
         typedef typename R::value_type value_type;
         typedef typename R::sampler_type sampler_type;
     public:
-        // If window_size is non-positive or absent, use FLAGS_bvar_dump_interval.
+        // If window_size is non-positive or absent, use FLAGS_var_dump_interval.
         PerSecond(R *var) : Base(var, -1) {}
 
         PerSecond(R *var, time_t window_size) : Base(var, window_size) {}
@@ -285,7 +288,7 @@ namespace melon::var {
             typedef typename WindowType::WindowExVar WindowExVar;
 
             WindowExAdapter(time_t window_size)
-                    : _window_size(window_size > 0 ? window_size : FLAGS_bvar_dump_interval),
+                    : _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
                       _window_ex_var(_window_size) {
             }
 
@@ -321,7 +324,7 @@ namespace melon::var {
 
     // Get data within a time window.
     // The time unit is 1 second fixed.
-    // Window not relies on other bvar.
+    // Window not relies on other var.
 
     // R must:
     // - window_size must be a constant
@@ -368,5 +371,3 @@ namespace melon::var {
     };
 
 }  // namespace melon::var
-
-#endif  // MELON_VAR_WINDOW_H_

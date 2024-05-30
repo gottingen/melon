@@ -1,27 +1,31 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gflags/gflags.h>
-#include "melon/utility/build_config.h"                       // OS_MACOSX
+#include <melon/utility/build_config.h>                       // OS_MACOSX
 #include <netdb.h>                                    // gethostbyname_r
-#include <stdlib.h>                                   // strtol
+#include <cstdlib>                                   // strtol
 #include <string>                                     // std::string
-#include "melon/fiber/fiber.h"
-#include "melon/rpc/log.h"
-#include "melon/naming/domain_naming_service.h"
+#include <melon/fiber/fiber.h>
+#include <melon/rpc/log.h>
+#include <melon/naming/domain_naming_service.h>
 
 DEFINE_bool(dns_support_ipv6, false, "Resolve DNS by IPV6 address first");
 
@@ -34,7 +38,7 @@ namespace melon::naming {
                                         std::vector<ServerNode> *servers) {
         servers->clear();
         if (!dns_name) {
-            MLOG(ERROR) << "dns_name is NULL";
+            LOG(ERROR) << "dns_name is NULL";
             return -1;
         }
 
@@ -46,7 +50,7 @@ namespace melon::naming {
             buf[i] = dns_name[i];
         }
         if (i == sizeof(buf) - 1) {
-            MLOG(ERROR) << "dns_name=`" << dns_name << "' is too long";
+            LOG(ERROR) << "dns_name=`" << dns_name << "' is too long";
             return -1;
         }
 
@@ -57,11 +61,11 @@ namespace melon::naming {
             char *end = NULL;
             port = strtol(dns_name + i, &end, 10);
             if (end == dns_name + i) {
-                MLOG(ERROR) << "No port after colon in `" << dns_name << '\'';
+                LOG(ERROR) << "No port after colon in `" << dns_name << '\'';
                 return -1;
             } else if (*end != '\0') {
                 if (*end != '/') {
-                    MLOG(ERROR) << "Invalid content=`" << end << "' after port="
+                    LOG(ERROR) << "Invalid content=`" << end << "' after port="
                                << port << " in `" << dns_name << '\'';
                     return -1;
                 }
@@ -72,7 +76,7 @@ namespace melon::naming {
             }
         }
         if (port < 0 || port > 65535) {
-            MLOG(ERROR) << "Invalid port=" << port << " in `" << dns_name << '\'';
+            LOG(ERROR) << "Invalid port=" << port << " in `" << dns_name << '\'';
             return -1;
         }
 
@@ -98,7 +102,7 @@ namespace melon::naming {
                 freeaddrinfo(addrResult);
                 return 0;
             } else {
-                MLOG(WARNING) << "Can't resolve `" << buf << "for ipv6, fallback to ipv4";
+                LOG(WARNING) << "Can't resolve `" << buf << "for ipv6, fallback to ipv4";
                 // fallback to ipv4
             }
 
@@ -111,7 +115,7 @@ namespace melon::naming {
         // https://lists.apple.com/archives/darwin-dev/2006/May/msg00008.html
         struct hostent* result = gethostbyname(buf);
         if (result == NULL) {
-            MLOG(WARNING) << "result of gethostbyname is NULL";
+            LOG(WARNING) << "result of gethostbyname is NULL";
             return -1;
         }
 #else
@@ -138,12 +142,12 @@ namespace melon::naming {
         } while (1);
         if (ret != 0) {
             // `hstrerror' is thread safe under linux
-            MLOG(WARNING) << "Can't resolve `" << buf << "', return=`" << berror(ret)
+            LOG(WARNING) << "Can't resolve `" << buf << "', return=`" << berror(ret)
                          << "' herror=`" << hstrerror(error) << '\'';
             return -1;
         }
         if (result == NULL) {
-            MLOG(WARNING) << "result of gethostbyname_r is NULL";
+            LOG(WARNING) << "result of gethostbyname_r is NULL";
             return -1;
         }
 #endif
@@ -157,7 +161,7 @@ namespace melon::naming {
                 bcopy(result->h_addr_list[i], &point.ip, result->h_length);
                 servers->push_back(ServerNode(point, std::string()));
             } else {
-                MLOG(WARNING) << "Found address of unsupported protocol="
+                LOG(WARNING) << "Found address of unsupported protocol="
                              << result->h_addrtype;
             }
         }

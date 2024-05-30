@@ -4,10 +4,10 @@
 
 #include "melon/utility/threading/watchdog.h"
 
-#include "melon/utility/compiler_specific.h"
+#include <melon/utility/compiler_specific.h>
 #include "melon/utility/lazy_instance.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/threading/platform_thread.h"
+#include <turbo/log/logging.h>
+#include <melon/utility/threading/platform_thread.h>
 
 namespace mutil {
 
@@ -51,7 +51,7 @@ Watchdog::Watchdog(const TimeDelta& duration,
   enabled_ = PlatformThread::Create(0,  // Default stack size.
                                     &delegate_,
                                     &handle_);
-  DMCHECK(enabled_);
+  DCHECK(enabled_);
 }
 
 // Notify watchdog thread, and wait for it to finish up.
@@ -110,7 +110,7 @@ void Watchdog::Disarm() {
 }
 
 void Watchdog::Alarm() {
-  DVMLOG(1) << "Watchdog alarmed for " << thread_watched_name_;
+  DVLOG(1) << "Watchdog alarmed for " << thread_watched_name_;
 }
 
 //------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ void Watchdog::ThreadDelegate::ThreadMain() {
       watchdog_->state_ = JOINABLE;
       return;
     }
-    DMCHECK(ARMED == watchdog_->state_);
+    DCHECK(ARMED == watchdog_->state_);
     remaining_duration = watchdog_->duration_ -
         (TimeTicks::Now() - watchdog_->start_time_);
     if (remaining_duration.InMilliseconds() > 0) {
@@ -170,7 +170,7 @@ void Watchdog::ThreadDelegate::ThreadMain() {
 void Watchdog::ThreadDelegate::SetThreadName() const {
   std::string name = watchdog_->thread_watched_name_ + " Watchdog";
   PlatformThread::SetName(name.c_str());
-  DVMLOG(1) << "Watchdog active: " << name;
+  DVLOG(1) << "Watchdog active: " << name;
 }
 
 // static

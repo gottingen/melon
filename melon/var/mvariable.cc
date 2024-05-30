@@ -1,63 +1,67 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gflags/gflags.h>
 #include <gflags/gflags_declare.h>
-#include "melon/utility/logging.h"                       // LOG
-#include "melon/utility/errno.h"                         // berror
-#include "melon/utility/containers/flat_map.h"           // mutil::FlatMap
-#include "melon/utility/scoped_lock.h"                   // MELON_SCOPE_LOCK
-#include "melon/utility/file_util.h"                     // mutil::FilePath
-#include "melon/var/variable.h"
-#include "melon/var/mvariable.h"
+#include <turbo/log/logging.h>                       // LOG
+#include <melon/utility/errno.h>                         // berror
+#include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
+#include <melon/utility/scoped_lock.h>                   // MELON_SCOPE_LOCK
+#include <melon/utility/file_util.h>                     // mutil::FilePath
+#include <melon/var/variable.h>
+#include <melon/var/mvariable.h>
 
 namespace melon::var {
 
     constexpr uint64_t MAX_LABELS_COUNT = 10;
 
-    DECLARE_bool(bvar_abort_on_same_name);
+    DECLARE_bool(var_abort_on_same_name);
 
-    extern bool s_bvar_may_abort;
+    extern bool s_var_may_abort;
 
-    DEFINE_int32(bvar_max_multi_dimension_metric_number, 1024, "Max number of multi dimension");
-    DEFINE_int32(bvar_max_dump_multi_dimension_metric_number, 1024,
+    DEFINE_int32(var_max_multi_dimension_metric_number, 1024, "Max number of multi dimension");
+    DEFINE_int32(var_max_dump_multi_dimension_metric_number, 1024,
                  "Max number of multi dimension metric number to dump by prometheus rpc service");
 
-    static bool validator_bvar_max_multi_dimension_metric_number(const char *, int32_t v) {
+    static bool validator_var_max_multi_dimension_metric_number(const char *, int32_t v) {
         if (v < 1) {
-            MLOG(ERROR) << "Invalid bvar_max_multi_dimension_metric_number=" << v;
+            LOG(ERROR) << "Invalid var_max_multi_dimension_metric_number=" << v;
             return false;
         }
         return true;
     }
 
-    static bool validator_bvar_max_dump_multi_dimension_metric_number(const char *, int32_t v) {
+    static bool validator_var_max_dump_multi_dimension_metric_number(const char *, int32_t v) {
         if (v < 0) {
-            MLOG(ERROR) << "Invalid bvar_max_dump_multi_dimension_metric_number=" << v;
+            LOG(ERROR) << "Invalid var_max_dump_multi_dimension_metric_number=" << v;
             return false;
         }
         return true;
     }
 
 
-    const bool ALLOW_UNUSED dummp_bvar_max_multi_dimension_metric_number = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_max_multi_dimension_metric_number, validator_bvar_max_multi_dimension_metric_number);
+    const bool ALLOW_UNUSED dummp_var_max_multi_dimension_metric_number = ::google::RegisterFlagValidator(
+            &FLAGS_var_max_multi_dimension_metric_number, validator_var_max_multi_dimension_metric_number);
 
-    const bool ALLOW_UNUSED dummp_bvar_max_dump_multi_dimension_metric_number = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_max_dump_multi_dimension_metric_number, validator_bvar_max_dump_multi_dimension_metric_number);
+    const bool ALLOW_UNUSED dummp_var_max_dump_multi_dimension_metric_number = ::google::RegisterFlagValidator(
+            &FLAGS_var_max_dump_multi_dimension_metric_number, validator_var_max_dump_multi_dimension_metric_number);
 
     class MVarEntry {
     public:
@@ -72,12 +76,12 @@ namespace melon::var {
         pthread_mutex_t mutex;
 
         MVarMapWithLock() {
-            MCHECK_EQ(0, init(256, 80));
+            CHECK_EQ(0, init(256, 80));
             pthread_mutex_init(&mutex, NULL);
         }
     };
 
-// We have to initialize global map on need because bvar is possibly used
+// We have to initialize global map on need because var is possibly used
 // before main().
     static pthread_once_t s_mvar_map_once = PTHREAD_ONCE_INIT;
     static MVarMapWithLock *s_mvar_map = NULL;
@@ -97,14 +101,14 @@ namespace melon::var {
         _labels.assign(labels.begin(), labels.end());
         size_t n = labels.size();
         if (n > MAX_LABELS_COUNT) {
-            MLOG(ERROR)
+            LOG(ERROR)
             << "Too many labels: " << n << " seen, overflow detected, max labels count: " << MAX_LABELS_COUNT;
             _labels.resize(MAX_LABELS_COUNT);
         }
     }
 
     MVariable::~MVariable() {
-        MCHECK(!hide()) << "Subclass of MVariable MUST call hide() manually in their"
+        CHECK(!hide()) << "Subclass of MVariable MUST call hide() manually in their"
                           " dtors to avoid displaying a variable that is just destructing";
     }
 
@@ -137,7 +141,7 @@ namespace melon::var {
     int MVariable::expose_impl(const mutil::StringPiece &prefix,
                                const mutil::StringPiece &name) {
         if (name.empty()) {
-            MLOG(ERROR) << "Parameter[name] is empty";
+            LOG(ERROR) << "Parameter[name] is empty";
             return -1;
         }
         // NOTE: It's impossible to atomically erase from a submap and insert into
@@ -161,9 +165,9 @@ namespace melon::var {
         }
         to_underscored_name(&_name, name);
 
-        if (count_exposed() > (size_t) FLAGS_bvar_max_multi_dimension_metric_number) {
-            MLOG(ERROR) << "Too many metric seen, overflow detected, max metric count:"
-                       << FLAGS_bvar_max_multi_dimension_metric_number;
+        if (count_exposed() > (size_t) FLAGS_var_max_multi_dimension_metric_number) {
+            LOG(ERROR) << "Too many metric seen, overflow detected, max metric count:"
+                       << FLAGS_var_max_multi_dimension_metric_number;
             return -1;
         }
 
@@ -178,16 +182,16 @@ namespace melon::var {
             }
         }
 
-        RELEASE_ASSERT_VERBOSE(!FLAGS_bvar_abort_on_same_name,
+        RELEASE_ASSERT_VERBOSE(!FLAGS_var_abort_on_same_name,
                                "Abort due to name conflict");
-        if (!s_bvar_may_abort) {
+        if (!s_var_may_abort) {
             // Mark name conflict occurs, If this conflict happens before
-            // initialization of bvar_abort_on_same_name, the validator will
+            // initialization of var_abort_on_same_name, the validator will
             // abort the program if needed.
-            s_bvar_may_abort = true;
+            s_var_may_abort = true;
         }
 
-        MLOG(WARNING) << "Already exposed `" << _name << "' whose describe is`"
+        LOG(WARNING) << "Already exposed `" << _name << "' whose describe is`"
                      << get_description() << "'";
         _name.clear();
         return 0;
@@ -202,9 +206,9 @@ namespace melon::var {
         MELON_SCOPED_LOCK(m.mutex);
         MVarEntry *entry = m.seek(_name);
         if (entry) {
-            MCHECK_EQ(1UL, m.erase(_name));
+            CHECK_EQ(1UL, m.erase(_name));
         } else {
-            MCHECK(false) << "`" << _name << "' must exist";
+            CHECK(false) << "`" << _name << "' must exist";
         }
         _name.clear();
         return true;
@@ -241,7 +245,7 @@ namespace melon::var {
 
     size_t MVariable::dump_exposed(Dumper *dumper, const DumpOptions *options) {
         if (NULL == dumper) {
-            MLOG(ERROR) << "Parameter[dumper] is NULL";
+            LOG(ERROR) << "Parameter[dumper] is NULL";
             return -1;
         }
         DumpOptions opt;
@@ -258,10 +262,10 @@ namespace melon::var {
             if (entry) {
                 n += entry->var->dump(dumper, &opt);
             }
-            if (n > static_cast<size_t>(FLAGS_bvar_max_dump_multi_dimension_metric_number)) {
-                MLOG(WARNING) << "truncated because of \
+            if (n > static_cast<size_t>(FLAGS_var_max_dump_multi_dimension_metric_number)) {
+                LOG(WARNING) << "truncated because of \
 		            exceed max dump multi dimension label number["
-                             << FLAGS_bvar_max_dump_multi_dimension_metric_number
+                             << FLAGS_var_max_dump_multi_dimension_metric_number
                              << "]";
                 break;
             }

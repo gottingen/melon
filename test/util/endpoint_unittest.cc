@@ -1,24 +1,28 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gtest/gtest.h>
-#include "melon/utility/errno.h"
-#include "melon/utility/endpoint.h"
-#include "melon/utility/logging.h"
-#include "melon/utility/containers/flat_map.h"
+#include <melon/utility/errno.h>
+#include <melon/utility/endpoint.h>
+#include <turbo/log/logging.h>
+#include <melon/utility/containers/flat_map.h>
 #include "melon/utility/details/extended_endpoint.hpp"
 
 namespace {
@@ -40,7 +44,7 @@ TEST(EndPointTest, comparisons) {
 }
 
 TEST(EndPointTest, ip_t) {
-    MLOG(INFO) << "INET_ADDRSTRLEN = " << INET_ADDRSTRLEN;
+    LOG(INFO) << "INET_ADDRSTRLEN = " << INET_ADDRSTRLEN;
     
     mutil::ip_t ip0;
     ASSERT_EQ(0, mutil::str2ip("1.1.1.1", &ip0));
@@ -65,7 +69,7 @@ TEST(EndPointTest, ip_t) {
 }
 
 TEST(EndPointTest, show_local_info) {
-    MLOG(INFO) << "my_ip is " << mutil::my_ip() << std::endl
+    LOG(INFO) << "my_ip is " << mutil::my_ip() << std::endl
               << "my_ip_cstr is " << mutil::my_ip_cstr() << std::endl
               << "my_hostname is " << mutil::my_hostname();
 }
@@ -139,7 +143,7 @@ TEST(EndPointTest, flat_map) {
     }
 
     mutil::BucketInfo info = m.bucket_info();
-    MLOG(INFO) << "bucket info max long=" << info.longest_length
+    LOG(INFO) << "bucket info max long=" << info.longest_length
         << " avg=" << info.average_length << std::endl;
     ASSERT_LT(info.longest_length, 32ul) << "detect hash collision and it's too large.";
 }

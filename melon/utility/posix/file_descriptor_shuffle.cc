@@ -9,7 +9,7 @@
 #include <ostream>
 
 #include "melon/utility/posix/eintr_wrapper.h"
-#include "melon/utility/logging.h"
+#include <turbo/log/logging.h>
 
 namespace mutil {
 
@@ -26,10 +26,10 @@ bool PerformInjectiveMultimapDestructive(
     InjectiveMultimap::value_type* i = &(*m)[i_index];
     int temp_fd = -1;
 
-    // We DMCHECK the injectiveness of the mapping.
+    // We DCHECK the injectiveness of the mapping.
     for (size_t j_index = i_index + 1; j_index < m->size(); ++j_index) {
       InjectiveMultimap::value_type* j = &(*m)[j_index];
-      DMCHECK(i->dest != j->dest) << "Both fd " << i->source
+      DCHECK(i->dest != j->dest) << "Both fd " << i->source
           << " and " << j->source << " map to " << i->dest;
     }
 
@@ -44,8 +44,8 @@ bool PerformInjectiveMultimapDestructive(
           if (next_extra_fd < kMaxExtraFDs) {
             extra_fds[next_extra_fd++] = temp_fd;
           } else {
-            RAW_LOG(ERROR, "PerformInjectiveMultimapDestructive overflowed "
-                           "extra_fds. Leaking file descriptors!");
+              DLOG(ERROR)<< "PerformInjectiveMultimapDestructive overflowed "
+                           "extra_fds. Leaking file descriptors!";
           }
         }
 
@@ -94,7 +94,7 @@ bool FileDescriptorTableInjection::Move(int src, int dest) {
 
 void FileDescriptorTableInjection::Close(int fd) {
   int ret = IGNORE_EINTR(close(fd));
-  DMCHECK(ret == 0);
+  DCHECK(ret == 0);
 }
 
 }  // namespace mutil

@@ -1,41 +1,45 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
 #include <gflags/gflags.h>
-#include "melon/utility/unique_ptr.h"
-#include "melon/var/latency_recorder.h"
+#include <melon/utility/unique_ptr.h>
+#include <melon/var/latency_recorder.h>
 
 namespace melon::var {
 
-    // Reloading following gflags does not change names of the corresponding bvars.
+    // Reloading following gflags does not change names of the corresponding vars.
     // Avoid reloading in practice.
-    DEFINE_int32(bvar_latency_p1, 80, "First latency percentile");
-    DEFINE_int32(bvar_latency_p2, 90, "Second latency percentile");
-    DEFINE_int32(bvar_latency_p3, 99, "Third latency percentile");
+    DEFINE_int32(var_latency_p1, 80, "First latency percentile");
+    DEFINE_int32(var_latency_p2, 90, "Second latency percentile");
+    DEFINE_int32(var_latency_p3, 99, "Third latency percentile");
 
     static bool valid_percentile(const char *, int32_t v) {
         return v > 0 && v < 100;
     }
 
-    const bool ALLOW_UNUSED dummy_bvar_latency_p1 = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_latency_p1, valid_percentile);
-    const bool ALLOW_UNUSED dummy_bvar_latency_p2 = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_latency_p2, valid_percentile);
-    const bool ALLOW_UNUSED dummy_bvar_latency_p3 = ::google::RegisterFlagValidator(
-            &FLAGS_bvar_latency_p3, valid_percentile);
+    const bool ALLOW_UNUSED dummy_var_latency_p1 = ::google::RegisterFlagValidator(
+            &FLAGS_var_latency_p1, valid_percentile);
+    const bool ALLOW_UNUSED dummy_var_latency_p2 = ::google::RegisterFlagValidator(
+            &FLAGS_var_latency_p2, valid_percentile);
+    const bool ALLOW_UNUSED dummy_var_latency_p3 = ::google::RegisterFlagValidator(
+            &FLAGS_var_latency_p3, valid_percentile);
 
     namespace detail {
 
@@ -75,7 +79,7 @@ namespace melon::var {
             }
             values[n++] = std::make_pair(100, cb->get_number(0.999));
             values[n++] = std::make_pair(101, cb->get_number(0.9999));
-            MCHECK_EQ(n, arraysize(values));
+            CHECK_EQ(n, arraysize(values));
             os << "{\"label\":\"cdf\",\"data\":[";
             for (size_t i = 0; i < n; ++i) {
                 if (i) {
@@ -127,17 +131,17 @@ namespace melon::var {
 
         static int64_t get_p1(void *arg) {
             LatencyRecorder *lr = static_cast<LatencyRecorder *>(arg);
-            return lr->latency_percentile(FLAGS_bvar_latency_p1 / 100.0);
+            return lr->latency_percentile(FLAGS_var_latency_p1 / 100.0);
         }
 
         static int64_t get_p2(void *arg) {
             LatencyRecorder *lr = static_cast<LatencyRecorder *>(arg);
-            return lr->latency_percentile(FLAGS_bvar_latency_p2 / 100.0);
+            return lr->latency_percentile(FLAGS_var_latency_p2 / 100.0);
         }
 
         static int64_t get_p3(void *arg) {
             LatencyRecorder *lr = static_cast<LatencyRecorder *>(arg);
-            return lr->latency_percentile(FLAGS_bvar_latency_p3 / 100.0);
+            return lr->latency_percentile(FLAGS_var_latency_p3 / 100.0);
         }
 
         static Vector<int64_t, 4> get_latencies(void *arg) {
@@ -147,9 +151,9 @@ namespace melon::var {
             // other values and make other curves on the plotted graph small and
             // hard to read.
             Vector<int64_t, 4> result;
-            result[0] = cb->get_number(FLAGS_bvar_latency_p1 / 100.0);
-            result[1] = cb->get_number(FLAGS_bvar_latency_p2 / 100.0);
-            result[2] = cb->get_number(FLAGS_bvar_latency_p3 / 100.0);
+            result[0] = cb->get_number(FLAGS_var_latency_p1 / 100.0);
+            result[1] = cb->get_number(FLAGS_var_latency_p2 / 100.0);
+            result[2] = cb->get_number(FLAGS_var_latency_p3 / 100.0);
             result[3] = cb->get_number(0.999);
             return result;
         }
@@ -184,7 +188,7 @@ namespace melon::var {
     int LatencyRecorder::expose(const mutil::StringPiece &prefix1,
                                 const mutil::StringPiece &prefix2) {
         if (prefix2.empty()) {
-            MLOG(ERROR) << "Parameter[prefix2] is empty";
+            LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
         mutil::StringPiece prefix = prefix2;
@@ -192,7 +196,7 @@ namespace melon::var {
         if (prefix.ends_with("latency") || prefix.ends_with("Latency")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
-                MLOG(ERROR) << "Invalid prefix2=" << prefix2;
+                LOG(ERROR) << "Invalid prefix2=" << prefix2;
                 return -1;
             }
         }
@@ -222,15 +226,15 @@ namespace melon::var {
             return -1;
         }
         char namebuf[32];
-        snprintf(namebuf, sizeof(namebuf), "latency_%d", (int) FLAGS_bvar_latency_p1);
+        snprintf(namebuf, sizeof(namebuf), "latency_%d", (int) FLAGS_var_latency_p1);
         if (_latency_p1.expose_as(prefix, namebuf, DISPLAY_ON_PLAIN_TEXT) != 0) {
             return -1;
         }
-        snprintf(namebuf, sizeof(namebuf), "latency_%d", (int) FLAGS_bvar_latency_p2);
+        snprintf(namebuf, sizeof(namebuf), "latency_%d", (int) FLAGS_var_latency_p2);
         if (_latency_p2.expose_as(prefix, namebuf, DISPLAY_ON_PLAIN_TEXT) != 0) {
             return -1;
         }
-        snprintf(namebuf, sizeof(namebuf), "latency_%u", (int) FLAGS_bvar_latency_p3);
+        snprintf(namebuf, sizeof(namebuf), "latency_%u", (int) FLAGS_var_latency_p3);
         if (_latency_p3.expose_as(prefix, namebuf, DISPLAY_ON_PLAIN_TEXT) != 0) {
             return -1;
         }
@@ -247,9 +251,9 @@ namespace melon::var {
             return -1;
         }
         snprintf(namebuf, sizeof(namebuf), "%d%%,%d%%,%d%%,99.9%%",
-                 (int) FLAGS_bvar_latency_p1, (int) FLAGS_bvar_latency_p2,
-                 (int) FLAGS_bvar_latency_p3);
-        MCHECK_EQ(0, _latency_percentiles.set_vector_names(namebuf));
+                 (int) FLAGS_var_latency_p1, (int) FLAGS_var_latency_p2,
+                 (int) FLAGS_var_latency_p3);
+        CHECK_EQ(0, _latency_percentiles.set_vector_names(namebuf));
         return 0;
     }
 

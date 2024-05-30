@@ -9,8 +9,8 @@
 
 #include <limits>
 
-#include "melon/utility/logging.h"
-#include "melon/utility/memory/scoped_ptr.h"
+#include <turbo/log/logging.h>
+#include <melon/utility/memory/scoped_ptr.h>
 #include <gtest/gtest.h>
 
 // Death tests on Android are currently very flaky. No need to add more flaky
@@ -354,7 +354,7 @@ namespace {
 void PrintLongString(char* buf, size_t sz) {
   // Output a reasonably complex expression into a limited-size buffer.
   // At least one byte is available for writing the NUL character.
-  MCHECK_GT(sz, static_cast<size_t>(0));
+  CHECK_GT(sz, static_cast<size_t>(0));
 
   // Allocate slightly more space, so that we can verify that SafeSPrintf()
   // never writes past the end of the buffer.
@@ -386,11 +386,11 @@ void PrintLongString(char* buf, size_t sz) {
     // The numbered of characters needed to print the full string should always
     // be bigger or equal to the bytes that have actually been output.
     len = strlen(tmp.get());
-    MCHECK_GE(needed, len+1);
+    CHECK_GE(needed, len+1);
 
     // The number of characters output should always fit into the buffer that
     // was passed into SafeSPrintf().
-    MCHECK_LT(len, out_sz);
+    CHECK_LT(len, out_sz);
 
     // The output is always terminated with a NUL byte (actually, this test is
     // always going to pass, as strlen() already verified this)
@@ -423,7 +423,7 @@ void PrintLongString(char* buf, size_t sz) {
   //       Visual Studio doesn't support this function, and the work-arounds
   //       are all really awkward.
   char ref[256];
-  MCHECK_LE(sz, sizeof(ref));
+  CHECK_LE(sz, sizeof(ref));
   sprintf(ref, "A long string: %%d 00DEADBEEF %lld 0x%llX <NULL>",
           static_cast<long long>(std::numeric_limits<intptr_t>::min()),
           static_cast<unsigned long long>(

@@ -1,20 +1,23 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#include "melon/raft/remote_file_copier.h"
-
+#include <melon/raft/remote_file_copier.h>
 #include <gflags/gflags.h>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/utility/strings/string_number_conversions.h>
@@ -22,8 +25,9 @@
 #include <melon/utility/file_util.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/controller.h>
-#include "melon/raft/util.h"
-#include "melon/raft/snapshot.h"
+#include <melon/raft/util.h>
+#include <melon/raft/snapshot.h>
+#include <melon/raft/config.h>
 
 namespace melon::raft {
 
@@ -39,8 +43,6 @@ namespace melon::raft {
     MELON_VALIDATE_GFLAG(raft_enable_throttle_when_install_snapshot,
                         ::melon::PassValidate);
 
-    DECLARE_int32(raft_rpc_channel_connect_timeout_ms);
-
     RemoteFileCopier::RemoteFileCopier()
             : _reader_id(0), _throttle(NULL) {}
 
@@ -50,7 +52,7 @@ namespace melon::raft {
         static const size_t prefix_size = strlen("remote://");
         mutil::StringPiece uri_str(uri);
         if (!uri_str.starts_with("remote://")) {
-            MLOG(ERROR) << "Invalid uri=" << uri;
+            LOG(ERROR) << "Invalid uri=" << uri;
             return -1;
         }
         uri_str.remove_prefix(prefix_size);
@@ -58,14 +60,14 @@ namespace melon::raft {
         mutil::StringPiece ip_and_port = uri_str.substr(0, slash_pos);
         uri_str.remove_prefix(slash_pos + 1);
         if (!mutil::StringToInt64(uri_str, &_reader_id)) {
-            MLOG(ERROR) << "Invalid reader_id_format=" << uri_str
+            LOG(ERROR) << "Invalid reader_id_format=" << uri_str
                        << " in " << uri;
             return -1;
         }
         melon::ChannelOptions channel_opt;
         channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
         if (_channel.Init(ip_and_port.as_string().c_str(), &channel_opt) != 0) {
-            MLOG(ERROR) << "Fail to init Channel to " << ip_and_port;
+            LOG(ERROR) << "Fail to init Channel to " << ip_and_port;
             return -1;
         }
         _fs = fs;
@@ -91,7 +93,7 @@ namespace melon::raft {
         cntl.set_timeout_ms(timeout_ms);
         stub.get_file(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
-            MLOG(WARNING) << "Fail to issue RPC, " << cntl.ErrorText();
+            LOG(WARNING) << "Fail to issue RPC, " << cntl.ErrorText();
             return cntl.ErrorCode();
         }
         *is_eof = response.eof();
@@ -132,7 +134,7 @@ namespace melon::raft {
         FileAdaptor *file = _fs->open(dest_path, O_TRUNC | O_WRONLY | O_CREAT | O_CLOEXEC, NULL, &e);
 
         if (!file) {
-            MLOG(ERROR) << "Fail to open " << dest_path
+            LOG(ERROR) << "Fail to open " << dest_path
                        << ", " << mutil::File::ErrorToString(e);
             return NULL;
         }
@@ -219,7 +221,7 @@ namespace melon::raft {
                         mutil::milliseconds_from_now(retry_interval_ms_when_throttled),
                         on_timer, this) != 0) {
                     lck.unlock();
-                    MLOG(ERROR) << "Fail to add timer";
+                    LOG(ERROR) << "Fail to add timer";
                     return on_timer(this);
                 }
                 return;
@@ -274,7 +276,7 @@ namespace melon::raft {
                     mutil::milliseconds_from_now(retry_interval_ms),
                     on_timer, this) != 0) {
                 lck.unlock();
-                MLOG(ERROR) << "Fail to add timer";
+                LOG(ERROR) << "Fail to add timer";
                 return on_timer(this);
             }
             return;
@@ -298,7 +300,7 @@ namespace melon::raft {
             while (0 != data.next(&seg_offset, &seg_data)) {
                 ssize_t nwritten = _file->write(seg_data, seg_offset);
                 if (static_cast<size_t>(nwritten) != seg_data.size()) {
-                    MLOG(WARNING) << "Fail to write into file: " << _dest_path;
+                    LOG(WARNING) << "Fail to write into file: " << _dest_path;
                     _st.set_error(EIO, "%s", berror(EIO));
                     return on_finished();
                 }
@@ -309,7 +311,7 @@ namespace melon::raft {
             uint64_t seg_offset = 0;
             mutil::IOBuf seg_data;
             while (0 != data.next(&seg_offset, &seg_data)) {
-                MCHECK_GE((size_t) seg_offset, _buf->length());
+                CHECK_GE((size_t) seg_offset, _buf->length());
                 _buf->resize(seg_offset);
                 _buf->append(seg_data);
             }
@@ -333,7 +335,7 @@ namespace melon::raft {
         fiber_t tid;
         if (fiber_start_background(
                 &tid, NULL, send_next_rpc_on_timedout, arg) != 0) {
-            PMLOG(ERROR) << "Fail to start fiber";
+            PLOG(ERROR) << "Fail to start fiber";
             send_next_rpc_on_timedout(arg);
         }
     }

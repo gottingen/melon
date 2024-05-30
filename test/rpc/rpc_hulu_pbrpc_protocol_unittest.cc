@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -24,16 +28,16 @@
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
-#include "melon/utility/time.h"
-#include "melon/utility/macros.h"
-#include "melon/utility/gperftools_profiler.h"
-#include "melon/rpc/socket.h"
-#include "melon/rpc/acceptor.h"
-#include "melon/rpc/server.h"
-#include "melon/proto/rpc/hulu_pbrpc_meta.pb.h"
-#include "melon/rpc/policy/hulu_pbrpc_protocol.h"
-#include "melon/rpc/policy/most_common_message.h"
-#include "melon/rpc/controller.h"
+#include <melon/utility/time.h>
+#include <melon/utility/macros.h>
+#include <melon/utility/gperftools_profiler.h>
+#include <melon/rpc/socket.h>
+#include <melon/rpc/acceptor.h>
+#include <melon/rpc/server.h>
+#include <melon/proto/rpc/hulu_pbrpc_meta.pb.h>
+#include <melon/rpc/policy/hulu_pbrpc_protocol.h>
+#include <melon/rpc/policy/most_common_message.h>
+#include <melon/rpc/controller.h>
 #include "echo.pb.h"
 
 int main(int argc, char* argv[]) {
@@ -228,7 +232,7 @@ TEST_F(HuluTest, process_request_failed_socket) {
     melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     _socket->SetFailed();
     ProcessMessage(melon::policy::ProcessHuluRequest, msg, false);
-    ASSERT_EQ(0ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(0ll, _server._nerror_var.get_value());
     CheckResponseCode(true, 0);
 }
 
@@ -239,7 +243,7 @@ TEST_F(HuluTest, process_request_logoff) {
     melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     _server._status = melon::Server::READY;
     ProcessMessage(melon::policy::ProcessHuluRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::ELOGOFF);
 }
 
@@ -249,7 +253,7 @@ TEST_F(HuluTest, process_request_wrong_method) {
     meta.set_method_index(10);
     melon::policy::MostCommonMessage* msg = MakeRequestMessage(meta);
     ProcessMessage(melon::policy::ProcessHuluRequest, msg, false);
-    ASSERT_EQ(1ll, _server._nerror_bvar.get_value());
+    ASSERT_EQ(1ll, _server._nerror_var.get_value());
     CheckResponseCode(false, melon::ENOMETHOD);
 }
 

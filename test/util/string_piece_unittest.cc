@@ -5,7 +5,7 @@
 #include <string>
 
 #include "melon/utility/strings/string16.h"
-#include "melon/utility/strings/string_piece.h"
+#include <melon/utility/strings/string_piece.h>
 #include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>
 

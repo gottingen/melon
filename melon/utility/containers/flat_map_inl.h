@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -280,14 +284,14 @@ FlatMap<_K, _T, _H, _E, _S, _A>::operator=(const FlatMap<_K, _T, _H, _E, _S, _A>
         // note: need an extra bucket to let iterator know where buckets end
         _buckets = (Bucket*)get_allocator().Alloc(sizeof(Bucket) * (_nbucket + 1/*note*/));
         if (NULL == _buckets) {
-            MLOG(ERROR) << "Fail to new _buckets";
+            LOG(ERROR) << "Fail to new _buckets";
             return;
         }
         if (_S) {
             free(_thumbnail);
             _thumbnail = bit_array_malloc(_nbucket);
             if (NULL == _thumbnail) {
-                MLOG(ERROR) << "Fail to new _thumbnail";
+                LOG(ERROR) << "Fail to new _thumbnail";
                 return;
             }
             bit_array_clear(_thumbnail, _nbucket);
@@ -326,15 +330,15 @@ FlatMap<_K, _T, _H, _E, _S, _A>::operator=(const FlatMap<_K, _T, _H, _E, _S, _A>
 template <typename _K, typename _T, typename _H, typename _E, bool _S, typename _A>
 int FlatMap<_K, _T, _H, _E, _S, _A>::init(size_t nbucket, u_int load_factor) {
     if (initialized()) {
-        MLOG(ERROR) << "Already initialized";
+        LOG(ERROR) << "Already initialized";
         return -1;
     }
     if (nbucket == 0) {
-        MLOG(WARNING) << "Fail to init FlatMap, nbucket=" << nbucket;
+        LOG(WARNING) << "Fail to init FlatMap, nbucket=" << nbucket;
         return -1;
     }
     if (load_factor < 10 || load_factor > 100) {
-        MLOG(ERROR) << "Invalid load_factor=" << load_factor;
+        LOG(ERROR) << "Invalid load_factor=" << load_factor;
         return -1;
     }
     _size = 0;
@@ -343,7 +347,7 @@ int FlatMap<_K, _T, _H, _E, _S, _A>::init(size_t nbucket, u_int load_factor) {
                                 
     _buckets = (Bucket*)get_allocator().Alloc(sizeof(Bucket) * (_nbucket + 1));
     if (NULL == _buckets) {
-        MLOG(ERROR) << "Fail to new _buckets";
+        LOG(ERROR) << "Fail to new _buckets";
         return -1;
     }
     for (size_t i = 0; i < _nbucket; ++i) {
@@ -354,7 +358,7 @@ int FlatMap<_K, _T, _H, _E, _S, _A>::init(size_t nbucket, u_int load_factor) {
     if (_S) {
         _thumbnail = bit_array_malloc(_nbucket);
         if (NULL == _thumbnail) {
-            MLOG(ERROR) << "Fail to new _thumbnail";
+            LOG(ERROR) << "Fail to new _thumbnail";
             return -1;
         }
         bit_array_clear(_thumbnail, _nbucket);
@@ -601,7 +605,7 @@ bool FlatMap<_K, _T, _H, _E, _S, _A>::resize(size_t nbucket2) {
     // internal state is lost.
     FlatMap new_map(_hashfn, _eql, get_allocator());
     if (new_map.init(nbucket2, _load_factor) != 0) {
-        MLOG(ERROR) << "Fail to init new_map, nbucket=" << nbucket2;
+        LOG(ERROR) << "Fail to init new_map, nbucket=" << nbucket2;
         return false;
     }
     for (iterator it = begin(); it != end(); ++it) {

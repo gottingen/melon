@@ -1,27 +1,29 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#ifndef MELON_VAR_MULTI_DIMENSION_H_
-#define MELON_VAR_MULTI_DIMENSION_H_
-
-#include "melon/utility/logging.h"                           // LOG
-#include "melon/utility/macros.h"                            // MELON_CASSERT
-#include "melon/utility/scoped_lock.h"                       // MELON_SCOPE_LOCK
-#include "melon/utility/containers/doubly_buffered_data.h"   // DBD
-#include "melon/utility/containers/flat_map.h"               // mutil::FlatMap
-#include "melon/var/mvariable.h"
+#pragma once
+#include <turbo/log/logging.h>                           // LOG
+#include <melon/utility/macros.h>                            // MELON_CASSERT
+#include <melon/utility/scoped_lock.h>                       // MELON_SCOPE_LOCK
+#include <melon/utility/containers/doubly_buffered_data.h>   // DBD
+#include <melon/utility/containers/flat_map.h>               // mutil::FlatMap
+#include <melon/var/mvariable.h>
 
 namespace melon::var {
 
@@ -72,11 +74,11 @@ namespace melon::var {
         // Implement this method to print the variable into ostream.
         void describe(std::ostream &os);
 
-        // Dump real bvar pointer
+        // Dump real var pointer
         size_t dump(Dumper *dumper, const DumpOptions *options);
 
-        // Get real bvar pointer object
-        // Return real bvar pointer on success, NULL otherwise.
+        // Get real var pointer object
+        // Return real var pointer on success, NULL otherwise.
         T *get_stats(const key_type &labels_value) {
             return get_stats_impl(labels_value, READ_OR_INSERT);
         }
@@ -87,7 +89,7 @@ namespace melon::var {
         // Remove all stat
         void clear_stats();
 
-        // True if bvar pointer exists
+        // True if var pointer exists
         bool has_stats(const key_type &labels_value);
 
         // Get number of stats
@@ -97,15 +99,15 @@ namespace melon::var {
         void list_stats(std::vector<key_type> *names);
 
 #ifdef UNIT_TEST
-        // Get real bvar pointer object
-        // Return real bvar pointer if labels_name exist, NULL otherwise.
+        // Get real var pointer object
+        // Return real var pointer if labels_name exist, NULL otherwise.
         // CAUTION!!! Just For Debug!!!
         T* get_stats_read_only(const key_type& labels_value) {
             return get_stats_impl(labels_value);
         }
 
-        // Get real bvar pointer object
-        // Return real bvar pointer if labels_name exist, otherwise(not exist) create bvar pointer.
+        // Get real var pointer object
+        // Return real var pointer if labels_name exist, otherwise(not exist) create var pointer.
         // CAUTION!!! Just For Debug!!!
         T* get_stats_read_or_insert(const key_type& labels_value, bool* do_write = NULL) {
             return get_stats_impl(labels_value, READ_OR_INSERT, do_write);
@@ -139,6 +141,4 @@ namespace melon::var {
 
 } // namespace melon::var
 
-#include "melon/var/multi_dimension_inl.h"
-
-#endif // MELON_VAR_MULTI_DIMENSION_H_
+#include <melon/var/multi_dimension_inl.h>

@@ -9,7 +9,7 @@
 
 #include "melon/utility/base_export.h"
 
-// BEFORE using anything from this file, first look at PMLOG and friends in
+// BEFORE using anything from this file, first look at PLOG and friends in
 // logging.h and use them instead if applicable.
 //
 // This file declares safe, portable alternatives to the POSIX strerror()

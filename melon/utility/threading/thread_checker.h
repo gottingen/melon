@@ -6,15 +6,15 @@
 #define MUTIL_THREADING_THREAD_CHECKER_H_
 
 // Apart from debug builds, we also enable the thread checker in
-// builds with DMCHECK_ALWAYS_ON so that trybots and waterfall bots
+// builds with DCHECK_ALWAYS_ON so that trybots and waterfall bots
 // with this define will get the same level of thread checking as
 // debug bots.
 //
-// Note that this does not perfectly match situations where DMCHECK is
+// Note that this does not perfectly match situations where DCHECK is
 // enabled.  For example a non-official release build may have
-// DMCHECK_ALWAYS_ON undefined (and therefore ThreadChecker would be
+// DCHECK_ALWAYS_ON undefined (and therefore ThreadChecker would be
 // disabled) but have DCHECKs enabled at runtime.
-#if (!defined(NDEBUG) || defined(DMCHECK_ALWAYS_ON))
+#if (!defined(NDEBUG) || defined(DCHECK_ALWAYS_ON))
 #define ENABLE_THREAD_CHECKER 1
 #else
 #define ENABLE_THREAD_CHECKER 0
@@ -59,7 +59,7 @@ class ThreadCheckerDoNothing {
 // class MyClass {
 //  public:
 //   void Foo() {
-//     DMCHECK(thread_checker_.CalledOnValidThread());
+//     DCHECK(thread_checker_.CalledOnValidThread());
 //     ... (do stuff) ...
 //   }
 //

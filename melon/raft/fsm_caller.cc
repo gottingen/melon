@@ -1,29 +1,33 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
-#include <melon/utility/logging.h>
-#include "melon/raft/raft.h"
-#include "melon/raft/log_manager.h"
-#include "melon/raft/node.h"
-#include "melon/raft/util.h"
-#include "melon/proto/raft/raft.pb.h"
-#include "melon/raft/log_entry.h"
-#include "melon/proto/raft/errno.pb.h"
-#include "melon/raft/node.h"
-
-#include "melon/raft/fsm_caller.h"
+#include <turbo/log/logging.h>
+#include <melon/raft/raft.h>
+#include <melon/raft/log_manager.h>
+#include <melon/raft/node.h>
+#include <melon/raft/util.h>
+#include <melon/proto/raft/raft.pb.h>
+#include <melon/raft/log_entry.h>
+#include <melon/proto/raft/errno.pb.h>
+#include <melon/raft/node.h>
+#include <cinttypes>
+#include <melon/raft/fsm_caller.h>
 #include <melon/fiber/unstable.h>
 
 namespace melon::raft {
@@ -36,12 +40,12 @@ namespace melon::raft {
     MELON_VALIDATE_GFLAG(raft_fsm_caller_commit_batch, melon::PositiveInteger);
 
     FSMCaller::FSMCaller()
-            : _log_manager(NULL), _fsm(NULL), _closure_queue(NULL), _last_applied_index(0), _last_applied_term(0),
-              _after_shutdown(NULL), _node(NULL), _cur_task(IDLE), _applying_index(0), _queue_started(false) {
+            : _log_manager(nullptr), _fsm(nullptr), _closure_queue(nullptr), _last_applied_index(0), _last_applied_term(0),
+              _after_shutdown(nullptr), _node(nullptr), _cur_task(IDLE), _applying_index(0), _queue_started(false) {
     }
 
     FSMCaller::~FSMCaller() {
-        MCHECK(_after_shutdown == NULL);
+        CHECK(_after_shutdown == nullptr);
     }
 
     int FSMCaller::run(void *meta, fiber::TaskIterator<ApplyTask> &iter) {
@@ -113,7 +117,7 @@ namespace melon::raft {
                         caller->do_on_error((OnErrorClousre *) iter->done);
                         break;
                     case IDLE:
-                        MCHECK(false) << "Can't reach here";
+                        CHECK(false) << "Can't reach here";
                         break;
                 };
             }
@@ -143,8 +147,8 @@ namespace melon::raft {
     }
 
     int FSMCaller::init(const FSMCallerOptions &options) {
-        if (options.log_manager == NULL || options.fsm == NULL
-            || options.closure_queue == NULL) {
+        if (options.log_manager == nullptr || options.fsm == nullptr
+            || options.closure_queue == nullptr) {
             return EINVAL;
         }
         _log_manager = options.log_manager;
@@ -167,7 +171,7 @@ namespace melon::raft {
                                            &execq_opt,
                                            FSMCaller::run,
                                            this) != 0) {
-            MLOG(ERROR) << "fsm fail to start execution_queue";
+            LOG(ERROR) << "fsm fail to start execution_queue";
             return -1;
         }
         _queue_started = true;
@@ -184,12 +188,12 @@ namespace melon::raft {
     void FSMCaller::do_shutdown() {
         if (_node) {
             _node->Release();
-            _node = NULL;
+            _node = nullptr;
         }
         _fsm->on_shutdown();
         if (_after_shutdown) {
             google::protobuf::Closure *saved_done = _after_shutdown;
-            _after_shutdown = NULL;
+            _after_shutdown = nullptr;
             // after this point, |this| is likely to be destroyed, don't touch
             // anything
             saved_done->Run();
@@ -265,7 +269,7 @@ namespace melon::raft {
         }
         std::vector<Closure *> closure;
         int64_t first_closure_index = 0;
-        MCHECK_EQ(0, _closure_queue->pop_closure_until(committed_index, &closure,
+        CHECK_EQ(0, _closure_queue->pop_closure_until(committed_index, &closure,
                                                       &first_closure_index));
 
         IteratorImpl iter_impl(_fsm, _log_manager, &closure, first_closure_index,
@@ -273,7 +277,7 @@ namespace melon::raft {
         for (; iter_impl.is_good();) {
             if (iter_impl.entry()->type != ENTRY_TYPE_DATA) {
                 if (iter_impl.entry()->type == ENTRY_TYPE_CONFIGURATION) {
-                    if (iter_impl.entry()->old_peers == NULL) {
+                    if (iter_impl.entry()->old_peers == nullptr) {
                         // Joint stage is not supposed to be noticeable by end users.
                         _fsm->on_configuration_committed(
                                 Configuration(*iter_impl.entry()->peers),
@@ -318,7 +322,7 @@ namespace melon::raft {
     }
 
     void FSMCaller::do_snapshot_save(SaveSnapshotClosure *done) {
-        MCHECK(done);
+        CHECK(done);
 
         int64_t last_applied_index = _last_applied_index.load(mutil::memory_order_relaxed);
 
@@ -551,19 +555,19 @@ namespace melon::raft {
                                int64_t committed_index,
                                mutil::atomic<int64_t> *applying_index)
             : _sm(sm), _lm(lm), _closure(closure), _first_closure_index(first_closure_index),
-              _cur_index(last_applied_index), _committed_index(committed_index), _cur_entry(NULL),
+              _cur_index(last_applied_index), _committed_index(committed_index), _cur_entry(nullptr),
               _applying_index(applying_index) { next(); }
 
     void IteratorImpl::next() {
         if (_cur_entry) {
             _cur_entry->Release();
-            _cur_entry = NULL;
+            _cur_entry = nullptr;
         }
         if (_cur_index <= _committed_index) {
             ++_cur_index;
             if (_cur_index <= _committed_index) {
                 _cur_entry = _lm->get_entry(_cur_index);
-                if (_cur_entry == NULL) {
+                if (_cur_entry == nullptr) {
                     _error.set_type(ERROR_TYPE_LOG);
                     _error.status().set_error(-1,
                                               "Fail to get entry at index=%" PRId64
@@ -577,7 +581,7 @@ namespace melon::raft {
 
     Closure *IteratorImpl::done() const {
         if (_cur_index < _first_closure_index) {
-            return NULL;
+            return nullptr;
         }
         return (*_closure)[_cur_index - _first_closure_index];
     }
@@ -585,17 +589,17 @@ namespace melon::raft {
     void IteratorImpl::set_error_and_rollback(
             size_t ntail, const mutil::Status *st) {
         if (ntail == 0) {
-            MCHECK(false) << "Invalid ntail=" << ntail;
+            CHECK(false) << "Invalid ntail=" << ntail;
             return;
         }
-        if (_cur_entry == NULL || _cur_entry->type != ENTRY_TYPE_DATA) {
+        if (_cur_entry == nullptr || _cur_entry->type != ENTRY_TYPE_DATA) {
             _cur_index -= ntail;
         } else {
             _cur_index -= (ntail - 1);
         }
         if (_cur_entry) {
             _cur_entry->Release();
-            _cur_entry = NULL;
+            _cur_entry = nullptr;
         }
         _error.set_type(ERROR_TYPE_STATE_MACHINE);
         _error.status().set_error(ESTATEMACHINE,

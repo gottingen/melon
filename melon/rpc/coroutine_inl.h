@@ -1,24 +1,27 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
-#ifndef MELON_RPC_COROUTINE_INL_H_
-#define MELON_RPC_COROUTINE_INL_H_
+#pragma once
 
-#include "melon/fiber/unstable.h"   // fiber_timer_add
-#include "melon/fiber/butex.h"      // butex_wake/butex_wait
+#include <melon/fiber/unstable.h>   // fiber_timer_add
+#include <melon/fiber/butex.h>      // butex_wake/butex_wait
 
 namespace melon {
 namespace experimental {
@@ -83,7 +86,7 @@ public:
 
     // When the coroutine function throws unhandled exception, unhandled_exception() will be called
     void unhandled_exception() {
-        MLOG(ERROR) << "Coroutine throws unhandled exception!";
+        LOG(ERROR) << "Coroutine throws unhandled exception!";
         std::exit(1);
     }
 
@@ -220,7 +223,7 @@ inline void AwaitableDone::Run() {
 template <typename T>
 inline Coroutine::Coroutine(Awaitable<T>&& aw, bool detach) {
     detail::AwaitablePromise<T>* origin_promise = aw.promise();
-    MCHECK(origin_promise);
+    CHECK(origin_promise);
 
     if (!detach) {
         // Create butex for join()
@@ -261,13 +264,13 @@ inline Coroutine::~Coroutine() {
 
 template <typename T>
 inline T Coroutine::join() {
-    MCHECK(_promise != nullptr) << "join() can not be called to detached coroutine!";
-    MCHECK(_waited == false) << "awaitable() or join() can only be called once!";
+    CHECK(_promise != nullptr) << "join() can not be called to detached coroutine!";
+    CHECK(_waited == false) << "awaitable() or join() can only be called once!";
     _waited = true;
     fiber::butex_wait(_butex, 0, nullptr);
     if constexpr (!std::is_same<T, void>::value) {
         auto promise = dynamic_cast<detail::AwaitablePromise<T>*>(_promise);
-        MCHECK(promise != nullptr) << "join type not match";
+        CHECK(promise != nullptr) << "join type not match";
         T ret = promise->value();
         _promise->on_suspend();
         return ret;
@@ -278,10 +281,10 @@ inline T Coroutine::join() {
 
 template <typename T>
 inline Awaitable<T> Coroutine::awaitable() {
-    MCHECK(_promise != nullptr) << "awaitable() can not be called to detached coroutine!";
-    MCHECK(_waited == false) << "awaitable() or join() can only be called once!";
+    CHECK(_promise != nullptr) << "awaitable() can not be called to detached coroutine!";
+    CHECK(_waited == false) << "awaitable() or join() can only be called once!";
     auto promise = dynamic_cast<detail::AwaitablePromise<T>*>(_promise);
-    MCHECK(promise != nullptr) << "awaitable type not match";
+    CHECK(promise != nullptr) << "awaitable type not match";
     _waited = true;
     return Awaitable<T>(promise);
 }
@@ -307,5 +310,3 @@ inline Awaitable<int> Coroutine::usleep(int sleep_us) {
 
 } // namespace experimental
 } // namespace melon
-
-#endif // MELON_RPC_COROUTINE_INL_H_

@@ -1,16 +1,20 @@
-// Copyright 2023 The Elastic-AI Authors.
-// part of Elastic AI Search
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+// Copyright (C) 2024 EA group inc.
+// Author: Jeff.li lijippy@163.com
+// All rights reserved.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
 //
 
 
@@ -18,7 +22,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/logging.h>
+#include <turbo/log/logging.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
@@ -79,7 +83,7 @@ static void* sender(void* arg) {
             }
         } else {
             g_error_count << 1;
-            MCHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
                 << "error=" << cntl.ErrorText() << " latency=" << cntl.latency_us();
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -101,7 +105,7 @@ int main(int argc, char* argv[]) {
     melon::ParallelChannelOptions pchan_options;
     pchan_options.timeout_ms = FLAGS_timeout_ms;
     if (channel.Init(&pchan_options) != 0) {
-        MLOG(ERROR) << "Fail to init ParallelChannel";
+        LOG(ERROR) << "Fail to init ParallelChannel";
         return -1;
     }
 
@@ -119,13 +123,13 @@ int main(int argc, char* argv[]) {
         // Initialize the channel, NULL means using default options. 
         // options, see `melon/rpc/channel.h'.
         if (sub_channel->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &sub_options) != 0) {
-            MLOG(ERROR) << "Fail to initialize sub_channel";
+            LOG(ERROR) << "Fail to initialize sub_channel";
             return -1;
         }
         for (int i = 0; i < FLAGS_channel_num; ++i) {
             if (channel.AddChannel(sub_channel, melon::OWNS_CHANNEL,
                                    NULL, NULL) != 0) {
-                MLOG(ERROR) << "Fail to AddChannel, i=" << i;
+                LOG(ERROR) << "Fail to AddChannel, i=" << i;
                 return -1;
             }
         }
@@ -135,12 +139,12 @@ int main(int argc, char* argv[]) {
             // Initialize the channel, NULL means using default options. 
             // options, see `melon/rpc/channel.h'.
             if (sub_channel->Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &sub_options) != 0) {
-                MLOG(ERROR) << "Fail to initialize sub_channel[" << i << "]";
+                LOG(ERROR) << "Fail to initialize sub_channel[" << i << "]";
                 return -1;
             }
             if (channel.AddChannel(sub_channel, melon::OWNS_CHANNEL,
                                    NULL, NULL) != 0) {
-                MLOG(ERROR) << "Fail to AddChannel, i=" << i;
+                LOG(ERROR) << "Fail to AddChannel, i=" << i;
                 return -1;
             }
         }
@@ -158,7 +162,7 @@ int main(int argc, char* argv[]) {
         g_attachment.resize(FLAGS_attachment_size, 'a');
     }
     if (FLAGS_request_size <= 0) {
-        MLOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
+        LOG(ERROR) << "Bad request_size=" << FLAGS_request_size;
         return -1;
     }
     g_request.resize(FLAGS_request_size, 'r');
@@ -173,7 +177,7 @@ int main(int argc, char* argv[]) {
         pids.resize(FLAGS_thread_num);
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (pthread_create(&pids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create pthread";
+                LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
@@ -182,7 +186,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             if (fiber_start_background(
                     &bids[i], NULL, sender, &channel) != 0) {
-                MLOG(ERROR) << "Fail to create fiber";
+                LOG(ERROR) << "Fail to create fiber";
                 return -1;
             }
         }
@@ -190,17 +194,17 @@ int main(int argc, char* argv[]) {
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        MLOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
+        LOG(INFO) << "Sending EchoRequest at qps=" << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1) << noflush;
         for (int i = 0; i < FLAGS_channel_num; ++i) {
-            MLOG(INFO) << " latency_" << i << "="
+            LOG(INFO) << " latency_" << i << "="
                       << g_sub_channel_latency[i].latency(1)
                       << noflush;
         }
-        MLOG(INFO);
+        LOG(INFO);
     }
     
-    MLOG(INFO) << "EchoClient is going to quit";
+    LOG(INFO) << "EchoClient is going to quit";
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         if (!FLAGS_use_fiber) {
             pthread_join(pids[i], NULL);
