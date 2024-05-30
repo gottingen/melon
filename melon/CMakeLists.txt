@@ -27,8 +27,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/arena.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/base64.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/base64url.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/big_endian.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/cpu.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc

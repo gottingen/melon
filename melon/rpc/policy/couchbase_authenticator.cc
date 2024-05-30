@@ -19,8 +19,6 @@
 
 
 #include <melon/rpc/policy/couchbase_authenticator.h>
-
-#include <melon/utility/base64.h>
 #include <melon/utility/iobuf.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/sys_byteorder.h>

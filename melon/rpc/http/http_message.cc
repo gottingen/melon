@@ -28,7 +28,7 @@
 #include <turbo/log/logging.h>                       // LOG
 #include <melon/utility/scoped_lock.h>
 #include <melon/utility/endpoint.h>
-#include <melon/utility/base64.h>
+#include <turbo/strings/escaping.h>
 #include <melon/fiber/fiber.h>                    // fiber_usleep
 #include <melon/rpc/log.h>
 #include <melon/rpc/reloadable_flags.h>
@@ -600,7 +600,7 @@ namespace melon {
             // characters in this part and even if users did, most of them are
             // invalid and rejected by http_parser_parse_url().
             std::string encoded_user_info;
-            mutil::Base64Encode(user_info, &encoded_user_info);
+            turbo::base64_encode(user_info, &encoded_user_info);
             os << "Authorization: Basic " << encoded_user_info << MELON_CRLF;
         }
         os << MELON_CRLF;  // CRLF before content
@@ -610,14 +610,14 @@ namespace melon {
         }
     }
 
-// Response format
-// Response     = Status-Line               ; Section 6.1
-//                *(( general-header        ; Section 4.5
-//                 | response-header        ; Section 6.2
-//                 | entity-header ) CRLF)  ; Section 7.1
-//                CRLF
-//                [ message-body ]          ; Section 7.2
-// Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+    // Response format
+    // Response     = Status-Line               ; Section 6.1
+    //                *(( general-header        ; Section 4.5
+    //                 | response-header        ; Section 6.2
+    //                 | entity-header ) CRLF)  ; Section 7.1
+    //                CRLF
+    //                [ message-body ]          ; Section 7.2
+    // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
     void MakeRawHttpResponse(mutil::IOBuf *response,
                              HttpHeader *h,
                              mutil::IOBuf *content) {

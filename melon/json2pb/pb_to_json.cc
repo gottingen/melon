@@ -24,7 +24,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <google/protobuf/descriptor.h>
-#include <melon/utility/base64.h>
+#include <turbo/strings/escaping.h>
 #include <melon/json2pb/zero_copy_stream_writer.h>
 #include <melon/json2pb/encode_decode.h>
 #include <melon/json2pb/protobuf_map.h>
@@ -208,7 +208,7 @@ namespace json2pb {
                         if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES
                             && _option.bytes_to_base64) {
                             std::string value_decoded;
-                            mutil::Base64Encode(value, &value_decoded);
+                            turbo::base64_encode(value, &value_decoded);
                             handler.String(value_decoded.data(), value_decoded.size(), false);
                         } else {
                             handler.String(value.data(), value.size(), false);
@@ -221,7 +221,7 @@ namespace json2pb {
                     if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES
                         && _option.bytes_to_base64) {
                         std::string value_decoded;
-                        mutil::Base64Encode(value, &value_decoded);
+                        turbo::base64_encode(value, &value_decoded);
                         handler.String(value_decoded.data(), value_decoded.size(), false);
                     } else {
                         handler.String(value.data(), value.size(), false);

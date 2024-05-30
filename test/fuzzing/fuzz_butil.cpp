@@ -18,7 +18,7 @@
 //
 
 
-#include <melon/utility/base64.h>
+#include <turbo/strings/escaping.h>
 #include <melon/utility/crc32c.h>
 #include <melon/utility/hash.h>
 #include <melon/utility/sha1.h>
@@ -38,8 +38,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     {
         std::string encoded;
         std::string decoded;
-        mutil::Base64Encode(input, &encoded);
-        mutil::Base64Decode(input, &decoded);
+        turbo::base64_encode(input, &encoded);
+        turbo::base64_decode(input, &decoded);
     }
     {
         mutil::crc32c::Value(reinterpret_cast<const char*>(data), size);

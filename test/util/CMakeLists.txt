@@ -19,8 +19,6 @@ SET(TEST_UTILITY_SOURCES
         bounded_queue_unittest
         at_exit_unittest
         atomicops_unittest
-        base64_unittest
-        base64url_unittest
         big_endian_unittest
         bits_unittest
         hash_tables_unittest

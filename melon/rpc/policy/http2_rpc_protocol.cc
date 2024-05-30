@@ -22,7 +22,7 @@
 #include <melon/rpc/policy/http2_rpc_protocol.h>
 #include <melon/rpc/details/controller_private_accessor.h>
 #include <melon/rpc/server.h>
-#include <melon/utility/base64.h>
+#include <turbo/strings/escaping.h>
 #include <melon/rpc/log.h>
 #include <cinttypes>
 
@@ -1464,7 +1464,7 @@ namespace melon {
                 // characters in this part and even if users did, most of them are
                 // invalid and rejected by http_parser_parse_url().
                 std::string encoded_user_info;
-                mutil::Base64Encode(user_info, &encoded_user_info);
+                turbo::base64_encode(user_info, &encoded_user_info);
                 std::string *val = &msg->push(common->AUTHORIZATION);
                 val->reserve(6 + encoded_user_info.size());
                 val->append("Basic ");

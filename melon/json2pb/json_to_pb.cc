@@ -32,7 +32,7 @@
 #include <melon/json2pb/json_to_pb.h>
 #include <melon/json2pb/zero_copy_stream_reader.h>       // ZeroCopyStreamReader
 #include <melon/json2pb/encode_decode.h>
-#include <melon/utility/base64.h>
+#include <turbo/strings/escaping.h>
 #include <melon/utility/string_printf.h>
 #include <melon/json2pb/protobuf_map.h>
 #include <melon/json2pb/rapidjson.h>
@@ -419,7 +419,7 @@ namespace json2pb {
                             if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES &&
                                 options.base64_to_bytes) {
                                 std::string str_decoded;
-                                if (!mutil::Base64Decode(str, &str_decoded)) {
+                                if (!turbo::base64_decode(str, &str_decoded)) {
                                     J2PERROR_WITH_PB(message, err, "Fail to decode base64 string=%s", str.c_str());
                                     return false;
                                 }
@@ -433,7 +433,7 @@ namespace json2pb {
                     if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES &&
                         options.base64_to_bytes) {
                         std::string str_decoded;
-                        if (!mutil::Base64Decode(str, &str_decoded)) {
+                        if (!turbo::base64_decode(str, &str_decoded)) {
                             J2PERROR_WITH_PB(message, err, "Fail to decode base64 string=%s", str.c_str());
                             return false;
                         }

@@ -37,7 +37,7 @@
 #include <unistd.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/policy/http_rpc_protocol.h>
-#include <melon/utility/base64.h>
+#include <turbo/strings/escaping.h>
 #include <melon/rpc/http/http_method.h>
 #include <melon/utility/iobuf.h>
 #include <turbo/log/logging.h>
@@ -1908,7 +1908,7 @@ void MakeHttpRequestHeaders(mutil::IOBuf* out,
         // characters in this part and even if users did, most of them are
         // invalid and rejected by http_parser_parse_url().
         std::string encoded_user_info;
-        mutil::Base64Encode(user_info, &encoded_user_info);
+        turbo::base64_encode(user_info, &encoded_user_info);
         os << "Authorization: Basic " << encoded_user_info << MELON_CRLF;
     }
     os << MELON_CRLF;  // CRLF before content

@@ -19,27 +19,23 @@
 
 
 #include <melon/rpc/policy/redis_authenticator.h>
-
-#include <melon/utility/base64.h>
 #include <melon/utility/iobuf.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/sys_byteorder.h>
 #include <melon/rpc/redis/redis_command.h>
 
-namespace melon {
-namespace policy {
+namespace melon::policy {
 
-int RedisAuthenticator::GenerateCredential(std::string* auth_str) const {
-    mutil::IOBuf buf;
-    if (!passwd_.empty()) {
-        melon::RedisCommandFormat(&buf, "AUTH %s", passwd_.c_str());
+    int RedisAuthenticator::GenerateCredential(std::string *auth_str) const {
+        mutil::IOBuf buf;
+        if (!passwd_.empty()) {
+            melon::RedisCommandFormat(&buf, "AUTH %s", passwd_.c_str());
+        }
+        if (db_ >= 0) {
+            melon::RedisCommandFormat(&buf, "SELECT %d", db_);
+        }
+        *auth_str = buf.to_string();
+        return 0;
     }
-    if (db_ >= 0) {
-        melon::RedisCommandFormat(&buf, "SELECT %d", db_);
-    }
-    *auth_str = buf.to_string();
-    return 0;
-}
 
-}  // namespace policy
-}  // namespace melon
+}  // namespace melon::policy
