@@ -37,10 +37,29 @@
 #include <turbo/container/flat_hash_set.h>
 
 TURBO_FLAG(std::string, server_name, "melon", "server name");
-TURBO_FLAG(int32_t, server_port, 8080, "server port");
+TURBO_FLAG(int32_t, server_port, 8080, "server port").on_validate([](turbo::string_view value, std::string *err) noexcept ->bool {
+    if(value.empty()) {
+        if(err)
+            *err = "server_port is empty";
+        return false;
+    }
+    int port;
+    auto r = turbo::parse_flag(value, &port, nullptr);
+    if(!r) {
+        if(err)
+            *err = "server_port is not a number";
+        return false;
+    }
+    if(port < 1024 || port > 65535) {
+        if(err)
+            *err = "server_port is not in range [1024, 65535]";
+        return false;
+    }
+    return true;
+});
 namespace melon {
 
-    DEFINE_bool(immutable_turbo_flags, false, "turbo flags on /flags page can't be modified");
+    DEFINE_bool(immutable_turbo_flags, false, "turbo flags on /tflags page can't be modified");
 
     // Replace some characters with html replacements. If the input string does
     // not need to be changed, return its const reference directly, otherwise put
@@ -82,18 +101,18 @@ namespace melon {
         if (use_html) {
             os << "<tr><td>";
         }
-        os << flag->Name();
-        /*
-        if (flag.has_validator_fn) {
+        os << flag->name();
+
+        if (flag->has_user_validator()) {
             if (use_html) {
-                os << " (<a href='/flags/" << flag->Name()
+                os << " (<a href='/tflags/" << flag->name()
                    << "?setvalue&withform'>R</a>)";
             } else {
                 os << " (R)";
             }
-        }*/
-        auto defualt_value = flag->DefaultValue();
-        auto current_value = flag->CurrentValue();
+        }
+        auto defualt_value = flag->default_value();
+        auto current_value = flag->current_value();
         bool is_default = (defualt_value == current_value);
         os << (use_html ? "</td><td>" : " | ");
         if (!is_default && use_html) {
@@ -115,8 +134,8 @@ namespace melon {
                 os << "</span>";
             }
         }
-        os << (use_html ? "</td><td>" : " | ") << flag->Help()
-           << (use_html ? "</td><td>" : " | ") << flag->Filename();
+        os << (use_html ? "</td><td>" : " | ") << flag->help()
+           << (use_html ? "</td><td>" : " | ") << flag->filename();
         if (use_html) {
             os << "</td></tr>";
         }
@@ -126,20 +145,20 @@ namespace melon {
                                       ::google::protobuf::Closure *done) {
         ClosureGuard done_guard(done);
         const std::string &name = cntl->http_request().unresolved_path();
-        auto fflag = turbo::FindCommandLineFlag(name);
+        auto fflag = turbo::find_command_line_flag(name);
         if (!fflag) {
             cntl->SetFailed(ENOMETHOD, "No such gflag");
             return;
         }
         mutil::IOBufBuilder os;
-        const bool is_string = fflag->IsOfType<std::string>();
+        const bool is_string = fflag->is_of_type<std::string>();
         os << "<!DOCTYPE html><html><body>"
               "<form action='' method='get'>"
               " Set `" << name << "' from ";
         if (is_string) {
             os << '"';
         }
-        os << fflag->CurrentValue();
+        os << fflag->current_value();
         if (is_string) {
             os << '"';
         }
@@ -173,32 +192,33 @@ namespace melon {
             if (use_html && cntl->http_request().uri().GetQuery("withform")) {
                 return set_value_page(cntl, done_guard.release());
             }
-            auto fflag = turbo::FindCommandLineFlag(constraint);
+            auto fflag = turbo::find_command_line_flag(constraint);
             if (!fflag) {
                 cntl->SetFailed(ENOMETHOD, "No such turbo flag");
                 return;
             }
-            /*
-            if (!info.has_validator_fn) {
+
+            if (!fflag->has_user_validator()) {
                 cntl->SetFailed(EPERM, "A reloadable turbo flag must have validator");
                 return;
-            }*/
+            }
             if (FLAGS_immutable_turbo_flags) {
                 cntl->SetFailed(EPERM, "Cannot modify `%s' because -immutable_turbo_flags is on",
                                 constraint.c_str());
                 return;
             }
-            auto r = fflag->ParseFrom(*value_str, nullptr);
+            auto r = fflag->user_validate(*value_str, nullptr);
             if (!r) {
                 cntl->SetFailed(EPERM, "Fail to set `%s' to %s",
                                 constraint.c_str(),
                                 (value_str->empty() ? "empty string" : value_str->c_str()));
                 return;
             }
+            fflag->parse_from(*value_str, nullptr);
             mutil::IOBufBuilder os;
             os << "Set `" << constraint << "' to " << *value_str;
             if (use_html) {
-                os << "<br><a href='/flags'>[back to flags]</a>";
+                os << "<br><a href='/tflags'>[back to flags]</a>";
             }
             os.move_to(cntl->response_attachment());
             return;
@@ -237,7 +257,7 @@ namespace melon {
             // Only exact names. We don't have to iterate all flags in this case.
             for (auto it = exact.begin();
                  it != exact.end(); ++it) {
-                auto finfo = turbo::FindCommandLineFlag(*it);
+                auto finfo = turbo::find_command_line_flag(*it);
                 if (finfo != nullptr) {
                     PrintFlag(os, finfo, use_html);
                     os << '\n';
@@ -246,7 +266,7 @@ namespace melon {
 
         } else {
             // Iterate all flags and filter.
-            auto flag_list = turbo::GetAllFlags();
+            auto flag_list = turbo::get_all_flags();
             for (auto it = flag_list.begin(); it != flag_list.end(); ++it) {
                 if (!constraint.empty() &&
                     exact.find(it->first) == exact.end() &&
