@@ -148,6 +148,7 @@ endif ()
 file(GLOB_RECURSE VAR_SOURCES "${PROJECT_SOURCE_DIR}/melon/var/*.cc")
 file(GLOB_RECURSE FIBER_SOURCES "${PROJECT_SOURCE_DIR}/melon/fiber/*.cc")
 file(GLOB_RECURSE JSON2PB_SOURCES "${PROJECT_SOURCE_DIR}/melon/json2pb/*.cc")
+file(GLOB_RECURSE CORE_SOURCES "${PROJECT_SOURCE_DIR}/melon/core/*.cc")
 file(GLOB_RECURSE RPC_SOURCES "${PROJECT_SOURCE_DIR}/melon/rpc/*.cc")
 file(GLOB_RECURSE NAMING_SOURCES "${PROJECT_SOURCE_DIR}/melon/naming/*.cc")
 file(GLOB_RECURSE LB_SOURCES "${PROJECT_SOURCE_DIR}/melon/lb/*.cc")
@@ -165,6 +166,7 @@ set(SOURCES
         ${VAR_SOURCES}
         ${FIBER_SOURCES}
         ${JSON2PB_SOURCES}
+        ${CORE_SOURCES}
         ${RPC_SOURCES}
         ${NAMING_SOURCES}
         ${LB_SOURCES}

@@ -27,7 +27,7 @@ configure_file(${PROJECT_SOURCE_DIR}/cmake/rpm/postinst.in ${PROJECT_SOURCE_DIR}
 
 set(CARBIN_PACKAGE_MAINTAINER "Jeff.li")
 set(CARBIN_PACKAGE_CONTACT "lijippy@163.com")
-set(CARBIN_PACKAGE_HOMEPAGE_URL "https://github.com/gottingen/kumo-ann")
+set(CARBIN_PACKAGE_HOMEPAGE_URL "https://github.com/gottingen/melon")
 set(CARBIN_PACKAGE_SYSTEM_NAME "unknown")
 
 string(TOLOWER ${CARBIN_PRETTY_NAME} LC_CARBIN_PRETTY_NAME)
