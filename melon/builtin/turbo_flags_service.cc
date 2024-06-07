@@ -37,7 +37,7 @@
 #include <turbo/container/flat_hash_set.h>
 
 TURBO_FLAG(std::string, server_name, "melon", "server name");
-TURBO_FLAG(int32_t, server_port, 8080, "server port").on_validate([](turbo::string_view value, std::string *err) noexcept ->bool {
+TURBO_FLAG(int32_t, server_port, 8080, "server port").on_validate([](std::string_view value, std::string *err) noexcept ->bool {
     if(value.empty()) {
         if(err)
             *err = "server_port is empty";
