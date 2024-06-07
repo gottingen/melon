@@ -43,43 +43,19 @@ macro(carbin_find_static_gflags)
 endmacro()
 
 ##################################
-# snappy
-##################################
-macro(carbin_find_static_snappy)
-    set(SNAPPY_STATIC_FOUND FALSE)
-    find_path(SNAPPY_INCLUDE_DIR NAMES snappy.h)
-    find_library(SNAPPY_STATIC_LIB NAMES libsnappy.a)
-    if (SNAPPY_STATIC_LIB)
-        set(SNAPPY_STATIC_FOUND TRUE)
-    endif ()
-    if (SNAPPY_SHARED_FOUND OR SNAPPY_STATIC_FOUND)
-        set(SNAPPY_STATIC_FOUND TRUE)
-    endif ()
-
-    if (SNAPPY_INCLUDE_PATH AND SNAPPY_FOUND)
-        set(SNAPPY_DEV_FOUND TRUE)
-    endif ()
-    message(STATUS "SNAPPY_STATIC_FOUND: ${SNAPPY_STATIC_FOUND}")
-    if (SNAPPY_STATIC_FOUND)
-        message(STATUS "SNAPPY_INCLUDE_PATH: ${SNAPPY_INCLUDE_DIR}")
-        message(STATUS "SNAPPY_STATIC_LIB: ${SNAPPY_STATIC_LIB}")
-    endif ()
-endmacro()
-
-##################################
 # zlib
 ##################################
 macro(carbin_find_static_zlib)
-    set(ZLIB_STATIC_FOUND FALSE)
-    find_path(ZLIB_INCLUDE_DIR NAMES zlib.h PATHS ${EA_ROOT})
-    find_library(ZLIB_STATIC_LIB NAMES libz.a PATHS ${EA_ROOT})
-    if (ZLIB_STATIC_LIB AND ZLIB_INCLUDE_DIR)
-        set(ZLIB_STATIC_FOUND TRUE)
+    set(ZLIB_FOUND FALSE)
+    find_path(ZLIB_INCLUDE_DIR NAMES zlib.h)
+    find_library(ZLIB_LIB NAMES z libz.a)
+    if (ZLIB_LIB AND ZLIB_INCLUDE_DIR)
+        set(ZLIB_FOUND TRUE)
     endif ()
-    message(STATUS "ZLIB_FOUND: ${ZLIB_STATIC_FOUND}")
+    message(STATUS "ZLIB_FOUND: ${ZLIB_FOUND}")
     if (ZLIB_FOUND)
         message(STATUS "ZLIB_INCLUDE_DIR: ${ZLIB_INCLUDE_DIR}")
-        message(STATUS "ZLIB_STATIC_LIB: ${ZLIB_STATIC_LIB}")
+        message(STATUS "ZLIB_LIB: ${ZLIB_LIB}")
     endif ()
 endmacro()
 
@@ -107,7 +83,6 @@ endmacro()
 ##################################
 # openssl
 ##################################
-set(OPENSSL_ROOT_DIR ${EA_ROOT})
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
 message(STATUS "OpenSSL ssl library: ${OPENSSL_SSL_LIBRARY}")
@@ -132,12 +107,8 @@ carbin_find_static_gflags()
 if (NOT GFLAGS_STATIC_FOUND)
     message(FATAL_ERROR "gflags not found")
 endif ()
-carbin_find_static_snappy()
-if (NOT SNAPPY_STATIC_FOUND)
-    message(FATAL_ERROR "snappy not found")
-endif ()
 carbin_find_static_zlib()
-if (NOT ZLIB_STATIC_FOUND)
+if (NOT ZLIB_FOUND)
     message(FATAL_ERROR "zlib not found")
 endif ()
 carbin_find_static_leveldb()
@@ -152,8 +123,7 @@ set(MELON_DEPS_LINK
         ${LEVELDB_STATIC_LIB}
         ${OPENSSL_SSL_LIBRARY}
         ${OPENSSL_CRYPTO_LIBRARY}
-        ${ZLIB_STATIC_LIB}
-        ${SNAPPY_STATIC_LIB}
+        ${ZLIB_LIB}
         ${TURBO_STATIC_LIB}
         ${CARBIN_SYSTEM_DYLINK}
         )
@@ -162,5 +132,5 @@ get_target_property(MELON_SHARED_LIB melon::melon_shared LOCATION)
 set(MELON_STATIC_LIBRARIES ${MELON_STATIC_LIB} ${MELON_DEPS_LINK} ${MELON_SYSTEM_DYLINK})
 set(MELON_SHARED_LIBRARIES ${MELON_SHARED_LIB} ${MELON_DEPS_LINK} ${MELON_SYSTEM_DYLINK})
 
-set(MELON_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIR} ${GFLAGS_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIRS} ${LEVELDB_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${SNAPPY_INCLUDE_DIR} ${turbo_INCLUDE_DIR})
+set(MELON_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIR} ${GFLAGS_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIRS} ${LEVELDB_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${turbo_INCLUDE_DIR})
 list(REMOVE_DUPLICATES MELON_INCLUDE_DIRS)

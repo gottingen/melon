@@ -29,10 +29,10 @@ if (not_top)
 endif ()
 message(STATUS ${PROJECT_NAME}_IS_TOP_PROJECT)
 
-set(PROJECT_DESCRIPTION "Hercules is an ahead of time compiler for a subset of the Python language framework.")
+set(PROJECT_DESCRIPTION "melon is a c++ rpc framework, it's a high performance, easy to use, and powerful rpc framework")
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 5)
-set(PROJECT_VERSION_PATCH 8)
+set(PROJECT_VERSION_PATCH 9)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 set(${PROJECT_NAME}_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -40,9 +40,10 @@ set(${PROJECT_NAME}_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(${PROJECT_NAME}_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(${PROJECT_NAME}_VERSION ${PROJECT_VERSION})
 
+string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UP)
 
-set(CARBIN_VERSION 0.5.0)
-set(CARBIN_CMAKE_VERSION 0.5.0)
+set(CARBIN_VERSION 0.6.0)
+set(CARBIN_CMAKE_VERSION 0.6.0)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/carbin_cmake)
 ##################################################################
 # add this for ${PROJECT_NAME} 's cmake include
@@ -70,9 +71,13 @@ include(carbin_module)
 include(melon_deps)
 include(melon_cxx_config)
 include(melon_test)
+configure_file(${PROJECT_SOURCE_DIR}/conda/meta.yaml.in ${PROJECT_SOURCE_DIR}/conda/meta.yaml @ONLY)
+string(TOUPPER ${CMAKE_BUILD_TYPE} UPPERCASE_BUILD_TYPE)
+configure_file(${PROJECT_SOURCE_DIR}/melon/version.h.in ${PROJECT_SOURCE_DIR}/melon/version.h @ONLY)
 #################################################################
 # proto library
 #################################################################
+
 include(CompileProto)
 set(PROTO_FILES
         melon/proto/idl_options.proto
@@ -245,3 +250,6 @@ configure_file(${PROJECT_SOURCE_DIR}/carbin_cmake/package/pkg_dump_template.pc.i
 
 install(FILES ${PROJECT_BINARY_DIR}/package/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 include(melon_cpack_config)
+carbin_print("melon cmake build system is created by carbin package manager tools")
+carbin_print("carbin: https://github.com/gottingen/carbin")
+carbin_print("template: https://github.com/gottingen/carbin-template@master")

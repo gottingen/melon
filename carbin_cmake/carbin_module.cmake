@@ -159,7 +159,8 @@ ENDMACRO()
 # platform info
 ################################################################################################
 cmake_host_system_information(RESULT CARBIN_PRETTY_NAME QUERY DISTRIB_PRETTY_NAME)
-
+string(TOLOWER ${CARBIN_PRETTY_NAME} LC_CARBIN_PRETTY_NAME)
+string(TOUPPER ${CARBIN_PRETTY_NAME} UP_CARBIN_PRETTY_NAME)
 carbin_print("${CARBIN_PRETTY_NAME}")
 
 cmake_host_system_information(RESULT CARBIN_DISTRO QUERY DISTRIB_INFO)

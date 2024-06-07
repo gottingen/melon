@@ -32,7 +32,7 @@
 #include <ostream>                               // std::ostream
 #include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyInputStream
 #include <melon/utility/strings/string_piece.h>           // mutil::StringPiece
-#include <snappy-sinksource.h>
+#include <melon/utility/snappy/snappy-sinksource.h>
 #include "melon/utility/zero_copy_stream_as_streambuf.h"
 #include <melon/utility/macros.h>
 #include "melon/utility/reader_writer.h"
@@ -635,7 +635,7 @@ namespace mutil {
     };
 
     // Wrap IOBuf into input of snappy compression.
-    class IOBufAsSnappySource : public snappy::Source {
+    class IOBufAsSnappySource : public mutil::snappy::Source {
     public:
         explicit IOBufAsSnappySource(const mutil::IOBuf &buf)
                 : _buf(&buf), _stream(buf) {}
@@ -658,7 +658,7 @@ namespace mutil {
     };
 
 // Wrap IOBuf into output of snappy compression.
-    class IOBufAsSnappySink : public snappy::Sink {
+    class IOBufAsSnappySink : public mutil::snappy::Sink {
     public:
         explicit IOBufAsSnappySink(mutil::IOBuf &buf);
 

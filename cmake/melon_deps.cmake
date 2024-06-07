@@ -86,7 +86,6 @@ list(APPEND CARBIN_DEPS_INCLUDE ${PROTOBUF_INCLUDE_DIRS})
 ############################################################
 # openssl using static openssl
 ############################################################
-set(OPENSSL_ROOT_DIR ${EA_ROOT})
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
 message(STATUS "OpenSSL ssl library: ${OPENSSL_SSL_LIBRARY}")
@@ -97,20 +96,24 @@ list(APPEND CARBIN_DEPS_INCLUDE ${OPENSSL_INCLUDE_DIR})
 ############################################################
 # zlib
 ############################################################
-carbin_find_static_zlib()
-if (NOT ZLIB_STATIC_FOUND)
+macro(melon_find_zlib)
+    set(ZLIB_FOUND FALSE)
+    find_path(ZLIB_INCLUDE_DIR NAMES zlib.h)
+    find_library(ZLIB_LIB NAMES z libz.a)
+    if (ZLIB_LIB AND ZLIB_INCLUDE_DIR)
+        set(ZLIB_FOUND TRUE)
+    endif ()
+    carbin_print("ZLIB_FOUND: ${ZLIB_FOUND}")
+    if (ZLIB_FOUND)
+        carbin_print("ZLIB_INCLUDE_DIR: ${ZLIB_INCLUDE_DIR}")
+        carbin_print("ZLIB_LIB: ${ZLIB_LIB}")
+    endif ()
+endmacro()
+melon_find_zlib()
+if (NOT ZLIB_FOUND)
     message(FATAL_ERROR "Fail to find zlib")
 endif ()
 list(APPEND CARBIN_DEPS_INCLUDE ${ZLIB_INCLUDE_DIR})
-
-############################################################
-# snappy
-############################################################
-carbin_find_static_snappy()
-if (NOT SNAPPY_STATIC_FOUND)
-    message(FATAL_ERROR "Fail to find snappy")
-endif ()
-list(APPEND CARBIN_DEPS_INCLUDE ${SNAPPY_INCLUDE_DIR})
 
 ############################################################
 # turbo
@@ -131,8 +134,7 @@ set(MELON_DEPS_LINK
         ${LEVELDB_STATIC_LIB}
         ${OPENSSL_SSL_LIBRARY}
         ${OPENSSL_CRYPTO_LIBRARY}
-        ${ZLIB_STATIC_LIB}
-        ${SNAPPY_STATIC_LIB}
+        ${ZLIB_LIB}
         ${TURBO_STATIC_LIB}
         ${CARBIN_SYSTEM_DYLINK}
         )
