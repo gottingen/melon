@@ -43,17 +43,17 @@ namespace melon {
         std::string method_name;
     };
 
-// Split components of `path_in' into `path_out'.
-// * path_out->service_name does not have /.
-// * path_out->prefix is normalized as
-//   prefix := "/COMPONENT" prefix | "" (no dot in COMPONENT)
-// Returns true on success.
+    // Split components of `path_in' into `path_out'.
+    // * path_out->service_name does not have /.
+    // * path_out->prefix is normalized as
+    //   prefix := "/COMPONENT" prefix | "" (no dot in COMPONENT)
+    // Returns true on success.
     bool ParseRestfulPath(mutil::StringPiece path_in, RestfulMethodPath *path_out);
 
-// Parse "PATH1 => NAME1, PATH2 => NAME2 ..." where:
-// * PATHs are acceptible by ParseRestfulPath.
-// * NAMEs are valid as method names in protobuf.
-// Returns true on success.
+    // Parse "PATH1 => NAME1, PATH2 => NAME2 ..." where:
+    // * PATHs are acceptible by ParseRestfulPath.
+    // * NAMEs are valid as method names in protobuf.
+    // Returns true on success.
     bool ParseRestfulMappings(const mutil::StringPiece &mappings,
                               std::vector<RestfulMapping> *list);
 
@@ -62,7 +62,7 @@ namespace melon {
         ServiceOwnership ownership;
     };
 
-// Store paths under a same toplevel name.
+    // Store paths under a same toplevel name.
     class RestfulMap {
     public:
         typedef std::map<std::string, RestfulMethodProperty> DedupMap;

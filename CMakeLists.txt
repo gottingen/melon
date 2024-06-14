@@ -95,6 +95,7 @@ set(PROTO_FILES
         melon/proto/rpc/hulu_pbrpc_meta.proto
         melon/proto/rpc/public_pbrpc_meta.proto
         melon/proto/rpc/mongo.proto
+        melon/proto/rpc/restful.proto
         melon/proto/rpc/trackme.proto
         melon/proto/rpc/streaming_rpc_meta.proto
         melon/proto/rpc/proto_base.proto
