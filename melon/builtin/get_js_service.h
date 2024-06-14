@@ -49,6 +49,11 @@ namespace melon {
                      const GetJsRequest *request,
                      GetJsResponse *response,
                      ::google::protobuf::Closure *done) override;
+
+        void vue(::google::protobuf::RpcController *controller,
+                     const GetJsRequest *request,
+                     GetJsResponse *response,
+                     ::google::protobuf::Closure *done) override;
     };
 
 } // namespace melon

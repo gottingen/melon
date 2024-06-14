@@ -16,20 +16,19 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 //
+// Created by jeff on 24-6-14.
+//
 
+#pragma once
 
-syntax="proto2";
-package melon;
+#include <melon/utility/iobuf.h>
 
-option cc_generic_services = true;
+namespace melon {
 
-message GetJsRequest {}
-message GetJsResponse {}
+    const char *vue_js();
 
-service js {
-    rpc sorttable(GetJsRequest) returns (GetJsResponse);
-    rpc jquery_min(GetJsRequest) returns (GetJsResponse);
-    rpc flot_min(GetJsRequest) returns (GetJsResponse);
-    rpc viz_min(GetJsRequest) returns (GetJsResponse);
-    rpc vue(GetJsRequest) returns (GetJsResponse);
-}
+    const mutil::IOBuf &vue_js_iobuf();
+
+    const mutil::IOBuf &vue_js_iobuf_gzip();
+
+}  // namespace melon
