@@ -185,11 +185,11 @@ namespace melon {
         return mutil::IOBuf::block_memory();
     }
 
-// Defined in server.cpp
-    extern mutil::static_atomic<int> g_running_server_count;
+    // Defined in server.cpp
+    extern std::atomic<int> g_running_server_count;
 
     static int GetRunningServerCount(void *) {
-        return g_running_server_count.load(mutil::memory_order_relaxed);
+        return g_running_server_count.load(std::memory_order_relaxed);
     }
 
 // Update global stuff periodically.
@@ -240,7 +240,7 @@ namespace melon {
             TrackMe();
 
             if (!IsDummyServerRunning()
-                && g_running_server_count.load(mutil::memory_order_relaxed) == 0
+                && g_running_server_count.load(std::memory_order_relaxed) == 0
                 && fw.check_and_consume() > 0) {
                 long port = ReadPortOfDummyServer(DUMMY_SERVER_PORT_FILE);
                 if (port >= 0) {

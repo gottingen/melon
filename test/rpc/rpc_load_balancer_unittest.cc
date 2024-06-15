@@ -327,7 +327,7 @@ static void ValidateWeightTree(
         }
     }
     for (size_t i = 0; i < weight_tree.size(); ++i) {
-        const int64_t left = weight_tree[i].left->load(mutil::memory_order_relaxed);
+        const int64_t left = weight_tree[i].left->load(std::memory_order_relaxed);
         size_t left_child = i * 2 + 1;
         if (left_child < weight_tree.size()) {
             ASSERT_EQ(weight_sum[left_child], left) << "i=" << i;
@@ -437,10 +437,10 @@ void* select_server(void* arg) {
 }
 
 melon::SocketId recycled_sockets[1024];
-mutil::atomic<size_t> nrecycle(0);
+std::atomic<size_t> nrecycle(0);
 class SaveRecycle : public melon::SocketUser {
     void BeforeRecycle(melon::Socket* s) {
-        recycled_sockets[nrecycle.fetch_add(1, mutil::memory_order_relaxed)] = s->id();
+        recycled_sockets[nrecycle.fetch_add(1, std::memory_order_relaxed)] = s->id();
         delete this;
     }
 };
@@ -1026,7 +1026,7 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
 
         melon::SocketUniquePtr ptr;
         ASSERT_EQ(0, melon::Socket::Address(ids[0].id, &ptr));
-        ptr->_ninflight_app_health_check.store(1, mutil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(1, std::memory_order_relaxed);
         for (int i = 0; i < 4; ++i) {
             melon::SocketUniquePtr ptr;
             melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
@@ -1037,7 +1037,7 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
         }
 
         ASSERT_EQ(0, melon::Socket::Address(ids[1].id, &ptr));
-        ptr->_ninflight_app_health_check.store(1, mutil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(1, std::memory_order_relaxed);
         for (int i = 0; i < 4; ++i) {
             melon::SocketUniquePtr ptr;
             melon::LoadBalancer::SelectIn in = { 0, false, false, 0u, NULL };
@@ -1047,9 +1047,9 @@ TEST_F(LoadBalancerTest, health_check_no_valid_server) {
         }
 
         ASSERT_EQ(0, melon::Socket::Address(ids[0].id, &ptr));
-        ptr->_ninflight_app_health_check.store(0, mutil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(0, std::memory_order_relaxed);
         ASSERT_EQ(0, melon::Socket::Address(ids[1].id, &ptr));
-        ptr->_ninflight_app_health_check.store(0, mutil::memory_order_relaxed);
+        ptr->_ninflight_app_health_check.store(0, std::memory_order_relaxed);
         // After reset health check state, the lb should work fine
         bool get_server1 = false;
         bool get_server2 = false; 
@@ -1147,32 +1147,32 @@ public:
         //melon::Controller* cntl =
         //        static_cast<melon::Controller*>(cntl_base);
         melon::ClosureGuard done_guard(done);
-        int p = _num_request.fetch_add(1, mutil::memory_order_relaxed);
+        int p = _num_request.fetch_add(1, std::memory_order_relaxed);
         // concurrency in normal case is 50
         if (p < 70) {
             fiber_usleep(100 * 1000);
-            _num_request.fetch_sub(1, mutil::memory_order_relaxed);
+            _num_request.fetch_sub(1, std::memory_order_relaxed);
             res->set_message("OK");
         } else {
-            _num_request.fetch_sub(1, mutil::memory_order_relaxed);
+            _num_request.fetch_sub(1, std::memory_order_relaxed);
             fiber_usleep(1000 * 1000);
         }
         return;
     }
 
-    mutil::atomic<int> _num_request;
+    std::atomic<int> _num_request;
 };
 
-mutil::atomic<int32_t> num_failed(0);
-mutil::atomic<int32_t> num_reject(0);
+std::atomic<int32_t> num_failed(0);
+std::atomic<int32_t> num_reject(0);
 
 class Done : public google::protobuf::Closure {
 public:
     void Run() {
         if (cntl.Failed()) {
-            num_failed.fetch_add(1, mutil::memory_order_relaxed);
+            num_failed.fetch_add(1, std::memory_order_relaxed);
             if (cntl.ErrorCode() == melon::EREJECT) {
-                num_reject.fetch_add(1, mutil::memory_order_relaxed);
+                num_reject.fetch_add(1, std::memory_order_relaxed);
             }
         }
         delete this;
@@ -1253,9 +1253,9 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_intergrated) {
     // all servers are down, the very first call that trigger recovering would
     // fail with EHOSTDOWN instead of EREJECT. This is where the number 1 comes
     // in following ASSERT.
-    ASSERT_TRUE(num_failed.load(mutil::memory_order_relaxed) -
-            num_reject.load(mutil::memory_order_relaxed) == 1);
-    num_failed.store(0, mutil::memory_order_relaxed);
+    ASSERT_TRUE(num_failed.load(std::memory_order_relaxed) -
+            num_reject.load(std::memory_order_relaxed) == 1);
+    num_failed.store(0, std::memory_order_relaxed);
 
     // should recover now
     for (int i = 0; i < 1000; ++i) {
@@ -1265,7 +1265,7 @@ TEST_F(LoadBalancerTest, revived_from_all_failed_intergrated) {
         fiber_usleep(1000);
     }
     fiber_usleep(500000 /* sleep longer than timeout of channel */);
-    ASSERT_EQ(0, num_failed.load(mutil::memory_order_relaxed));
+    ASSERT_EQ(0, num_failed.load(std::memory_order_relaxed));
 }
 
 TEST_F(LoadBalancerTest, la_selection_too_long) {

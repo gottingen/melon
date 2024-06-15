@@ -591,8 +591,8 @@ public:
     }
 
     int idx;
-    mutil::atomic<bool> hung;
-    mutil::atomic<bool> running;
+    std::atomic<bool> hung;
+    std::atomic<bool> running;
 };
 
 TEST_P(ExtendLeaseTest, apply_thread_hung) {

@@ -46,12 +46,12 @@ DEFINE_int32(batch, 1, "Pipelined Operations");
 
 melon::var::LatencyRecorder g_latency_recorder("client");
 melon::var::Adder<int> g_error_count("client_error_count");
-mutil::static_atomic<int> g_sender_count = MUTIL_STATIC_ATOMIC_INIT(0);
+std::atomic<int> g_sender_count = MUTIL_STATIC_ATOMIC_INIT(0);
 
 static void* sender(void* arg) {
     google::protobuf::RpcChannel* channel = 
         static_cast<google::protobuf::RpcChannel*>(arg);
-    const int base_index = g_sender_count.fetch_add(1, mutil::memory_order_relaxed);
+    const int base_index = g_sender_count.fetch_add(1, std::memory_order_relaxed);
 
     std::string value;
     std::vector<std::pair<std::string, std::string> > kvs;

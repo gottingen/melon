@@ -91,7 +91,7 @@ public:
     // Construct ExtendedEndPoint.
     // User should use create() functions to get ExtendedEndPoint instance.
     ExtendedEndPoint(void) {
-        _ref_count.store(0, mutil::memory_order_relaxed);
+        _ref_count.store(0, std::memory_order_relaxed);
         _u.sa.sa_family = AF_UNSPEC;
     }
 
@@ -239,10 +239,10 @@ private:
         ::mutil::ResourceId<ExtendedEndPoint> id;
         ExtendedEndPoint* eep = ::mutil::get_resource(&id);
         if (eep) {
-            int64_t old_ref = eep->_ref_count.load(mutil::memory_order_relaxed);
+            int64_t old_ref = eep->_ref_count.load(std::memory_order_relaxed);
             CHECK(old_ref == 0) << "new ExtendedEndPoint has reference " << old_ref;
             CHECK(eep->_u.sa.sa_family == AF_UNSPEC) << "new ExtendedEndPoint has family " << eep->_u.sa.sa_family << " set";
-            eep->_ref_count.store(1, mutil::memory_order_relaxed);
+            eep->_ref_count.store(1, std::memory_order_relaxed);
             eep->_id = id;
             eep->_u.sa.sa_family = family;
         }
@@ -261,7 +261,7 @@ private:
 
         ExtendedEndPoint* first_eep = global_set()->insert(eep);
         if (first_eep != eep) {
-            eep->_ref_count.store(0, mutil::memory_order_relaxed);
+            eep->_ref_count.store(0, std::memory_order_relaxed);
             eep->_u.sa.sa_family = AF_UNSPEC;
             ::mutil::return_resource(eep->_id);
         }
@@ -271,7 +271,7 @@ private:
 public:
 
     void dec_ref(void) {
-        int64_t old_ref = _ref_count.fetch_sub(1, mutil::memory_order_relaxed);
+        int64_t old_ref = _ref_count.fetch_sub(1, std::memory_order_relaxed);
         CHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
         if (old_ref == 1) {
             global_set()->erase(this);
@@ -281,7 +281,7 @@ public:
     }
 
     void inc_ref(void) {
-        int64_t old_ref = _ref_count.fetch_add(1, mutil::memory_order_relaxed);
+        int64_t old_ref = _ref_count.fetch_add(1, std::memory_order_relaxed);
         CHECK(old_ref >= 1) << "ExtendedEndPoint has unexpected reference " << old_ref;
     }
 
@@ -330,7 +330,7 @@ public:
 private:
     static const size_t UDS_PATH_SIZE = sizeof(sockaddr_un::sun_path);
 
-    mutil::atomic<int64_t> _ref_count;
+    std::atomic<int64_t> _ref_count;
     mutil::ResourceId<ExtendedEndPoint> _id;
     size_t _hash;  // pre-compute hash code of sockaddr for saving unordered_set query time
     socklen_t _socklen; // valid data length of sockaddr
@@ -346,9 +346,9 @@ inline ExtendedEndPoint* GlobalEndPointSet::insert(ExtendedEndPoint* p) {
     std::unique_lock<std::mutex> lock(_mutex);
     auto it = _set.find(p);
     if (it != _set.end()) {
-        if ((*it)->_ref_count.fetch_add(1, mutil::memory_order_relaxed) == 0) {
+        if ((*it)->_ref_count.fetch_add(1, std::memory_order_relaxed) == 0) {
             // another thread is calling dec_ref(), do not reuse it
-            (*it)->_ref_count.fetch_sub(1, mutil::memory_order_relaxed);
+            (*it)->_ref_count.fetch_sub(1, std::memory_order_relaxed);
             _set.erase(it);
             _set.insert(p);
             return p;

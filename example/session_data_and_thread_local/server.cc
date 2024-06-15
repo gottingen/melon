@@ -31,13 +31,13 @@ DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
 DEFINE_int32(max_concurrency, 0, "Limit of request processing in parallel");
 
-mutil::atomic<int> nsd(0);
+std::atomic<int> nsd(0);
 struct MySessionLocalData {
     MySessionLocalData() : x(123) {
-        nsd.fetch_add(1, mutil::memory_order_relaxed);
+        nsd.fetch_add(1, std::memory_order_relaxed);
     }
     ~MySessionLocalData() {
-        nsd.fetch_sub(1, mutil::memory_order_relaxed);
+        nsd.fetch_sub(1, std::memory_order_relaxed);
     }
 
     int x;
@@ -54,13 +54,13 @@ public:
     }
 };
 
-mutil::atomic<int> ntls(0);
+std::atomic<int> ntls(0);
 struct MyThreadLocalData {
     MyThreadLocalData() : y(0) {
-        ntls.fetch_add(1, mutil::memory_order_relaxed);
+        ntls.fetch_add(1, std::memory_order_relaxed);
     }
     ~MyThreadLocalData() {
-        ntls.fetch_sub(1, mutil::memory_order_relaxed);
+        ntls.fetch_sub(1, std::memory_order_relaxed);
     }
     static void deleter(void* d) {
         delete static_cast<MyThreadLocalData*>(d);
@@ -184,8 +184,8 @@ public:
         // We don't want to call done->Run() here, release the guard.
         done_guard.release();
         
-        LOG_EVERY_N_SEC(INFO, 1) << "ntls=" << ntls.load(mutil::memory_order_relaxed)
-                               << " nsd=" << nsd.load(mutil::memory_order_relaxed);
+        LOG_EVERY_N_SEC(INFO, 1) << "ntls=" << ntls.load(std::memory_order_relaxed)
+                               << " nsd=" << nsd.load(std::memory_order_relaxed);
     }
 
 private:

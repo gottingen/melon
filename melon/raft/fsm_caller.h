@@ -74,7 +74,7 @@ namespace melon::raft {
                      int64_t first_closure_index,
                      int64_t last_applied_index,
                      int64_t committed_index,
-                     mutil::atomic<int64_t> *applying_index);
+                     std::atomic<int64_t> *applying_index);
 
         ~IteratorImpl() {}
 
@@ -87,7 +87,7 @@ namespace melon::raft {
         int64_t _cur_index;
         int64_t _committed_index;
         LogEntry *_cur_entry;
-        mutil::atomic<int64_t> *_applying_index;
+        std::atomic<int64_t> *_applying_index;
         Error _error;
     };
 
@@ -144,7 +144,7 @@ namespace melon::raft {
         BRAFT_MOCK int on_error(const Error &e);
 
         int64_t last_applied_index() const {
-            return _last_applied_index.load(mutil::memory_order_relaxed);
+            return _last_applied_index.load(std::memory_order_relaxed);
         }
 
         int64_t applying_index() const;
@@ -228,12 +228,12 @@ namespace melon::raft {
         LogManager *_log_manager;
         StateMachine *_fsm;
         ClosureQueue *_closure_queue;
-        mutil::atomic<int64_t> _last_applied_index;
+        std::atomic<int64_t> _last_applied_index;
         int64_t _last_applied_term;
         google::protobuf::Closure *_after_shutdown;
         NodeImpl *_node;
         TaskType _cur_task;
-        mutil::atomic<int64_t> _applying_index;
+        std::atomic<int64_t> _applying_index;
         Error _error;
         bool _queue_started;
     };

@@ -147,7 +147,7 @@ TEST_F(SocketTest, not_recycle_until_zero_nref) {
     ASSERT_EQ(-1, melon::Socket::Address(id, &ptr));
 }
 
-mutil::atomic<int> winner_count(0);
+std::atomic<int> winner_count(0);
 const int AUTH_ERR = -9;
 
 void* auth_fighter(void* arg) {
@@ -188,7 +188,7 @@ TEST_F(SocketTest, authentication) {
     ASSERT_TRUE(melon::Socket::Address(s->id(), NULL));
 }
 
-static mutil::atomic<int> g_called_seq(1);
+static std::atomic<int> g_called_seq(1);
 class MyMessage : public melon::SocketMessage {
 public:
     MyMessage(const char* str, size_t len, int* called = NULL)
@@ -197,7 +197,7 @@ private:
     mutil::Status AppendAndDestroySelf(mutil::IOBuf* out_buf, melon::Socket*) {
         out_buf->append(_str, _len);
         if (_called) {
-            *_called = g_called_seq.fetch_add(1, mutil::memory_order_relaxed);
+            *_called = g_called_seq.fetch_add(1, std::memory_order_relaxed);
         }
         delete this;
         return mutil::Status::OK();

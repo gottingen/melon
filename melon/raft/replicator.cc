@@ -1404,7 +1404,7 @@ namespace melon::raft {
         if (iter == _rmap.end()) {
             return 0;
         }
-        return iter->second.status->last_rpc_send_timestamp.load(mutil::memory_order_relaxed);
+        return iter->second.status->last_rpc_send_timestamp.load(std::memory_order_relaxed);
     }
 
     int ReplicatorGroup::stop_replicator(const PeerId &peer) {

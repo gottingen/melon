@@ -64,7 +64,7 @@ public:
                       google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         melon::Controller* cntl = (melon::Controller*)cntl_base;
-        count.fetch_add(1, mutil::memory_order_relaxed);
+        count.fetch_add(1, std::memory_order_relaxed);
         EXPECT_EQ(EXP_REQUEST, request->message());
         EXPECT_TRUE(cntl->is_ssl());
 
@@ -76,7 +76,7 @@ public:
         }
     }
 
-    mutil::atomic<int64_t> count;
+    std::atomic<int64_t> count;
 };
 
 class SSLTest : public ::testing::Test{

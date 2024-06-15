@@ -42,7 +42,7 @@ struct AccessThreadArgs {
     size_t offset;
     std::deque<std::pair<std::string, mutil::IOBuf> > output_queue;
     mutil::Mutex output_queue_mutex;
-    mutil::atomic<int> current_concurrency;
+    std::atomic<int> current_concurrency;
 };
 
 class OnHttpCallEnd : public google::protobuf::Closure {
@@ -65,7 +65,7 @@ void OnHttpCallEnd::Run() {
                 std::make_pair(url, cntl.response_attachment()));
         }
     }
-    args->current_concurrency.fetch_sub(1, mutil::memory_order_relaxed);
+    args->current_concurrency.fetch_sub(1, std::memory_order_relaxed);
 }
 
 void* access_thread(void* void_args) {
@@ -86,9 +86,9 @@ void* access_thread(void* void_args) {
             args->output_queue.push_back(std::make_pair(url, mutil::IOBuf()));
             continue;
         }
-        while (args->current_concurrency.fetch_add(1, mutil::memory_order_relaxed)
+        while (args->current_concurrency.fetch_add(1, std::memory_order_relaxed)
                > concurrency_for_this_thread) {
-            args->current_concurrency.fetch_sub(1, mutil::memory_order_relaxed);
+            args->current_concurrency.fetch_sub(1, std::memory_order_relaxed);
             fiber_usleep(5000);
         }
         OnHttpCallEnd* done = new OnHttpCallEnd;
@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         args[i].url_list = &url_list;
         args[i].offset = i;
-        args[i].current_concurrency.store(0, mutil::memory_order_relaxed);
+        args[i].current_concurrency.store(0, std::memory_order_relaxed);
     }
     std::vector<fiber_t> tids;
     tids.resize(FLAGS_thread_num);
@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
         fiber_join(tids[i], NULL);
     }
     for (int i = 0; i < FLAGS_thread_num; ++i) {
-        while (args[i].current_concurrency.load(mutil::memory_order_relaxed) != 0) {
+        while (args[i].current_concurrency.load(std::memory_order_relaxed) != 0) {
             usleep(10000);
         }
     }

@@ -31,7 +31,7 @@ DEFINE_string(conf, "", "Configuration of the raft group");
 DEFINE_string(group, "Atomic", "Id of the replication group");
 
 melon::var::LatencyRecorder g_latency_recorder("atomic_client");
-mutil::atomic<int> g_nthreads(0);
+std::atomic<int> g_nthreads(0);
 
 struct SendArg {
     int64_t id;

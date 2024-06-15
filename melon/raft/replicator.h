@@ -41,7 +41,7 @@ namespace melon::raft {
 // A shared structure to store some high-frequency replicator statuses, for reducing
 // the lock contention between Replicator and NodeImpl.
     struct ReplicatorStatus : public mutil::RefCountedThreadSafe<ReplicatorStatus> {
-        mutil::atomic<int64_t> last_rpc_send_timestamp;
+        std::atomic<int64_t> last_rpc_send_timestamp;
 
         ReplicatorStatus() : last_rpc_send_timestamp(0) {}
     };
@@ -256,13 +256,13 @@ namespace melon::raft {
         void _close_reader();
 
         int64_t _last_rpc_send_timestamp() {
-            return _options.replicator_status->last_rpc_send_timestamp.load(mutil::memory_order_relaxed);
+            return _options.replicator_status->last_rpc_send_timestamp.load(std::memory_order_relaxed);
         }
 
         void _update_last_rpc_send_timestamp(int64_t new_timestamp) {
             if (new_timestamp > _last_rpc_send_timestamp()) {
                 _options.replicator_status->last_rpc_send_timestamp
-                        .store(new_timestamp, mutil::memory_order_relaxed);
+                        .store(new_timestamp, std::memory_order_relaxed);
             }
         }
 

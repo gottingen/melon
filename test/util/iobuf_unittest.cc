@@ -1345,13 +1345,13 @@ TEST_F(IOBufTest, append_from_fd_with_offset) {
 
 }
 
-static mutil::atomic<int> s_nthread(0);
+static std::atomic<int> s_nthread(0);
 static long number_per_thread = 1024;
 
 void* cut_into_fd(void* arg) {
     int fd = (int)(long)arg;
     const long start_num = number_per_thread * 
-        s_nthread.fetch_add(1, mutil::memory_order_relaxed);
+        s_nthread.fetch_add(1, std::memory_order_relaxed);
     off_t offset = start_num * sizeof(int);
     for (int i = 0; i < number_per_thread; ++i) {
         int to_write = start_num + i;

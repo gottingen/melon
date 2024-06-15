@@ -87,7 +87,7 @@ public:
                                "Delete more than once!");
     }
 private:
-    mutil::atomic<int> _c;
+    std::atomic<int> _c;
 };
 
 static std::string MOCK_CREDENTIAL = "mock credential";
@@ -99,7 +99,7 @@ public:
 
     int GenerateCredential(std::string* auth_str) const {
         *auth_str = MOCK_CREDENTIAL;
-        count.fetch_add(1, mutil::memory_order_relaxed);
+        count.fetch_add(1, std::memory_order_relaxed);
         return 0;
     }
 
@@ -113,7 +113,7 @@ public:
         ctx->set_is_service(true);
         return 0;
     }
-    mutable mutil::atomic<int32_t> count;
+    mutable std::atomic<int32_t> count;
 };
 
 static bool VerifyMyRequest(const melon::InputMessageBase* msg_base) {

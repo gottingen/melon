@@ -102,20 +102,20 @@ bool AutoConcurrencyLimiter::OnRequested(int current_concurrency, Controller*) {
 
 void AutoConcurrencyLimiter::OnResponded(int error_code, int64_t latency_us) {
     if (0 == error_code) {
-        _total_succ_req.fetch_add(1, mutil::memory_order_relaxed);
+        _total_succ_req.fetch_add(1, std::memory_order_relaxed);
     } else if (ELIMIT == error_code) {
         return;
     }
 
     const int64_t now_time_us = mutil::gettimeofday_us();
     int64_t last_sampling_time_us = 
-        _last_sampling_time_us.load(mutil::memory_order_relaxed);
+        _last_sampling_time_us.load(std::memory_order_relaxed);
 
     if (last_sampling_time_us == 0 || 
         now_time_us - last_sampling_time_us >= 
             FLAGS_auto_cl_sampling_interval_ms * 1000) {
         bool sample_this_call = _last_sampling_time_us.compare_exchange_strong(
-            last_sampling_time_us, now_time_us, mutil::memory_order_relaxed);
+            last_sampling_time_us, now_time_us, std::memory_order_relaxed);
         if (sample_this_call) {
             bool sample_window_submitted = AddSample(error_code, latency_us, 
                                                      now_time_us);
@@ -199,7 +199,7 @@ bool AutoConcurrencyLimiter::AddSample(int error_code,
 }
 
 void AutoConcurrencyLimiter::ResetSampleWindow(int64_t sampling_time_us) {
-    _total_succ_req.exchange(0, mutil::memory_order_relaxed);
+    _total_succ_req.exchange(0, std::memory_order_relaxed);
     _sw.start_time_us = sampling_time_us;
     _sw.succ_count = 0;
     _sw.failed_count = 0;
@@ -233,7 +233,7 @@ void AutoConcurrencyLimiter::AdjustMaxConcurrency(int next_max_concurrency) {
 }
 
 void AutoConcurrencyLimiter::UpdateMaxConcurrency(int64_t sampling_time_us) {
-    int32_t total_succ_req = _total_succ_req.load(mutil::memory_order_relaxed);
+    int32_t total_succ_req = _total_succ_req.load(std::memory_order_relaxed);
     double failed_punish = _sw.total_failed_us * FLAGS_auto_cl_fail_punish_ratio;
     int64_t avg_latency = 
         std::ceil((failed_punish + _sw.total_succ_us) / _sw.succ_count);

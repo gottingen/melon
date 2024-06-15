@@ -161,7 +161,7 @@ friend class AtomicClosure;
         // will be inconsistent with others in this group.
         
         // Serialize request to IOBuf
-        const int64_t term = _leader_term.load(mutil::memory_order_relaxed);
+        const int64_t term = _leader_term.load(std::memory_order_relaxed);
         if (term < 0) {
             return redirect(response);
         }
@@ -287,12 +287,12 @@ friend class AtomicClosure;
     }
 
     void on_leader_start(int64_t term) {
-        _leader_term.store(term, mutil::memory_order_release);
+        _leader_term.store(term, std::memory_order_release);
         LOG(INFO) << "Node becomes leader";
     }
 
     void on_leader_stop(const mutil::Status& status) {
-        _leader_term.store(-1, mutil::memory_order_release);
+        _leader_term.store(-1, std::memory_order_release);
         LOG(INFO) << "Node stepped down : " << status;
     }
 
@@ -420,7 +420,7 @@ friend class AtomicClosure;
     };
 
     melon::raft::Node* volatile _node;
-    mutil::atomic<int64_t> _leader_term;
+    std::atomic<int64_t> _leader_term;
     ValueMap _value_map;
 };
 

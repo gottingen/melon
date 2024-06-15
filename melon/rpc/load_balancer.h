@@ -132,7 +132,7 @@ namespace melon {
 
         bool AddServer(const ServerId &server) {
             if (_lb->AddServer(server)) {
-                _weight_sum.fetch_add(1, mutil::memory_order_relaxed);
+                _weight_sum.fetch_add(1, std::memory_order_relaxed);
                 return true;
             }
             return false;
@@ -140,7 +140,7 @@ namespace melon {
 
         bool RemoveServer(const ServerId &server) {
             if (_lb->RemoveServer(server)) {
-                _weight_sum.fetch_sub(1, mutil::memory_order_relaxed);
+                _weight_sum.fetch_sub(1, std::memory_order_relaxed);
                 return true;
             }
             return false;
@@ -149,7 +149,7 @@ namespace melon {
         size_t AddServersInBatch(const std::vector<ServerId> &servers) {
             size_t n = _lb->AddServersInBatch(servers);
             if (n) {
-                _weight_sum.fetch_add(n, mutil::memory_order_relaxed);
+                _weight_sum.fetch_add(n, std::memory_order_relaxed);
             }
             return n;
         }
@@ -157,7 +157,7 @@ namespace melon {
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers) {
             size_t n = _lb->RemoveServersInBatch(servers);
             if (n) {
-                _weight_sum.fetch_sub(n, mutil::memory_order_relaxed);
+                _weight_sum.fetch_sub(n, std::memory_order_relaxed);
             }
             return n;
         }
@@ -165,7 +165,7 @@ namespace melon {
         virtual void Describe(std::ostream &os, const DescribeOptions &);
 
         virtual int Weight() {
-            return _weight_sum.load(mutil::memory_order_relaxed);
+            return _weight_sum.load(std::memory_order_relaxed);
         }
 
     private:
@@ -178,7 +178,7 @@ namespace melon {
         void ExposeLB();
 
         LoadBalancer *_lb;
-        mutil::atomic<int> _weight_sum;
+        std::atomic<int> _weight_sum;
         volatile bool _exposed;
         mutil::Mutex _st_mutex;
         melon::var::PassiveStatus<std::string> _st;

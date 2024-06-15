@@ -807,9 +807,9 @@ namespace melon {
 
             // Delete chunk streams
             for (size_t i = 0; i < RTMP_CHUNK_ARRAY_1ST_SIZE; ++i) {
-                SubChunkArray *p = _cstream_ctx[i].load(mutil::memory_order_relaxed);
+                SubChunkArray *p = _cstream_ctx[i].load(std::memory_order_relaxed);
                 if (p) {
-                    _cstream_ctx[i].store(NULL, mutil::memory_order_relaxed);
+                    _cstream_ctx[i].store(NULL, std::memory_order_relaxed);
                     delete p;
                 }
             }
@@ -856,9 +856,9 @@ namespace melon {
 
         RtmpContext::SubChunkArray::~SubChunkArray() {
             for (size_t i = 0; i < RTMP_CHUNK_ARRAY_2ND_SIZE; ++i) {
-                RtmpChunkStream *stream = ptrs[i].load(mutil::memory_order_relaxed);
+                RtmpChunkStream *stream = ptrs[i].load(std::memory_order_relaxed);
                 if (stream) {
-                    ptrs[i].store(NULL, mutil::memory_order_relaxed);
+                    ptrs[i].store(NULL, std::memory_order_relaxed);
                     delete stream;
                 }
             }
@@ -871,26 +871,26 @@ namespace melon {
             }
             const uint32_t index1 = cs_id / RTMP_CHUNK_ARRAY_2ND_SIZE;
             SubChunkArray *sub_array =
-                    _cstream_ctx[index1].load(mutil::memory_order_consume);
+                    _cstream_ctx[index1].load(std::memory_order_consume);
             if (sub_array == NULL) {
                 // Optimistic creation.
                 sub_array = new SubChunkArray;
                 SubChunkArray *expected = NULL;
                 if (!_cstream_ctx[index1].compare_exchange_strong(
-                        expected, sub_array, mutil::memory_order_acq_rel)) {
+                        expected, sub_array, std::memory_order_acq_rel)) {
                     delete sub_array;
                     sub_array = expected;
                 }
             }
             const uint32_t index2 = cs_id - index1 * RTMP_CHUNK_ARRAY_2ND_SIZE;
             RtmpChunkStream *cstream =
-                    sub_array->ptrs[index2].load(mutil::memory_order_consume);
+                    sub_array->ptrs[index2].load(std::memory_order_consume);
             if (cstream == NULL) {
                 // Optimistic creation.
                 cstream = new RtmpChunkStream(this, cs_id);
                 RtmpChunkStream *expected = NULL;
                 if (!sub_array->ptrs[index2].compare_exchange_strong(
-                        expected, cstream, mutil::memory_order_acq_rel)) {
+                        expected, cstream, std::memory_order_acq_rel)) {
                     delete cstream;
                     cstream = expected;
                 }
@@ -905,20 +905,20 @@ namespace melon {
             }
             const uint32_t index1 = cs_id / RTMP_CHUNK_ARRAY_2ND_SIZE;
             SubChunkArray *sub_array =
-                    _cstream_ctx[index1].load(mutil::memory_order_consume);
+                    _cstream_ctx[index1].load(std::memory_order_consume);
             if (sub_array == NULL) {
                 LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
                 return;
             }
             const uint32_t index2 = cs_id - index1 * RTMP_CHUNK_ARRAY_2ND_SIZE;
             RtmpChunkStream *cstream =
-                    sub_array->ptrs[index2].load(mutil::memory_order_consume);
+                    sub_array->ptrs[index2].load(std::memory_order_consume);
             if (cstream == NULL) {
                 LOG(ERROR) << "chunk_stream_id=" << cs_id << " does not exist";
                 return;
             }
             delete sub_array->ptrs[index2].exchange(
-                    NULL, mutil::memory_order_acquire);
+                    NULL, std::memory_order_acquire);
         }
 
         void RtmpContext::AllocateChunkStreamId(uint32_t *chunk_stream_id) {

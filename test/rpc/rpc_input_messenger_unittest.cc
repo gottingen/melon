@@ -86,7 +86,7 @@ struct MELON_CACHELINE_ALIGNMENT ClientMeta {
     size_t bytes;
 };
 
-mutil::atomic<size_t> client_index(0);
+std::atomic<size_t> client_index(0);
 
 void* client_thread(void* arg) {
     ClientMeta* m = (ClientMeta*)arg;

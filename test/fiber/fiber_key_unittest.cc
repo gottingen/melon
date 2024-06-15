@@ -42,10 +42,10 @@ namespace {
 
 // Count tls usages.
 struct Counters {
-    mutil::atomic<size_t> ncreate {0};
-    mutil::atomic<size_t> ndestroy {0};
-    mutil::atomic<size_t> nenterthread {0};
-    mutil::atomic<size_t> nleavethread {0};
+    std::atomic<size_t> ncreate {0};
+    std::atomic<size_t> ndestroy {0};
+    std::atomic<size_t> nenterthread {0};
+    std::atomic<size_t> nleavethread {0};
 };
 
 // Wrap same counters into different objects to make sure that different key
@@ -54,7 +54,7 @@ struct CountersWrapper {
     CountersWrapper(Counters* c, fiber_key_t key) : _c(c), _key(key) {}
     ~CountersWrapper() {
         if (_c) {
-            _c->ndestroy.fetch_add(1, mutil::memory_order_relaxed);
+            _c->ndestroy.fetch_add(1, std::memory_order_relaxed);
         }
         CHECK_EQ(0, fiber_key_delete(_key));
     }
@@ -71,7 +71,7 @@ const size_t NKEY_PER_WORKER = 32;
 
 // NOTE: returns void to use ASSERT
 static void worker1_impl(Counters* cs) {
-    cs->nenterthread.fetch_add(1, mutil::memory_order_relaxed);
+    cs->nenterthread.fetch_add(1, std::memory_order_relaxed);
     fiber_key_t k[NKEY_PER_WORKER];
     CountersWrapper* ws[arraysize(k)];
     for (size_t i = 0; i < arraysize(k); ++i) {
@@ -85,7 +85,7 @@ static void worker1_impl(Counters* cs) {
         ASSERT_EQ(NULL, fiber_getspecific(k[i]));
     }
     for (size_t i = 0; i < arraysize(k); ++i) {
-        cs->ncreate.fetch_add(1, mutil::memory_order_relaxed);
+        cs->ncreate.fetch_add(1, std::memory_order_relaxed);
         ASSERT_EQ(0, fiber_setspecific(k[i], ws[i]))
             << "i=" << i << " is_fiber=" << !!fiber_self();
             
@@ -96,7 +96,7 @@ static void worker1_impl(Counters* cs) {
     for (size_t i = 0; i < arraysize(k); ++i) {
         ASSERT_EQ(ws[i], fiber_getspecific(k[i])) << "i=" << i;
     }
-    cs->nleavethread.fetch_add(1, mutil::memory_order_relaxed);
+    cs->nleavethread.fetch_add(1, std::memory_order_relaxed);
 }
 
 static void* worker1(void* arg) {
@@ -121,16 +121,16 @@ TEST(KeyTest, creating_key_in_parallel) {
         ASSERT_EQ(0, fiber_join(bth[i], NULL));
     }
     ASSERT_EQ(arraysize(th) + arraysize(bth),
-              args.nenterthread.load(mutil::memory_order_relaxed));
+              args.nenterthread.load(std::memory_order_relaxed));
     ASSERT_EQ(arraysize(th) + arraysize(bth),
-              args.nleavethread.load(mutil::memory_order_relaxed));
+              args.nleavethread.load(std::memory_order_relaxed));
     ASSERT_EQ(NKEY_PER_WORKER * (arraysize(th) + arraysize(bth)),
-              args.ncreate.load(mutil::memory_order_relaxed));
+              args.ncreate.load(std::memory_order_relaxed));
     ASSERT_EQ(NKEY_PER_WORKER * (arraysize(th) + arraysize(bth)),
-              args.ndestroy.load(mutil::memory_order_relaxed));
+              args.ndestroy.load(std::memory_order_relaxed));
 }
 
-mutil::atomic<size_t> seq(1);
+std::atomic<size_t> seq(1);
 std::vector<size_t> seqs;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 

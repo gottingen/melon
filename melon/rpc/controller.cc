@@ -1292,9 +1292,9 @@ namespace melon {
     }
 
     CallId Controller::call_id() {
-        mutil::atomic<uint64_t> *target =
-                (mutil::atomic<uint64_t> *) &_correlation_id.value;
-        uint64_t loaded = target->load(mutil::memory_order_relaxed);
+        std::atomic<uint64_t> *target =
+                (std::atomic<uint64_t> *) &_correlation_id.value;
+        uint64_t loaded = target->load(std::memory_order_relaxed);
         if (loaded) {
             const CallId id = {loaded};
             return id;
@@ -1304,7 +1304,7 @@ namespace melon {
         // The range of this id will be reset in Channel::CallMethod
         CHECK_EQ(0, fiber_session_create2(&cid, this, HandleSocketFailed));
         if (!target->compare_exchange_strong(loaded, cid.value,
-                                             mutil::memory_order_relaxed)) {
+                                             std::memory_order_relaxed)) {
             fiber_session_cancel(cid);
             cid.value = loaded;
         }

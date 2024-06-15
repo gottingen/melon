@@ -106,7 +106,7 @@ namespace melon {
         return "UNKNOWN_STATUS";
     }
 
-    mutil::static_atomic<int> g_running_server_count = MUTIL_STATIC_ATOMIC_INIT(0);
+    std::atomic<int> g_running_server_count{0};
 
     // Following services may have security issues and are disabled by default.
     DEFINE_bool(enable_dir_service, false, "Enable /dir");
@@ -1017,7 +1017,7 @@ namespace melon {
             _status = RUNNING;
             time(&_last_start_time);
             GenerateVersionIfNeeded();
-            g_running_server_count.fetch_add(1, mutil::memory_order_relaxed);
+            g_running_server_count.fetch_add(1, std::memory_order_relaxed);
 
             // Pass ownership of `sockfd' to `_am'
             if (_am->StartAccept(sockfd, _options.idle_timeout_sec,
@@ -1215,7 +1215,7 @@ namespace melon {
             _derivative_thread = INVALID_FIBER;
         }
 
-        g_running_server_count.fetch_sub(1, mutil::memory_order_relaxed);
+        g_running_server_count.fetch_sub(1, std::memory_order_relaxed);
         _status = READY;
         return 0;
     }

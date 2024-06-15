@@ -73,7 +73,7 @@ private:
 class SyncClosure : public melon::raft::LogManager::StableClosure {
 public:
     SyncClosure() {
-        _butex = fiber::butex_create_checked<mutil::atomic<int> >();
+        _butex = fiber::butex_create_checked<std::atomic<int> >();
         *_butex = 0;
     }
     ~SyncClosure() {
@@ -93,7 +93,7 @@ public:
         }
     }
 private:
-    mutil::atomic<int> *_butex;
+    std::atomic<int> *_butex;
 };
 
 TEST_F(FSMCallerTest, sanity) {

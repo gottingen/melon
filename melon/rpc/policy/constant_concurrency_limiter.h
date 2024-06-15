@@ -22,24 +22,24 @@
 #include <melon/rpc/concurrency_limiter.h>
 
 namespace melon {
-namespace policy {
+    namespace policy {
 
-class ConstantConcurrencyLimiter : public ConcurrencyLimiter {
-public:
-    explicit ConstantConcurrencyLimiter(int max_concurrency);
-    
-    bool OnRequested(int current_concurrency, Controller*) override;
-    
-    void OnResponded(int error_code, int64_t latency_us) override;
+        class ConstantConcurrencyLimiter : public ConcurrencyLimiter {
+        public:
+            explicit ConstantConcurrencyLimiter(int max_concurrency);
 
-    int MaxConcurrency() override;
+            bool OnRequested(int current_concurrency, Controller *) override;
 
-    ConstantConcurrencyLimiter* New(const AdaptiveMaxConcurrency&) const override;
+            void OnResponded(int error_code, int64_t latency_us) override;
 
-private:
-    mutil::atomic<int> _max_concurrency;
-};
+            int MaxConcurrency() override;
 
-}  // namespace policy
+            ConstantConcurrencyLimiter *New(const AdaptiveMaxConcurrency &) const override;
+
+        private:
+            std::atomic<int> _max_concurrency;
+        };
+
+    }  // namespace policy
 }  // namespace melon
 

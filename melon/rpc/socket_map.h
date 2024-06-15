@@ -194,7 +194,7 @@ private:
     SocketMapOptions _options;
     mutil::Mutex _mutex;
     Map _map;
-    mutil::atomic<bool> _exposed_in_var;
+    std::atomic<bool> _exposed_in_var;
     melon::var::PassiveStatus<std::string>* _this_map_var;
     bool _has_close_idle_thread;
     fiber_t _close_idle_thread;

@@ -35,7 +35,7 @@ void ConstantConcurrencyLimiter::OnResponded(int error_code, int64_t latency) {
 }
 
 int ConstantConcurrencyLimiter::MaxConcurrency() {
-    return _max_concurrency.load(mutil::memory_order_relaxed);
+    return _max_concurrency.load(std::memory_order_relaxed);
 }
 
 ConstantConcurrencyLimiter*

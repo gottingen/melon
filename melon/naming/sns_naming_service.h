@@ -42,7 +42,7 @@ namespace melon::naming {
         int do_renew() const;
     private:
         fiber_t _th;
-        mutil::atomic<bool> _registered;
+        std::atomic<bool> _registered;
         melon::SnsPeer _params;
         mutil::EndPoint _current_discovery_server;
 

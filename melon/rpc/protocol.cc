@@ -56,7 +56,7 @@ MELON_VALIDATE_GFLAG(log_error_text, PassValidate);
 // protocols outside melon.
 const size_t MAX_PROTOCOL_SIZE = 128;
 struct ProtocolEntry {
-    mutil::atomic<bool> valid;
+    std::atomic<bool> valid;
     Protocol protocol;
     
     ProtocolEntry() : valid(false) {}
@@ -82,12 +82,12 @@ int RegisterProtocol(ProtocolType type, const Protocol& protocol) {
     }
     ProtocolEntry* const protocol_map = get_protocol_map();
     MELON_SCOPED_LOCK(s_protocol_map_mutex);
-    if (protocol_map[index].valid.load(mutil::memory_order_relaxed)) {
+    if (protocol_map[index].valid.load(std::memory_order_relaxed)) {
         LOG(ERROR) << "ProtocolType=" << type << " was registered";
         return -1;
     }
     protocol_map[index].protocol = protocol;
-    protocol_map[index].valid.store(true, mutil::memory_order_release);
+    protocol_map[index].valid.store(true, std::memory_order_release);
     return 0;
 }
 
@@ -99,7 +99,7 @@ const Protocol* FindProtocol(ProtocolType type) {
         return NULL;
     }
     ProtocolEntry* const protocol_map = get_protocol_map();
-    if (protocol_map[index].valid.load(mutil::memory_order_acquire)) {
+    if (protocol_map[index].valid.load(std::memory_order_acquire)) {
         return &protocol_map[index].protocol;
     }
     return NULL;
@@ -109,7 +109,7 @@ void ListProtocols(std::vector<Protocol>* vec) {
     vec->clear();
     ProtocolEntry* const protocol_map = get_protocol_map();
     for (size_t i = 0; i < MAX_PROTOCOL_SIZE; ++i) {
-        if (protocol_map[i].valid.load(mutil::memory_order_acquire)) {
+        if (protocol_map[i].valid.load(std::memory_order_acquire)) {
             vec->push_back(protocol_map[i].protocol);
         }
     }
@@ -119,7 +119,7 @@ void ListProtocols(std::vector<std::pair<ProtocolType, Protocol> >* vec) {
     vec->clear();
     ProtocolEntry* const protocol_map = get_protocol_map();
     for (size_t i = 0; i < MAX_PROTOCOL_SIZE; ++i) {
-        if (protocol_map[i].valid.load(mutil::memory_order_acquire)) {
+        if (protocol_map[i].valid.load(std::memory_order_acquire)) {
             vec->emplace_back((ProtocolType)i, protocol_map[i].protocol);
         }
     }
@@ -165,7 +165,7 @@ ProtocolType StringToProtocolType(const mutil::StringPiece& name,
 
     ProtocolEntry* const protocol_map = get_protocol_map();
     for (size_t i = 0; i < MAX_PROTOCOL_SIZE; ++i) {
-        if (protocol_map[i].valid.load(mutil::memory_order_acquire) &&
+        if (protocol_map[i].valid.load(std::memory_order_acquire) &&
             CompareStringPieceWithoutCase(name, protocol_map[i].protocol.name)) {
             return static_cast<ProtocolType>(i);
         }
@@ -179,7 +179,7 @@ ProtocolType StringToProtocolType(const mutil::StringPiece& name,
         std::ostringstream err;
         err << "Unknown protocol `" << name << "', supported protocols:";
         for (size_t i = 0; i < MAX_PROTOCOL_SIZE; ++i) {
-            if (protocol_map[i].valid.load(mutil::memory_order_acquire)) {
+            if (protocol_map[i].valid.load(std::memory_order_acquire)) {
                 err << ' ' << protocol_map[i].protocol.name;
             }
         }

@@ -157,7 +157,7 @@ namespace melon::raft {
         _after_shutdown = options.after_shutdown;
         _node = options.node;
         _last_applied_index.store(options.bootstrap_id.index,
-                                  mutil::memory_order_relaxed);
+                                  std::memory_order_relaxed);
         _last_applied_term = options.bootstrap_id.term;
         if (_node) {
             _node->AddRef();
@@ -261,7 +261,7 @@ namespace melon::raft {
             return;
         }
         int64_t last_applied_index = _last_applied_index.load(
-                mutil::memory_order_relaxed);
+                std::memory_order_relaxed);
 
         // We can tolerate the disorder of committed_index
         if (last_applied_index >= committed_index) {
@@ -309,7 +309,7 @@ namespace melon::raft {
         const int64_t last_index = iter_impl.index() - 1;
         const int64_t last_term = _log_manager->get_term(last_index);
         LogId last_applied_id(last_index, last_term);
-        _last_applied_index.store(committed_index, mutil::memory_order_release);
+        _last_applied_index.store(committed_index, std::memory_order_release);
         _last_applied_term = last_term;
         _log_manager->set_applied_id(last_applied_id);
     }
@@ -324,7 +324,7 @@ namespace melon::raft {
     void FSMCaller::do_snapshot_save(SaveSnapshotClosure *done) {
         CHECK(done);
 
-        int64_t last_applied_index = _last_applied_index.load(mutil::memory_order_relaxed);
+        int64_t last_applied_index = _last_applied_index.load(std::memory_order_relaxed);
 
         SnapshotMeta meta;
         meta.set_last_included_index(last_applied_index);
@@ -384,7 +384,7 @@ namespace melon::raft {
         }
 
         LogId last_applied_id;
-        last_applied_id.index = _last_applied_index.load(mutil::memory_order_relaxed);
+        last_applied_id.index = _last_applied_index.load(std::memory_order_relaxed);
         last_applied_id.term = _last_applied_term;
         LogId snapshot_id;
         snapshot_id.index = meta.last_included_index();
@@ -419,7 +419,7 @@ namespace melon::raft {
         }
 
         _last_applied_index.store(meta.last_included_index(),
-                                  mutil::memory_order_release);
+                                  std::memory_order_release);
         _last_applied_term = meta.last_included_term();
         done->Run();
     }
@@ -498,7 +498,7 @@ namespace melon::raft {
         const char *newline = (use_html) ? "<br>" : "\n";
         TaskType cur_task = _cur_task;
         const int64_t applying_index = _applying_index.load(
-                mutil::memory_order_relaxed);
+                std::memory_order_relaxed);
         os << "state_machine: ";
         switch (cur_task) {
             case IDLE:
@@ -537,7 +537,7 @@ namespace melon::raft {
         if (cur_task != COMMITTED) {
             return 0;
         } else {
-            return _applying_index.load(mutil::memory_order_relaxed);
+            return _applying_index.load(std::memory_order_relaxed);
         }
     }
 
@@ -553,7 +553,7 @@ namespace melon::raft {
                                int64_t first_closure_index,
                                int64_t last_applied_index,
                                int64_t committed_index,
-                               mutil::atomic<int64_t> *applying_index)
+                               std::atomic<int64_t> *applying_index)
             : _sm(sm), _lm(lm), _closure(closure), _first_closure_index(first_closure_index),
               _cur_index(last_applied_index), _committed_index(committed_index), _cur_entry(nullptr),
               _applying_index(applying_index) { next(); }
@@ -574,7 +574,7 @@ namespace melon::raft {
                                               " while committed_index=%" PRId64,
                                               _cur_index, _committed_index);
                 }
-                _applying_index->store(_cur_index, mutil::memory_order_relaxed);
+                _applying_index->store(_cur_index, std::memory_order_relaxed);
             }
         }
     }

@@ -66,9 +66,9 @@ uint32_t cast_func(void* arg) {
     return *(uint32_t*)arg;
 }
 
-mutil::atomic<uint32_t> g_timeout(0);
-mutil::atomic<uint32_t> g_error(0);
-mutil::atomic<uint32_t> g_succ(0);
+std::atomic<uint32_t> g_timeout(0);
+std::atomic<uint32_t> g_error(0);
+std::atomic<uint32_t> g_succ(0);
 melon::var::PassiveStatus<uint32_t> g_timeout_var(cast_func, &g_timeout);
 melon::var::PassiveStatus<uint32_t> g_error_var(cast_func, &g_error);
 melon::var::PassiveStatus<uint32_t> g_succ_var(cast_func, &g_succ);
@@ -97,13 +97,13 @@ void HandleEchoResponse(
     std::unique_ptr<test::NotifyResponse> response_guard(response);
 
     if (cntl->Failed() && cntl->ErrorCode() == melon::ERPCTIMEDOUT) {
-        g_timeout.fetch_add(1, mutil::memory_order_relaxed);
+        g_timeout.fetch_add(1, std::memory_order_relaxed);
         LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else if (cntl->Failed()) {
-        g_error.fetch_add(1, mutil::memory_order_relaxed);
+        g_error.fetch_add(1, std::memory_order_relaxed);
         LOG_EVERY_N(INFO, 1000) << cntl->ErrorText();
     } else {
-        g_succ.fetch_add(1, mutil::memory_order_relaxed);
+        g_succ.fetch_add(1, std::memory_order_relaxed);
         g_latency_rec << cntl->latency_us();
     }
 
@@ -149,12 +149,12 @@ struct TestCaseContext {
                 double(qps_stage.duration_sec()) * (qps_stage.duration_sec() - next_stage_sec
                 + mutil::gettimeofday_s());
         }
-        interval_us.store(1.0 / qps * 1000000, mutil::memory_order_relaxed);
+        interval_us.store(1.0 / qps * 1000000, std::memory_order_relaxed);
         return true;
     }
 
-    mutil::atomic<bool> running;
-    mutil::atomic<int64_t> interval_us;
+    std::atomic<bool> running;
+    std::atomic<int64_t> interval_us;
     int stage_index;
     const test::TestCase test_case;
     int next_stage_sec;
@@ -167,7 +167,7 @@ void RunUpdateTask(void* data) {
         fiber::get_global_timer_thread()->schedule(RunUpdateTask, data,
             mutil::microseconds_from_now(FLAGS_client_qps_change_interval_us));
     } else {
-        context->running.store(false, mutil::memory_order_release);
+        context->running.store(false, std::memory_order_release);
     }
 }
 
@@ -196,7 +196,7 @@ void RunCase(test::ControlService_Stub &cntl_stub,
     fiber::get_global_timer_thread()->schedule(RunUpdateTask, &context,
         mutil::microseconds_from_now(FLAGS_client_qps_change_interval_us));
 
-    while (context.running.load(mutil::memory_order_acquire)) {
+    while (context.running.load(std::memory_order_acquire)) {
         test::NotifyRequest echo_req;
         echo_req.set_message("hello");
         melon::Controller* echo_cntl = new melon::Controller;
@@ -204,7 +204,7 @@ void RunCase(test::ControlService_Stub &cntl_stub,
         google::protobuf::Closure* done = melon::NewCallback(
             &HandleEchoResponse, echo_cntl, echo_rsp);
         echo_stub.Echo(echo_cntl, &echo_req, echo_rsp, done);
-        ::usleep(context.interval_us.load(mutil::memory_order_relaxed));
+        ::usleep(context.interval_us.load(std::memory_order_relaxed));
     }
 
     LOG(INFO) << "Waiting to stop case: `" << test_case.case_name() << '\'';

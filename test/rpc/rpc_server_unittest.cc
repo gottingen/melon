@@ -113,7 +113,7 @@ public:
                       google::protobuf::Closure* done) {
         melon::ClosureGuard done_guard(done);
         melon::Controller* cntl = (melon::Controller*)cntl_base;
-        count.fetch_add(1, mutil::memory_order_relaxed);
+        count.fetch_add(1, std::memory_order_relaxed);
         EXPECT_EQ(EXP_REQUEST, request->message());
         response->set_message(EXP_RESPONSE);
         if (request->sleep_us() > 0) {
@@ -160,7 +160,7 @@ public:
         response->set_databytes(request->databytes());
     }
 
-    mutil::atomic<int64_t> count;
+    std::atomic<int64_t> count;
 };
 
 // An evil service that fakes its `ServiceDescriptor'
@@ -329,11 +329,11 @@ public:
         ncalled_echo5.fetch_add(1);
     }
     
-    mutil::atomic<int> ncalled;
-    mutil::atomic<int> ncalled_echo2;
-    mutil::atomic<int> ncalled_echo3;
-    mutil::atomic<int> ncalled_echo4;
-    mutil::atomic<int> ncalled_echo5;
+    std::atomic<int> ncalled;
+    std::atomic<int> ncalled_echo2;
+    std::atomic<int> ncalled_echo3;
+    std::atomic<int> ncalled_echo4;
+    std::atomic<int> ncalled_echo5;
 };
 
 class EchoServiceV2 : public v2::EchoService {
@@ -348,7 +348,7 @@ public:
         response->set_value(request->value() + 1);
         ncalled.fetch_add(1);
     }
-    mutil::atomic<int> ncalled;
+    std::atomic<int> ncalled;
 };
 
 TEST_F(ServerTest, empty_enabled_protocols) {
@@ -1272,11 +1272,11 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
     {
         ASSERT_EQ(0, server.Start(ep, NULL));
         fiber_t tid;
-        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
+        const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+        while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             fiber_usleep(1000);
         }
         timer.start();
@@ -1292,11 +1292,11 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         ++ep.port;
         ASSERT_EQ(0, server.Start(ep, NULL));
         fiber_t tid;
-        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
+        const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+        while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             fiber_usleep(1000);
         }
         
@@ -1315,11 +1315,11 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         ++ep.port;
         ASSERT_EQ(0, server.Start(ep, NULL));
         fiber_t tid;
-        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
+        const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+        while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             fiber_usleep(1000);
         }
 
@@ -1338,11 +1338,11 @@ TEST_F(ServerTest, logoff_and_multiple_start) {
         ++ep.port;
         ASSERT_EQ(0, server.Start(ep, NULL));
         fiber_t tid;
-        const int64_t old_count = echo_svc.count.load(mutil::memory_order_relaxed);
+        const int64_t old_count = echo_svc.count.load(std::memory_order_relaxed);
         google::protobuf::Closure* thrd_func = 
             melon::NewCallback(SendSleepRPC, ep, 100, true);
         EXPECT_EQ(0, fiber_start_background(&tid, NULL, RunClosure, thrd_func));
-        while (echo_svc.count.load(mutil::memory_order_relaxed) == old_count) {
+        while (echo_svc.count.load(std::memory_order_relaxed) == old_count) {
             fiber_usleep(1000);
         }
         timer.start();

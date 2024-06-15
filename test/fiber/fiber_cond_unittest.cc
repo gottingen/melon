@@ -238,8 +238,8 @@ struct PingPongArg {
     bool stopped;
     Signal sig1;
     Signal sig2;
-    mutil::atomic<int> nthread;
-    mutil::atomic<long> total_count;
+    std::atomic<int> nthread;
+    std::atomic<long> total_count;
 };
 
 void *ping_pong_thread(void* arg) {

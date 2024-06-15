@@ -86,7 +86,7 @@ namespace melon::naming {
     }
 
     SnsNamingClient::~SnsNamingClient() {
-        if (_registered.load(mutil::memory_order_acquire)) {
+        if (_registered.load(std::memory_order_acquire)) {
             fiber_stop(_th);
             fiber_join(_th, NULL);
             do_cancel();
@@ -94,8 +94,8 @@ namespace melon::naming {
     }
 
     int SnsNamingClient::register_peer(const melon::SnsPeer &params) {
-        if (_registered.load(mutil::memory_order_relaxed) ||
-            _registered.exchange(true, mutil::memory_order_release)) {
+        if (_registered.load(std::memory_order_relaxed) ||
+            _registered.exchange(true, std::memory_order_release)) {
             return 0;
         }
         if (!is_valid(params)) {

@@ -96,7 +96,7 @@ void HealthCheckManager::StartCheck(SocketId id, int64_t check_interval_s) {
     if (done->channel.Init(id, &options) != 0) {
         LOG(WARNING) << "Fail to init health check channel to SocketId=" << id;
         ptr->_ninflight_app_health_check.fetch_sub(
-                    1, mutil::memory_order_relaxed);
+                    1, std::memory_order_relaxed);
         delete done;
         return;
     }
@@ -128,7 +128,7 @@ void OnAppHealthCheckDone::Run() {
         // if ptr->Failed(), previous SetFailed would trigger next round
         // of hc, just return here.
         ptr->_ninflight_app_health_check.fetch_sub(
-                    1, mutil::memory_order_relaxed);
+                    1, std::memory_order_relaxed);
         return;
     }
     RPC_VLOG << "Fail to check path=" << FLAGS_health_check_path
@@ -214,7 +214,7 @@ bool HealthCheckTask::OnTriggeringTask(timespec* next_abstime) {
         }
         if (!FLAGS_health_check_path.empty()) {
             ptr->_ninflight_app_health_check.fetch_add(
-                    1, mutil::memory_order_relaxed);
+                    1, std::memory_order_relaxed);
         }
         ptr->Revive();
         ptr->_hc_count = 0;

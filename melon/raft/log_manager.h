@@ -221,7 +221,7 @@ namespace melon::raft {
         raft_mutex_t _mutex;
         mutil::FlatMap<int64_t, WaitMeta *> _wait_map;
         bool _stopped;
-        mutil::atomic<bool> _has_error;
+        std::atomic<bool> _has_error;
         WaitId _next_wait_id;
 
         LogId _disk_id;

@@ -662,7 +662,7 @@ namespace melon {
         // Returns true when the server accepted play or publish command.
         // The acquire fence makes sure the callsite seeing true must be after
         // sending play or publish command (possibly in another thread).
-        bool is_server_accepted() const { return _is_server_accepted.load(mutil::memory_order_acquire); }
+        bool is_server_accepted() const { return _is_server_accepted.load(std::memory_order_acquire); }
 
         // Explicitly notify error to current stream
         virtual void SignalError();
@@ -711,7 +711,7 @@ namespace melon {
         int64_t _create_realtime_us;
         SocketUniquePtr _rtmpsock;
         mutil::Mutex _call_mutex;
-        mutil::atomic<bool> _is_server_accepted;
+        std::atomic<bool> _is_server_accepted;
     };
 
     struct RtmpClientOptions {
@@ -1116,8 +1116,8 @@ namespace melon {
         mutil::intrusive_ptr<RtmpRetryingClientStream> _self_ref;
         mutable mutil::Mutex _stream_mutex;
         RtmpRetryingClientStreamOptions _options;
-        mutil::atomic<bool> _destroying;
-        mutil::atomic<bool> _called_on_stop;
+        std::atomic<bool> _destroying;
+        std::atomic<bool> _called_on_stop;
         bool _changed_stream;
         bool _has_timer_ever;
         bool _is_server_accepted_ever;

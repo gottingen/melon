@@ -395,11 +395,11 @@ private:
     // Map chunk_stream_id to chunk streams.
     // The array is 2-level to reduce memory for most connections.
     struct SubChunkArray {
-        mutil::atomic<RtmpChunkStream*> ptrs[RTMP_CHUNK_ARRAY_2ND_SIZE];
+        std::atomic<RtmpChunkStream*> ptrs[RTMP_CHUNK_ARRAY_2ND_SIZE];
         SubChunkArray();
         ~SubChunkArray();
     };
-    mutil::atomic<SubChunkArray*> _cstream_ctx[RTMP_CHUNK_ARRAY_1ST_SIZE];
+    std::atomic<SubChunkArray*> _cstream_ctx[RTMP_CHUNK_ARRAY_1ST_SIZE];
 
     bool _simplified_rtmp;
 };

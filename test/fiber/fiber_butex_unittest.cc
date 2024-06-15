@@ -31,9 +31,9 @@
 #include <melon/fiber/interrupt_pthread.h>
 
 namespace fiber {
-extern mutil::atomic<TaskControl*> g_task_control;
+extern std::atomic<TaskControl*> g_task_control;
 inline TaskControl* get_task_control() {
-    return g_task_control.load(mutil::memory_order_consume);
+    return g_task_control.load(std::memory_order_consume);
 }
 } // namespace fiber
 
@@ -119,7 +119,7 @@ TEST(ButexTest, join) {
 struct WaiterArg {
     int expected_result;
     int expected_value;
-    mutil::atomic<int> *butex;
+    std::atomic<int> *butex;
     const timespec *ptimeout;
 };
 
@@ -142,12 +142,12 @@ TEST(ButexTest, sanity) {
     const size_t N = 5;
     WaiterArg args[N * 4];
     pthread_t t1, t2;
-    mutil::atomic<int>* b1 =
-        fiber::butex_create_checked<mutil::atomic<int> >();
+    std::atomic<int>* b1 =
+        fiber::butex_create_checked<std::atomic<int> >();
     ASSERT_TRUE(b1);
     fiber::butex_destroy(b1);
     
-    b1 = fiber::butex_create_checked<mutil::atomic<int> >();
+    b1 = fiber::butex_create_checked<std::atomic<int> >();
     *b1 = 1;
     ASSERT_EQ(0, fiber::butex_wake(b1));
 
@@ -420,8 +420,8 @@ TEST(ButexTest, wait_with_signal_triggered) {
     const int64_t WAIT_MSEC = 500;
     WaiterArg waiter_args;
     pthread_t waiter_th, tigger_th;
-    mutil::atomic<int>* butex =
-        fiber::butex_create_checked<mutil::atomic<int> >();
+    std::atomic<int>* butex =
+        fiber::butex_create_checked<std::atomic<int> >();
     ASSERT_TRUE(butex);
     *butex = 1;
     ASSERT_EQ(0, fiber::butex_wake(butex));

@@ -54,9 +54,9 @@ protected:
         _on_error_times.fetch_add(1);
         return 0;
     }
-    mutil::atomic<int> _on_error_times;
-    mutil::atomic<int> _snapshot_load_times;
-    mutil::atomic<int> _snapshot_save_times;
+    std::atomic<int> _on_error_times;
+    std::atomic<int> _snapshot_load_times;
+    std::atomic<int> _snapshot_save_times;
 };
 
 class MockLogManager : public melon::raft::LogManager {
@@ -74,8 +74,8 @@ protected:
         _clear_timers.fetch_add(1);
     }
 
-    mutil::atomic<int> _set_times;
-    mutil::atomic<int> _clear_timers;
+    std::atomic<int> _set_times;
+    std::atomic<int> _clear_timers;
 };
 
 class MockSnapshotReader : public melon::raft::SnapshotReader {

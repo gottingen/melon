@@ -74,12 +74,12 @@ private:
     double _explore_ratio;
   
     // modified per sample.
-    MELON_CACHELINE_ALIGNMENT mutil::atomic<int64_t> _last_sampling_time_us;
+    MELON_CACHELINE_ALIGNMENT std::atomic<int64_t> _last_sampling_time_us;
     mutil::Mutex _sw_mutex;
     SampleWindow _sw;
 
     // modified per request.
-    MELON_CACHELINE_ALIGNMENT mutil::atomic<int32_t> _total_succ_req;
+    MELON_CACHELINE_ALIGNMENT std::atomic<int32_t> _total_succ_req;
 };
 
 }  // namespace policy

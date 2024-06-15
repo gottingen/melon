@@ -72,7 +72,7 @@ namespace melon::lb {
             // WEIGHT_SCALE, which feels good.
             int64_t initial_weight = WEIGHT_SCALE;
             if (!bg.weight_tree.empty()) {
-                initial_weight = lb->_total.load(mutil::memory_order_relaxed)
+                initial_weight = lb->_total.load(std::memory_order_relaxed)
                                  / bg.weight_tree.size();
             }
 
@@ -92,7 +92,7 @@ namespace melon::lb {
             const int64_t diff = info.weight->volatile_value();
             if (diff) {
                 bg.UpdateParentWeights(diff, index);
-                lb->_total.fetch_add(diff, mutil::memory_order_relaxed);
+                lb->_total.fetch_add(diff, std::memory_order_relaxed);
             }
         } else {
             // We already modified the other buffer, just sync. Two buffers are
@@ -130,7 +130,7 @@ namespace melon::lb {
                 // the tree). We can't delete the weight structure for same reason.
                 int64_t diff = -rm_weight;
                 bg.UpdateParentWeights(diff, index);
-                lb->_total.fetch_add(diff, mutil::memory_order_relaxed);
+                lb->_total.fetch_add(diff, std::memory_order_relaxed);
             } else {
                 // the second buffer. clean left stuff.
                 delete w;
@@ -163,7 +163,7 @@ namespace melon::lb {
                 const int64_t diff = add_weight - rm_weight;
                 if (diff) {
                     bg.UpdateParentWeights(diff, index);
-                    lb->_total.fetch_add(diff, mutil::memory_order_relaxed);
+                    lb->_total.fetch_add(diff, std::memory_order_relaxed);
                 }
                 // At this point, the foreground distributes traffic to nodes
                 // correctly except node `index' because weight of the node is 0.
@@ -182,7 +182,7 @@ namespace melon::lb {
                 if (old_weight) {
                     bg.UpdateParentWeights(old_weight, bg.weight_tree.size());
                 }
-                lb->_total.fetch_add(-p.first, mutil::memory_order_relaxed);
+                lb->_total.fetch_add(-p.first, std::memory_order_relaxed);
                 // Clear resources.
                 delete w;
                 lb->PopLeft();
@@ -273,7 +273,7 @@ namespace melon::lb {
         }
         size_t ntry = 0;
         size_t nloop = 0;
-        int64_t total = _total.load(mutil::memory_order_relaxed);
+        int64_t total = _total.load(std::memory_order_relaxed);
         int64_t dice = mutil::fast_rand_less_than(total);
         size_t index = 0;
         int64_t self = 0;
@@ -290,7 +290,7 @@ namespace melon::lb {
             // left-weights / total / weight-of-the-node may not be consistent. But
             // this is what we have to pay to gain more parallelism.
             const ServerInfo &info = s->weight_tree[index];
-            const int64_t left = info.left->load(mutil::memory_order_relaxed);
+            const int64_t left = info.left->load(std::memory_order_relaxed);
             if (dice < left) {
                 index = index * 2 + 1;
                 if (index < n) {
@@ -314,7 +314,7 @@ namespace melon::lb {
                             info.weight->AddInflight(in, index, dice - left);
                     if (r.weight_diff) {
                         s->UpdateParentWeights(r.weight_diff, index);
-                        _total.fetch_add(r.weight_diff, mutil::memory_order_relaxed);
+                        _total.fetch_add(r.weight_diff, std::memory_order_relaxed);
                     }
                     if (r.chosen) {
                         out->need_feedback = true;
@@ -329,7 +329,7 @@ namespace melon::lb {
                         info.weight->MarkFailed(index, total / n);
                 if (diff) {
                     s->UpdateParentWeights(diff, index);
-                    _total.fetch_add(diff, mutil::memory_order_relaxed);
+                    _total.fetch_add(diff, std::memory_order_relaxed);
                 }
                 if (dice >= left + self + diff) {
                     dice -= left + self + diff;
@@ -350,7 +350,7 @@ namespace melon::lb {
                     break;
                 }
             }
-            total = _total.load(mutil::memory_order_relaxed);
+            total = _total.load(std::memory_order_relaxed);
             dice = mutil::fast_rand_less_than(total);
             index = 0;
         }
@@ -371,7 +371,7 @@ namespace melon::lb {
         const int64_t diff = w->Update(info, index);
         if (diff != 0) {
             s->UpdateParentWeights(diff, index);
-            _total.fetch_add(diff, mutil::memory_order_relaxed);
+            _total.fetch_add(diff, std::memory_order_relaxed);
         }
     }
 
@@ -520,7 +520,7 @@ namespace melon::lb {
             return;
         }
         os << "LocalityAware{total="
-           << _total.load(mutil::memory_order_relaxed) << ' ';
+           << _total.load(std::memory_order_relaxed) << ' ';
         mutil::DoublyBufferedData<Servers>::ScopedPtr s;
         if (_db_servers.Read(&s) != 0) {
             os << "fail to read _db_servers";
@@ -538,7 +538,7 @@ namespace melon::lb {
                     }
                 }
                 os << " left="
-                   << info.left->load(mutil::memory_order_relaxed) << ' ';
+                   << info.left->load(std::memory_order_relaxed) << ' ';
                 info.weight->Describe(os, now);
                 os << '}';
             }

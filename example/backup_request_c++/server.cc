@@ -60,7 +60,7 @@ public:
                   << " to " << cntl->local_side() << noflush;
         // Sleep a while for 0th, 2nd, 4th, 6th ... requests to trigger backup request
         // at client-side.
-        bool do_sleep = (_count.fetch_add(1, mutil::memory_order_relaxed) % 2 == 0);
+        bool do_sleep = (_count.fetch_add(1, std::memory_order_relaxed) % 2 == 0);
         if (do_sleep) {
             LOG(INFO) << ", sleep " << FLAGS_sleep_ms
                       << " ms to trigger backup request" << noflush;
@@ -75,7 +75,7 @@ public:
         }
     }
 private:
-    mutil::atomic<int> _count;
+    std::atomic<int> _count;
 };
 }  // namespace example
 

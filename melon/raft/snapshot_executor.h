@@ -109,7 +109,7 @@ namespace melon::raft {
             //    the lastest _loading_snapshot
             // _downloading_snapshot is NULL when then downloading was successfully
             // interrupted or installing has finished
-            return _downloading_snapshot.load(mutil::memory_order_acquire/*1*/);
+            return _downloading_snapshot.load(std::memory_order_acquire/*1*/);
         }
 
         // Return the backing snapshot storage
@@ -173,7 +173,7 @@ namespace melon::raft {
         //   ownership belongs with the downloding thread
         // - After we push the load task to FSMCaller, the ownership belongs to the
         //   closure which is called after the Snapshot replaces FSM
-        mutil::atomic<DownloadingSnapshot *> _downloading_snapshot;
+        std::atomic<DownloadingSnapshot *> _downloading_snapshot;
         SnapshotMeta _loading_snapshot_meta;
         fiber::CountdownEvent _running_jobs;
         scoped_refptr<SnapshotThrottle> _snapshot_throttle;

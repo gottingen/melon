@@ -205,7 +205,7 @@ private:
         return NULL;
     }
 
-    mutil::atomic<State> _state;
+    std::atomic<State> _state;
     fiber_t _play_thread;
     int64_t _sleep_ms;
 };

@@ -128,7 +128,7 @@ public:
         // will be inconsistent with others in this group.
         
         // Serialize request to IOBuf
-        const int64_t term = _leader_term.load(mutil::memory_order_relaxed);
+        const int64_t term = _leader_term.load(std::memory_order_relaxed);
         if (term < 0) {
             return redirect(response);
         }
@@ -193,7 +193,7 @@ public:
     }
 
     bool is_leader() const 
-    { return _leader_term.load(mutil::memory_order_acquire) > 0; }
+    { return _leader_term.load(std::memory_order_acquire) > 0; }
 
     // Shut this node down.
     void shutdown() {
@@ -394,11 +394,11 @@ friend class BlockClosure;
     }
 
     void on_leader_start(int64_t term) {
-        _leader_term.store(term, mutil::memory_order_release);
+        _leader_term.store(term, std::memory_order_release);
         LOG(INFO) << "Node becomes leader";
     }
     void on_leader_stop(const mutil::Status& status) {
-        _leader_term.store(-1, mutil::memory_order_release);
+        _leader_term.store(-1, std::memory_order_release);
         LOG(INFO) << "Node stepped down : " << status;
     }
 
@@ -422,7 +422,7 @@ friend class BlockClosure;
 private:
     mutable mutil::Mutex _fd_mutex;
     melon::raft::Node* volatile _node;
-    mutil::atomic<int64_t> _leader_term;
+    std::atomic<int64_t> _leader_term;
     scoped_fd _fd;
 };
 

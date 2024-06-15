@@ -22,7 +22,7 @@
 #include <stdint.h>                             // int64_t
 #include <set>                                  // std::set
 #include <deque>
-#include <atomic>                  // mutil::atomic
+#include <atomic>                  // std::atomic
 #include <melon/raft/raft.h>
 #include <melon/raft/util.h>
 #include <melon/raft/ballot.h>

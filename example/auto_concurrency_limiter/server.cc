@@ -180,7 +180,7 @@ public:
 private:
     int _stage_index;
     int _next_stage_start;
-    mutil::atomic<int> _latency;
+    std::atomic<int> _latency;
     test::TestCase _test_case;
     bool _running_case;
 };

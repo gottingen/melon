@@ -48,7 +48,7 @@ std::string g_attachment;
 
 melon::var::LatencyRecorder g_latency_recorder("client");
 melon::var::Adder<int> g_error_count("client_error_count");
-mutil::static_atomic<int> g_sender_count = MUTIL_STATIC_ATOMIC_INIT(0);
+std::atomic<int> g_sender_count = MUTIL_STATIC_ATOMIC_INIT(0);
 
 static void* sender(void* arg) {
     // Normally, you should not call a Channel directly, but instead construct
@@ -63,7 +63,7 @@ static void* sender(void* arg) {
         example::EchoResponse response;
         melon::Controller cntl;
 
-        const int thread_index = g_sender_count.fetch_add(1, mutil::memory_order_relaxed);
+        const int thread_index = g_sender_count.fetch_add(1, std::memory_order_relaxed);
         const int input = ((thread_index & 0xFFF) << 20) | (log_id & 0xFFFFF);
         request.set_value(input);
         cntl.set_log_id(log_id ++);  // set by user

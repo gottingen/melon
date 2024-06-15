@@ -59,13 +59,13 @@ TEST(FiberTest, setconcurrency) {
     ASSERT_EQ(FIBER_MIN_CONCURRENCY + 5, fiber_getconcurrency());
 }
 
-static mutil::atomic<int> *odd;
-static mutil::atomic<int> *even;
+static std::atomic<int> *odd;
+static std::atomic<int> *even;
 
-static mutil::atomic<int> nfibers(0);
-static mutil::atomic<int> npthreads(0);
+static std::atomic<int> nfibers(0);
+static std::atomic<int> npthreads(0);
 static MELON_THREAD_LOCAL bool counted = false;
-static mutil::atomic<bool> stop (false);
+static std::atomic<bool> stop (false);
 
 static void *odd_thread(void *) {
     nfibers.fetch_add(1);
@@ -94,8 +94,8 @@ static void *even_thread(void *) {
 }
 
 TEST(FiberTest, setconcurrency_with_running_fiber) {
-    odd = fiber::butex_create_checked<mutil::atomic<int> >();
-    even = fiber::butex_create_checked<mutil::atomic<int> >();
+    odd = fiber::butex_create_checked<std::atomic<int> >();
+    even = fiber::butex_create_checked<std::atomic<int> >();
     ASSERT_TRUE(odd != NULL && even != NULL);
     *odd = 0;
     *even = 0;

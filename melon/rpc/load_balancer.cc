@@ -35,7 +35,7 @@ namespace melon {
     MELON_VALIDATE_GFLAG(show_lb_in_vars, PassValidate);
 
     // For assigning unique names for lb.
-    static mutil::static_atomic<int> g_lb_counter = MUTIL_STATIC_ATOMIC_INIT(0);
+    static std::atomic<int> g_lb_counter{0};
 
     void SharedLoadBalancer::DescribeLB(std::ostream &os, void *arg) {
         (static_cast<SharedLoadBalancer *>(arg))->Describe(os, DescribeOptions());
@@ -52,7 +52,7 @@ namespace melon {
         if (changed) {
             char name[32];
             snprintf(name, sizeof(name), "_load_balancer_%d", g_lb_counter.fetch_add(
-                    1, mutil::memory_order_relaxed));
+                    1, std::memory_order_relaxed));
             _st.expose(name);
         }
     }

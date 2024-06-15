@@ -146,7 +146,7 @@ private:
     // the index of handler is exactly the same as the protocol
     InputMessageHandler* _handlers;
     // Max added protocol type
-    mutil::atomic<int> _max_index;
+    std::atomic<int> _max_index;
     bool _non_protocol;
     size_t _capacity;
 
