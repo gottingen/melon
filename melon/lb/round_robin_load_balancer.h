@@ -43,7 +43,7 @@ namespace melon::lb {
 
         int SelectServer(const SelectIn &in, SelectOut *out);
 
-        RoundRobinLoadBalancer *New(const mutil::StringPiece &) const;
+        RoundRobinLoadBalancer *New(const std::string_view &) const;
 
         void Destroy();
 
@@ -62,7 +62,7 @@ namespace melon::lb {
             uint32_t offset;
         };
 
-        bool SetParameters(const mutil::StringPiece &params);
+        bool SetParameters(const std::string_view &params);
 
         static bool Add(Servers &bg, const ServerId &id);
 

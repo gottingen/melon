@@ -42,7 +42,7 @@ namespace melon::lb {
 
         int SelectServer(const SelectIn &in, SelectOut *out);
 
-        LoadBalancer *New(const mutil::StringPiece &) const;
+        LoadBalancer *New(const std::string_view &) const;
 
         void Destroy();
 

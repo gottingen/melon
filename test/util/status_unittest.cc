@@ -260,10 +260,10 @@ TEST_F(StatusTest, copy) {
 TEST_F(StatusTest, message_has_zero) {
     std::ostringstream oss;
     char str[32] = "hello world";
-    mutil::StringPiece slice(str);
-    ASSERT_EQ(11UL, slice.as_string().size());
+    std::string_view slice(str);
+    ASSERT_EQ(11UL, std::string(slice).size());
     str[5] = '\0';
-    ASSERT_EQ(11UL, slice.as_string().size());
+    ASSERT_EQ(11UL, std::string(slice).size());
     mutil::Status st1(ENOMEM, slice);
     ASSERT_FALSE(st1.ok());
     ASSERT_EQ(ENOMEM, st1.error_code());

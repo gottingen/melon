@@ -44,7 +44,7 @@ uint32_t MD5Hash32(const void* key, size_t len) {
             | (results[0] & 0xFF);
 }
 
-uint32_t MD5Hash32V(const mutil::StringPiece* keys, size_t num_keys) {
+uint32_t MD5Hash32V(const std::string_view* keys, size_t num_keys) {
     MD5_CTX ctx;
     MD5_Init(&ctx);
     for (size_t i = 0; i < num_keys; ++i) {
@@ -65,7 +65,7 @@ uint32_t MurmurHash32(const void* key, size_t len) {
     return hash;
 }
 
-uint32_t MurmurHash32V(const mutil::StringPiece* keys, size_t num_keys) {
+uint32_t MurmurHash32V(const std::string_view* keys, size_t num_keys) {
     mutil::MurmurHash3_x86_32_Context ctx;
     mutil::MurmurHash3_x86_32_Init(&ctx, 0);
     for (size_t i = 0; i < num_keys; ++i) {

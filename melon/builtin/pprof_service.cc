@@ -24,7 +24,6 @@
 #include <limits>
 #include <sys/stat.h>
 #include <fcntl.h>                          // O_RDONLY
-#include <melon/utility/string_printf.h>             // string_printf
 #include <melon/utility/string_splitter.h>           // StringSplitter
 #include <melon/utility/file_util.h>                 // mutil::FilePath
 #include <melon/utility/files/scoped_file.h>         // ScopedFILE

@@ -43,6 +43,7 @@
 #include <melon/rpc/selective_channel.h>
 #include <melon/rpc/socket_map.h>
 #include <melon/rpc/controller.h>
+#include <turbo/strings/match.h>
 #if BAZEL_TEST
 #include "test/echo.pb.h"
 #else
@@ -799,7 +800,7 @@ protected:
         CallMethod(&subchans[0], &cntl, &req, &res, false);
         ASSERT_TRUE(cntl.Failed());
         ASSERT_EQ(melon::EINTERNAL, cntl.ErrorCode()) << cntl.ErrorText();
-        ASSERT_TRUE(mutil::StringPiece(cntl.ErrorText()).ends_with("Method ComboEcho() not implemented."));
+        ASSERT_TRUE(turbo::starts_with(cntl.ErrorText(), "Method ComboEcho() not implemented."));
 
         // do the rpc call.
         cntl.Reset();

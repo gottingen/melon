@@ -20,6 +20,7 @@
 #pragma once
 
 #include <melon/proto/rpc/builtin_service.pb.h>
+#include <string_view>
 
 namespace melon {
 
@@ -31,7 +32,7 @@ namespace melon {
                             ::google::protobuf::Closure *done) override;
     };
 
-    mutil::StringPiece GetMetricsName(const std::string &name);
+    std::string_view GetMetricsName(const std::string &name);
 
     int DumpPrometheusMetricsToIOBuf(mutil::IOBuf *output);
 

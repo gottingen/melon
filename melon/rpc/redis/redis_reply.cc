@@ -111,7 +111,7 @@ ParseError RedisReply::ConsumePartialIOBuf(mutil::IOBuf& buf) {
 
     // Notice that all branches returning PARSE_ERROR_NOT_ENOUGH_DATA must not change `buf'.
     const char* pfc = (const char*)buf.fetch1();
-    if (pfc == NULL) {
+    if (pfc == nullptr) {
         return PARSE_ERROR_NOT_ENOUGH_DATA;
     }
     const char fc = *pfc;  // first character
@@ -137,7 +137,7 @@ ParseError RedisReply::ConsumePartialIOBuf(mutil::IOBuf& buf) {
             return PARSE_OK;
         }
         char* d = (char*)_arena->allocate((len/8 + 1)*8);
-        if (d == NULL) {
+        if (d == nullptr) {
             LOG(FATAL) << "Fail to allocate string[" << len << "]";
             return PARSE_ERROR_ABSOLUTELY_WRONG;
         }
@@ -153,11 +153,11 @@ ParseError RedisReply::ConsumePartialIOBuf(mutil::IOBuf& buf) {
         char intbuf[32];  // enough for fc + 64-bit decimal + \r\n
         const size_t ncopied = buf.copy_to(intbuf, sizeof(intbuf) - 1);
         intbuf[ncopied] = '\0';
-        const size_t crlf_pos = mutil::StringPiece(intbuf, ncopied).find("\r\n");
-        if (crlf_pos == mutil::StringPiece::npos) {  // not enough data
+        const size_t crlf_pos = std::string_view(intbuf, ncopied).find("\r\n");
+        if (crlf_pos == std::string_view::npos) {  // not enough data
             return PARSE_ERROR_NOT_ENOUGH_DATA;
         }
-        char* endptr = NULL;
+        char* endptr = nullptr;
         int64_t value = strtoll(intbuf + 1/*skip fc*/, &endptr, 10);
         if (endptr != intbuf + crlf_pos) {
             LOG(ERROR) << '`' << intbuf + 1 << "' is not a valid 64-bit decimal";
@@ -197,7 +197,7 @@ ParseError RedisReply::ConsumePartialIOBuf(mutil::IOBuf& buf) {
                 _data.short_str[len] = '\0';
             } else {
                 char* d = (char*)_arena->allocate((len/8 + 1)*8);
-                if (d == NULL) {
+                if (d == nullptr) {
                     LOG(FATAL) << "Fail to allocate string[" << len << "]";
                     return PARSE_ERROR_ABSOLUTELY_WRONG;
                 }
@@ -229,7 +229,7 @@ ParseError RedisReply::ConsumePartialIOBuf(mutil::IOBuf& buf) {
                 _type = REDIS_REPLY_ARRAY;
                 _length = 0;
                 _data.array.last_index = -1;
-                _data.array.replies = NULL;
+                _data.array.replies = nullptr;
                 return PARSE_OK;
             }
             if (count > (int64_t)std::numeric_limits<uint32_t>::max()) {
@@ -239,7 +239,7 @@ ParseError RedisReply::ConsumePartialIOBuf(mutil::IOBuf& buf) {
             }
             // FIXME(gejun): Call allocate_aligned instead.
             RedisReply* subs = (RedisReply*)_arena->allocate(sizeof(RedisReply) * count);
-            if (subs == NULL) {
+            if (subs == nullptr) {
                 LOG(FATAL) << "Fail to allocate RedisReply[" << count << "]";
                 return PARSE_ERROR_ABSOLUTELY_WRONG;
             }
@@ -278,7 +278,7 @@ public:
         : _str(str, length) {}
     void Print(std::ostream& os) const;
 private:
-    mutil::StringPiece _str;
+    std::string_view _str;
 };
 
 static std::ostream&
@@ -293,25 +293,25 @@ void RedisStringPrinter::Print(std::ostream& os) const {
         const char c = _str[i];
         if (c <= 0) { // unprintable chars
             if (i != flush_start) {
-                os << mutil::StringPiece(_str.data() + flush_start, i - flush_start);
+                os << std::string_view(_str.data() + flush_start, i - flush_start);
             }
             char buf[8] = "\\u0000";
             uint8_t d1 = ((uint8_t)c) & 0xF;
             uint8_t d2 = ((uint8_t)c) >> 4;
             buf[4] = (d1 < 10 ? d1 + '0' : (d1 - 10) + 'A');
             buf[5] = (d2 < 10 ? d2 + '0' : (d2 - 10) + 'A');
-            os << mutil::StringPiece(buf, 6);
+            os << std::string_view(buf, 6);
             flush_start = i + 1;
         } else if (c == '"' || c == '\\') {  // need to escape
             if (i != flush_start) {
-                os << mutil::StringPiece(_str.data() + flush_start, i - flush_start);
+                os << std::string_view(_str.data() + flush_start, i - flush_start);
             }
             os << '\\' << c;
             flush_start = i + 1;
         }
     }
     if (flush_start != _str.size()) {
-        os << mutil::StringPiece(_str.data() + flush_start, _str.size() - flush_start);
+        os << std::string_view(_str.data() + flush_start, _str.size() - flush_start);
     }
 }
 
@@ -365,7 +365,7 @@ void RedisReply::CopyFromDifferentArena(const RedisReply& other) {
     switch (_type) {
     case REDIS_REPLY_ARRAY: {
         RedisReply* subs = (RedisReply*)_arena->allocate(sizeof(RedisReply) * _length);
-        if (subs == NULL) {
+        if (subs == nullptr) {
             LOG(FATAL) << "Fail to allocate RedisReply[" << _length << "]";
             return;
         }
@@ -400,7 +400,7 @@ void RedisReply::CopyFromDifferentArena(const RedisReply& other) {
             memcpy(_data.short_str, other._data.short_str, _length + 1);
         } else {
             char* d = (char*)_arena->allocate((_length/8 + 1)*8);
-            if (d == NULL) {
+            if (d == nullptr) {
                 LOG(FATAL) << "Fail to allocate string[" << _length << "]";
                 return;
             }
@@ -435,7 +435,7 @@ void RedisReply::SetArray(int size) {
     _data.array.replies = subs;
 }
 
-void RedisReply::SetStringImpl(const mutil::StringPiece& str, RedisReplyType type) {
+void RedisReply::SetStringImpl(const std::string_view& str, RedisReplyType type) {
     if (_type != REDIS_REPLY_NIL) {
         Reset();
     }

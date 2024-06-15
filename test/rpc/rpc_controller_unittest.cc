@@ -80,13 +80,13 @@ TEST_F(ControllerTest, notify_on_destruction) {
 
 #if ! MELON_WITH_GLOG
 
-static bool endsWith(const std::string& s1, const mutil::StringPiece& s2)  {
+static bool endsWith(const std::string& s1, const std::string_view& s2)  {
     if (s1.size() < s2.size()) {
         return false;
     }
     return memcmp(s1.data() + s1.size() - s2.size(), s2.data(), s2.size()) == 0;
 }
-static bool startsWith(const std::string& s1, const mutil::StringPiece& s2)  {
+static bool startsWith(const std::string& s1, const std::string_view& s2)  {
     if (s1.size() < s2.size()) {
         return false;
     }

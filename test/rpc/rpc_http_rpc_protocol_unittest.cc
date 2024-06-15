@@ -57,6 +57,7 @@
 #include <melon/rpc/details/method_status.h>
 #include <melon/rpc/dump/rpc_dump.h>
 #include <melon/fiber/unstable.h>
+#include <turbo/strings/match.h>
 
 namespace melon {
 DECLARE_bool(rpc_dump);
@@ -1337,7 +1338,7 @@ TEST_F(HttpTest, http2_window_used_up) {
             // the last message should fail according to flow control policy.
             ASSERT_FALSE(st.ok());
             ASSERT_TRUE(st.error_code() == melon::ELIMIT);
-            ASSERT_TRUE(mutil::StringPiece(st.error_str()).starts_with("remote_window_left is not enough"));
+            ASSERT_TRUE(turbo::starts_with(st.error_str(), "remote_window_left is not enough"));
         } else {
             ASSERT_TRUE(st.ok());
         }

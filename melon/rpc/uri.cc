@@ -499,8 +499,8 @@ namespace melon {
     }
 
     void append_query(std::string *query_string,
-                      const mutil::StringPiece &key,
-                      const mutil::StringPiece &value) {
+                      const std::string_view &key,
+                      const std::string_view &value) {
         if (!query_string->empty() && mutil::back_char(*query_string) != '?') {
             query_string->push_back('&');
         }

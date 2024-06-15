@@ -25,6 +25,7 @@
 #include <melon/utility/strings/string_piece.h>
 #include <melon/base/build_config.h>
 #include <gtest/gtest.h>
+#include <turbo/strings/match.h>
 
 namespace mutil {
 extern int read_command_output_through_clone(std::ostream&, const char*);
@@ -50,22 +51,13 @@ TEST(PopenTest, posix_popen) {
     rc = mutil::read_command_output_through_popen(oss, "kill -9 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 9"));
+    ASSERT_TRUE(turbo::ends_with(oss.str(), "was killed by signal 9"));
     oss.str("");
     rc = mutil::read_command_output_through_popen(oss, "kill -15 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 15"));
+    ASSERT_TRUE(turbo::ends_with(oss.str(),"was killed by signal 15"));
 
-    // TODO(zhujiashun): Fix this in macos
-    /*
-    oss.str("");
-     ASSERT_EQ(0, mutil::read_command_output_through_popen(oss, "for i in `seq 1 100000`; do echo -n '=' ; done"));
-    ASSERT_EQ(100000u, oss.str().length());
-    std::string expected;
-    expected.resize(100000, '=');
-    ASSERT_EQ(expected, oss.str());
-    */
 }
 
 #if defined(OS_LINUX)
@@ -84,12 +76,12 @@ TEST(PopenTest, clone) {
     rc = mutil::read_command_output_through_clone(oss, "kill -9 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 9"));
+    ASSERT_TRUE(turbo::ends_with(oss.str(), "was killed by signal 9"));
     oss.str("");
     rc = mutil::read_command_output_through_clone(oss, "kill -15 $$");
     ASSERT_EQ(-1, rc);
     ASSERT_EQ(errno, ECHILD);
-    ASSERT_TRUE(mutil::StringPiece(oss.str()).ends_with("was killed by signal 15"));
+    ASSERT_TRUE(turbo::ends_with(oss.str(), "was killed by signal 15"));
 
     oss.str("");
     ASSERT_EQ(0, mutil::read_command_output_through_clone(oss, "for i in `seq 1 100000`; do echo -n '=' ; done"));

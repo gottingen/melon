@@ -33,6 +33,7 @@
 #include <melon/builtin/pprof_perl.h>
 #include <melon/builtin/hotspots_service.h>
 #include <melon/rpc/details/tcmalloc_extension.h>
+#include <turbo/strings/match.h>
 
 extern "C" {
 int __attribute__((weak)) ProfilerStart(const char *fname);
@@ -176,7 +177,7 @@ namespace melon {
 // The `content' should be small so that it can be written into file in one
 // fwrite (at most time).
     static bool WriteSmallFile(const char *filepath_in,
-                               const mutil::StringPiece &content) {
+                               const std::string_view &content) {
         mutil::File::Error error;
         mutil::FilePath path(filepath_in);
         mutil::FilePath dir = path.DirName();
@@ -259,9 +260,9 @@ namespace melon {
     }
 
     static const char *GetBaseName(const char *full_base_name) {
-        mutil::StringPiece s(full_base_name);
+        std::string_view s(full_base_name);
         size_t offset = s.find_last_of('/');
-        if (offset == mutil::StringPiece::npos) {
+        if (offset == std::string_view::npos) {
             offset = 0;
         } else {
             ++offset;
@@ -273,8 +274,8 @@ namespace melon {
 // NOTE: this function MUST be applied to all parameters finally passed to
 // system related functions (popen/system/exec ...) to avoid potential
 // injections from URL and other user inputs.
-    static bool ValidProfilePath(const mutil::StringPiece &path) {
-        if (!path.starts_with(FLAGS_rpc_profiling_dir)) {
+    static bool ValidProfilePath(const std::string_view &path) {
+        if (!turbo::starts_with(path, FLAGS_rpc_profiling_dir)) {
             // Must be under the directory.
             return false;
         }

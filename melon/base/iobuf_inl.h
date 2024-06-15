@@ -285,7 +285,7 @@ namespace mutil {
         } while (true);
     }
 
-    inline int IOBufAppender::append(const StringPiece &str) {
+    inline int IOBufAppender::append(const std::string_view &str) {
         return append(str.data(), str.size());
     }
 
@@ -365,7 +365,7 @@ namespace mutil {
         if (_bytes_left == 0) {
             return;
         }
-        mutil::StringPiece s = _buf->backing_block(_block_count++);
+        std::string_view s = _buf->backing_block(_block_count++);
         _block_begin = s.data();
         _block_end = s.data() + std::min(s.size(), (size_t) _bytes_left);
     }

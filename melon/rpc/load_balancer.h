@@ -102,7 +102,7 @@ namespace melon {
 
         // Create/destroy an instance.
         // Caller is responsible for Destroy() the instance after usage.
-        virtual LoadBalancer *New(const mutil::StringPiece &params) const = 0;
+        virtual LoadBalancer *New(const std::string_view &params) const = 0;
 
     protected:
         virtual ~LoadBalancer() {}
@@ -169,9 +169,9 @@ namespace melon {
         }
 
     private:
-        static bool ParseParameters(const mutil::StringPiece &lb_protocol,
+        static bool ParseParameters(const std::string_view &lb_protocol,
                                     std::string *lb_name,
-                                    mutil::StringPiece *lb_params);
+                                    std::string_view *lb_params);
 
         static void DescribeLB(std::ostream &os, void *arg);
 

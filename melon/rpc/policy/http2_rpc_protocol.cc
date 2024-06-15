@@ -759,7 +759,7 @@ namespace melon {
             it.append_and_forward(&data, frag_size);
             it.forward(pad_length);
             for (size_t i = 0; i < data.backing_block_num(); ++i) {
-                const mutil::StringPiece blk = data.backing_block(i);
+                const std::string_view blk = data.backing_block(i);
                 if (OnBody(blk.data(), blk.size()) != 0) {
                     LOG(ERROR) << "Fail to parse data";
                     return MakeH2Error(H2_PROTOCOL_ERROR);

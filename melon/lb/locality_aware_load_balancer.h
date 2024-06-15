@@ -18,8 +18,7 @@
 //
 
 
-#ifndef MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_
-#define MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_
+#pragma once
 
 #include <vector>                                      // std::vector
 #include <deque>                                       // std::deque
@@ -53,7 +52,7 @@ namespace melon::lb {
 
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
 
-        LocalityAwareLoadBalancer *New(const mutil::StringPiece &) const;
+        LocalityAwareLoadBalancer *New(const std::string_view &) const;
 
         void Destroy();
 
@@ -242,6 +241,3 @@ namespace melon::lb {
     }
 
 } // namespace melon::lb
-
-
-#endif  // MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_

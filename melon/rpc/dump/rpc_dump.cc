@@ -114,7 +114,7 @@ namespace melon {
     };
 
     melon::var::CollectorSpeedLimit g_rpc_dump_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
-    static RpcDumpContext *g_rpc_dump_ctx = NULL;
+    static RpcDumpContext *g_rpc_dump_ctx = nullptr;
 
     void SampledRequest::dump_and_destroy(size_t round) {
         static melon::var::DisplaySamplingRatio sampling_ratio_var(
@@ -122,7 +122,7 @@ namespace melon {
 
         // Safe to modify g_rpc_dump_ctx w/o locking.
         RpcDumpContext *rpc_dump_ctx = g_rpc_dump_ctx;
-        if (rpc_dump_ctx == NULL) {
+        if (rpc_dump_ctx == nullptr) {
             rpc_dump_ctx = new RpcDumpContext;
             g_rpc_dump_ctx = rpc_dump_ctx;
         }
@@ -255,8 +255,8 @@ namespace melon {
         return true;
     }
 
-    SampleIterator::SampleIterator(const mutil::StringPiece &dir)
-            : _cur_fd(-1), _enum(NULL), _dir(std::string(dir.data(), dir.size())) {
+    SampleIterator::SampleIterator(const std::string_view &dir)
+            : _cur_fd(-1), _enum(nullptr), _dir(std::string(dir.data(), dir.size())) {
     }
 
     SampleIterator::~SampleIterator() {
@@ -265,7 +265,7 @@ namespace melon {
             _cur_fd = -1;
         }
         delete _enum;
-        _enum = NULL;
+        _enum = nullptr;
     }
 
     SampledRequest *SampleIterator::Next() {
@@ -303,13 +303,13 @@ namespace melon {
                 _cur_fd = -1;
             }
 
-            if (_enum == NULL) {
+            if (_enum == nullptr) {
                 _enum = new mutil::FileEnumerator(
                         _dir, false, mutil::FileEnumerator::FILES);
             }
             mutil::FilePath filename = _enum->Next();
             if (filename.empty()) {
-                return NULL;
+                return nullptr;
             }
             _cur_fd = open(filename.value().c_str(), O_RDONLY);
         }
@@ -318,13 +318,13 @@ namespace melon {
     SampledRequest *SampleIterator::Pop(mutil::IOBuf &buf, bool *format_error) {
         char backing_buf[12];
         const char *p = (const char *) buf.fetch(backing_buf, sizeof(backing_buf));
-        if (NULL == p) {  // buf.length() < sizeof(backing_buf)
-            return NULL;
+        if (nullptr == p) {  // buf.length() < sizeof(backing_buf)
+            return nullptr;
         }
         if (*(const uint32_t *) p != *(const uint32_t *) "MRPC") {
             LOG(ERROR) << "Unmatched magic string";
             *format_error = true;
-            return NULL;
+            return nullptr;
         }
         uint32_t body_size;
         uint32_t meta_size;
@@ -332,15 +332,15 @@ namespace melon {
         if (body_size > FLAGS_max_body_size) {
             LOG(ERROR) << "Too big body=" << body_size;
             *format_error = true;
-            return NULL;
+            return nullptr;
         } else if (buf.length() < sizeof(backing_buf) + body_size) {
-            return NULL;
+            return nullptr;
         }
         if (meta_size > body_size) {
             LOG(ERROR) << "meta_size=" << meta_size << " is bigger than body_size="
                        << body_size;
             *format_error = true;
-            return NULL;
+            return nullptr;
         }
         buf.pop_front(sizeof(backing_buf));
         mutil::IOBuf meta_buf;
@@ -349,7 +349,7 @@ namespace melon {
         if (!ParsePbFromIOBuf(&req->meta, meta_buf)) {
             LOG(ERROR) << "Fail to parse RpcDumpMeta";
             *format_error = true;
-            return NULL;
+            return nullptr;
         }
         buf.cutn(&req->request, body_size - meta_size);
         return req.release();

@@ -36,7 +36,7 @@
 #include <melon/base/endpoint.h>                    // ip_t
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 
 //supported since Linux 3.9.
 DEFINE_bool(reuse_port, false, "Enable SO_REUSEPORT for all listened sockets");
@@ -138,11 +138,6 @@ int ip2hostname(ip_t ip, char* host, size_t host_len) {
     if (getnameinfo((const sockaddr*)&sa, sizeof(sa),
                     host, host_len, NULL, 0, NI_NAMEREQD) != 0) {
         return -1;
-    }
-    // remove baidu-specific domain name (that every name has)
-    mutil::StringPiece str(host);
-    if (str.ends_with(".baidu.com")) {
-        host[str.size() - 10] = '\0';
     }
     return 0;
 }

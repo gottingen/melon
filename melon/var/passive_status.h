@@ -84,14 +84,14 @@ namespace melon::var {
     public:
         // NOTE: You must be very careful about lifetime of `arg' which should be
         // valid during lifetime of PassiveStatus.
-        PassiveStatus(const mutil::StringPiece &name,
+        PassiveStatus(const std::string_view &name,
                       Tp (*getfn)(void *), void *arg)
                 : _getfn(getfn), _arg(arg), _sampler(NULL), _series_sampler(NULL) {
             expose(name);
         }
 
-        PassiveStatus(const mutil::StringPiece &prefix,
-                      const mutil::StringPiece &name,
+        PassiveStatus(const std::string_view &prefix,
+                      const std::string_view &name,
                       Tp (*getfn)(void *), void *arg)
                 : _getfn(getfn), _arg(arg), _sampler(NULL), _series_sampler(NULL) {
             expose_as(prefix, name);
@@ -158,8 +158,8 @@ namespace melon::var {
         }
 
     protected:
-        int expose_impl(const mutil::StringPiece &prefix,
-                        const mutil::StringPiece &name,
+        int expose_impl(const std::string_view &prefix,
+                        const std::string_view &name,
                         DisplayFilter display_filter) override {
             const int rc = Variable::expose_impl(prefix, name, display_filter);
             if (ADDITIVE &&
@@ -191,14 +191,14 @@ namespace melon::var {
     public:
         // NOTE: You must be very careful about lifetime of `arg' which should be
         // valid during lifetime of PassiveStatus.
-        PassiveStatus(const mutil::StringPiece &name,
+        PassiveStatus(const std::string_view &name,
                       void (*print)(std::ostream &, void *), void *arg)
                 : _print(print), _arg(arg) {
             expose(name);
         }
 
-        PassiveStatus(const mutil::StringPiece &prefix,
-                      const mutil::StringPiece &name,
+        PassiveStatus(const std::string_view &prefix,
+                      const std::string_view &name,
                       void (*print)(std::ostream &, void *), void *arg)
                 : _print(print), _arg(arg) {
             expose_as(prefix, name);
@@ -238,12 +238,12 @@ namespace melon::var {
     template<typename Tp>
     class BasicPassiveStatus : public PassiveStatus<Tp> {
     public:
-        BasicPassiveStatus(const mutil::StringPiece &name,
+        BasicPassiveStatus(const std::string_view &name,
                            Tp (*getfn)(void *), void *arg)
                 : PassiveStatus<Tp>(name, getfn, arg) {}
 
-        BasicPassiveStatus(const mutil::StringPiece &prefix,
-                           const mutil::StringPiece &name,
+        BasicPassiveStatus(const std::string_view &prefix,
+                           const std::string_view &name,
                            Tp (*getfn)(void *), void *arg)
                 : PassiveStatus<Tp>(prefix, name, getfn, arg) {}
 
@@ -254,12 +254,12 @@ namespace melon::var {
     template<>
     class BasicPassiveStatus<std::string> : public PassiveStatus<std::string> {
     public:
-        BasicPassiveStatus(const mutil::StringPiece &name,
+        BasicPassiveStatus(const std::string_view &name,
                            void (*print)(std::ostream &, void *), void *arg)
                 : PassiveStatus<std::string>(name, print, arg) {}
 
-        BasicPassiveStatus(const mutil::StringPiece &prefix,
-                           const mutil::StringPiece &name,
+        BasicPassiveStatus(const std::string_view &prefix,
+                           const std::string_view &name,
                            void (*print)(std::ostream &, void *), void *arg)
                 : PassiveStatus<std::string>(prefix, name, print, arg) {}
 

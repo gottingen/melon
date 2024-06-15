@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
+#include <string_view>
 #include <vector>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
@@ -214,13 +215,13 @@ TEST_F(FlatMapTest, seek_by_string_piece) {
     ASSERT_EQ(0, m.init(16));
     m["hello"] = 1;
     m["world"] = 2;
-    mutil::StringPiece k1("hello");
+    std::string_view k1("hello");
     ASSERT_TRUE(m.seek(k1));
     ASSERT_EQ(1, *m.seek(k1));
-    mutil::StringPiece k2("world");
+    std::string_view k2("world");
     ASSERT_TRUE(m.seek(k2));
     ASSERT_EQ(2, *m.seek(k2));
-    mutil::StringPiece k3("heheda");
+    std::string_view k3("heheda");
     ASSERT_TRUE(m.seek(k3) == NULL);
 }
 
@@ -228,7 +229,7 @@ TEST_F(FlatMapTest, to_lower) {
     for (int c = -128; c < 128; ++c) {
         ASSERT_EQ((char)::tolower(c), mutil::ascii_tolower(c)) << "c=" << c;
     }
-    
+
     const size_t input_len = 102;
     char input[input_len + 1];
     char input2[input_len + 1];
@@ -381,7 +382,7 @@ TEST_F(FlatMapTest, flat_map_of_string) {
     for (size_t i = 0; i < N; ++i) {
         keys.push_back(mutil::string_printf("up_latency_as_key_%lu", i));
     }
-    
+
     tm1.start();
     for (size_t i = 0; i < N; ++i) {
         m1[keys[i]] += i;
@@ -443,7 +444,7 @@ TEST_F(FlatMapTest, flat_map_of_string) {
     LOG(INFO) << "finding c_strings takes " << tm1.n_elapsed()/N
               << " " << tm2.n_elapsed()/N << " " << tm3.n_elapsed()/N
               << " " << tm1_2.n_elapsed()/N << " sum=" << sum;
-    
+
     for (size_t i = 0; i < N; ++i) {
         ASSERT_EQ(i, m1[keys[i]]) << "i=" << i;
         ASSERT_EQ(i, m2[keys[i]]);
@@ -543,7 +544,7 @@ static void fill_position_hint_map(PositionHintMap* map,
     if (!map->initialized()) {
         ASSERT_EQ(0, map->init(N * 3 / 2, 80));
     }
-    
+
     keys->reserve(N);
     keys->clear();
     map->clear();
@@ -603,7 +604,7 @@ struct RemoveInsertVisitedOnPause {
             removed_keys.insert(removed_key);
             break;
         } while (true);
-        
+
         // Insert one
         uint64_t inserted_key =
             ((rand() % hint.offset) + rand() * hint.nbucket);
@@ -847,13 +848,13 @@ struct Value {
     Value(int x) : x_(x) { ++ n_con; }
     Value (const Value& rhs) : x_(rhs.x_) { ++ n_cp_con; }
     ~Value() { ++ n_des; }
-    
+
     Value& operator= (const Value& rhs) {
         x_ = rhs.x_;
         ++ n_cp;
         return *this;
     }
-    
+
     bool operator== (const Value& rhs) const { return x_ == rhs.x_; }
     bool operator!= (const Value& rhs) const { return x_ != rhs.x_; }
 
@@ -950,7 +951,7 @@ TEST_F(FlatMapTest, perf_small_string_map) {
         m2["Request-Id"] = "true";
         m2["Status-Code"] = "200";
         tm2.stop();
-    
+
         LOG(INFO) << "flatmap=" << tm1.n_elapsed()
                   << " ci_flatmap=" << tm4.n_elapsed()
                   << " map=" << tm2.n_elapsed()
@@ -983,7 +984,7 @@ TEST_F(FlatMapTest, sanity) {
     long* p = m.seek(k1);
     ASSERT_TRUE(p && *p == 10);
     ASSERT_EQ(0UL, m._pool.count_allocated());
-    
+
     ASSERT_EQ(NULL, m.seek(k2));
 
     // Override
@@ -992,7 +993,7 @@ TEST_F(FlatMapTest, sanity) {
     ASSERT_FALSE(m.empty());
     p = m.seek(k1);
     ASSERT_TRUE(p && *p == 100);
-    
+
     // Insert another
     m[k3] = 20;
     ASSERT_EQ(2UL, m.size());
@@ -1008,7 +1009,7 @@ TEST_F(FlatMapTest, sanity) {
     ASSERT_FALSE(m.empty());
     p = m.seek(k2);
     ASSERT_TRUE(p && *p == 30);
-    
+
     ASSERT_EQ(NULL, m.seek(2049));
 
     Map::iterator it = m.begin();
@@ -1054,7 +1055,7 @@ TEST_F(FlatMapTest, random_insert_erase) {
         Map ht[2];
         ht[0].init (40);
         ht[1] = ht[0];
-    
+
         for (int j = 0; j < 30; ++j) {
             // Make snapshot
             ht[1] = ht[0];
@@ -1074,7 +1075,7 @@ TEST_F(FlatMapTest, random_insert_erase) {
                     ref[0].clear();
                 }
             }
-            
+
             LOG(INFO) << "Check j=" << j;
             // bi-check
             for (int i=0; i<2; ++i) {
@@ -1084,7 +1085,7 @@ TEST_F(FlatMapTest, random_insert_erase) {
                     ASSERT_TRUE (it2 != ref[i].end());
                     ASSERT_EQ (it2->second, it->second);
                 }
-        
+
                 for (mutil::hash_map<uint64_t, Value>::iterator it = ref[i].begin();
                      it != ref[i].end(); ++it)
                 {
@@ -1107,7 +1108,7 @@ TEST_F(FlatMapTest, random_insert_erase) {
               << "n_cp_con:" << n_cp_con << std::endl
               << "n_con+n_cp_con:" <<  n_con+n_cp_con <<  std::endl
               << "n_des:" << n_des << std::endl
-              << "n_cp:" << n_cp;    
+              << "n_cp:" << n_cp;
 }
 
 template <typename T> void perf_insert_erase(bool random, const T& value)
@@ -1121,7 +1122,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
     mutil::PooledMap<uint64_t, T> pooled_map;
     mutil::hash_map<uint64_t, T> hash_map;
     mutil::Timer id_tm, std_tm, pooled_tm, hash_tm;
-    
+
     size_t max_nkeys = 0;
     for (size_t i = 0; i < NPASS; ++i) {
         max_nkeys = std::max(max_nkeys, nkeys[i]);
@@ -1151,8 +1152,8 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
         if (random) {
             random_shuffle(keys.begin(), keys.end());
         }
-        
-        id_map.clear();        
+
+        id_map.clear();
         id_tm.start();
         for (size_t i = 0; i < keys.size(); ++i) {
             id_map[keys[i]] = value;
@@ -1179,7 +1180,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
             hash_map[keys[i]] = value;
         }
         hash_tm.stop();
-        
+
         LOG(INFO) << (random ? "Randomly" : "Sequentially")
                   << " inserting " << keys.size()
                   << " into FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
@@ -1187,11 +1188,11 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
                   << "/" << std_tm.n_elapsed() / keys.size()
                   << "/" << pooled_tm.n_elapsed() / keys.size()
                   << "/" << hash_tm.n_elapsed() / keys.size();
-        
+
         if (random) {
             random_shuffle(keys.begin(), keys.end());
         }
-        
+
         id_tm.start();
         for (size_t i = 0; i < keys.size(); ++i) {
             id_map.erase(keys[i]);
@@ -1215,7 +1216,7 @@ template <typename T> void perf_insert_erase(bool random, const T& value)
             hash_map.erase(keys[i]);
         }
         hash_tm.stop();
-        
+
         LOG(INFO) << (random ? "Randomly" : "Sequentially")
                   << " erasing " << keys.size()
                   << " from FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
@@ -1235,9 +1236,9 @@ template <typename T> void perf_seek(const T& value) {
     std::map<uint64_t, T> std_map;
     mutil::PooledMap<uint64_t, T> pooled_map;
     mutil::hash_map<uint64_t, T> hash_map;
-    
+
     mutil::Timer id_tm, std_tm, pooled_tm, hash_tm;
-    
+
     id_map.init((size_t)(nkeys[NPASS-1] * 1.5));
     LOG(INFO) << "[ value = " << sizeof(T) << " bytes ]";
     for (size_t pass = 0; pass < NPASS; ++pass) {
@@ -1246,8 +1247,8 @@ template <typename T> void perf_seek(const T& value) {
         for (size_t i = 0; i < nkeys[pass]; ++i) {
             keys.push_back(start + i);
         }
-        
-        id_map.clear();        
+
+        id_map.clear();
         for (size_t i = 0; i < keys.size(); ++i) {
             id_map[keys[i]] = value;
         }
@@ -1256,7 +1257,7 @@ template <typename T> void perf_seek(const T& value) {
         for (size_t i = 0; i < keys.size(); ++i) {
             std_map[keys[i]] = value;
         }
-        
+
         pooled_map.clear();
         for (size_t i = 0; i < keys.size(); ++i) {
             pooled_map[keys[i]] = value;
@@ -1266,9 +1267,9 @@ template <typename T> void perf_seek(const T& value) {
         for (size_t i = 0; i < keys.size(); ++i) {
             hash_map[keys[i]] = value;
         }
-        
+
         random_shuffle(keys.begin(), keys.end());
-        
+
         long sum = 0;
         id_tm.start();
         for (size_t i = 0; i < keys.size(); ++i) {
@@ -1293,7 +1294,7 @@ template <typename T> void perf_seek(const T& value) {
             sum += (long&)hash_map.find(keys[i])->second;
         }
         hash_tm.stop();
-        
+
         LOG(INFO) << "Seeking " << keys.size()
                   << " from FlatMap/std::map/mutil::PooledMap/mutil::hash_map takes "
                   << id_tm.n_elapsed() / keys.size()

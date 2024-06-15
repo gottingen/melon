@@ -39,7 +39,7 @@ namespace melon {
     }
 
     void HttpHeader::AppendHeader(const std::string &key,
-                                  const mutil::StringPiece &value) {
+                                  const std::string_view &value) {
         std::string &slot = GetOrAddHeader(key);
         if (slot.empty()) {
             slot.assign(value.data(), value.size());

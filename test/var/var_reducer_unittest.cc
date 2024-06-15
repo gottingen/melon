@@ -327,7 +327,7 @@ namespace {
             char *endptr = NULL;
             ++got_count[(pthread_t) strtoll(sp.field(), &endptr, 10)];
             ASSERT_EQ(27LL, sp.field() + sp.length() - endptr)
-                                        << mutil::StringPiece(sp.field(), sp.length());
+                                        << std::string_view(sp.field(), sp.length());
             ASSERT_EQ(0, memcmp(":abcdefghijklmnopqrstuvwxyz", endptr, 27));
         }
         ASSERT_EQ(appended_count.size(), got_count.size());

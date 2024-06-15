@@ -125,11 +125,11 @@ namespace melon::var {
 
         IntRecorder() : _sampler(NULL) {}
 
-        explicit IntRecorder(const mutil::StringPiece &name) : _sampler(NULL) {
+        explicit IntRecorder(const std::string_view &name) : _sampler(NULL) {
             expose(name);
         }
 
-        IntRecorder(const mutil::StringPiece &prefix, const mutil::StringPiece &name)
+        IntRecorder(const std::string_view &prefix, const std::string_view &name)
                 : _sampler(NULL) {
             expose_as(prefix, name);
         }
@@ -181,7 +181,7 @@ namespace melon::var {
 
         // This name is useful for printing overflow log in operator<< since
         // IntRecorder is often used as the source of data and not exposed.
-        void set_debug_name(const mutil::StringPiece &name) {
+        void set_debug_name(const std::string_view &name) {
             _debug_name.assign(name.data(), name.size());
         }
 

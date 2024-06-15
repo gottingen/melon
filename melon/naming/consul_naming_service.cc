@@ -22,7 +22,6 @@
 #include <gflags/gflags.h>
 #include <string>                                       // std::string
 #include <set>                                          // std::set
-#include <melon/utility/string_printf.h>
 #include <melon/utility/third_party/rapidjson/document.h>
 #include <melon/utility/third_party/rapidjson/stringbuffer.h>
 #include <melon/utility/third_party/rapidjson/prettywriter.h>
@@ -32,6 +31,7 @@
 #include <melon/rpc/channel.h>
 #include <melon/naming/file_naming_service.h>
 #include <melon/naming/consul_naming_service.h>
+#include <turbo/strings/str_format.h>
 
 
 namespace melon::naming {
@@ -99,7 +99,7 @@ namespace melon::naming {
         servers->clear();
         std::string consul_url(_consul_url);
         if (!_consul_index.empty()) {
-            mutil::string_appendf(&consul_url, "&index=%s&wait=%ds", _consul_index.c_str(),
+            turbo::str_append_format(&consul_url, "&index=%s&wait=%ds", _consul_index.c_str(),
                                   FLAGS_consul_blocking_query_wait_secs);
         }
 

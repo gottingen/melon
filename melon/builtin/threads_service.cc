@@ -26,7 +26,7 @@
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/builtin/threads_service.h>
 #include <melon/builtin/common.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <cinttypes>
 
 namespace melon {
@@ -40,7 +40,7 @@ namespace melon {
         cntl->http_response().set_content_type("text/plain");
         mutil::IOBuf &resp = cntl->response_attachment();
 
-        std::string cmd = mutil::string_printf("pstack %lld", (long long) getpid());
+        std::string cmd = turbo::str_format("pstack %lld", (long long) getpid());
         mutil::Timer tm;
         tm.start();
         mutil::IOBufBuilder pstack_output;
@@ -51,7 +51,7 @@ namespace melon {
         }
         pstack_output.move_to(resp);
         tm.stop();
-        resp.append(mutil::string_printf("\n\ntime=%" PRId64 "ms", tm.m_elapsed()));
+        resp.append(turbo::str_format("\n\ntime=%ldms", tm.m_elapsed()));
     }
 
 } // namespace melon

@@ -357,7 +357,7 @@ public:
     explicit RtmpSubStream(melon::RtmpMessageHandler* mh)
         : _message_handler(mh) {}
     // @RtmpStreamBase
-    void OnMetaData(melon::RtmpMetaData*, const mutil::StringPiece&);
+    void OnMetaData(melon::RtmpMetaData*, const std::string_view&);
     void OnSharedObjectMessage(melon::RtmpSharedObjectMessage* msg);
     void OnAudioMessage(melon::RtmpAudioMessage* msg);
     void OnVideoMessage(melon::RtmpVideoMessage* msg);
@@ -371,7 +371,7 @@ void RtmpSubStream::OnFirstMessage() {
     _message_handler->OnPlayable();
 }
 
-void RtmpSubStream::OnMetaData(melon::RtmpMetaData* obj, const mutil::StringPiece& name) {
+void RtmpSubStream::OnMetaData(melon::RtmpMetaData* obj, const std::string_view& name) {
     _message_handler->OnMetaData(obj, name);
 }
 
@@ -429,11 +429,11 @@ void RtmpSubStreamCreator::LaunchSubStream(
 }
 
 TEST(RtmpTest, parse_rtmp_url) {
-    mutil::StringPiece host;
-    mutil::StringPiece vhost;
-    mutil::StringPiece port;
-    mutil::StringPiece app;
-    mutil::StringPiece stream_name;
+    std::string_view host;
+    std::string_view vhost;
+    std::string_view port;
+    std::string_view app;
+    std::string_view stream_name;
 
     melon::ParseRtmpURL("rtmp://HOST/APP/STREAM",
                              &host, &vhost, &port, &app, &stream_name);

@@ -45,7 +45,7 @@ namespace melon::var {
 
     template<typename T>
     inline
-    MultiDimension<T>::MultiDimension(const mutil::StringPiece &name,
+    MultiDimension<T>::MultiDimension(const std::string_view &name,
                                       const key_type &labels)
             : Base(labels) {
         _metric_map.Modify(init_flatmap);
@@ -54,8 +54,8 @@ namespace melon::var {
 
     template<typename T>
     inline
-    MultiDimension<T>::MultiDimension(const mutil::StringPiece &prefix,
-                                      const mutil::StringPiece &name,
+    MultiDimension<T>::MultiDimension(const std::string_view &prefix,
+                                      const std::string_view &name,
                                       const key_type &labels)
             : Base(labels) {
         _metric_map.Modify(init_flatmap);

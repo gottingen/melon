@@ -21,7 +21,7 @@
 #pragma once
 
 #include <limits>                                 // std::numeric_limits
-#include <math.h>                                 // round
+#include <cmath>                                 // round
 #include <gflags/gflags_declare.h>
 #include <turbo/log/logging.h>                         // LOG
 #include <melon/var/detail/sampler.h>
@@ -61,7 +61,7 @@ namespace melon::var {
                 SeriesSampler(WindowBase *owner, R *var)
                         : _owner(owner), _series(Op(var)) {}
 
-                ~SeriesSampler() {}
+                ~SeriesSampler() = default;
 
                 void take_sample() override {
                     if (series_freq == SERIES_IN_SECOND) {
@@ -76,7 +76,7 @@ namespace melon::var {
                     }
                 }
 
-                void describe(std::ostream &os) { _series.describe(os, NULL); }
+                void describe(std::ostream &os) { _series.describe(os, nullptr); }
 
             private:
                 WindowBase *_owner;
@@ -85,7 +85,7 @@ namespace melon::var {
 
             WindowBase(R *var, time_t window_size)
                     : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
-                      _sampler(var->get_sampler()), _series_sampler(NULL) {
+                      _sampler(var->get_sampler()), _series_sampler(nullptr) {
                 CHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
 
@@ -93,7 +93,7 @@ namespace melon::var {
                 hide();
                 if (_series_sampler) {
                     _series_sampler->destroy();
-                    _series_sampler = NULL;
+                    _series_sampler = nullptr;
                 }
             }
 
@@ -127,7 +127,7 @@ namespace melon::var {
             time_t window_size() const { return _window_size; }
 
             int describe_series(std::ostream &os, const SeriesOptions &options) const override {
-                if (_series_sampler == NULL) {
+                if (_series_sampler == nullptr) {
                     return 1;
                 }
                 if (!options.test_only) {
@@ -143,12 +143,12 @@ namespace melon::var {
             }
 
         protected:
-            int expose_impl(const mutil::StringPiece &prefix,
-                            const mutil::StringPiece &name,
+            int expose_impl(const std::string_view &prefix,
+                            const std::string_view &name,
                             DisplayFilter display_filter) override {
                 const int rc = Variable::expose_impl(prefix, name, display_filter);
                 if (rc == 0 &&
-                    _series_sampler == NULL &&
+                    _series_sampler == nullptr &&
                     FLAGS_save_series) {
                     _series_sampler = new SeriesSampler(this, _var);
                     _series_sampler->schedule();
@@ -182,13 +182,13 @@ namespace melon::var {
         // of Window is largely affected by window_size while PerSecond is not.
         Window(R *var, time_t window_size) : Base(var, window_size) {}
 
-        Window(const mutil::StringPiece &name, R *var, time_t window_size)
+        Window(const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose(name);
         }
 
-        Window(const mutil::StringPiece &prefix,
-               const mutil::StringPiece &name, R *var, time_t window_size)
+        Window(const std::string_view &prefix,
+               const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose_as(prefix, name);
         }
@@ -208,23 +208,23 @@ namespace melon::var {
 
         PerSecond(R *var, time_t window_size) : Base(var, window_size) {}
 
-        PerSecond(const mutil::StringPiece &name, R *var) : Base(var, -1) {
+        PerSecond(const std::string_view &name, R *var) : Base(var, -1) {
             this->expose(name);
         }
 
-        PerSecond(const mutil::StringPiece &name, R *var, time_t window_size)
+        PerSecond(const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose(name);
         }
 
-        PerSecond(const mutil::StringPiece &prefix,
-                  const mutil::StringPiece &name, R *var)
+        PerSecond(const std::string_view &prefix,
+                  const std::string_view &name, R *var)
                 : Base(var, -1) {
             this->expose_as(prefix, name);
         }
 
-        PerSecond(const mutil::StringPiece &prefix,
-                  const mutil::StringPiece &name, R *var, time_t window_size)
+        PerSecond(const std::string_view &prefix,
+                  const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose_as(prefix, name);
         }
@@ -335,12 +335,12 @@ namespace melon::var {
 
         WindowEx() : Base(window_size) {}
 
-        WindowEx(const mutil::StringPiece &name) : Base(window_size) {
+        WindowEx(const std::string_view &name) : Base(window_size) {
             this->expose(name);
         }
 
-        WindowEx(const mutil::StringPiece &prefix,
-                 const mutil::StringPiece &name)
+        WindowEx(const std::string_view &prefix,
+                 const std::string_view &name)
                 : Base(window_size) {
             this->expose_as(prefix, name);
         }
@@ -359,12 +359,12 @@ namespace melon::var {
 
         PerSecondEx() : Base(window_size) {}
 
-        PerSecondEx(const mutil::StringPiece &name) : Base(window_size) {
+        PerSecondEx(const std::string_view &name) : Base(window_size) {
             this->expose(name);
         }
 
-        PerSecondEx(const mutil::StringPiece &prefix,
-                    const mutil::StringPiece &name)
+        PerSecondEx(const std::string_view &prefix,
+                    const std::string_view &name)
                 : Base(window_size) {
             this->expose_as(prefix, name);
         }

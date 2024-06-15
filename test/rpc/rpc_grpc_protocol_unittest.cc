@@ -26,6 +26,7 @@
 #include <melon/rpc/channel.h>
 #include <melon/rpc/grpc/grpc.h>
 #include <melon/utility/time.h>
+#include <turbo/strings/match.h>
 #include "grpc.pb.h"
 
 int main(int argc, char* argv[]) {
@@ -171,7 +172,7 @@ TEST_F(GrpcTest, return_error) {
     stub.Method(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
     EXPECT_EQ(cntl.ErrorCode(), melon::EINTERNAL);
-    EXPECT_TRUE(mutil::StringPiece(cntl.ErrorText()).ends_with(mutil::string_printf("%s", g_prefix.c_str())));
+    EXPECT_TRUE(turbo::ends_with(std::string_view(cntl.ErrorText()), mutil::string_printf("%s", g_prefix.c_str())));
 }
 
 TEST_F(GrpcTest, RpcTimedOut) {
@@ -204,7 +205,7 @@ TEST_F(GrpcTest, MethodNotExist) {
     stub.MethodNotExist(&cntl, &req, &res, NULL);
     EXPECT_TRUE(cntl.Failed());
     EXPECT_EQ(cntl.ErrorCode(), melon::EINTERNAL);
-    ASSERT_TRUE(mutil::StringPiece(cntl.ErrorText()).ends_with("Method MethodNotExist() not implemented."));
+    ASSERT_TRUE(turbo::ends_with(std::string_view(cntl.ErrorText()), "Method MethodNotExist() not implemented."));
 }
 
 TEST_F(GrpcTest, GrpcTimeOut) {

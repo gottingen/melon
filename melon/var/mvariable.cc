@@ -138,8 +138,8 @@ namespace melon::var {
         return std::string();
     }
 
-    int MVariable::expose_impl(const mutil::StringPiece &prefix,
-                               const mutil::StringPiece &name) {
+    int MVariable::expose_impl(const std::string_view &prefix,
+                               const std::string_view &name) {
         if (name.empty()) {
             LOG(ERROR) << "Parameter[name] is empty";
             return -1;

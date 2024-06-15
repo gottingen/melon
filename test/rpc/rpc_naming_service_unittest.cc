@@ -576,7 +576,7 @@ public:
         auto body = cntl->request_attachment().to_string();
         for (melon::QuerySplitter sp(body); sp; ++sp) {
             if (sp.key() == "addrs") {
-                _addrs.insert(sp.value().as_string());
+                _addrs.insert(std::string(sp.value()));
             }
         }
         cntl->response_attachment().append(R"({

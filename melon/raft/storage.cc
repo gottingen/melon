@@ -44,15 +44,14 @@ namespace melon::raft {
     MELON_VALIDATE_GFLAG(raft_sync_meta, ::melon::PassValidate);
 
     LogStorage *LogStorage::create(const std::string &uri) {
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         std::string parameter;
-        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        std::string_view protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
             return NULL;
         }
-        const LogStorage *type = log_storage_extension()->Find(
-                protocol.as_string().c_str());
+        const LogStorage *type = log_storage_extension()->Find(std::string(protocol).c_str());
         if (type == NULL) {
             LOG(ERROR) << "Fail to find log storage type " << protocol
                        << ", uri=" << uri;
@@ -63,36 +62,34 @@ namespace melon::raft {
 
     mutil::Status LogStorage::destroy(const std::string &uri) {
         mutil::Status status;
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         std::string parameter;
-        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        std::string_view protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid log storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid log storage uri = %s", uri.c_str());
             return status;
         }
-        const LogStorage *type = log_storage_extension()->Find(
-                protocol.as_string().c_str());
+        const LogStorage *type = log_storage_extension()->Find(std::string(protocol).c_str());
         if (type == NULL) {
             LOG(ERROR) << "Fail to find log storage type " << protocol
                        << ", uri=" << uri;
             status.set_error(EINVAL, "Fail to find log storage type %s uri %s",
-                             protocol.as_string().c_str(), uri.c_str());
+                             std::string(protocol).c_str(), uri.c_str());
             return status;
         }
         return type->gc_instance(parameter);
     }
 
     SnapshotStorage *SnapshotStorage::create(const std::string &uri) {
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         std::string parameter;
-        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        std::string_view protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
             return NULL;
         }
-        const SnapshotStorage *type = snapshot_storage_extension()->Find(
-                protocol.as_string().c_str());
+        const SnapshotStorage *type = snapshot_storage_extension()->Find(std::string(protocol).c_str());
         if (type == NULL) {
             LOG(ERROR) << "Fail to find snapshot storage type " << protocol
                        << ", uri=" << uri;
@@ -103,36 +100,33 @@ namespace melon::raft {
 
     mutil::Status SnapshotStorage::destroy(const std::string &uri) {
         mutil::Status status;
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         std::string parameter;
-        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        std::string_view protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid snapshot storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid log storage uri = %s", uri.c_str());
             return status;
         }
-        const SnapshotStorage *type = snapshot_storage_extension()->Find(
-                protocol.as_string().c_str());
+        const SnapshotStorage *type = snapshot_storage_extension()->Find(std::string(protocol).c_str());
         if (type == NULL) {
             LOG(ERROR) << "Fail to find snapshot storage type " << protocol
                        << ", uri=" << uri;
-            status.set_error(EINVAL, "Fail to find snapshot storage type %s uri %s",
-                             protocol.as_string().c_str(), uri.c_str());
+            status.set_error(EINVAL, "Fail to find snapshot storage type %s uri %s",std::string(protocol).c_str(), uri.c_str());
             return status;
         }
         return type->gc_instance(parameter);
     }
 
     RaftMetaStorage *RaftMetaStorage::create(const std::string &uri) {
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         std::string parameter;
-        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        std::string_view protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
             return NULL;
         }
-        const RaftMetaStorage *type = meta_storage_extension()->Find(
-                protocol.as_string().c_str());
+        const RaftMetaStorage *type = meta_storage_extension()->Find(std::string(protocol).c_str());
         if (type == NULL) {
             LOG(ERROR) << "Fail to find meta storage type " << protocol
                        << ", uri=" << uri;
@@ -144,21 +138,19 @@ namespace melon::raft {
     mutil::Status RaftMetaStorage::destroy(const std::string &uri,
                                            const VersionedGroupId &vgid) {
         mutil::Status status;
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         std::string parameter;
-        mutil::StringPiece protocol = parse_uri(&copied_uri, &parameter);
+        std::string_view protocol = parse_uri(&copied_uri, &parameter);
         if (protocol.empty()) {
             LOG(ERROR) << "Invalid meta storage uri=`" << uri << '\'';
             status.set_error(EINVAL, "Invalid meta storage uri = %s", uri.c_str());
             return status;
         }
-        const RaftMetaStorage *type = meta_storage_extension()->Find(
-                protocol.as_string().c_str());
+        const RaftMetaStorage *type = meta_storage_extension()->Find(std::string(protocol).c_str());
         if (type == NULL) {
             LOG(ERROR) << "Fail to find meta storage type " << protocol
                        << ", uri=" << uri;
-            status.set_error(EINVAL, "Fail to find meta storage type %s uri %s",
-                             protocol.as_string().c_str(), uri.c_str());
+            status.set_error(EINVAL, "Fail to find meta storage type %s uri %s", std::string(protocol).c_str(), uri.c_str());
             return status;
         }
         return type->gc_instance(parameter, vgid);

@@ -69,7 +69,7 @@ namespace melon::lb {
 
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
 
-        LoadBalancer *New(const mutil::StringPiece &params) const;
+        LoadBalancer *New(const std::string_view &params) const;
 
         void Destroy();
 
@@ -78,7 +78,7 @@ namespace melon::lb {
         void Describe(std::ostream &os, const DescribeOptions &options);
 
     private:
-        bool SetParameters(const mutil::StringPiece &params);
+        bool SetParameters(const std::string_view &params);
 
         void GetLoads(std::map<mutil::EndPoint, double> *load_map);
 

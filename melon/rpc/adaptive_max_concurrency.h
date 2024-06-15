@@ -20,12 +20,12 @@
 
 #pragma once
 
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/proto/rpc/options.pb.h>
 
 namespace melon {
 
-// timeout concurrency limiter config
+    // timeout concurrency limiter config
     struct TimeoutConcurrencyConf {
         int64_t timeout_ms;
         int max_concurrency;
@@ -37,7 +37,7 @@ namespace melon {
 
         explicit AdaptiveMaxConcurrency(int max_concurrency);
 
-        explicit AdaptiveMaxConcurrency(const mutil::StringPiece &value);
+        explicit AdaptiveMaxConcurrency(const std::string_view &value);
 
         explicit AdaptiveMaxConcurrency(const TimeoutConcurrencyConf &value);
 
@@ -50,7 +50,7 @@ namespace melon {
 
         void operator=(int max_concurrency);
 
-        void operator=(const mutil::StringPiece &value);
+        void operator=(const std::string_view &value);
 
         void operator=(const TimeoutConcurrencyConf &value);
 
@@ -86,19 +86,19 @@ namespace melon {
     }
 
     bool operator==(const AdaptiveMaxConcurrency &adaptive_concurrency,
-                    const mutil::StringPiece &concurrency);
+                    const std::string_view &concurrency);
 
-    inline bool operator==(const mutil::StringPiece &concurrency,
+    inline bool operator==(const std::string_view &concurrency,
                            const AdaptiveMaxConcurrency &adaptive_concurrency) {
         return adaptive_concurrency == concurrency;
     }
 
     inline bool operator!=(const AdaptiveMaxConcurrency &adaptive_concurrency,
-                           const mutil::StringPiece &concurrency) {
+                           const std::string_view &concurrency) {
         return !(adaptive_concurrency == concurrency);
     }
 
-    inline bool operator!=(const mutil::StringPiece &concurrency,
+    inline bool operator!=(const std::string_view &concurrency,
                            const AdaptiveMaxConcurrency &adaptive_concurrency) {
         return !(adaptive_concurrency == concurrency);
     }

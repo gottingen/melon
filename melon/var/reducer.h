@@ -162,8 +162,8 @@ public:
     }
     
 protected:
-    int expose_impl(const mutil::StringPiece& prefix,
-                    const mutil::StringPiece& name,
+    int expose_impl(const std::string_view& prefix,
+                    const std::string_view& name,
                     DisplayFilter display_filter) override {
         const int rc = Variable::expose_impl(prefix, name, display_filter);
         if (rc == 0 &&
@@ -225,11 +225,11 @@ public:
     typedef typename Base::sampler_type sampler_type;
 public:
     Adder() : Base() {}
-    explicit Adder(const mutil::StringPiece& name) : Base() {
+    explicit Adder(const std::string_view& name) : Base() {
         this->expose(name);
     }
-    Adder(const mutil::StringPiece& prefix,
-          const mutil::StringPiece& name) : Base() {
+    Adder(const std::string_view& prefix,
+          const std::string_view& name) : Base() {
         this->expose_as(prefix, name);
     }
     ~Adder() { Variable::hide(); }
@@ -259,11 +259,11 @@ public:
     typedef typename Base::sampler_type sampler_type;
 public:
     Maxer() : Base(std::numeric_limits<T>::min()) {}
-    explicit Maxer(const mutil::StringPiece& name)
+    explicit Maxer(const std::string_view& name)
         : Base(std::numeric_limits<T>::min()) {
         this->expose(name);
     }
-    Maxer(const mutil::StringPiece& prefix, const mutil::StringPiece& name)
+    Maxer(const std::string_view& prefix, const std::string_view& name)
         : Base(std::numeric_limits<T>::min()) {
         this->expose_as(prefix, name);
     }
@@ -274,12 +274,12 @@ private:
     // it's dangerous so we don't make them public
     explicit Maxer(T default_value) : Base(default_value) {
     }
-    Maxer(T default_value, const mutil::StringPiece& prefix,
-          const mutil::StringPiece& name)
+    Maxer(T default_value, const std::string_view& prefix,
+          const std::string_view& name)
         : Base(default_value) {
         this->expose_as(prefix, name);
     }
-    Maxer(T default_value, const mutil::StringPiece& name) : Base(default_value) {
+    Maxer(T default_value, const std::string_view& name) : Base(default_value) {
         this->expose(name);
     }
 };
@@ -309,11 +309,11 @@ public:
     typedef typename Base::sampler_type sampler_type;
 public:
     Miner() : Base(std::numeric_limits<T>::max()) {}
-    explicit Miner(const mutil::StringPiece& name)
+    explicit Miner(const std::string_view& name)
         : Base(std::numeric_limits<T>::max()) {
         this->expose(name);
     }
-    Miner(const mutil::StringPiece& prefix, const mutil::StringPiece& name)
+    Miner(const std::string_view& prefix, const std::string_view& name)
         : Base(std::numeric_limits<T>::max()) {
         this->expose_as(prefix, name);
     }

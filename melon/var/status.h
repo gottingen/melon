@@ -45,11 +45,11 @@ namespace melon::var {
     public:
         Status() {}
         Status(const T& value) : _value(value) {}
-        Status(const mutil::StringPiece& name, const T& value) : _value(value) {
+        Status(const std::string_view& name, const T& value) : _value(value) {
             this->expose(name);
         }
-        Status(const mutil::StringPiece& prefix,
-               const mutil::StringPiece& name, const T& value) : _value(value) {
+        Status(const std::string_view& prefix,
+               const std::string_view& name, const T& value) : _value(value) {
             this->expose_as(prefix, name);
         }
         // Calling hide() manually is a MUST required by Variable.
@@ -100,12 +100,12 @@ namespace melon::var {
     public:
         Status() : _series_sampler(NULL) {}
         Status(const T& value) : _value(value), _series_sampler(NULL) { }
-        Status(const mutil::StringPiece& name, const T& value)
+        Status(const std::string_view& name, const T& value)
             : _value(value), _series_sampler(NULL) {
             this->expose(name);
         }
-        Status(const mutil::StringPiece& prefix,
-               const mutil::StringPiece& name, const T& value)
+        Status(const std::string_view& prefix,
+               const std::string_view& name, const T& value)
             : _value(value), _series_sampler(NULL) {
             this->expose_as(prefix, name);
         }
@@ -141,8 +141,8 @@ namespace melon::var {
         }
     
     protected:
-        int expose_impl(const mutil::StringPiece& prefix,
-                        const mutil::StringPiece& name,
+        int expose_impl(const std::string_view& prefix,
+                        const std::string_view& name,
                         DisplayFilter display_filter) override {
             const int rc = Variable::expose_impl(prefix, name, display_filter);
             if (rc == 0 &&
@@ -164,7 +164,7 @@ namespace melon::var {
     class Status<std::string, void> : public Variable {
     public:
         Status() {}
-        Status(const mutil::StringPiece& name, const char* fmt, ...) {
+        Status(const std::string_view& name, const char* fmt, ...) {
             if (fmt) {
                 va_list ap;
                 va_start(ap, fmt);
@@ -173,8 +173,8 @@ namespace melon::var {
             }
             expose(name);
         }
-        Status(const mutil::StringPiece& prefix,
-               const mutil::StringPiece& name, const char* fmt, ...) {
+        Status(const std::string_view& prefix,
+               const std::string_view& name, const char* fmt, ...) {
             if (fmt) {
                 va_list ap;
                 va_start(ap, fmt);

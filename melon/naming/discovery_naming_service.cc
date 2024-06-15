@@ -23,13 +23,13 @@
 #include <melon/utility/third_party/rapidjson/document.h>
 #include <melon/utility/third_party/rapidjson/memorybuffer.h>
 #include <melon/utility/third_party/rapidjson/writer.h>
-#include <melon/utility/string_printf.h>
-#include <melon/utility/strings/string_split.h>
+#include <turbo/strings/str_format.h>
 #include <melon/base/fast_rand.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/naming/discovery_naming_service.h>
+#include <turbo/strings/str_split.h>
 
 namespace melon::naming {
 
@@ -49,7 +49,7 @@ namespace melon::naming {
                                                     " which Register would be called again");
 
     static pthread_once_t s_init_discovery_channel_once = PTHREAD_ONCE_INIT;
-    static Channel *s_discovery_channel = NULL;
+    static Channel *s_discovery_channel = nullptr;
 
     static int ListDiscoveryNodes(const char *discovery_api_addr, std::string *servers) {
         Channel api_channel;
@@ -63,7 +63,7 @@ namespace melon::naming {
         }
         Controller cntl;
         cntl.http_request().uri() = discovery_api_addr;
-        api_channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        api_channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
             LOG(FATAL) << "Fail to access " << cntl.http_request().uri()
                        << ": " << cntl.ErrorText();
@@ -144,7 +144,7 @@ namespace melon::naming {
     DiscoveryClient::~DiscoveryClient() {
         if (_registered.load(std::memory_order_acquire)) {
             fiber_stop(_th);
-            fiber_join(_th, NULL);
+            fiber_join(_th, nullptr);
             DoCancel();
         }
     }
@@ -194,7 +194,7 @@ namespace melon::naming {
            << "&region=" << _params.region
            << "&zone=" << _params.zone;
         os.move_to(cntl.request_attachment());
-        chan.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        chan.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to post /discovery/renew: " << cntl.ErrorText();
             return -1;
@@ -215,7 +215,7 @@ namespace melon::naming {
                                mutil::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
         if (fiber_usleep(init_sleep_s * 1000000) != 0) {
             if (errno == ESTOP) {
-                return NULL;
+                return nullptr;
             }
         }
 
@@ -238,7 +238,7 @@ namespace melon::naming {
             consecutive_renew_error = 0;
             fiber_usleep(FLAGS_discovery_renew_interval_s * 1000000);
         }
-        return NULL;
+        return nullptr;
     }
 
     int DiscoveryClient::Register(const DiscoveryRegisterParam &params) {
@@ -254,7 +254,7 @@ namespace melon::naming {
         if (DoRegister() != 0) {
             return -1;
         }
-        if (fiber_start_background(&_th, NULL, PeriodicRenew, this) != 0) {
+        if (fiber_start_background(&_th, nullptr, PeriodicRenew, this) != 0) {
             LOG(ERROR) << "Fail to start background PeriodicRenew";
             return -1;
         }
@@ -263,7 +263,7 @@ namespace melon::naming {
 
     int DiscoveryClient::DoRegister() {
         Channel *chan = GetOrNewDiscoveryChannel();
-        if (NULL == chan) {
+        if (nullptr == chan) {
             LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
@@ -275,8 +275,7 @@ namespace melon::naming {
         os << "appid=" << _params.appid
            << "&hostname=" << _params.hostname;
 
-        std::vector<mutil::StringPiece> addrs;
-        mutil::SplitString(_params.addrs, ',', &addrs);
+        std::vector<std::string_view> addrs = turbo::str_split(_params.addrs, ',');
         for (size_t i = 0; i < addrs.size(); ++i) {
             if (!addrs[i].empty()) {
                 os << "&addrs=" << addrs[i];
@@ -290,7 +289,7 @@ namespace melon::naming {
            << "&version=" << _params.version
            << "&metadata=" << _params.metadata;
         os.move_to(cntl.request_attachment());
-        chan->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        chan->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to register " << _params.appid << ": " << cntl.ErrorText();
             return -1;
@@ -328,7 +327,7 @@ namespace melon::naming {
            << "&region=" << _params.region
            << "&zone=" << _params.zone;
         os.move_to(cntl.request_attachment());
-        chan.CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        chan.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to post /discovery/cancel: " << cntl.ErrorText();
             return -1;
@@ -346,20 +345,20 @@ namespace melon::naming {
 
     int DiscoveryNamingService::GetServers(const char *service_name,
                                            std::vector<ServerNode> *servers) {
-        if (service_name == NULL || *service_name == '\0' ||
+        if (service_name == nullptr || *service_name == '\0' ||
             FLAGS_discovery_env.empty() ||
             FLAGS_discovery_status.empty()) {
             LOG_FIRST_N(ERROR, 1) << "Invalid parameters";
             return -1;
         }
         Channel *chan = GetOrNewDiscoveryChannel();
-        if (NULL == chan) {
+        if (nullptr == chan) {
             LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         servers->clear();
         Controller cntl;
-        std::string uri_str = mutil::string_printf(
+        std::string uri_str = turbo::str_format(
                 "/discovery/fetchs?appid=%s&env=%s&status=%s", service_name,
                 FLAGS_discovery_env.c_str(), FLAGS_discovery_status.c_str());
         if (!FLAGS_discovery_zone.empty()) {
@@ -367,7 +366,7 @@ namespace melon::naming {
             uri_str.append(FLAGS_discovery_zone);
         }
         cntl.http_request().uri() = uri_str;
-        chan->CallMethod(NULL, &cntl, NULL, NULL, NULL);
+        chan->CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to get /discovery/fetchs: " << cntl.ErrorText();
             return -1;
@@ -426,9 +425,9 @@ namespace melon::naming {
                 }
                 // The result returned by discovery include protocol prefix, such as
                 // http://172.22.35.68:6686, which should be removed.
-                mutil::StringPiece addr(addrs[j].GetString(), addrs[j].GetStringLength());
-                mutil::StringPiece::size_type pos = addr.find("://");
-                if (pos != mutil::StringPiece::npos) {
+                std::string_view addr(addrs[j].GetString(), addrs[j].GetStringLength());
+                std::string_view::size_type pos = addr.find("://");
+                if (pos != std::string_view::npos) {
                     if (pos != 4 /* sizeof("grpc") */ ||
                         strncmp("grpc", addr.data(), 4) != 0) {
                         // Skip server that has prefix but not start with "grpc"

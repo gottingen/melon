@@ -472,7 +472,7 @@ namespace melon::lb {
     }
 
     LocalityAwareLoadBalancer *LocalityAwareLoadBalancer::New(
-            const mutil::StringPiece &) const {
+            const std::string_view &) const {
         return new(std::nothrow) LocalityAwareLoadBalancer;
     }
 

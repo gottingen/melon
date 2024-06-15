@@ -31,6 +31,7 @@
 #include <melon/fiber/timer_thread.h>         // global_timer_thread
 #include <gflags/gflags.h>
 #include <melon/fiber/log.h>
+#include <turbo/strings/str_format.h>
 
 namespace fiber {
 
@@ -84,7 +85,7 @@ namespace fiber {
             LOG(ERROR) << "Fail to create TaskGroup in pthread=" << pthread_self();
             return NULL;
         }
-        std::string worker_thread_name = mutil::string_printf(
+        std::string worker_thread_name = turbo::str_format(
                 "melon_wkr:%d-%d", g->tag(), c->_next_worker_id.fetch_add(1, std::memory_order_relaxed));
         mutil::PlatformThread::SetName(worker_thread_name.c_str());
         BT_VLOG << "Created worker=" << pthread_self() << " fiber=" << g->main_tid()

@@ -106,7 +106,7 @@
 #include "melon/utility/single_threaded_pool.h"            // SingleThreadedPool
 #include <melon/utility/containers/hash_tables.h>          // hash<>
 #include "melon/utility/bit_array.h"                       // bit_array_*
-#include <melon/utility/strings/string_piece.h>            // StringPiece
+#include <string_view>            // StringPiece
 
 namespace mutil {
 
@@ -418,9 +418,9 @@ struct DefaultHasher : public MUTIL_HASH_NAMESPACE::hash<K> {
 
 template <>
 struct DefaultHasher<std::string> {
-    std::size_t operator()(const mutil::StringPiece& s) const {
+    std::size_t operator()(const std::string_view& s) const {
         std::size_t result = 0;
-        for (mutil::StringPiece::const_iterator
+        for (std::string_view::const_iterator
                  i = s.begin(); i != s.end(); ++i) {
             result = result * 101 + *i;
         }
@@ -450,7 +450,7 @@ template <>
 struct DefaultEqualTo<std::string> {
     bool operator()(const std::string& s1, const std::string& s2) const
     { return s1 == s2; }
-    bool operator()(const std::string& s1, const mutil::StringPiece& s2) const
+    bool operator()(const std::string& s1, const std::string_view& s2) const
     { return s1 == s2; }
     bool operator()(const std::string& s1, const char* s2) const
     { return s1 == s2; }
@@ -472,13 +472,13 @@ _T* find_cstr(FlatMap<std::string, _T, _Hash, _Equal, _Sparse>& m,
 template <typename _T, typename _Hash, typename _Equal, bool _Sparse>
 const _T* find_cstr(const FlatMap<std::string, _T, _Hash, _Equal, _Sparse>& m,
                     const char* key, size_t length) {
-    return m.seek(mutil::StringPiece(key, length));
+    return m.seek(std::string_view(key, length));
 }
 
 template <typename _T, typename _Hash, typename _Equal, bool _Sparse>
 _T* find_cstr(FlatMap<std::string, _T, _Hash, _Equal, _Sparse>& m,
               const char* key, size_t length) {
-    return m.seek(mutil::StringPiece(key, length));
+    return m.seek(std::string_view(key, length));
 }
 
 template <typename _T, typename _Hash, typename _Equal, bool _Sparse>

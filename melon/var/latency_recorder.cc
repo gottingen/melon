@@ -21,6 +21,7 @@
 #include <gflags/gflags.h>
 #include <memory>
 #include <melon/var/latency_recorder.h>
+#include <turbo/strings/match.h>
 
 namespace melon::var {
 
@@ -185,15 +186,15 @@ namespace melon::var {
         return detail::double_to_random_int(s.data.num * 1000000.0 / s.time_us);
     }
 
-    int LatencyRecorder::expose(const mutil::StringPiece &prefix1,
-                                const mutil::StringPiece &prefix2) {
+    int LatencyRecorder::expose(const std::string_view &prefix1,
+                                const std::string_view &prefix2) {
         if (prefix2.empty()) {
             LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
-        mutil::StringPiece prefix = prefix2;
+        std::string_view prefix = prefix2;
         // User may add "_latency" as the suffix, remove it.
-        if (prefix.ends_with("latency") || prefix.ends_with("Latency")) {
+        if (turbo::ends_with_ignore_case(prefix, "latency")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
                 LOG(ERROR) << "Invalid prefix2=" << prefix2;

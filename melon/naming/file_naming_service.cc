@@ -31,9 +31,9 @@
 
 namespace melon::naming {
 
-    bool SplitIntoServerAndTag(const mutil::StringPiece &line,
-                               mutil::StringPiece *server_addr,
-                               mutil::StringPiece *tag) {
+    bool SplitIntoServerAndTag(const std::string_view &line,
+                               std::string_view *server_addr,
+                               std::string_view *tag) {
         size_t i = 0;
         for (; i < line.size() && isspace(line[i]); ++i) {}
         if (i == line.size() || line[i] == '#') {  // blank line or comments
@@ -44,7 +44,7 @@ namespace melon::naming {
         ssize_t tag_size = 0;
         for (; i < line.size() && !isspace(line[i]); ++i) {}
         if (server_addr) {
-            server_addr->set(addr_start, line.data() + i - addr_start);
+            *server_addr = std::string_view (addr_start, line.data() + i - addr_start);
         }
         if (i != line.size()) {
             for (++i; i < line.size() && isspace(line[i]); ++i) {}
@@ -59,9 +59,9 @@ namespace melon::naming {
             }
             if (tag) {
                 if (tag_size) {
-                    tag->set(tag_start, tag_size);
+                    *tag = std::string_view(tag_start, tag_size);
                 } else {
-                    tag->clear();
+                    *tag = std::string_view();
                 }
             }
         }
@@ -88,9 +88,9 @@ namespace melon::naming {
             if (line[nr - 1] == '\n') { // remove ending newline
                 --nr;
             }
-            mutil::StringPiece addr;
-            mutil::StringPiece tag;
-            if (!SplitIntoServerAndTag(mutil::StringPiece(line, nr),
+            std::string_view addr;
+            std::string_view tag;
+            if (!SplitIntoServerAndTag(std::string_view(line, nr),
                                        &addr, &tag)) {
                 continue;
             }
@@ -103,7 +103,7 @@ namespace melon::naming {
             }
             ServerNode node;
             node.addr = point;
-            tag.CopyToString(&node.tag);
+            node.tag.assign(tag.data(), tag.size());
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {

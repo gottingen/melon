@@ -487,7 +487,7 @@ public:
     bool valid() const { return _combiner != NULL && _combiner->valid(); }
     
     // This name is useful for warning negative latencies in operator<<
-    void set_debug_name(const mutil::StringPiece& name) {
+    void set_debug_name(const std::string_view& name) {
         _debug_name.assign(name.data(), name.size());
     }
 

@@ -67,7 +67,7 @@ namespace melon::var {
 
     class VarEntry {
     public:
-        VarEntry() : var(NULL), display_filter(DISPLAY_ON_ALL) {}
+        VarEntry() : var(nullptr), display_filter(DISPLAY_ON_ALL) {}
 
         Variable *var;
         DisplayFilter display_filter;
@@ -91,7 +91,7 @@ namespace melon::var {
 // We have to initialize global map on need because var is possibly used
 // before main().
     static pthread_once_t s_var_maps_once = PTHREAD_ONCE_INIT;
-    static VarMapWithLock *s_var_maps = NULL;
+    static VarMapWithLock *s_var_maps = nullptr;
 
     static void init_var_maps() {
         // It's probably slow to initialize all sub maps, but rpc often expose
@@ -126,8 +126,8 @@ namespace melon::var {
                           " dtors to avoid displaying a variable that is just destructing";
     }
 
-    int Variable::expose_impl(const mutil::StringPiece &prefix,
-                              const mutil::StringPiece &name,
+    int Variable::expose_impl(const std::string_view &prefix,
+                              const std::string_view &name,
                               DisplayFilter display_filter) {
         if (name.empty()) {
             LOG(ERROR) << "Parameter[name] is empty";
@@ -158,7 +158,7 @@ namespace melon::var {
         {
             MELON_SCOPED_LOCK(m.mutex);
             VarEntry *entry = m.seek(_name);
-            if (entry == NULL) {
+            if (entry == nullptr) {
                 entry = &m[_name];
                 entry->var = this;
                 entry->display_filter = display_filter;
@@ -202,7 +202,7 @@ namespace melon::var {
 
     void Variable::list_exposed(std::vector<std::string> *names,
                                 DisplayFilter display_filter) {
-        if (names == NULL) {
+        if (names == nullptr) {
             return;
         }
         names->clear();
@@ -251,7 +251,7 @@ namespace melon::var {
         VarMapWithLock &m = get_var_map(name);
         MELON_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
-        if (p == NULL) {
+        if (p == nullptr) {
             return -1;
         }
         if (!(display_filter & p->display_filter)) {
@@ -284,7 +284,7 @@ namespace melon::var {
         VarMapWithLock &m = get_var_map(name);
         MELON_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
-        if (p == NULL) {
+        if (p == nullptr) {
             return -1;
         }
         return p->var->describe_series(os, options);
@@ -298,7 +298,7 @@ namespace melon::var {
 // creation of std::string which allocates memory internally.
     class CharArrayStreamBuf : public std::streambuf {
     public:
-        explicit CharArrayStreamBuf() : _data(NULL), _size(0) {}
+        explicit CharArrayStreamBuf() : _data(nullptr), _size(0) {}
 
         ~CharArrayStreamBuf();
 
@@ -308,8 +308,8 @@ namespace melon::var {
 
         void reset();
 
-        mutil::StringPiece data() {
-            return mutil::StringPiece(pbase(), pptr() - pbase());
+        std::string_view data() {
+            return std::string_view(pbase(), pptr() - pbase());
         }
 
     private:
@@ -327,8 +327,8 @@ namespace melon::var {
         }
         size_t new_size = std::max(_size * 3 / 2, (size_t) 64);
         char *new_data = (char *) malloc(new_size);
-        if (MELON_UNLIKELY(new_data == NULL)) {
-            setp(NULL, NULL);
+        if (MELON_UNLIKELY(new_data == nullptr)) {
+            setp(nullptr, nullptr);
             return std::streambuf::traits_type::eof();
         }
         memcpy(new_data, _data, _size);
@@ -355,8 +355,8 @@ namespace melon::var {
 // Written by Jack Handy
 // <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
     inline bool wildcmp(const char *wild, const char *str, char question_mark) {
-        const char *cp = NULL;
-        const char *mp = NULL;
+        const char *cp = nullptr;
+        const char *mp = nullptr;
 
         while (*str && *wild != '*') {
             if (*wild != *str && *wild != question_mark) {
@@ -400,7 +400,7 @@ namespace melon::var {
             std::string name;
             const char wc_pattern[3] = {'*', question_mark, '\0'};
             for (mutil::StringMultiSplitter sp(wildcards.c_str(), ",;");
-                 sp != NULL; ++sp) {
+                 sp != nullptr; ++sp) {
                 name.assign(sp.field(), sp.length());
                 if (name.find_first_of(wc_pattern) != std::string::npos) {
                     if (_wcs.empty()) {
@@ -444,8 +444,8 @@ namespace melon::var {
             : quote_string(true), question_mark('?'), display_filter(DISPLAY_ON_PLAIN_TEXT) {}
 
     int Variable::dump_exposed(Dumper *dumper, const DumpOptions *poptions) {
-        if (NULL == dumper) {
-            LOG(ERROR) << "Parameter[dumper] is NULL";
+        if (nullptr == dumper) {
+            LOG(ERROR) << "Parameter[dumper] is nullptr";
             return -1;
         }
         DumpOptions opt;
@@ -538,7 +538,7 @@ namespace melon::var {
             mutil::back_char(command_name) == ')') {
             // remove parenthesis.
             to_underscored_name(&s,
-                                mutil::StringPiece(command_name.data() + 1,
+                                std::string_view(command_name.data() + 1,
                                                    command_name.size() - 2UL));
         } else {
             to_underscored_name(&s, command_name);
@@ -548,8 +548,8 @@ namespace melon::var {
 
     class FileDumper : public Dumper {
     public:
-        FileDumper(const std::string &filename, mutil::StringPiece s/*prefix*/)
-                : _filename(filename), _fp(NULL) {
+        FileDumper(const std::string &filename, std::string_view s/*prefix*/)
+                : _filename(filename), _fp(nullptr) {
             // setting prefix.
             // remove trailing spaces.
             const char *p = s.data() + s.size();
@@ -571,13 +571,13 @@ namespace melon::var {
         void close() {
             if (_fp) {
                 fclose(_fp);
-                _fp = NULL;
+                _fp = nullptr;
             }
         }
 
     protected:
-        bool dump_impl(const std::string &name, const mutil::StringPiece &desc, const std::string &separator) {
-            if (_fp == NULL) {
+        bool dump_impl(const std::string &name, const std::string_view &desc, const std::string &separator) {
+            if (_fp == nullptr) {
                 mutil::File::Error error;
                 mutil::FilePath dir = mutil::FilePath(_filename).DirName();
                 if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
@@ -586,7 +586,7 @@ namespace melon::var {
                     return false;
                 }
                 _fp = fopen(_filename.c_str(), "w");
-                if (NULL == _fp) {
+                if (nullptr == _fp) {
                     LOG(ERROR) << "Fail to open " << _filename;
                     return false;
                 }
@@ -610,10 +610,10 @@ namespace melon::var {
 
     class CommonFileDumper : public FileDumper {
     public:
-        CommonFileDumper(const std::string &filename, mutil::StringPiece prefix)
+        CommonFileDumper(const std::string &filename, std::string_view prefix)
                 : FileDumper(filename, prefix), _separator(":") {}
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) {
+        bool dump(const std::string &name, const std::string_view &desc) {
             return dump_impl(name, desc, _separator);
         }
 
@@ -623,10 +623,10 @@ namespace melon::var {
 
     class PrometheusFileDumper : public FileDumper {
     public:
-        PrometheusFileDumper(const std::string &filename, mutil::StringPiece prefix)
+        PrometheusFileDumper(const std::string &filename, std::string_view prefix)
                 : FileDumper(filename, prefix), _separator(" ") {}
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) {
+        bool dump(const std::string &name, const std::string_view &desc) {
             return dump_impl(name, desc, _separator);
         }
 
@@ -637,7 +637,7 @@ namespace melon::var {
     class FileDumperGroup : public Dumper {
     public:
         FileDumperGroup(std::string tabs, std::string filename,
-                        mutil::StringPiece s/*prefix*/) {
+                        std::string_view s/*prefix*/) {
             mutil::FilePath path(filename);
             if (path.FinalExtension() == ".data") {
                 // .data will be appended later
@@ -645,8 +645,8 @@ namespace melon::var {
             }
 
             for (mutil::KeyValuePairsSplitter sp(tabs, ';', '='); sp; ++sp) {
-                std::string key = sp.key().as_string();
-                std::string value = sp.value().as_string();
+                std::string key(sp.key());
+                std::string value(sp.value());
                 FileDumper *f = new CommonFileDumper(
                         path.AddExtension(key).AddExtension("data").value(), s);
                 WildcardMatcher *m = new WildcardMatcher(value, '?', true);
@@ -654,7 +654,7 @@ namespace melon::var {
             }
             dumpers.emplace_back(
                     new CommonFileDumper(path.AddExtension("data").value(), s),
-                    (WildcardMatcher *) NULL);
+                    (WildcardMatcher *) nullptr);
         }
 
         ~FileDumperGroup() {
@@ -665,7 +665,7 @@ namespace melon::var {
             dumpers.clear();
         }
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) override {
+        bool dump(const std::string &name, const std::string_view &desc) override {
             for (size_t i = 0; i < dumpers.size() - 1; ++i) {
                 if (dumpers[i].second->match(name)) {
                     return dumpers[i].first->dump(name, desc);
@@ -733,39 +733,39 @@ namespace melon::var {
             std::string mvar_format;
             if (!google::GetCommandLineOption("var_dump_file", &filename)) {
                 LOG(ERROR) << "Fail to get gflag var_dump_file";
-                return NULL;
+                return nullptr;
             }
             if (!google::GetCommandLineOption("var_dump_include",
                                                  &options.white_wildcards)) {
                 LOG(ERROR) << "Fail to get gflag var_dump_include";
-                return NULL;
+                return nullptr;
             }
             if (!google::GetCommandLineOption("var_dump_exclude",
                                                  &options.black_wildcards)) {
                 LOG(ERROR) << "Fail to get gflag var_dump_exclude";
-                return NULL;
+                return nullptr;
             }
             if (!google::GetCommandLineOption("var_dump_prefix", &prefix)) {
                 LOG(ERROR) << "Fail to get gflag var_dump_prefix";
-                return NULL;
+                return nullptr;
             }
             if (!google::GetCommandLineOption("var_dump_tabs", &tabs)) {
                 LOG(ERROR) << "Fail to get gflags var_dump_tabs";
-                return NULL;
+                return nullptr;
             }
 
             // We can't access string flags directly because it's thread-unsafe.
             if (!google::GetCommandLineOption("mvar_dump_file", &mvar_filename)) {
                 LOG(ERROR) << "Fail to get gflag mvar_dump_file";
-                return NULL;
+                return nullptr;
             }
             if (!google::GetCommandLineOption("mvar_dump_prefix", &mvar_prefix)) {
                 LOG(ERROR) << "Fail to get gflag mvar_dump_prefix";
-                return NULL;
+                return nullptr;
             }
             if (!google::GetCommandLineOption("mvar_dump_format", &mvar_format)) {
                 LOG(ERROR) << "Fail to get gflag mvar_dump_format";
-                return NULL;
+                return nullptr;
             }
 
             if (FLAGS_var_dump && !filename.empty()) {
@@ -815,7 +815,7 @@ namespace melon::var {
                     mvar_prefix.replace(pos2, 5/*<app>*/, command_name);
                 }
 
-                Dumper *dumper = NULL;
+                Dumper *dumper = nullptr;
                 if ("common" == mvar_format) {
                     dumper = new CommonFileDumper(mvar_filename, mvar_prefix);
                 } else if ("prometheus" == mvar_format) {
@@ -826,7 +826,7 @@ namespace melon::var {
                     LOG(ERROR) << "Fail to dump mvars into " << filename;
                 }
                 delete dumper;
-                dumper = NULL;
+                dumper = nullptr;
             }
 
             // We need to separate the sleeping into a long interruptible sleep
@@ -849,7 +849,7 @@ namespace melon::var {
 
     static void launch_dumping_thread() {
         pthread_t thread_id;
-        int rc = pthread_create(&thread_id, NULL, dumping_thread, NULL);
+        int rc = pthread_create(&thread_id, nullptr, dumping_thread, nullptr);
         if (rc != 0) {
             LOG(FATAL) << "Fail to launch dumping thread: " << berror(rc);
             return;
@@ -937,7 +937,7 @@ namespace melon::var {
     const bool ALLOW_UNUSED dummy_mvar_dump_format = ::google::RegisterFlagValidator(
             &FLAGS_mvar_dump_format, validate_mvar_dump_format);
 
-    void to_underscored_name(std::string *name, const mutil::StringPiece &src) {
+    void to_underscored_name(std::string *name, const std::string_view &src) {
         name->reserve(name->size() + src.size() + 8/*just guess*/);
         for (const char *p = src.data(); p != src.data() + src.size(); ++p) {
             if (isalpha(*p)) {

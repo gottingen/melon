@@ -23,7 +23,7 @@
 #include <cstdint>
 #include <memory>
 #include <melon/utility/synchronization/lock.h>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/utility/strings/string_number_conversions.h>
 
 namespace melon {
@@ -83,7 +83,7 @@ namespace melon {
     };
 
     // Return a DefaultClusterRecoverPolicy object by params.
-    bool GetRecoverPolicyByParams(const mutil::StringPiece &params,
+    bool GetRecoverPolicyByParams(const std::string_view &params,
                                   std::shared_ptr<ClusterRecoverPolicy> *ptr_out);
 
 } // namespace melon

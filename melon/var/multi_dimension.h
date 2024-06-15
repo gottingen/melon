@@ -62,11 +62,11 @@ namespace melon::var {
 
         explicit MultiDimension(const key_type &labels);
 
-        MultiDimension(const mutil::StringPiece &name,
+        MultiDimension(const std::string_view &name,
                        const key_type &labels);
 
-        MultiDimension(const mutil::StringPiece &prefix,
-                       const mutil::StringPiece &name,
+        MultiDimension(const std::string_view &prefix,
+                       const std::string_view &name,
                        const key_type &labels);
 
         ~MultiDimension();

@@ -23,7 +23,7 @@
 #define MELON_RPC_RESTFUL_H_
 
 #include <string>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/rpc/server.h>
 
 
@@ -48,13 +48,13 @@ namespace melon {
     // * path_out->prefix is normalized as
     //   prefix := "/COMPONENT" prefix | "" (no dot in COMPONENT)
     // Returns true on success.
-    bool ParseRestfulPath(mutil::StringPiece path_in, RestfulMethodPath *path_out);
+    bool ParseRestfulPath(std::string_view path_in, RestfulMethodPath *path_out);
 
     // Parse "PATH1 => NAME1, PATH2 => NAME2 ..." where:
     // * PATHs are acceptible by ParseRestfulPath.
     // * NAMEs are valid as method names in protobuf.
     // Returns true on success.
-    bool ParseRestfulMappings(const mutil::StringPiece &mappings,
+    bool ParseRestfulMappings(const std::string_view &mappings,
                               std::vector<RestfulMapping> *list);
 
     struct RestfulMethodProperty : public Server::MethodProperty {
@@ -94,7 +94,7 @@ namespace melon {
         // Find the method by path.
         // Time complexity in worst-case is #slashes-in-input * log(#paths-stored)
         const Server::MethodProperty *
-        FindMethodProperty(const mutil::StringPiece &method_path,
+        FindMethodProperty(const std::string_view &method_path,
                            std::string *unresolved_path) const;
 
         const std::string &service_name() const { return _service_name; }

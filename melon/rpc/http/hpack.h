@@ -23,7 +23,7 @@
 #define  MELON_RPC_HTTP_HPACK_H_
 
 #include <melon/base/iobuf.h>                             // mutil::IOBuf
-#include <melon/utility/strings/string_piece.h>              // mutil::StringPiece
+#include <string_view>
 #include <melon/rpc/http/http2.h>
 #include <melon/rpc/describable.h>
 

@@ -15,7 +15,7 @@
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/utility/files/file_path.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/utility/strings/string_util.h>
 #include "melon/utility/strings/stringprintf.h"
 #include "melon/utility/strings/utf_string_conversions.h"

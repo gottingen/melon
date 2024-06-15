@@ -299,7 +299,7 @@ namespace melon::var::detail {
             int c = 0;
             os << "{\"label\":\"";
             if (sp) {
-                os << mutil::StringPiece(sp.field(), sp.length());
+                os << std::string_view(sp.field(), sp.length());
                 ++sp;
             } else {
                 os << "Vector[" << j << ']';

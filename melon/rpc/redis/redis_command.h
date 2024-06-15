@@ -40,11 +40,11 @@ namespace melon {
 
     // Just convert the command to the text format of redis without processing the
     // specifiers(%) inside.
-    mutil::Status RedisCommandNoFormat(mutil::IOBuf *buf, const mutil::StringPiece &command);
+    mutil::Status RedisCommandNoFormat(mutil::IOBuf *buf, const std::string_view &command);
 
     // Concatenate components to form a redis command.
     mutil::Status RedisCommandByComponents(mutil::IOBuf *buf,
-                                           const mutil::StringPiece *components,
+                                           const std::string_view *components,
                                            size_t num_components);
 
     // A parser used to parse redis raw command.
@@ -55,7 +55,7 @@ namespace melon {
         // Parse raw message from `buf'. Return PARSE_OK and set the parsed command
         // to `args' and length to `len' if successful. Memory of args are allocated
         // in `arena'.
-        ParseError Consume(mutil::IOBuf &buf, std::vector<mutil::StringPiece> *args,
+        ParseError Consume(mutil::IOBuf &buf, std::vector<std::string_view> *args,
                            mutil::Arena *arena);
 
         size_t ParsedArgsSize();
@@ -67,7 +67,7 @@ namespace melon {
         bool _parsing_array;            // if the parser has met array indicator '*'
         int _length;                    // array length
         int _index;                     // current parsing array index
-        std::vector<mutil::StringPiece> _args;  // parsed command string
+        std::vector<std::string_view> _args;  // parsed command string
     };
 
 } // namespace melon

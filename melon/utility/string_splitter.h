@@ -73,7 +73,7 @@ public:
                           char separator,
                           EmptyFieldAction action = SKIP_EMPTY_FIELD);
     // Allows containing embedded '\0' characters and separator can be '\0',
-    inline StringSplitter(const StringPiece& input, char separator,
+    inline StringSplitter(const std::string_view& input, char separator,
                           EmptyFieldAction action = SKIP_EMPTY_FIELD);
 
     // Move splitter forward.
@@ -87,7 +87,7 @@ public:
     // not be '\0' because we don't modify `input'.
     inline const char* field() const;
     inline size_t length() const;
-    inline StringPiece field_sp() const;
+    inline std::string_view field_sp() const;
 
     // Cast field to specific type, and write the value into `pv'.
     // Returns 0 on success, -1 otherwise.
@@ -142,7 +142,7 @@ public:
     // not be '\0' because we don't modify `input'.
     inline const char* field() const;
     inline size_t length() const;
-    inline StringPiece field_sp() const;
+    inline std::string_view field_sp() const;
 
     // Cast field to specific type, and write the value into `pv'.
     // Returns 0 on success, -1 otherwise.
@@ -186,7 +186,7 @@ public:
                                  char pair_delimiter,
                                  char key_value_delimiter)
         : _sp(str_begin, str_end, pair_delimiter)
-        , _delim_pos(StringPiece::npos)
+        , _delim_pos(std::string_view::npos)
         , _key_value_delim(key_value_delimiter) {
         UpdateDelimiterPosition();
     }
@@ -197,24 +197,24 @@ public:
         : KeyValuePairsSplitter(str_begin, NULL,
                 pair_delimiter, key_value_delimiter) {}
 
-    inline KeyValuePairsSplitter(const StringPiece &sp,
+    inline KeyValuePairsSplitter(const std::string_view &sp,
                                  char pair_delimiter,
                                  char key_value_delimiter)
         : KeyValuePairsSplitter(sp.begin(), sp.end(),
                 pair_delimiter, key_value_delimiter) {}
 
-    inline StringPiece key() {
+    inline std::string_view key() {
         return key_and_value().substr(0, _delim_pos);
     }
 
-    inline StringPiece value() {
+    inline std::string_view value() {
         return key_and_value().substr(_delim_pos + 1);
     }
 
     // Get the current value of key and value
     // in the format of "key=value"
-    inline StringPiece key_and_value() {
-        return StringPiece(_sp.field(), _sp.length());
+    inline std::string_view key_and_value() {
+        return std::string_view(_sp.field(), _sp.length());
     }
 
     // Move splitter forward.
@@ -237,7 +237,7 @@ private:
 
 private:
     StringSplitter _sp;
-    StringPiece::size_type _delim_pos;
+    std::string_view::size_type _delim_pos;
     const char _key_value_delim;
 };
 

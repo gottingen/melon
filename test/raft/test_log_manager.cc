@@ -504,7 +504,7 @@ int on_new_log(void* arg, int /*error_code*/) {
     return 0;
 }
 
-int append_entry(melon::raft::LogManager* lm, mutil::StringPiece data, int64_t index, int64_t term = 1) {
+int append_entry(melon::raft::LogManager* lm, std::string_view data, int64_t index, int64_t term = 1) {
     melon::raft::LogEntry* entry = new melon::raft::LogEntry;
     entry->AddRef();
     entry->type = melon::raft::ENTRY_TYPE_DATA;

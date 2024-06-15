@@ -1474,13 +1474,13 @@ namespace mutil {
     std::ostream &operator<<(std::ostream &os, const IOBuf &buf) {
         const size_t n = buf.backing_block_num();
         for (size_t i = 0; i < n; ++i) {
-            StringPiece blk = buf.backing_block(i);
+            std::string_view blk = buf.backing_block(i);
             os.write(blk.data(), blk.size());
         }
         return os;
     }
 
-    bool IOBuf::equals(const mutil::StringPiece &s) const {
+    bool IOBuf::equals(const std::string_view &s) const {
         if (size() != s.size()) {
             return false;
         }
@@ -1496,12 +1496,12 @@ namespace mutil {
         return true;
     }
 
-    StringPiece IOBuf::backing_block(size_t i) const {
+    std::string_view IOBuf::backing_block(size_t i) const {
         if (i < _ref_num()) {
             const BlockRef &r = _ref_at(i);
-            return StringPiece(r.block->data + r.offset, r.length);
+            return std::string_view(r.block->data + r.offset, r.length);
         }
-        return StringPiece();
+        return std::string_view();
     }
 
     bool IOBuf::equals(const mutil::IOBuf &other) const {

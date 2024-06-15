@@ -44,6 +44,7 @@
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <cinttypes>
+#include <turbo/strings/match.h>
 #include "health_check.pb.h"
 #if defined(OS_MACOSX)
 #include <sys/event.h>
@@ -537,7 +538,7 @@ TEST_F(SocketTest, not_health_check_when_nref_hits_0) {
         ASSERT_EQ(0, fiber_session_join(wait_id));
         ASSERT_EQ(wait_id.value, data.id.value);
         ASSERT_EQ(ECONNREFUSED, data.error_code);
-        ASSERT_TRUE(mutil::StringPiece(data.error_text).starts_with(
+        ASSERT_TRUE(turbo::starts_with(std::string_view(data.error_text),
                         "Fail to connect "));
 #else
         ASSERT_EQ(-1, s->Write(&src));
@@ -701,7 +702,7 @@ TEST_F(SocketTest, health_check) {
     ASSERT_EQ(0, fiber_session_join(wait_id));
     ASSERT_EQ(wait_id.value, data.id.value);
     ASSERT_EQ(ECONNREFUSED, data.error_code);
-    ASSERT_TRUE(mutil::StringPiece(data.error_text).starts_with(
+    ASSERT_TRUE(turbo::starts_with(std::string_view(data.error_text),
                     "Fail to connect "));
     if (use_my_message) {
         ASSERT_TRUE(appended_msg);

@@ -27,9 +27,10 @@
 #include <melon/utility/status.h>
 #include <melon/base/class_name.h>
 #include <melon/rpc/extension.h>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/raft/configuration.h>
 #include <melon/raft/configuration_manager.h>
+#include <turbo/strings/ascii.h>
 
 namespace google {
     namespace protobuf {
@@ -61,19 +62,19 @@ namespace melon::raft {
                   << " sync_segment_time_us: " << m.sync_segment_time_us;
     }
 
-    inline mutil::StringPiece parse_uri(mutil::StringPiece *uri, std::string *parameter) {
+    inline std::string_view parse_uri(std::string_view *uri, std::string *parameter) {
         // ${protocol}://${parameters}
         size_t pos = uri->find("://");
-        if (pos == mutil::StringPiece::npos) {
-            return mutil::StringPiece();
+        if (pos == std::string_view::npos) {
+            return std::string_view();
         }
-        mutil::StringPiece protocol = uri->substr(0, pos);
+        std::string_view protocol = uri->substr(0, pos);
         uri->remove_prefix(pos + 3/* length of '://' */);
-        protocol.trim_spaces();
+        protocol = turbo::trim_all(protocol);
         parameter->reserve(uri->size());
         parameter->clear();
         size_t removed_spaces = 0;
-        for (mutil::StringPiece::const_iterator
+        for (std::string_view::const_iterator
                      iter = uri->begin(); iter != uri->end(); ++iter) {
             if (!isspace(*iter)) {
                 parameter->push_back(*iter);
@@ -152,7 +153,7 @@ namespace melon::raft {
 
         // Create an instance of this kind of LogStorage with the parameters encoded
         // in |uri|
-        // Return the address referenced to the instance on success, NULL otherwise.
+        // Return the address referenced to the instance on success, nullptr otherwise.
         virtual LogStorage *new_instance(const std::string &uri) const = 0;
 
         static LogStorage *create(const std::string &uri);
@@ -188,7 +189,7 @@ namespace melon::raft {
 
         // Create an instance of this kind of RaftMetaStorage with the parameters encoded
         // in |uri|
-        // Return the address referenced to the instance on success, NULL otherwise.
+        // Return the address referenced to the instance on success, nullptr otherwise.
         virtual RaftMetaStorage *new_instance(const std::string &uri) const = 0;
 
         static RaftMetaStorage *create(const std::string &uri);
@@ -227,7 +228,7 @@ namespace melon::raft {
         virtual int get_file_meta(const std::string &filename,
                                   ::google::protobuf::Message *file_meta) {
             (void) filename;
-            if (file_meta != NULL) {
+            if (file_meta != nullptr) {
                 file_meta->Clear();
             }
             return 0;
@@ -246,12 +247,12 @@ namespace melon::raft {
 
         // Add a file to the snapshot.
         // |file_meta| is an implmentation-defined protobuf message
-        // All the implementation must handle the case that |file_meta| is NULL and
+        // All the implementation must handle the case that |file_meta| is nullptr and
         // no error can be raised.
         // Note that whether the file will be created onto the backing storage is
         // implementation-defined.
         virtual int add_file(const std::string &filename) {
-            return add_file(filename, NULL);
+            return add_file(filename, nullptr);
         }
 
         virtual int add_file(const std::string &filename,
@@ -346,7 +347,7 @@ namespace melon::raft {
 
         // Create an instance of this kind of SnapshotStorage with the parameters encoded
         // in |uri|
-        // Return the address referenced to the instance on success, NULL otherwise.
+        // Return the address referenced to the instance on success, nullptr otherwise.
         virtual SnapshotStorage *new_instance(const std::string &uri) const WARN_UNUSED_RESULT = 0;
 
         static SnapshotStorage *create(const std::string &uri);

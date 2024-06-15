@@ -31,6 +31,7 @@
 #include <melon/rpc/policy/rtmp_protocol.h>       // policy::*
 #include <melon/rpc/rtmp/rtmp.h>
 #include <melon/rpc/rtmp/rtmp_utils.h>
+#include <turbo/strings/match.h>
 
 
 namespace melon {
@@ -581,7 +582,7 @@ mutil::Status AVCDecoderConfigurationRecord::Create(const mutil::IOBuf& buf) {
 }
 
 mutil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len) {
-    mutil::StringPiece buf((const char*)data, len);
+    std::string_view buf((const char*)data, len);
     if (buf.size() < 6) {
         return mutil::Status(EINVAL, "Length=%lu is not long enough",
                             (unsigned long)buf.size());
@@ -619,7 +620,8 @@ mutil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len
             if (!st.ok()) {
                 return st;
             }
-            sps_list.push_back(buf.substr(2, sps_length).as_string());
+            auto sv = buf.substr(2, sps_length);
+            sps_list.push_back(std::string(sv.data(), sv.size()));
         }
         buf.remove_prefix(2 + sps_length);
     }
@@ -639,7 +641,7 @@ mutil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len
             return mutil::Status(EINVAL, "Not enough data to decode PPS");
         }
         if (pps_length > 0) {
-            pps_list.push_back(buf.substr(2, pps_length).as_string());
+            pps_list.push_back(std::string(buf.data() + 2, pps_length));
         }
         buf.remove_prefix(2 + pps_length);
     }
@@ -647,7 +649,7 @@ mutil::Status AVCDecoderConfigurationRecord::Create(const void* data, size_t len
 }
 
 mutil::Status AVCDecoderConfigurationRecord::ParseSPS(
-    const mutil::StringPiece& buf, size_t sps_length) {
+    const std::string_view& buf, size_t sps_length) {
     // for NALU, 7.3.1 NAL unit syntax
     // H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 61.
     if (buf.empty()) {
@@ -1312,7 +1314,7 @@ int RtmpStreamBase::SendCuePoint(const RtmpCuePoint& cuepoint) {
 }
 
 int RtmpStreamBase::SendMetaData(const RtmpMetaData& metadata,
-                                 const mutil::StringPiece& name) {
+                                 const std::string_view& name) {
     mutil::IOBuf req_buf;
     {
         mutil::IOBufAsZeroCopyOutputStream zc_stream(&req_buf);
@@ -1467,7 +1469,7 @@ int RtmpStreamBase::SendAVCMessage(const RtmpAVCMessage& msg) {
     return _rtmpsock->Write(msg2);
 }
 
-int RtmpStreamBase::SendStopMessage(const mutil::StringPiece&) {
+int RtmpStreamBase::SendStopMessage(const std::string_view&) {
     return -1;
 }
 
@@ -1495,7 +1497,7 @@ void RtmpStreamBase::OnCuePoint(RtmpCuePoint* cuepoint) {
               << "] ignored CuePoint{" << cuepoint->data << '}';
 }
 
-void RtmpStreamBase::OnMetaData(RtmpMetaData* metadata, const mutil::StringPiece& name) {
+void RtmpStreamBase::OnMetaData(RtmpMetaData* metadata, const std::string_view& name) {
     LOG(INFO) << remote_side() << '[' << stream_id()
               << "] ignored MetaData{" << metadata->data << '}'
               << " name{" << name << '}';
@@ -1561,7 +1563,7 @@ void RtmpStreamBase::CallOnCuePoint(RtmpCuePoint* obj) {
     }
 }
 
-void RtmpStreamBase::CallOnMetaData(RtmpMetaData* obj, const mutil::StringPiece& name) {
+void RtmpStreamBase::CallOnMetaData(RtmpMetaData* obj, const std::string_view& name) {
     if (BeginProcessingMessage("OnMetaData()")) {
         OnMetaData(obj, name);
         EndProcessingMessage();
@@ -2003,7 +2005,7 @@ const char* RtmpPublishType2Str(RtmpPublishType type) {
     return "Unknown RtmpPublishType";
 }
 
-bool Str2RtmpPublishType(const mutil::StringPiece& str, RtmpPublishType* type) {
+bool Str2RtmpPublishType(const std::string_view& str, RtmpPublishType* type) {
     if (str == "record") {
         *type = RTMP_PUBLISH_RECORD;
         return true;
@@ -2017,7 +2019,7 @@ bool Str2RtmpPublishType(const mutil::StringPiece& str, RtmpPublishType* type) {
     return false;
 }
 
-int RtmpClientStream::Publish(const mutil::StringPiece& name,
+int RtmpClientStream::Publish(const std::string_view& name,
                               RtmpPublishType type) {
     mutil::IOBuf req_buf;
     {
@@ -2196,8 +2198,8 @@ std::string RtmpClientStream::rtmp_url() const {
     if (_client_impl == NULL) {
         return std::string();
     }
-    mutil::StringPiece tcurl = _client_impl->options().tcUrl;
-    mutil::StringPiece stream_name = _options.stream_name();
+    std::string_view tcurl = _client_impl->options().tcUrl;
+    std::string_view stream_name = _options.stream_name();
     std::string result;
     result.reserve(tcurl.size() + 1 + stream_name.size());
     result.append(tcurl.data(), tcurl.size());
@@ -2311,7 +2313,7 @@ void RetryingClientMessageHandler::OnCuePoint(melon::RtmpCuePoint* cuepoint) {
     _parent->CallOnCuePoint(cuepoint);
 }
 
-void RetryingClientMessageHandler::OnMetaData(melon::RtmpMetaData* metadata, const mutil::StringPiece& name) {
+void RetryingClientMessageHandler::OnMetaData(melon::RtmpMetaData* metadata, const std::string_view& name) {
     _parent->CallOnMetaData(metadata, name);
 }
 
@@ -2481,7 +2483,7 @@ int RtmpRetryingClientStream::SendCuePoint(const RtmpCuePoint& obj) {
     return ptr->SendCuePoint(obj);
 }
 
-int RtmpRetryingClientStream::SendMetaData(const RtmpMetaData& obj, const mutil::StringPiece& name) {
+int RtmpRetryingClientStream::SendMetaData(const RtmpMetaData& obj, const std::string_view& name) {
     mutil::intrusive_ptr<RtmpStreamBase> ptr;
     if (AcquireStreamToSend(&ptr) != 0) {
         return -1;
@@ -2625,7 +2627,7 @@ int RtmpServerStream::OnPause(bool pause, double offset_ms) {
 
 void RtmpServerStream::OnSetBufferLength(uint32_t /*buffer_length_ms*/) {}
 
-int RtmpServerStream::SendStopMessage(const mutil::StringPiece& error_desc) {
+int RtmpServerStream::SendStopMessage(const std::string_view& error_desc) {
     if (_rtmpsock == NULL) {
         errno = EINVAL;
         return -1;
@@ -2663,7 +2665,7 @@ int RtmpServerStream::SendStopMessage(const mutil::StringPiece& error_desc) {
         }
         info.set_level(RTMP_INFO_LEVEL_ERROR);
         if (!error_desc.empty()) {
-            info.set_description(error_desc.as_string());
+            info.set_description(std::string(error_desc.data(), error_desc.size()));
         }
         WriteAMFObject(info, &ostream);
     }
@@ -2721,34 +2723,34 @@ void RtmpServerStream::OnStopInternal() {
     }
 }
 
-mutil::StringPiece RemoveRtmpPrefix(const mutil::StringPiece& url_in) {
-    if (!url_in.starts_with("rtmp://")) {
+std::string_view RemoveRtmpPrefix(const std::string_view& url_in) {
+    if (!turbo::starts_with(url_in, "rtmp://")) {
         return url_in;
     }
-    mutil::StringPiece url = url_in;
+    std::string_view url = url_in;
     size_t i = 7;
     for (; i < url.size() && url[i] == '/'; ++i);
     url.remove_prefix(i);
     return url;
 }
 
-mutil::StringPiece RemoveProtocolPrefix(const mutil::StringPiece& url_in) {
+std::string_view RemoveProtocolPrefix(const std::string_view& url_in) {
     size_t proto_pos = url_in.find("://");
-    if (proto_pos == mutil::StringPiece::npos) {
+    if (proto_pos == std::string_view::npos) {
         return url_in;
     }
-    mutil::StringPiece url = url_in;
+    std::string_view url = url_in;
     size_t i = proto_pos + 3;
     for (; i < url.size() && url[i] == '/'; ++i);
     url.remove_prefix(i);
     return url;
 }
 
-void ParseRtmpHostAndPort(const mutil::StringPiece& host_and_port,
-                          mutil::StringPiece* host,
-                          mutil::StringPiece* port) {
+void ParseRtmpHostAndPort(const std::string_view& host_and_port,
+                          std::string_view* host,
+                          std::string_view* port) {
     size_t colon_pos = host_and_port.find(':');
-    if (colon_pos == mutil::StringPiece::npos) {
+    if (colon_pos == std::string_view::npos) {
         if (host) {
             *host = host_and_port;
         }
@@ -2765,12 +2767,12 @@ void ParseRtmpHostAndPort(const mutil::StringPiece& host_and_port,
     }
 }
 
-mutil::StringPiece RemoveQueryStrings(const mutil::StringPiece& stream_name_in,
-                                     mutil::StringPiece* query_strings) {
+std::string_view RemoveQueryStrings(const std::string_view& stream_name_in,
+                                     std::string_view* query_strings) {
     const size_t qm_pos = stream_name_in.find('?');
-    if (qm_pos == mutil::StringPiece::npos) {
+    if (qm_pos == std::string_view::npos) {
         if (query_strings) {
-            query_strings->clear();
+            *query_strings = std::string_view();
         }
         return stream_name_in;
     } else {
@@ -2782,16 +2784,16 @@ mutil::StringPiece RemoveQueryStrings(const mutil::StringPiece& stream_name_in,
 }
 
 // Split vhost from *app in forms of "APP?vhost=..." and overwrite *host.
-static void SplitVHostFromApp(const mutil::StringPiece& app_and_vhost,
-                              mutil::StringPiece* app,
-                              mutil::StringPiece* vhost) {
+static void SplitVHostFromApp(const std::string_view& app_and_vhost,
+                              std::string_view* app,
+                              std::string_view* vhost) {
     const size_t q_pos = app_and_vhost.find('?');
-    if (q_pos == mutil::StringPiece::npos) {
+    if (q_pos == std::string_view::npos) {
         if (app) {
             *app = app_and_vhost;
         }
         if (vhost) {
-            vhost->clear();
+            *vhost = std::string_view();
         }
         return;
     }
@@ -2800,41 +2802,41 @@ static void SplitVHostFromApp(const mutil::StringPiece& app_and_vhost,
         *app = app_and_vhost.substr(0, q_pos);
     }
     if (vhost) {
-        mutil::StringPiece qstr = app_and_vhost.substr(q_pos + 1);
+        std::string_view qstr = app_and_vhost.substr(q_pos + 1);
         mutil::StringSplitter sp(qstr.data(), qstr.data() + qstr.size(), '&');
         for (; sp; ++sp) {
-            mutil::StringPiece field(sp.field(), sp.length());
-            if (field.starts_with("vhost=")) {
+            std::string_view field(sp.field(), sp.length());
+            if (turbo::starts_with(field, "vhost=")) {
                 *vhost = field.substr(6);
                 // vhost cannot have port.
                 const size_t colon_pos = vhost->find_last_of(':');
-                if (colon_pos != mutil::StringPiece::npos) {
+                if (colon_pos != std::string_view::npos) {
                     vhost->remove_suffix(vhost->size() - colon_pos);
                 }
                 return;
             }
         }
-        vhost->clear();
+        *vhost = std::string_view();
     }
 }
 
-void ParseRtmpURL(const mutil::StringPiece& rtmp_url_in,
-                  mutil::StringPiece* host,
-                  mutil::StringPiece* vhost,
-                  mutil::StringPiece* port,
-                  mutil::StringPiece* app,
-                  mutil::StringPiece* stream_name) {
+void ParseRtmpURL(const std::string_view& rtmp_url_in,
+                  std::string_view* host,
+                  std::string_view* vhost,
+                  std::string_view* port,
+                  std::string_view* app,
+                  std::string_view* stream_name) {
     if (stream_name) {
-        stream_name->clear();
+        *stream_name = std::string_view();
     }
-    mutil::StringPiece rtmp_url = RemoveRtmpPrefix(rtmp_url_in);
+    std::string_view rtmp_url = RemoveRtmpPrefix(rtmp_url_in);
     size_t slash1_pos = rtmp_url.find_first_of('/');
-    if (slash1_pos == mutil::StringPiece::npos) {
+    if (slash1_pos == std::string_view::npos) {
         if (host || port) {
             ParseRtmpHostAndPort(rtmp_url, host, port);
         }
         if (app) {
-            app->clear();
+            *app = std::string_view();
         }
         return;
     }
@@ -2846,7 +2848,7 @@ void ParseRtmpURL(const mutil::StringPiece& rtmp_url_in,
              rtmp_url[slash1_pos] == '/'; ++slash1_pos);
     rtmp_url.remove_prefix(slash1_pos);
     size_t slash2_pos = rtmp_url.find_first_of('/');
-    if (slash2_pos == mutil::StringPiece::npos) {
+    if (slash2_pos == std::string_view::npos) {
         return SplitVHostFromApp(rtmp_url, app, vhost);
     }
     SplitVHostFromApp(rtmp_url.substr(0, slash2_pos), app, vhost);
@@ -2859,10 +2861,10 @@ void ParseRtmpURL(const mutil::StringPiece& rtmp_url_in,
     }
 }
 
-std::string MakeRtmpURL(const mutil::StringPiece& host,
-                        const mutil::StringPiece& port,
-                        const mutil::StringPiece& app,
-                        const mutil::StringPiece& stream_name) {
+std::string MakeRtmpURL(const std::string_view& host,
+                        const std::string_view& port,
+                        const std::string_view& app,
+                        const std::string_view& stream_name) {
     std::string result;
     result.reserve(15 + host.size() + app.size() + stream_name.size());
     result.append("rtmp://");

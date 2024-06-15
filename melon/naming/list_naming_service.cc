@@ -30,9 +30,9 @@
 namespace melon::naming {
 
 // Defined in file_naming_service.cpp
-    bool SplitIntoServerAndTag(const mutil::StringPiece &line,
-                               mutil::StringPiece *server_addr,
-                               mutil::StringPiece *tag);
+    bool SplitIntoServerAndTag(const std::string_view &line,
+                               std::string_view *server_addr,
+                               std::string_view *tag);
 
     int ParseServerList(const char *service_name,
                         std::vector<ServerNode> *servers) {
@@ -49,8 +49,8 @@ namespace melon::naming {
         }
         for (mutil::StringSplitter sp(service_name, ','); sp != NULL; ++sp) {
             line.assign(sp.field(), sp.length());
-            mutil::StringPiece addr;
-            mutil::StringPiece tag;
+            std::string_view addr;
+            std::string_view tag;
             if (!SplitIntoServerAndTag(line, &addr, &tag)) {
                 continue;
             }
@@ -63,7 +63,7 @@ namespace melon::naming {
             }
             ServerNode node;
             node.addr = point;
-            tag.CopyToString(&node.tag);
+            node.tag.assign(tag.data(), tag.size());
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {

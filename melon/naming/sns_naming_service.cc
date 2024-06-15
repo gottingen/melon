@@ -88,7 +88,7 @@ namespace melon::naming {
     SnsNamingClient::~SnsNamingClient() {
         if (_registered.load(std::memory_order_acquire)) {
             fiber_stop(_th);
-            fiber_join(_th, NULL);
+            fiber_join(_th, nullptr);
             do_cancel();
         }
     }
@@ -106,7 +106,7 @@ namespace melon::naming {
         if (do_register() != 0) {
             return -1;
         }
-        if (fiber_start_background(&_th, NULL, periodic_renew, this) != 0) {
+        if (fiber_start_background(&_th, nullptr, periodic_renew, this) != 0) {
             LOG(ERROR) << "Fail to start background PeriodicRenew";
             return -1;
         }
@@ -115,14 +115,14 @@ namespace melon::naming {
 
     int SnsNamingClient::do_register() {
         Channel *chan = GetOrNewSnsChannel();
-        if (NULL == chan) {
+        if (nullptr == chan) {
             LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         Controller cntl;
         melon::SnsService_Stub stub(chan);
         melon::SnsResponse response;
-        stub.registry(&cntl, &_params, &response, NULL);
+        stub.registry(&cntl, &_params, &response, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
@@ -137,7 +137,7 @@ namespace melon::naming {
 
     int SnsNamingClient::do_renew() const {
         Channel *chan = GetOrNewSnsChannel();
-        if (NULL == chan) {
+        if (nullptr == chan) {
             LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
@@ -146,7 +146,7 @@ namespace melon::naming {
         melon::SnsResponse response;
         auto request = _params;
         request.set_status(to_peer_status(FLAGS_sns_status));
-        stub.update(&cntl, &request, &response, NULL);
+        stub.update(&cntl, &request, &response, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
@@ -160,14 +160,14 @@ namespace melon::naming {
 
     int SnsNamingClient::do_cancel() const {
         Channel *chan = GetOrNewSnsChannel();
-        if (NULL == chan) {
+        if (nullptr == chan) {
             LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
         Controller cntl;
         melon::SnsService_Stub stub(chan);
         melon::SnsResponse response;
-        stub.cancel(&cntl, &_params, &response, NULL);
+        stub.cancel(&cntl, &_params, &response, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;
@@ -186,7 +186,7 @@ namespace melon::naming {
                                mutil::fast_rand_less_than(FLAGS_sns_renew_interval_s / 2);
         if (fiber_usleep(init_sleep_s * 1000000) != 0) {
             if (errno == ESTOP) {
-                return NULL;
+                return nullptr;
             }
         }
 
@@ -209,12 +209,12 @@ namespace melon::naming {
             consecutive_renew_error = 0;
             fiber_usleep(FLAGS_sns_renew_interval_s * 1000000);
         }
-        return NULL;
+        return nullptr;
     }
 
     int SnsNamingService::GetServers(const char *service_name,
                                      std::vector<ServerNode> *servers) {
-        if (service_name == NULL || *service_name == '\0' ||
+        if (service_name == nullptr || *service_name == '\0' ||
             FLAGS_sns_env.empty() ||
             FLAGS_sns_status.empty() ||
             FLAGS_sns_zone.empty() ||
@@ -224,7 +224,7 @@ namespace melon::naming {
         }
 
         Channel *chan = GetOrNewSnsChannel();
-        if (NULL == chan) {
+        if (nullptr == chan) {
             LOG(ERROR) << "Fail to create discovery channel";
             return -1;
         }
@@ -249,7 +249,7 @@ namespace melon::naming {
             ++zone_sp;
         }
 
-        stub.naming(&cntl, &request, &response, NULL);
+        stub.naming(&cntl, &request, &response, nullptr);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
             return -1;

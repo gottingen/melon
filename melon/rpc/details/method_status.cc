@@ -50,7 +50,7 @@ MethodStatus::MethodStatus()
 MethodStatus::~MethodStatus() {
 }
 
-int MethodStatus::Expose(const mutil::StringPiece& prefix) {
+int MethodStatus::Expose(const std::string_view& prefix) {
     if (_nconcurrency_var.expose_as(prefix, "concurrency") != 0) {
         return -1;
     }

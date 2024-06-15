@@ -24,13 +24,14 @@
 #include <melon/rpc/restful.h>
 #include <melon/rpc/details/method_status.h>
 #include <turbo/log/vlog_is_on.h>
-
+#include <turbo/strings/ascii.h>
+#include <turbo/strings/match.h>
 
 namespace melon {
 
     extern bool is_url_char(char c);
 
-    inline mutil::StringPiece remove_last_char(mutil::StringPiece s) {
+    inline std::string_view remove_last_char(std::string_view s) {
         if (!s.empty()) {
             s.remove_suffix(1);
         }
@@ -59,10 +60,10 @@ namespace melon {
         if (has_wildcard) {
             s.append(prefix);
             s.push_back('*');
-            mutil::StringPiece tmp = remove_last_char(postfix);
+            std::string_view tmp = remove_last_char(postfix);
             s.append(tmp.data(), tmp.size());
         } else {
-            mutil::StringPiece tmp = remove_last_char(prefix);
+            std::string_view tmp = remove_last_char(prefix);
             s.append(tmp.data(), tmp.size());
         }
         return s;
@@ -83,9 +84,9 @@ namespace melon {
         return os;
     }
 
-    bool ParseRestfulPath(mutil::StringPiece path,
+    bool ParseRestfulPath(std::string_view path,
                           RestfulMethodPath *path_out) {
-        path.trim_spaces();
+        path = turbo::trim_all(path);
         if (path.empty()) {
             LOG(ERROR) << "Parameter[path] is empty";
             return false;
@@ -110,8 +111,8 @@ namespace melon {
         }
         path_out->has_wildcard = (star_index >= 0);
 
-        mutil::StringPiece first_part;
-        mutil::StringPiece second_part;
+        std::string_view first_part;
+        std::string_view second_part;
         if (star_index < 0) {
             first_part = path;
         } else {
@@ -133,9 +134,9 @@ namespace melon {
             first_part.remove_prefix(i);
         }
         const size_t slash_pos = first_part.find('/');
-        if (slash_pos != mutil::StringPiece::npos) {
+        if (slash_pos != std::string_view::npos) {
             path_out->service_name.assign(first_part.data(), slash_pos);
-            mutil::StringPiece prefix_raw = first_part.substr(slash_pos + 1);
+            std::string_view prefix_raw = first_part.substr(slash_pos + 1);
             mutil::StringSplitter sp(prefix_raw.data(),
                                      prefix_raw.data() + prefix_raw.size(), '/');
             for (; sp; ++sp) {
@@ -197,7 +198,7 @@ namespace melon {
         return true;
     }
 
-    bool ParseRestfulMappings(const mutil::StringPiece &mappings,
+    bool ParseRestfulMappings(const std::string_view &mappings,
                               std::vector<RestfulMapping> *list) {
         if (list == NULL) {
             LOG(ERROR) << "Param[list] is NULL";
@@ -226,14 +227,14 @@ namespace melon {
                 if (i < n && p[i] == '>') {
                     RestfulMapping m;
                     // Parse left part of the arrow as url path.
-                    mutil::StringPiece path(sp.field(), equal_sign_pos);
+                    std::string_view path(sp.field(), equal_sign_pos);
                     if (!ParseRestfulPath(path, &m.path)) {
                         LOG(ERROR) << "Fail to parse path=`" << path << '\'';
                         return false;
                     }
                     // Treat right part of the arrow as method_name.
-                    mutil::StringPiece method_name_piece(p + i + 1, n - (i + 1));
-                    method_name_piece.trim_spaces();
+                    std::string_view method_name_piece(p + i + 1, n - (i + 1));
+                    method_name_piece = turbo::trim_all(method_name_piece);
                     if (method_name_piece.empty()) {
                         LOG(ERROR) << "No method name in " << nmappings
                                    << "-th mapping";
@@ -249,7 +250,7 @@ namespace melon {
             // If we don't get a valid mapping from the string, issue error.
             if (!added_sth) {
                 LOG(ERROR) << "Invalid mapping: "
-                           << mutil::StringPiece(sp.field(), sp.length());
+                           << std::string_view(sp.field(), sp.length());
                 return false;
             }
         }
@@ -367,7 +368,7 @@ namespace melon {
 // Remove last component from the (normalized) path:
 // Say /A/B/C/ -> /A/B/
 // Notice that /A/ is modified to / and returns true.
-    static bool RemoveLastComponent(mutil::StringPiece *path) {
+    static bool RemoveLastComponent(std::string_view *path) {
         if (path->empty()) {
             return false;
         }
@@ -383,7 +384,7 @@ namespace melon {
     }
 
 // Normalized as /A/B/C/
-    static std::string NormalizeSlashes(const mutil::StringPiece &path) {
+    static std::string NormalizeSlashes(const std::string_view &path) {
         std::string out_path;
         out_path.reserve(path.size() + 2);
         mutil::StringSplitter sp(path.data(), path.data() + path.size(), '/');
@@ -405,21 +406,21 @@ namespace melon {
     }
 
     struct PrefixLess {
-        bool operator()(const mutil::StringPiece &path,
+        bool operator()(const std::string_view &path,
                         const RestfulMethodProperty *p) const {
             return path < p->path.prefix;
         }
     };
 
     const Server::MethodProperty *
-    RestfulMap::FindMethodProperty(const mutil::StringPiece &method_path,
+    RestfulMap::FindMethodProperty(const std::string_view &method_path,
                                    std::string *unresolved_path) const {
         if (_sorted_paths.empty()) {
             LOG(ERROR) << "_sorted_paths is empty, method_path=" << method_path;
             return NULL;
         }
         const std::string full_path = NormalizeSlashes(method_path);
-        mutil::StringPiece sub_path = full_path;
+        std::string_view sub_path = full_path;
         PathList::const_iterator last_find_pos = _sorted_paths.end();
         do {
             if (last_find_pos == _sorted_paths.begin()) {
@@ -435,10 +436,10 @@ namespace melon {
 
             bool matched = false;
             bool remove_heading_slash_from_unresolved = false;
-            mutil::StringPiece left;
+            std::string_view left;
             do {
                 const RestfulMethodPath &rpath = (*it)->path;
-                if (!sub_path.starts_with(rpath.prefix)) {
+                if (!turbo::starts_with(sub_path, rpath.prefix)) {
                     VLOG(RPC_VLOG_LEVEL + 1)
                     << "sub_path=" << sub_path << " does not match prefix="
                     << rpath.prefix << " full_path=" << full_path
@@ -464,7 +465,7 @@ namespace melon {
                     left.remove_prefix(removal);
                 }
                 // Match postfix.
-                if (left.ends_with(rpath.postfix)) {
+                if (turbo::ends_with(left, rpath.postfix)) {
                     left.remove_suffix(rpath.postfix.size());
                     if (!left.empty() && !rpath.has_wildcard) {
                         VLOG(RPC_VLOG_LEVEL + 1)

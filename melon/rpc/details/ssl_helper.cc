@@ -32,14 +32,16 @@
 #include <melon/utility/string_splitter.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/details/ssl_helper.h>
+#include <turbo/strings/ascii.h>
+#include <turbo/strings/match.h>
 
 namespace melon {
 
 #ifndef OPENSSL_NO_DH
-static DH* g_dh_1024 = NULL;
-static DH* g_dh_2048 = NULL;
-static DH* g_dh_4096 = NULL;
-static DH* g_dh_8192 = NULL;
+static DH* g_dh_1024 = nullptr;
+static DH* g_dh_2048 = nullptr;
+static DH* g_dh_4096 = nullptr;
+static DH* g_dh_8192 = nullptr;
 #endif  // OPENSSL_NO_DH
 
 static const char* const PEM_START = "-----BEGIN";
@@ -72,8 +74,8 @@ static int ParseSSLProtocols(const std::string& str_protocol) {
     mutil::StringSplitter sp(str_protocol.data(),
                              str_protocol.data() + str_protocol.size(), ',');
     for (; sp; ++sp) {
-        mutil::StringPiece protocol(sp.field(), sp.length());
-        protocol.trim_spaces();
+        std::string_view protocol(sp.field(), sp.length());
+        protocol = turbo::trim_all(protocol);
         if (strncasecmp(protocol.data(), "SSLv3", protocol.size()) == 0) {
             protocol_flag |= SSLv3;
         } else if (strncasecmp(protocol.data(), "TLSv1", protocol.size()) == 0) {
@@ -212,10 +214,10 @@ static DH* SSLGetDHCallback(SSL* ssl, int exp, int keylen) {
 void ExtractHostnames(X509* x, std::vector<std::string>* hostnames) {
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
     STACK_OF(GENERAL_NAME)* names = (STACK_OF(GENERAL_NAME)*)
-            X509_get_ext_d2i(x, NID_subject_alt_name, NULL, NULL);
+            X509_get_ext_d2i(x, NID_subject_alt_name, nullptr, nullptr);
     if (names) {
         for (size_t i = 0; i < static_cast<size_t>(sk_GENERAL_NAME_num(names)); i++) {
-            char* str = NULL;
+            char* str = nullptr;
             GENERAL_NAME* name = sk_GENERAL_NAME_value(names, i);
             if (name->type == GEN_DNS) {
                 if (ASN1_STRING_to_UTF8((unsigned char**)&str,
@@ -233,7 +235,7 @@ void ExtractHostnames(X509* x, std::vector<std::string>* hostnames) {
     int i = -1;
     X509_NAME* xname = X509_get_subject_name(x);
     while ((i = X509_NAME_get_index_by_NID(xname, NID_commonName, i)) != -1) {
-        char* str = NULL;
+        char* str = nullptr;
         X509_NAME_ENTRY* entry = X509_NAME_get_entry(xname, i);
         const int len = ASN1_STRING_to_UTF8((unsigned char**)&str, 
                                             X509_NAME_ENTRY_get_data(entry));
@@ -247,7 +249,7 @@ void ExtractHostnames(X509* x, std::vector<std::string>* hostnames) {
 
 struct FreeSSL {
     inline void operator()(SSL* ssl) const {
-        if (ssl != NULL) {
+        if (ssl != nullptr) {
             SSL_free(ssl);
         }
     }
@@ -255,7 +257,7 @@ struct FreeSSL {
 
 struct FreeBIO {
     inline void operator()(BIO* io) const {
-        if (io != NULL) {
+        if (io != nullptr) {
             BIO_free(io);
         }
     }
@@ -263,7 +265,7 @@ struct FreeBIO {
 
 struct FreeX509 {
     inline void operator()(X509* x) const {
-        if (x != NULL) {
+        if (x != nullptr) {
             X509_free(x);
         }
     }
@@ -271,7 +273,7 @@ struct FreeX509 {
 
 struct FreeEVPKEY {
     inline void operator()(EVP_PKEY* k) const {
-        if (k != NULL) {
+        if (k != nullptr) {
             EVP_PKEY_free(k);
         }
     }
@@ -286,7 +288,7 @@ static int LoadCertificate(SSL_CTX* ctx,
         std::unique_ptr<BIO, FreeBIO> kbio(
             BIO_new_mem_buf((void*)private_key.c_str(), -1));
         std::unique_ptr<EVP_PKEY, FreeEVPKEY> key(
-            PEM_read_bio_PrivateKey(kbio.get(), NULL, 0, NULL));
+            PEM_read_bio_PrivateKey(kbio.get(), nullptr, 0, nullptr));
         if (SSL_CTX_use_PrivateKey(ctx, key.get()) != 1) {
             LOG(ERROR) << "Fail to load " << private_key << ": "
                        << SSLError(ERR_get_error());
@@ -315,7 +317,7 @@ static int LoadCertificate(SSL_CTX* ctx,
         }
     }
     std::unique_ptr<X509, FreeX509> x(
-        PEM_read_bio_X509_AUX(cbio.get(), NULL, 0, NULL));
+        PEM_read_bio_X509_AUX(cbio.get(), nullptr, 0, nullptr));
     if (!x) {
         LOG(ERROR) << "Fail to parse " << certificate << ": "
                    << SSLError(ERR_get_error());
@@ -333,13 +335,13 @@ static int LoadCertificate(SSL_CTX* ctx,
 #if (OPENSSL_VERSION_NUMBER >= 0x10002000L)
     SSL_CTX_clear_chain_certs(ctx);
 #else
-    if (ctx->extra_certs != NULL) {
+    if (ctx->extra_certs != nullptr) {
         sk_X509_pop_free(ctx->extra_certs, X509_free);
-        ctx->extra_certs = NULL;
+        ctx->extra_certs = nullptr;
     }
 #endif
-    X509* ca = NULL;
-    while ((ca = PEM_read_bio_X509(cbio.get(), NULL, 0, NULL))) {
+    X509* ca = nullptr;
+    while ((ca = PEM_read_bio_X509(cbio.get(), nullptr, 0, nullptr))) {
         if (SSL_CTX_add_extra_chain_cert(ctx, ca) != 1) {
             LOG(ERROR) << "Fail to load chain certificate in "
                        << certificate << ": " << SSLError(ERR_get_error());
@@ -364,7 +366,7 @@ static int LoadCertificate(SSL_CTX* ctx,
         return -1;
     }
 
-    if (hostnames != NULL) {
+    if (hostnames != nullptr) {
         ExtractHostnames(x.get(), hostnames);
     }
     return 0;
@@ -414,13 +416,13 @@ static int SetSSLOptions(SSL_CTX* ctx, const std::string& ciphers,
     // TODO: Verify the CNAME in certificate matches the requesting host
     if (verify.verify_depth > 0) {
         SSL_CTX_set_verify(ctx, (SSL_VERIFY_PEER
-                                 | SSL_VERIFY_FAIL_IF_NO_PEER_CERT), NULL);
+                                 | SSL_VERIFY_FAIL_IF_NO_PEER_CERT), nullptr);
         SSL_CTX_set_verify_depth(ctx, verify.verify_depth);
         std::string cafile = verify.ca_file_path;
         if (cafile.empty()) {
             cafile = X509_get_default_cert_area() + std::string("/cert.pem");
         }
-        if (SSL_CTX_load_verify_locations(ctx, cafile.c_str(), NULL) == 0) {
+        if (SSL_CTX_load_verify_locations(ctx, cafile.c_str(), nullptr) == 0) {
             if (verify.ca_file_path.empty()) {
                 LOG(WARNING) << "Fail to load default CA file " << cafile
                              << ": " << SSLError(ERR_get_error());
@@ -431,7 +433,7 @@ static int SetSSLOptions(SSL_CTX* ctx, const std::string& ciphers,
             }
         }
     } else {
-        SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+        SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
     }
 
     SSL_CTX_set_info_callback(ctx, SSLInfoCallback);
@@ -482,27 +484,27 @@ SSL_CTX* CreateClientSSLContext(const ChannelSSLOptions& options) {
         SSL_CTX_new(SSLv23_client_method()));
     if (!ssl_ctx) {
         LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
-        return NULL;
+        return nullptr;
     }
 
     if (!options.client_cert.certificate.empty()
         && LoadCertificate(ssl_ctx.get(),
                            options.client_cert.certificate,
-                           options.client_cert.private_key, NULL) != 0) {
-        return NULL;
+                           options.client_cert.private_key, nullptr) != 0) {
+        return nullptr;
     }
 
     int protocols = ParseSSLProtocols(options.protocols);
     if (protocols < 0
         || SetSSLOptions(ssl_ctx.get(), options.ciphers,
                          protocols, options.verify) != 0) {
-        return NULL;
+        return nullptr;
     }
 
     if (!options.alpn_protocols.empty()) {
         std::vector<unsigned char> alpn_list;
         if (!BuildALPNProtocolList(options.alpn_protocols, alpn_list)) {
-            return NULL;
+            return nullptr;
         }
         SSL_CTX_set_alpn_protos(ssl_ctx.get(), alpn_list.data(), alpn_list.size());
     }
@@ -520,12 +522,12 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
         SSL_CTX_new(SSLv23_server_method()));
     if (!ssl_ctx) {
         LOG(ERROR) << "Fail to new SSL_CTX: " << SSLError(ERR_get_error());
-        return NULL;
+        return nullptr;
     }
 
     if (LoadCertificate(ssl_ctx.get(), certificate,
                         private_key, hostnames) != 0) {
-        return NULL;
+        return nullptr;
     }
 
     int protocols = TLSv1 | TLSv1_1 | TLSv1_2;
@@ -534,7 +536,7 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
     }
     if (SetSSLOptions(ssl_ctx.get(), options.ciphers,
                       protocols, options.verify) != 0) {
-        return NULL;
+        return nullptr;
     }
 
 #ifdef SSL_MODE_RELEASE_BUFFERS
@@ -552,13 +554,13 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
     SSL_CTX_set_tmp_dh_callback(ssl_ctx.get(), SSLGetDHCallback);
 
 #if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set_tmp_ecdh)
-    EC_KEY* ecdh = NULL;
+    EC_KEY* ecdh = nullptr;
     int i = OBJ_sn2nid(options.ecdhe_curve_name.c_str());
-    if (!i || ((ecdh = EC_KEY_new_by_curve_name(i)) == NULL)) {
+    if (!i || ((ecdh = EC_KEY_new_by_curve_name(i)) == nullptr)) {
         LOG(ERROR) << "Fail to find ECDHE named curve="
                    << options.ecdhe_curve_name
                    << ": " << SSLError(ERR_get_error());
-        return NULL;
+        return nullptr;
     }
     SSL_CTX_set_tmp_ecdh(ssl_ctx.get(), ecdh);
     EC_KEY_free(ecdh);
@@ -569,26 +571,26 @@ SSL_CTX* CreateServerSSLContext(const std::string& certificate,
     // Set ALPN callback to choose application protocol when alpns is not empty.
     if (alpns != nullptr && !alpns->empty()) {
         if (SetServerALPNCallback(ssl_ctx.get(), alpns) != 0) {
-            return NULL; 
+            return nullptr; 
         }
     }
     return ssl_ctx.release();
 }
 
 SSL* CreateSSLSession(SSL_CTX* ctx, SocketId id, int fd, bool server_mode) {
-    if (ctx == NULL) {
+    if (ctx == nullptr) {
         LOG(WARNING) << "Lack SSL_ctx to create an SSL session";
-        return NULL;
+        return nullptr;
     }
     SSL* ssl = SSL_new(ctx);
-    if (ssl == NULL) {
+    if (ssl == nullptr) {
         LOG(ERROR) << "Fail to SSL_new: " << SSLError(ERR_get_error());
-        return NULL;
+        return nullptr;
     }
     if (SSL_set_fd(ssl, fd) != 1) {
         LOG(ERROR) << "Fail to SSL_set_fd: " << SSLError(ERR_get_error());
         SSL_free(ssl);
-        return NULL;
+        return nullptr;
     }
 
     if (server_mode) {
@@ -673,7 +675,7 @@ static unsigned long SSLGetThreadId() {
 // may crash probably due to some TLS data used inside OpenSSL
 // Also according to performance test, there is little difference
 // between pthread mutex and fiber mutex
-static mutil::Mutex* g_ssl_mutexs = NULL;
+static mutil::Mutex* g_ssl_mutexs = nullptr;
 
 static void SSLLockCallback(int mode, int n, const char* file, int line) {
     (void)file;
@@ -706,94 +708,94 @@ int SSLThreadInit() {
 #ifndef OPENSSL_NO_DH
 
 static DH* SSLGetDH1024() {
-    BIGNUM* p = get_rfc2409_prime_1024(NULL);
+    BIGNUM* p = get_rfc2409_prime_1024(nullptr);
     if (!p) {
-        return NULL;
+        return nullptr;
     }
     // See RFC 2409, Section 6 "Oakley Groups"
     // for the reason why 2 is used as generator.
-    BIGNUM* g = NULL;
+    BIGNUM* g = nullptr;
     BN_dec2bn(&g, "2");
     if (!g) {
         BN_free(p);
-        return NULL;
+        return nullptr;
     }
     DH *dh = DH_new();
     if (!dh) {
         BN_free(p);
         BN_free(g);
-        return NULL;
+        return nullptr;
     }
-    DH_set0_pqg(dh, p, NULL, g);
+    DH_set0_pqg(dh, p, nullptr, g);
     return dh;
 }
 
 static DH* SSLGetDH2048() {
-    BIGNUM* p = get_rfc3526_prime_2048(NULL);
+    BIGNUM* p = get_rfc3526_prime_2048(nullptr);
     if (!p) {
-        return NULL;
+        return nullptr;
     }
     // See RFC 3526, Section 3 "2048-bit MODP Group"
     // for the reason why 2 is used as generator.
-    BIGNUM* g = NULL;
+    BIGNUM* g = nullptr;
     BN_dec2bn(&g, "2");
     if (!g) {
         BN_free(p);
-        return NULL;
+        return nullptr;
     }
     DH* dh = DH_new();
     if (!dh) {
         BN_free(p);
         BN_free(g);
-        return NULL;
+        return nullptr;
     }
-    DH_set0_pqg(dh, p, NULL, g);
+    DH_set0_pqg(dh, p, nullptr, g);
     return dh;
 }
 
 static DH* SSLGetDH4096() {
-    BIGNUM* p = get_rfc3526_prime_4096(NULL);
+    BIGNUM* p = get_rfc3526_prime_4096(nullptr);
     if (!p) {
-        return NULL;
+        return nullptr;
     }
     // See RFC 3526, Section 5 "4096-bit MODP Group"
     // for the reason why 2 is used as generator.
-    BIGNUM* g = NULL;
+    BIGNUM* g = nullptr;
     BN_dec2bn(&g, "2");
     if (!g) {
         BN_free(p);
-        return NULL;
+        return nullptr;
     }
     DH *dh = DH_new();
     if (!dh) {
         BN_free(p);
         BN_free(g);
-        return NULL;
+        return nullptr;
     }
-    DH_set0_pqg(dh, p, NULL, g);
+    DH_set0_pqg(dh, p, nullptr, g);
     return dh;
 }
 
 static DH* SSLGetDH8192() {
-    BIGNUM* p = get_rfc3526_prime_8192(NULL);
+    BIGNUM* p = get_rfc3526_prime_8192(nullptr);
     if (!p) {
-        return NULL;
+        return nullptr;
     }
     // See RFC 3526, Section 7 "8192-bit MODP Group"
     // for the reason why 2 is used as generator.
-    BIGNUM* g = NULL;
+    BIGNUM* g = nullptr;
     BN_dec2bn(&g, "2");
     if (!g) {
         BN_free(g);
-        return NULL;
+        return nullptr;
     }
     DH *dh = DH_new();
     if (!dh) {
         BN_free(p);
         BN_free(g);
-        return NULL;
+        return nullptr;
     }
-    DH_set0_pqg(dh, p, NULL, g);
+    DH_set0_pqg(dh, p, nullptr, g);
     return dh;
 }
 
@@ -801,19 +803,19 @@ static DH* SSLGetDH8192() {
 
 int SSLDHInit() {
 #ifndef OPENSSL_NO_DH
-    if ((g_dh_1024 = SSLGetDH1024()) == NULL) {
+    if ((g_dh_1024 = SSLGetDH1024()) == nullptr) {
         LOG(ERROR) << "Fail to initialize DH-1024";
         return -1;
     }
-    if ((g_dh_2048 = SSLGetDH2048()) == NULL) {
+    if ((g_dh_2048 = SSLGetDH2048()) == nullptr) {
         LOG(ERROR) << "Fail to initialize DH-2048";
         return -1;
     }
-    if ((g_dh_4096 = SSLGetDH4096()) == NULL) {
+    if ((g_dh_4096 = SSLGetDH4096()) == nullptr) {
         LOG(ERROR) << "Fail to initialize DH-4096";
         return -1;
     }
-    if ((g_dh_8192 = SSLGetDH8192()) == NULL) {
+    if ((g_dh_8192 = SSLGetDH8192()) == nullptr) {
         LOG(ERROR) << "Fail to initialize DH-8192";
         return -1;
     }
@@ -858,7 +860,7 @@ void Print(std::ostream& os, SSL* ssl, const char* sep) {
 
 void Print(std::ostream& os, X509* cert, const char* sep) {
     BIO* buf = BIO_new(BIO_s_mem());
-    if (buf == NULL) {
+    if (buf == nullptr) {
         return;
     }
     BIO_printf(buf, "subject=");
@@ -878,16 +880,17 @@ void Print(std::ostream& os, X509* cert, const char* sep) {
     BIO_printf(buf, "%sissuer=", sep);
     X509_NAME_print(buf, X509_get_issuer_name(cert), 0);
 
-    char* bufp = NULL;
+    char* bufp = nullptr;
     int len = BIO_get_mem_data(buf, &bufp);
-    os << mutil::StringPiece(bufp, len);
+    os << std::string_view(bufp, len);
 }
 
 std::string ALPNProtocolToString(const AdaptiveProtocolType& protocol) {
-    mutil::StringPiece name = protocol.name();
+    std::string_view name = protocol.name();
     // Default use http 1.1 version
-    if (name.starts_with("http")) {
-        name.set("http/1.1");
+    static const std::string_view kHTTP11 = "http/1.1";
+    if (turbo::starts_with(name, "http")) {
+        name = kHTTP11;
     }
 
     // ALPN extension uses 1 byte to record the protocol length

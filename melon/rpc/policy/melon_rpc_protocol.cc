@@ -167,11 +167,11 @@ namespace melon {
             }
             bool append_body = false;
             mutil::IOBuf res_body;
-            // `res' can be NULL here, in which case we don't serialize it
+            // `res' can be nullptr here, in which case we don't serialize it
             // If user calls `SetFailed' on Controller, we don't serialize
             // response either
             CompressType type = cntl->response_compress_type();
-            if (res != NULL && !cntl->Failed()) {
+            if (res != nullptr && !cntl->Failed()) {
                 if (!res->IsInitialized()) {
                     cntl->SetFailed(
                             ERESPONSE, "Missing required fields in response: %s",
@@ -354,7 +354,7 @@ namespace melon {
             }
 
             std::unique_ptr<Controller> cntl(new(std::nothrow) Controller);
-            if (NULL == cntl.get()) {
+            if (nullptr == cntl.get()) {
                 LOG(WARNING) << "Fail to new Controller";
                 return;
             }
@@ -400,7 +400,7 @@ namespace melon {
                 fiber_assign_data((void *) &server->thread_local_options());
             }
 
-            Span *span = NULL;
+            Span *span = nullptr;
             if (IsTraceable(request_meta.has_trace_id())) {
                 span = Span::CreateServerSpan(
                         request_meta.trace_id(), request_meta.span_id(),
@@ -414,7 +414,7 @@ namespace melon {
                 span->set_request_size(msg->payload.size() + msg->meta.size() + 12);
             }
 
-            MethodStatus *method_status = NULL;
+            MethodStatus *method_status = nullptr;
             do {
                 if (!server->IsRunning()) {
                     cntl->SetFailed(ELOGOFF, "Server is stopping");
@@ -442,11 +442,11 @@ namespace melon {
 
                 // NOTE(gejun): jprotobuf sends service names without packages. So the
                 // name should be changed to full when it's not.
-                mutil::StringPiece svc_name(request_meta.service_name());
-                if (svc_name.find('.') == mutil::StringPiece::npos) {
+                std::string_view svc_name(request_meta.service_name());
+                if (svc_name.find('.') == std::string_view::npos) {
                     const Server::ServiceProperty *sp =
                             server_accessor.FindServicePropertyByName(svc_name);
-                    if (NULL == sp) {
+                    if (nullptr == sp) {
                         cntl->SetFailed(ENOSERVICE, "Fail to find service=%s",
                                         request_meta.service_name().c_str());
                         break;
@@ -456,7 +456,7 @@ namespace melon {
                 const Server::MethodProperty *mp =
                         server_accessor.FindMethodPropertyByFullName(
                                 svc_name, request_meta.method_name());
-                if (NULL == mp) {
+                if (nullptr == mp) {
                     cntl->SetFailed(ENOMETHOD, "Fail to find method=%s/%s",
                                     request_meta.service_name().c_str(),
                                     request_meta.method_name().c_str());
@@ -466,7 +466,7 @@ namespace melon {
                     BadMethodRequest breq;
                     BadMethodResponse bres;
                     breq.set_service_name(request_meta.service_name());
-                    mp->service->CallMethod(mp->method, cntl.get(), &breq, &bres, NULL);
+                    mp->service->CallMethod(mp->method, cntl.get(), &breq, &bres, nullptr);
                     break;
                 }
                 // Switch to service-specific error.
@@ -569,7 +569,7 @@ namespace melon {
                 return false;
             }
             const Authenticator *auth = server->options().auth;
-            if (NULL == auth) {
+            if (nullptr == auth) {
                 // Fast pass (no authentication)
                 return true;
             }
@@ -591,7 +591,7 @@ namespace melon {
             }
 
             const fiber_session_t cid = {static_cast<uint64_t>(meta.correlation_id())};
-            Controller *cntl = NULL;
+            Controller *cntl = nullptr;
 
             StreamId remote_stream_id = meta.has_stream_settings() ? meta.stream_settings().stream_id()
                                                                    : INVALID_STREAM_ID;
@@ -697,7 +697,7 @@ namespace melon {
                 request_meta->set_method_name(cntl->sampled_request()->meta.method_name());
                 meta.set_compress_type(cntl->sampled_request()->meta.compress_type());
             } else {
-                return cntl->SetFailed(ENOMETHOD, "%s.method is NULL", __FUNCTION__);
+                return cntl->SetFailed(ENOMETHOD, "%s.method is nullptr", __FUNCTION__);
             }
             if (cntl->has_log_id()) {
                 request_meta->set_log_id(cntl->log_id());

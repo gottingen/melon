@@ -90,8 +90,8 @@ namespace melon::lb {
             const std::vector<ServerId> &servers) {
         const size_t n = _db_servers.Modify(BatchAdd, servers);
         LOG_IF(ERROR, n != servers.size())
-        << "Fail to AddServersInBatch, expected " << servers.size()
-        << " actually " << n;
+                << "Fail to AddServersInBatch, expected " << servers.size()
+                << " actually " << n;
         return n;
     }
 
@@ -99,8 +99,8 @@ namespace melon::lb {
             const std::vector<ServerId> &servers) {
         const size_t n = _db_servers.Modify(BatchRemove, servers);
         LOG_IF(ERROR, n != servers.size())
-        << "Fail to RemoveServersInBatch, expected " << servers.size()
-        << " actually " << n;
+                << "Fail to RemoveServersInBatch, expected " << servers.size()
+                << " actually " << n;
         return n;
     }
 
@@ -145,7 +145,7 @@ namespace melon::lb {
     }
 
     RandomizedLoadBalancer *RandomizedLoadBalancer::New(
-            const mutil::StringPiece &params) const {
+            const std::string_view &params) const {
         RandomizedLoadBalancer *lb = new(std::nothrow) RandomizedLoadBalancer;
         if (lb && !lb->SetParameters(params)) {
             delete lb;
@@ -177,7 +177,7 @@ namespace melon::lb {
         os << '}';
     }
 
-    bool RandomizedLoadBalancer::SetParameters(const mutil::StringPiece &params) {
+    bool RandomizedLoadBalancer::SetParameters(const std::string_view &params) {
         return GetRecoverPolicyByParams(params, &_cluster_recover_policy);
     }
 

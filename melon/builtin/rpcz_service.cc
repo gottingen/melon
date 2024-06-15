@@ -22,7 +22,6 @@
 #include <ostream>
 #include <iomanip>
 #include <gflags/gflags.h>
-#include <melon/utility/string_printf.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/time.h>

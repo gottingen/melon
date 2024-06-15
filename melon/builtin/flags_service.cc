@@ -24,7 +24,6 @@
 #include <set>
 #include <gflags/gflags.h>                  // GetAllFlags
 // CommandLineFlagInfo
-#include <melon/utility/string_printf.h>
 #include <melon/utility/string_splitter.h>
 
 #include <melon/rpc/closure_guard.h>        // ClosureGuard

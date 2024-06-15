@@ -23,7 +23,7 @@
 #include <google/protobuf/message.h>
 
 #include <melon/base/iobuf.h>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/proto/rpc/proto_base.pb.h>
 #include <melon/rpc/pb_compat.h>
 
@@ -52,35 +52,35 @@ public:
     }
     void Swap(MemcacheRequest* other);
 
-    bool Get(const mutil::StringPiece& key);
+    bool Get(const std::string_view& key);
 
     // If the cas_value(Data Version Check) is non-zero, the requested operation
     // MUST only succeed if the item exists and has a cas_value identical to the
     // provided value.
-    bool Set(const mutil::StringPiece& key, const mutil::StringPiece& value,
+    bool Set(const std::string_view& key, const std::string_view& value,
              uint32_t flags, uint32_t exptime, uint64_t cas_value);
     
-    bool Add(const mutil::StringPiece& key, const mutil::StringPiece& value,
+    bool Add(const std::string_view& key, const std::string_view& value,
              uint32_t flags, uint32_t exptime, uint64_t cas_value);
 
-    bool Replace(const mutil::StringPiece& key, const mutil::StringPiece& value,
+    bool Replace(const std::string_view& key, const std::string_view& value,
                  uint32_t flags, uint32_t exptime, uint64_t cas_value);
     
-    bool Append(const mutil::StringPiece& key, const mutil::StringPiece& value,
+    bool Append(const std::string_view& key, const std::string_view& value,
                 uint32_t flags, uint32_t exptime, uint64_t cas_value);
 
-    bool Prepend(const mutil::StringPiece& key, const mutil::StringPiece& value,
+    bool Prepend(const std::string_view& key, const std::string_view& value,
                  uint32_t flags, uint32_t exptime, uint64_t cas_value);
 
-    bool Delete(const mutil::StringPiece& key);
+    bool Delete(const std::string_view& key);
     bool Flush(uint32_t timeout);
 
-    bool Increment(const mutil::StringPiece& key, uint64_t delta,
+    bool Increment(const std::string_view& key, uint64_t delta,
                    uint64_t initial_value, uint32_t exptime);
-    bool Decrement(const mutil::StringPiece& key, uint64_t delta,
+    bool Decrement(const std::string_view& key, uint64_t delta,
                    uint64_t initial_value, uint32_t exptime);
     
-    bool Touch(const mutil::StringPiece& key, uint32_t exptime);
+    bool Touch(const std::string_view& key, uint32_t exptime);
 
     bool Version();
 
@@ -115,12 +115,12 @@ protected:
     ::google::protobuf::Metadata GetMetadata() const override;
     
 private:
-    bool GetOrDelete(uint8_t command, const mutil::StringPiece& key);
-    bool Counter(uint8_t command, const mutil::StringPiece& key, uint64_t delta,
+    bool GetOrDelete(uint8_t command, const std::string_view& key);
+    bool Counter(uint8_t command, const std::string_view& key, uint64_t delta,
                  uint64_t initial_value, uint32_t exptime);
     
-    bool Store(uint8_t command, const mutil::StringPiece& key,
-               const mutil::StringPiece& value,
+    bool Store(uint8_t command, const std::string_view& key,
+               const std::string_view& value,
                uint32_t flags, uint32_t exptime, uint64_t cas_value);
 
     void SharedCtor();

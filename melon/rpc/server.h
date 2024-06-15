@@ -76,8 +76,8 @@ namespace melon {
         // and must remain valid when server is running.
         const MongoServiceAdaptor *mongo_service_adaptor;
 
-        // Turn on authentication for all services if `auth' is not NULL.
-        // Default: NULL
+        // Turn on authentication for all services if `auth' is not nullptr.
+        // Default: nullptr
         const Authenticator *auth;
 
         // false: `auth' is not owned by server and must be valid when server is running.
@@ -85,8 +85,8 @@ namespace melon {
         // Default: false
         bool server_owns_auth;
 
-        // Turn on request interception  if `interceptor' is not NULL.
-        // Default: NULL
+        // Turn on request interception  if `interceptor' is not nullptr.
+        // Default: nullptr
         const Interceptor *interceptor;
 
         // false: `interceptor' is not owned by server and must be valid when server is running.
@@ -147,9 +147,9 @@ namespace melon {
         //   session-local data or thread-local data is definitely not a good design.
 
         // The factory to create/destroy data attached to each RPC session.
-        // If this option is NULL, Controller::session_local_data() is always NULL.
+        // If this option is nullptr, Controller::session_local_data() is always nullptr.
         // NOT owned by Server and must be valid when Server is running.
-        // Default: NULL
+        // Default: nullptr
         const DataFactory *session_local_data_factory;
 
         // Prepare so many session-local data before server starts, so that calls
@@ -162,9 +162,9 @@ namespace melon {
 
         // The factory to create/destroy data attached to each searching thread
         // in server.
-        // If this option is NULL, melon::thread_local_data() is always NULL.
+        // If this option is nullptr, melon::thread_local_data() is always nullptr.
         // NOT owned by Server and must be valid when Server is running.
-        // Default: NULL
+        // Default: nullptr
         const DataFactory *thread_local_data_factory;
 
         // Prepare so many thread-local data before server starts, so that calls
@@ -179,8 +179,8 @@ namespace melon {
         // fibers before server runs, mainly for initializing fiber locals.
         // You have to set both `fiber_init_fn' and `fiber_init_count' to
         // enable the feature.
-        bool (*fiber_init_fn)(void *args); // default: NULL (do nothing)
-        void *fiber_init_args;             // default: NULL
+        bool (*fiber_init_fn)(void *args); // default: nullptr (do nothing)
+        void *fiber_init_args;             // default: nullptr
         size_t fiber_init_count;           // default: 0
 
         // Provide builtin services at this port rather than the port to Start().
@@ -206,7 +206,7 @@ namespace melon {
         bool security_mode() const { return internal_port >= 0 || !has_builtin_services; }
 
         // SSL related options. Refer to `ServerSSLOptions' for details
-        bool has_ssl_options() const { return _ssl_options != NULL; }
+        bool has_ssl_options() const { return _ssl_options != nullptr; }
 
         const ServerSSLOptions &ssl_options() const { return *_ssl_options; }
 
@@ -237,7 +237,7 @@ namespace melon {
         HealthReporter *health_reporter;
 
         // For processing RTMP connections. Read src/melon/rtmp.h for details.
-        // Default: NULL (rtmp support disabled)
+        // Default: nullptr (rtmp support disabled)
         RtmpService *rtmp_service;
 
         // Only enable these protocols, separated by spaces.
@@ -250,7 +250,7 @@ namespace melon {
 
         // For processing Redis connections. Read src/melon/redis.h for details.
         // Owned by Server and deleted in server's destructor.
-        // Default: NULL (disabled)
+        // Default: nullptr (disabled)
         RedisService *redis_service;
 
         // Optional info name for composing server var prefix. Read ServerPrefix() method for details;
@@ -352,7 +352,7 @@ namespace melon {
             bool is_builtin_service;
             ServiceOwnership ownership;
             // `service' and `restful_map' are mutual exclusive, they can't be
-            // both non-NULL. If `restful_map' is not NULL, the URL should be
+            // both non-nullptr. If `restful_map' is not nullptr, the URL should be
             // further matched by it.
             google::protobuf::Service *service;
             RestfulMap *restful_map;
@@ -384,7 +384,7 @@ namespace melon {
             };
 
             OpaqueParams params;
-            // NULL if service of the method was never added as restful.
+            // nullptr if service of the method was never added as restful.
             // "@path1 @path2 ..." if the method was mapped from paths.
             std::string *http_url;
             google::protobuf::Service *service;
@@ -402,7 +402,7 @@ namespace melon {
             const DataFactory *thread_local_data_factory;
 
             ThreadLocalOptions()
-                    : tls_key(INVALID_FIBER_KEY), thread_local_data_factory(NULL) {}
+                    : tls_key(INVALID_FIBER_KEY), thread_local_data_factory(nullptr) {}
         };
 
     public:
@@ -413,7 +413,7 @@ namespace melon {
         // A set of functions to start this server.
         // Returns 0 on success, -1 otherwise and errno is set appropriately.
         // Notes:
-        // * Default options are taken if `opt' is NULL.
+        // * Default options are taken if `opt' is nullptr.
         // * A server can be started more than once if the server is completely
         //   stopped by Stop() and Join().
         // * port can be 0, which makes kernel to choose a port dynamically.
@@ -463,7 +463,7 @@ namespace melon {
 
         int AddService(google::protobuf::Service *service,
                        ServiceOwnership ownership,
-                       const mutil::StringPiece &restful_mappings,
+                       const std::string_view &restful_mappings,
                        bool allow_default_url = false);
 
         int AddService(google::protobuf::Service *service,
@@ -494,18 +494,18 @@ namespace melon {
         int ResetCertificates(const std::vector<CertInfo> &certs);
 
         // Find a service by its ServiceDescriptor::full_name().
-        // Returns the registered service pointer, NULL on not found.
+        // Returns the registered service pointer, nullptr on not found.
         // Notice that for performance concerns, this function does not lock service
         // list internally thus races with AddService()/RemoveService().
         google::protobuf::Service *
-        FindServiceByFullName(const mutil::StringPiece &full_name) const;
+        FindServiceByFullName(const std::string_view &full_name) const;
 
         // Find a service by its ServiceDescriptor::name().
-        // Returns the registered service pointer, NULL on not found.
+        // Returns the registered service pointer, nullptr on not found.
         // Notice that for performance concerns, this function does not lock service
         // list internally thus races with AddService()/RemoveService().
         google::protobuf::Service *
-        FindServiceByName(const mutil::StringPiece &name) const;
+        FindServiceByName(const std::string_view &name) const;
 
         // Put all services registered by user into `services'
         void ListServices(std::vector<google::protobuf::Service *> *services);
@@ -524,7 +524,7 @@ namespace melon {
 
         // Return the first service added to this server. If a service was once
         // returned by first_service() and then removed, first_service() will
-        // always be NULL.
+        // always be nullptr.
         // This is useful for some production lines whose protocol does not
         // contain a service name, in which case this service works as the
         // default service.
@@ -563,21 +563,21 @@ namespace melon {
         // an auto concurrency limiter, eg `options.max_concurrency = "auto"`.If you
         // still called non-const version of the interface, your changes to the
         // maximum concurrency will not take effect.
-        AdaptiveMaxConcurrency &MaxConcurrencyOf(const mutil::StringPiece &full_method_name);
+        AdaptiveMaxConcurrency &MaxConcurrencyOf(const std::string_view &full_method_name);
 
-        int MaxConcurrencyOf(const mutil::StringPiece &full_method_name) const;
+        int MaxConcurrencyOf(const std::string_view &full_method_name) const;
 
-        AdaptiveMaxConcurrency &MaxConcurrencyOf(const mutil::StringPiece &full_service_name,
-                                                 const mutil::StringPiece &method_name);
+        AdaptiveMaxConcurrency &MaxConcurrencyOf(const std::string_view &full_service_name,
+                                                 const std::string_view &method_name);
 
-        int MaxConcurrencyOf(const mutil::StringPiece &full_service_name,
-                             const mutil::StringPiece &method_name) const;
+        int MaxConcurrencyOf(const std::string_view &full_service_name,
+                             const std::string_view &method_name) const;
 
         AdaptiveMaxConcurrency &MaxConcurrencyOf(google::protobuf::Service *service,
-                                                 const mutil::StringPiece &method_name);
+                                                 const std::string_view &method_name);
 
         int MaxConcurrencyOf(google::protobuf::Service *service,
-                             const mutil::StringPiece &method_name) const;
+                             const std::string_view &method_name) const;
 
         int Concurrency() const {
             return mutil::subtle::NoBarrier_Load(&_concurrency);
@@ -646,21 +646,21 @@ namespace melon {
         void PutPidFileIfNeeded();
 
         const MethodProperty *
-        FindMethodPropertyByFullName(const mutil::StringPiece &fullname) const;
+        FindMethodPropertyByFullName(const std::string_view &fullname) const;
 
         const MethodProperty *
-        FindMethodPropertyByFullName(const mutil::StringPiece &full_service_name,
-                                     const mutil::StringPiece &method_name) const;
+        FindMethodPropertyByFullName(const std::string_view &full_service_name,
+                                     const std::string_view &method_name) const;
 
         const MethodProperty *
-        FindMethodPropertyByNameAndIndex(const mutil::StringPiece &service_name,
+        FindMethodPropertyByNameAndIndex(const std::string_view &service_name,
                                          int method_index) const;
 
         const ServiceProperty *
-        FindServicePropertyByFullName(const mutil::StringPiece &fullname) const;
+        FindServicePropertyByFullName(const std::string_view &fullname) const;
 
         const ServiceProperty *
-        FindServicePropertyByName(const mutil::StringPiece &name) const;
+        FindServicePropertyByName(const std::string_view &name) const;
 
         std::string ServerPrefix() const;
 
@@ -719,7 +719,7 @@ namespace melon {
         // uses service->name() to designate an RPC service
         ServiceMap _service_map;
 
-        // The only non-builtin service in _service_map, otherwise NULL.
+        // The only non-builtin service in _service_map, otherwise nullptr.
         google::protobuf::Service *_first_service;
 
         // Store TabInfo of services inheriting Tabbed.
@@ -763,8 +763,8 @@ namespace melon {
 
     // Get the data attached to current searching thread. The data is created by
     // ServerOptions.thread_local_data_factory and reused between different threads.
-    // If ServerOptions.thread_local_data_factory is NULL, return NULL.
-    // If this function is not called inside a server thread, return NULL.
+    // If ServerOptions.thread_local_data_factory is nullptr, return nullptr.
+    // If this function is not called inside a server thread, return nullptr.
     void *thread_local_data();
 
     // Test if a dummy server was already started.

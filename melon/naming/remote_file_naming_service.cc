@@ -39,9 +39,9 @@ namespace melon::naming {
                  "Timeout for fetching remote server lists");
 
     // Defined in file_naming_service.cpp
-    bool SplitIntoServerAndTag(const mutil::StringPiece &line,
-                               mutil::StringPiece *server_addr,
-                               mutil::StringPiece *tag);
+    bool SplitIntoServerAndTag(const std::string_view &line,
+                               std::string_view *server_addr,
+                               std::string_view *tag);
 
     static bool CutLineFromIOBuf(mutil::IOBuf *source, std::string *line_out) {
         if (source->empty()) {
@@ -64,10 +64,10 @@ namespace melon::naming {
         servers->clear();
 
         if (_channel == nullptr) {
-            mutil::StringPiece tmpname(service_name_cstr);
+            std::string_view tmpname(service_name_cstr);
             size_t pos = tmpname.find("://");
-            mutil::StringPiece proto;
-            if (pos != mutil::StringPiece::npos) {
+            std::string_view proto;
+            if (pos != std::string_view::npos) {
                 proto = tmpname.substr(0, pos);
                 for (pos += 3; tmpname[pos] == '/'; ++pos) {}
                 tmpname.remove_prefix(pos);
@@ -80,13 +80,14 @@ namespace melon::naming {
                 return -1;
             }
             size_t slash_pos = tmpname.find('/');
-            mutil::StringPiece server_addr_piece;
-            if (slash_pos == mutil::StringPiece::npos) {
+            std::string_view server_addr_piece;
+            if (slash_pos == std::string_view::npos) {
                 server_addr_piece = tmpname;
                 _path = "/";
             } else {
                 server_addr_piece = tmpname.substr(0, slash_pos);
-                _path = tmpname.substr(slash_pos).as_string();
+                auto tmp = tmpname.substr(slash_pos);
+                _path.assign(tmp.data(), tmp.size());
             }
             _server_addr.reserve(proto.size() + 3 + server_addr_piece.size());
             _server_addr.append(proto.data(), proto.size());
@@ -120,8 +121,8 @@ namespace melon::naming {
         std::set<ServerNode> presence;
 
         while (CutLineFromIOBuf(&cntl.response_attachment(), &line)) {
-            mutil::StringPiece addr;
-            mutil::StringPiece tag;
+            std::string_view addr;
+            std::string_view tag;
             if (!SplitIntoServerAndTag(line, &addr, &tag)) {
                 continue;
             }
@@ -134,7 +135,7 @@ namespace melon::naming {
             }
             ServerNode node;
             node.addr = point;
-            tag.CopyToString(&node.tag);
+            node.tag.assign(tag.data(), tag.size());
             if (presence.insert(node).second) {
                 servers->push_back(node);
             } else {

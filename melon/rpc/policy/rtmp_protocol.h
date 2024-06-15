@@ -438,23 +438,23 @@ public:
     bool OnUserControlMessage(const RtmpMessageHeader& mh,
                               mutil::IOBuf* msg_body, Socket* socket);
     bool OnStreamBegin(const RtmpMessageHeader&,
-                       const mutil::StringPiece& event_data, Socket* socket);
+                       const std::string_view& event_data, Socket* socket);
     bool OnStreamEOF(const RtmpMessageHeader&,
-                     const mutil::StringPiece& event_data, Socket* socket);
+                     const std::string_view& event_data, Socket* socket);
     bool OnStreamDry(const RtmpMessageHeader&,
-                     const mutil::StringPiece& event_data, Socket* socket);
+                     const std::string_view& event_data, Socket* socket);
     bool OnSetBufferLength(const RtmpMessageHeader&,
-                           const mutil::StringPiece& event_data, Socket* socket);
+                           const std::string_view& event_data, Socket* socket);
     bool OnStreamIsRecorded(const RtmpMessageHeader&,
-                            const mutil::StringPiece& event_data, Socket* socket);
+                            const std::string_view& event_data, Socket* socket);
     bool OnPingRequest(const RtmpMessageHeader&,
-                       const mutil::StringPiece& event_data, Socket* socket);
+                       const std::string_view& event_data, Socket* socket);
     bool OnPingResponse(const RtmpMessageHeader&,
-                        const mutil::StringPiece& event_data, Socket* socket);
+                        const std::string_view& event_data, Socket* socket);
     bool OnBufferEmpty(const RtmpMessageHeader&,
-                       const mutil::StringPiece& event_data, Socket* socket);
+                       const std::string_view& event_data, Socket* socket);
     bool OnBufferReady(const RtmpMessageHeader&,
-                       const mutil::StringPiece& event_data, Socket* socket);
+                       const std::string_view& event_data, Socket* socket);
     
     bool OnWindowAckSize(const RtmpMessageHeader& mh,
                          mutil::IOBuf* msg_body, Socket* socket);

@@ -85,7 +85,7 @@ namespace melon {
     //   }
     class SampleIterator {
     public:
-        explicit SampleIterator(const mutil::StringPiece &dir);
+        explicit SampleIterator(const std::string_view &dir);
 
         ~SampleIterator();
 

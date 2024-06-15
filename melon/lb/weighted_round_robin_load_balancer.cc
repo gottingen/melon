@@ -249,7 +249,7 @@ namespace melon::lb {
     }
 
     LoadBalancer *WeightedRoundRobinLoadBalancer::New(
-            const mutil::StringPiece &) const {
+            const std::string_view &) const {
         return new(std::nothrow) WeightedRoundRobinLoadBalancer;
     }
 

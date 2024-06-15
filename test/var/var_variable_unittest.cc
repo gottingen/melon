@@ -187,8 +187,8 @@ TEST_F(VariableTest, expose) {
 class MyDumper : public melon::var::Dumper {
 public:
     bool dump(const std::string& name,
-              const mutil::StringPiece& description) {
-        _list.push_back(std::make_pair(name, description.as_string()));
+              const std::string_view &description) {
+        _list.push_back(std::make_pair(name, std::string(description)));
         return true;
     }
 

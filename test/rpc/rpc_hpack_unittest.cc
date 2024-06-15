@@ -48,7 +48,7 @@ TEST_F(HPackTest, header_with_indexing) {
         0x40, 0x0a, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d, 0x6b, 0x65, 0x79,
         0x0d, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d, 0x68, 0x65, 0x61, 0x64,
         0x65, 0x72};
-    mutil::StringPiece sp((char*)expected, sizeof(expected));
+    std::string_view sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
     melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
@@ -78,7 +78,7 @@ TEST_F(HPackTest, header_without_indexing) {
         0x04, 0x0c, 0x2f, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x70, 0x61,
         0x74, 0x68, 
     };
-    mutil::StringPiece sp((char*)expected, sizeof(expected));
+    std::string_view sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
     melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
@@ -108,7 +108,7 @@ TEST_F(HPackTest, header_never_indexed) {
         0x10, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64,
         0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 
     };
-    mutil::StringPiece sp((char*)expected, sizeof(expected));
+    std::string_view sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
     melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
@@ -135,7 +135,7 @@ TEST_F(HPackTest, indexed_header) {
     uint8_t expected[] = {
         0x82,
     };
-    mutil::StringPiece sp((char*)expected, sizeof(expected));
+    std::string_view sp((char*)expected, sizeof(expected));
     ASSERT_TRUE(buf.buf().equals(sp));
     melon::HPacker::Header h2;
     ssize_t nread = p2.Decode(&buf.buf(), &h2);
@@ -175,7 +175,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         0x82, 0x86, 0x84, 0x41, 0x0f, 0x77, 0x77, 0x77, 0x2e, 0x65, 0x78,
         0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2e, 0x63, 0x6f, 0x6d, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -204,7 +204,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         0x82, 0x86, 0x84, 0xbe, 0x58, 0x08, 0x6e, 0x6f, 0x2d,
         0x63, 0x61, 0x63, 0x68, 0x65, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected2, sizeof(expected2))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -233,7 +233,7 @@ TEST_F(HPackTest, requests_without_huffman) {
         0x2d, 0x6b, 0x65, 0x79, 0x0c, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x2d,
         0x76, 0x61, 0x6c, 0x75, 0x65, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected3, sizeof(expected3))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -271,7 +271,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         0xa0, 0xab, 0x90, 0xf4, 0xff
     };
     LOG(INFO) << mutil::ToPrintable(buf.buf());
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -301,7 +301,7 @@ TEST_F(HPackTest, requests_with_huffman) {
     uint8_t expected2[] = {
         0x82, 0x86, 0x84, 0xbe, 0x58, 0x86, 0xa8, 0xeb, 0x10, 0x64, 0x9c, 0xbf, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected2, sizeof(expected2))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -331,7 +331,7 @@ TEST_F(HPackTest, requests_with_huffman) {
         0x82, 0x87, 0x85, 0xbf, 0x40, 0x88, 0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xa9,
         0x7d, 0x7f, 0x89, 0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xb8, 0xe8, 0xb4, 0xbf, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected3, sizeof(expected3))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -372,7 +372,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2e, 0x63, 0x6f, 0x6d, 
     };
     LOG(INFO) << mutil::ToPrintable(buf.buf());
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -399,7 +399,7 @@ TEST_F(HPackTest, responses_without_huffman) {
     uint8_t expected2[] = {
         0x48, 0x03, 0x33, 0x30, 0x37, 0xc1, 0xc0, 0xbf, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected2, sizeof(expected2))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -435,7 +435,7 @@ TEST_F(HPackTest, responses_without_huffman) {
         0x36, 0x30, 0x30, 0x3b, 0x20, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 
         0x3d, 0x31, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected3, sizeof(expected3))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -477,7 +477,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         0xe9, 0xae, 0x82, 0xae, 0x43, 0xd3,             
     };
     LOG(INFO) << mutil::ToPrintable(buf.buf());
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected1, sizeof(expected1))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected1, sizeof(expected1))));
     for (size_t i = 0; i < ARRAY_SIZE(header1); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -506,7 +506,7 @@ TEST_F(HPackTest, responses_with_huffman) {
     uint8_t expected2[] = {
         0x48, 0x83, 0x64, 0x0e, 0xff, 0xc1, 0xc0, 0xbf, 
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected2, sizeof(expected2))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected2, sizeof(expected2))));
     for (size_t i = 0; i < ARRAY_SIZE(header2); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
@@ -542,7 +542,7 @@ TEST_F(HPackTest, responses_with_huffman) {
         0x0f, 0xb5, 0x29, 0x1f, 0x95, 0x87, 0x31, 0x60, 0x65, 0xc0, 0x03, 0xed,
         0x4e, 0xe5, 0xb1, 0x06, 0x3d, 0x50, 0x07,
     };
-    ASSERT_TRUE(buf.buf().equals(mutil::StringPiece((char*)expected3, sizeof(expected3))));
+    ASSERT_TRUE(buf.buf().equals(std::string_view((char*)expected3, sizeof(expected3))));
     for (size_t i = 0; i < ARRAY_SIZE(header3); ++i) {
         melon::HPacker::Header h;
         ASSERT_GT(p2.Decode(&buf.buf(), &h), 0);
