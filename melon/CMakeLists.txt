@@ -27,7 +27,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/arena.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/big_endian.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/cpu.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/asan_invalid_access.cc
@@ -38,7 +37,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/proc_maps_linux.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/stack_trace.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/stack_trace_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/environment.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_enumerator.cc
@@ -51,8 +49,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/files/scoped_temp_dir.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/file_util.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/file_util_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/guid.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/guid_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/hash.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/lazy_instance.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/location.cc
@@ -68,7 +64,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/fast_rand.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/safe_strerror_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/sha1_portable.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/latin1_string_conversions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/nullable_string16.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/safe_sprintf.cc
@@ -105,8 +100,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/time/tick_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/version.cc
-        #${PROJECT_SOURCE_DIR}/melon/utility/logging.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/class_name.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/errno.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
@@ -125,7 +118,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/iobuf.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/binary_printer.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/recordio.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/popen.cpp
 )
 
