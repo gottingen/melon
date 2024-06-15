@@ -19,7 +19,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/utility/unique_ptr.h>
+#include <memory>
 #include <melon/var/latency_recorder.h>
 
 namespace melon::var {

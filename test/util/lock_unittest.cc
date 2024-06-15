@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/compiler_specific.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <gtest/gtest.h>
 

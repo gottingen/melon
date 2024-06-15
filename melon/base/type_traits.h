@@ -6,7 +6,7 @@
 #define MUTIL_TYPE_TRAITS_H
 
 #include <cstddef>  // For size_t.
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(MUTIL_CXX11_ENABLED)
 #include <type_traits>

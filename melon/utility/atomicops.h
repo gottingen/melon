@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <melon/utility/macros.h>
 
 #if defined(OS_WIN) && defined(ARCH_CPU_64_BITS)

@@ -22,7 +22,7 @@
 
 #include <vector>
 #include <deque>
-#include <melon/utility/atomicops.h>
+#include <atomic>
 #include <melon/base/iobuf.h>
 #include <turbo/log/logging.h>
 #include <melon/raft/log_entry.h>
@@ -50,12 +50,12 @@ namespace melon::raft {
 
         // first log index in log
         virtual int64_t first_log_index() {
-            return _first_log_index.load(mutil::memory_order_acquire);
+            return _first_log_index.load(std::memory_order_acquire);
         }
 
         // last log index in log
         virtual int64_t last_log_index() {
-            return _last_log_index.load(mutil::memory_order_acquire);
+            return _last_log_index.load(std::memory_order_acquire);
         }
 
         // get logentry by index
@@ -91,8 +91,8 @@ namespace melon::raft {
 
     private:
         std::string _path;
-        mutil::atomic<int64_t> _first_log_index;
-        mutil::atomic<int64_t> _last_log_index;
+        std::atomic<int64_t> _first_log_index;
+        std::atomic<int64_t> _last_log_index;
         MemoryData _log_entry_data;
         raft_mutex_t _mutex;
     };

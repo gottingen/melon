@@ -28,7 +28,7 @@
 #include <list>
 #include <melon/base/iobuf.h>
 #include <melon/utility/strings/string_piece.h>
-#include <melon/utility/arena.h>
+#include <melon/base/arena.h>
 #include <melon/proto/rpc/proto_base.pb.h>
 #include <melon/rpc/redis/redis_reply.h>
 #include <melon/rpc/parse_result.h>

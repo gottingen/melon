@@ -96,10 +96,10 @@
 
 #include <algorithm>  // For std::swap().
 
-#include "melon/utility/basictypes.h"
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/basictypes.h>
+#include <melon/base/compiler_specific.h>
 #include "melon/utility/move.h"
-#include <melon/utility/type_traits.h>
+#include <melon/base/type_traits.h>
 
 namespace mutil {
 

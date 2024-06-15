@@ -21,7 +21,7 @@
 #include <pthread.h>
 #include <dlfcn.h>                               // dlsym
 #include <stdlib.h>                              // getenv
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/compiler_specific.h>
 #include <melon/rpc/details/tcmalloc_extension.h>
 
 namespace {

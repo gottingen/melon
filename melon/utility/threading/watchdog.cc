@@ -4,7 +4,7 @@
 
 #include "melon/utility/threading/watchdog.h"
 
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/compiler_specific.h>
 #include "melon/utility/lazy_instance.h"
 #include <turbo/log/logging.h>
 #include <melon/utility/threading/platform_thread.h>

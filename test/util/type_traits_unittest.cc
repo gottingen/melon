@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <melon/utility/type_traits.h>
+#include <melon/base/type_traits.h>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

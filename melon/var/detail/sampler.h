@@ -25,7 +25,7 @@
 #include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
 #include <turbo/log/logging.h>               // LOG()
 #include <melon/utility/containers/bounded_queue.h>// BoundedQueue
-#include <melon/utility/type_traits.h>           // is_same
+#include <melon/base/type_traits.h>            // is_same
 #include <melon/utility/time.h>                  // gettimeofday_us
 #include <melon/base/class_name.h>
 

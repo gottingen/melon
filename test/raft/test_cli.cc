@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/utility/unique_ptr.h>
+#include <memory>
 #include <melon/rpc/server.h>
 #include "melon/raft/raft.h"
 #include "melon/raft/cli.h"

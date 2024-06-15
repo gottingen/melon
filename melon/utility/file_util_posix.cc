@@ -30,7 +30,7 @@
 
 #include <fstream>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/files/scoped_file.h>

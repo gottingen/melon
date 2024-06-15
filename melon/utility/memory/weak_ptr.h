@@ -63,11 +63,11 @@
 #ifndef MUTIL_MEMORY_WEAK_PTR_H_
 #define MUTIL_MEMORY_WEAK_PTR_H_
 
-#include "melon/utility/basictypes.h"
-#include "melon/utility/base_export.h"
+#include <melon/base/basictypes.h>
+#include <melon/base/base_export.h>
 #include <turbo/log/logging.h>
 #include "melon/utility/memory/ref_counted.h"
-#include <melon/utility/type_traits.h>
+#include <melon/base/type_traits.h>
 
 namespace mutil {
 

@@ -39,7 +39,7 @@
 #ifndef MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_H__
 #define MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_H__
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <string>
 
 namespace mutil {

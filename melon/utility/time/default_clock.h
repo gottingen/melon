@@ -5,8 +5,8 @@
 #ifndef MUTIL_DEFAULT_CLOCK_H_
 #define MUTIL_DEFAULT_CLOCK_H_
 
-#include "melon/utility/base_export.h"
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/base_export.h>
+#include <melon/base/compiler_specific.h>
 #include "melon/utility/time/clock.h"
 
 namespace mutil {

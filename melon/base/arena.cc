@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <algorithm>
-#include <melon/utility/arena.h>
+#include <melon/base/arena.h>
 
 namespace mutil {
 

@@ -28,7 +28,7 @@
 #include <iostream>                      // std::ostream
 #include <pthread.h>                     // pthread_mutex_t
 #include <algorithm>                     // std::max, std::min
-#include <melon/utility/atomicops.h>              // mutil::atomic
+#include <atomic>
 #include <melon/utility/macros.h>                 // MELON_CACHELINE_ALIGNMENT
 #include <melon/base/scoped_lock.h>            // MELON_SCOPED_LOCK
 #include <melon/base/thread_local.h>           // thread_atexit
@@ -36,9 +36,9 @@
 
 #ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
 #define MELON_RESOURCE_POOL_FREE_ITEM_NUM_ADD1                \
-    (_global_nfree.fetch_add(1, mutil::memory_order_relaxed))
+    (_global_nfree.fetch_add(1, std::memory_order_relaxed))
 #define MELON_RESOURCE_POOL_FREE_ITEM_NUM_SUB1                \
-    (_global_nfree.fetch_sub(1, mutil::memory_order_relaxed))
+    (_global_nfree.fetch_sub(1, std::memory_order_relaxed))
 #else
 #define MELON_RESOURCE_POOL_FREE_ITEM_NUM_ADD1
 #define MELON_RESOURCE_POOL_FREE_ITEM_NUM_SUB1
@@ -126,14 +126,14 @@ public:
     // each BlockGroup addresses at most RP_GROUP_NBLOCK blocks. So a
     // resource addresses at most RP_MAX_BLOCK_NGROUP * RP_GROUP_NBLOCK Blocks.
     struct BlockGroup {
-        mutil::atomic<size_t> nblock;
-        mutil::atomic<Block*> blocks[RP_GROUP_NBLOCK];
+        std::atomic<size_t> nblock;
+        std::atomic<Block*> blocks[RP_GROUP_NBLOCK];
 
         BlockGroup() : nblock(0) {
             // We fetch_add nblock in add_block() before setting the entry,
             // thus address_resource() may sees the unset entry. Initialize
             // all entries to NULL makes such address_resource() return NULL.
-            memset(static_cast<void*>(blocks), 0, sizeof(mutil::atomic<Block*>) * RP_GROUP_NBLOCK);
+            memset(static_cast<void*>(blocks), 0, sizeof(std::atomic<Block*>) * RP_GROUP_NBLOCK);
         }
     };
 
@@ -253,9 +253,9 @@ public:
     static inline T* unsafe_address_resource(ResourceId<T> id) {
         const size_t block_index = id.value / BLOCK_NITEM;
         return (T*)(_block_groups[(block_index >> RP_GROUP_NBLOCK_NBIT)]
-                    .load(mutil::memory_order_consume)
+                    .load(std::memory_order_consume)
                     ->blocks[(block_index & (RP_GROUP_NBLOCK - 1))]
-                    .load(mutil::memory_order_consume)->items) +
+                    .load(std::memory_order_consume)->items) +
                id.value - block_index * BLOCK_NITEM;
     }
 
@@ -264,10 +264,10 @@ public:
         const size_t group_index = (block_index >> RP_GROUP_NBLOCK_NBIT);
         if (__builtin_expect(group_index < RP_MAX_BLOCK_NGROUP, 1)) {
             BlockGroup* bg =
-                _block_groups[group_index].load(mutil::memory_order_consume);
+                _block_groups[group_index].load(std::memory_order_consume);
             if (__builtin_expect(bg != NULL, 1)) {
                 Block* b = bg->blocks[block_index & (RP_GROUP_NBLOCK - 1)]
-                           .load(mutil::memory_order_consume);
+                           .load(std::memory_order_consume);
                 if (__builtin_expect(b != NULL, 1)) {
                     const size_t offset = id.value - block_index * BLOCK_NITEM;
                     if (__builtin_expect(offset < b->nitem, 1)) {
@@ -331,26 +331,26 @@ public:
     // Number of all allocated objects, including being used and free.
     ResourcePoolInfo describe_resources() const {
         ResourcePoolInfo info;
-        info.local_pool_num = _nlocal.load(mutil::memory_order_relaxed);
-        info.block_group_num = _ngroup.load(mutil::memory_order_acquire);
+        info.local_pool_num = _nlocal.load(std::memory_order_relaxed);
+        info.block_group_num = _ngroup.load(std::memory_order_acquire);
         info.block_num = 0;
         info.item_num = 0;
         info.free_chunk_item_num = free_chunk_nitem();
         info.block_item_num = BLOCK_NITEM;
 #ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
-        info.free_item_num = _global_nfree.load(mutil::memory_order_relaxed);
+        info.free_item_num = _global_nfree.load(std::memory_order_relaxed);
 #endif
 
         for (size_t i = 0; i < info.block_group_num; ++i) {
-            BlockGroup* bg = _block_groups[i].load(mutil::memory_order_consume);
+            BlockGroup* bg = _block_groups[i].load(std::memory_order_consume);
             if (NULL == bg) {
                 break;
             }
-            size_t nblock = std::min(bg->nblock.load(mutil::memory_order_relaxed),
+            size_t nblock = std::min(bg->nblock.load(std::memory_order_relaxed),
                                      RP_GROUP_NBLOCK);
             info.block_num += nblock;
             for (size_t j = 0; j < nblock; ++j) {
-                Block* b = bg->blocks[j].load(mutil::memory_order_consume);
+                Block* b = bg->blocks[j].load(std::memory_order_consume);
                 if (NULL != b) {
                     info.item_num += b->nitem;
                 }
@@ -361,15 +361,15 @@ public:
     }
 
     static inline ResourcePool* singleton() {
-        ResourcePool* p = _singleton.load(mutil::memory_order_consume);
+        ResourcePool* p = _singleton.load(std::memory_order_consume);
         if (p) {
             return p;
         }
         pthread_mutex_lock(&_singleton_mutex);
-        p = _singleton.load(mutil::memory_order_consume);
+        p = _singleton.load(std::memory_order_consume);
         if (!p) {
             p = new ResourcePool();
-            _singleton.store(p, mutil::memory_order_release);
+            _singleton.store(p, std::memory_order_release);
         } 
         pthread_mutex_unlock(&_singleton_mutex);
         return p;
@@ -394,19 +394,19 @@ private:
 
         size_t ngroup;
         do {
-            ngroup = _ngroup.load(mutil::memory_order_acquire);
+            ngroup = _ngroup.load(std::memory_order_acquire);
             if (ngroup >= 1) {
                 BlockGroup* const g =
-                    _block_groups[ngroup - 1].load(mutil::memory_order_consume);
+                    _block_groups[ngroup - 1].load(std::memory_order_consume);
                 const size_t block_index =
-                    g->nblock.fetch_add(1, mutil::memory_order_relaxed);
+                    g->nblock.fetch_add(1, std::memory_order_relaxed);
                 if (block_index < RP_GROUP_NBLOCK) {
                     g->blocks[block_index].store(
-                        new_block, mutil::memory_order_release);
+                        new_block, std::memory_order_release);
                     *index = (ngroup - 1) * RP_GROUP_NBLOCK + block_index;
                     return new_block;
                 }
-                g->nblock.fetch_sub(1, mutil::memory_order_relaxed);
+                g->nblock.fetch_sub(1, std::memory_order_relaxed);
             }
         } while (add_block_group(ngroup));
 
@@ -420,7 +420,7 @@ private:
     static bool add_block_group(size_t old_ngroup) {
         BlockGroup* bg = NULL;
         MELON_SCOPED_LOCK(_block_group_mutex);
-        const size_t ngroup = _ngroup.load(mutil::memory_order_acquire);
+        const size_t ngroup = _ngroup.load(std::memory_order_acquire);
         if (ngroup != old_ngroup) {
             // Other thread got lock and added group before this thread.
             return true;
@@ -431,8 +431,8 @@ private:
                 // Release fence is paired with consume fence in address() and
                 // add_block() to avoid un-constructed bg to be seen by other
                 // threads.
-                _block_groups[ngroup].store(bg, mutil::memory_order_release);
-                _ngroup.store(ngroup + 1, mutil::memory_order_release);
+                _block_groups[ngroup].store(bg, std::memory_order_release);
+                _ngroup.store(ngroup + 1, std::memory_order_release);
             }
         }
         return bg != NULL;
@@ -450,7 +450,7 @@ private:
         MELON_SCOPED_LOCK(_change_thread_mutex); //avoid race with clear()
         _local_pool = lp;
         mutil::thread_atexit(LocalPool::delete_local_pool, lp);
-        _nlocal.fetch_add(1, mutil::memory_order_relaxed);
+        _nlocal.fetch_add(1, std::memory_order_relaxed);
         return lp;
     }
 
@@ -458,7 +458,7 @@ private:
         // Remove tls
         _local_pool = NULL;
 
-        if (_nlocal.fetch_sub(1, mutil::memory_order_relaxed) != 1) {
+        if (_nlocal.fetch_sub(1, std::memory_order_relaxed) != 1) {
             return;
         }
 
@@ -470,7 +470,7 @@ private:
 #ifdef MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
         MELON_SCOPED_LOCK(_change_thread_mutex);  // including acquire fence.
         // Do nothing if there're active threads.
-        if (_nlocal.load(mutil::memory_order_relaxed) != 0) {
+        if (_nlocal.load(std::memory_order_relaxed) != 0) {
             return;
         }
         // All threads exited and we're holding _change_thread_mutex to avoid
@@ -481,16 +481,16 @@ private:
         while (pop_free_chunk(dummy));
 
         // Delete all memory
-        const size_t ngroup = _ngroup.exchange(0, mutil::memory_order_relaxed);
+        const size_t ngroup = _ngroup.exchange(0, std::memory_order_relaxed);
         for (size_t i = 0; i < ngroup; ++i) {
-            BlockGroup* bg = _block_groups[i].load(mutil::memory_order_relaxed);
+            BlockGroup* bg = _block_groups[i].load(std::memory_order_relaxed);
             if (NULL == bg) {
                 break;
             }
-            size_t nblock = std::min(bg->nblock.load(mutil::memory_order_relaxed),
+            size_t nblock = std::min(bg->nblock.load(std::memory_order_relaxed),
                                      RP_GROUP_NBLOCK);
             for (size_t j = 0; j < nblock; ++j) {
-                Block* b = bg->blocks[j].load(mutil::memory_order_relaxed);
+                Block* b = bg->blocks[j].load(std::memory_order_relaxed);
                 if (NULL == b) {
                     continue;
                 }
@@ -542,20 +542,20 @@ private:
         return true;
     }
     
-    static mutil::static_atomic<ResourcePool*> _singleton;
+    static std::atomic<ResourcePool*> _singleton;
     static pthread_mutex_t _singleton_mutex;
     static MELON_THREAD_LOCAL LocalPool* _local_pool;
-    static mutil::static_atomic<long> _nlocal;
-    static mutil::static_atomic<size_t> _ngroup;
+    static std::atomic<long> _nlocal;
+    static std::atomic<size_t> _ngroup;
     static pthread_mutex_t _block_group_mutex;
     static pthread_mutex_t _change_thread_mutex;
-    static mutil::static_atomic<BlockGroup*> _block_groups[RP_MAX_BLOCK_NGROUP];
+    static std::atomic<BlockGroup*> _block_groups[RP_MAX_BLOCK_NGROUP];
 
     std::vector<DynamicFreeChunk*> _free_chunks;
     pthread_mutex_t _free_chunks_mutex;
 
 #ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
-    static mutil::static_atomic<size_t> _global_nfree;
+    static std::atomic<size_t> _global_nfree;
 #endif
 };
 
@@ -569,17 +569,16 @@ MELON_THREAD_LOCAL typename ResourcePool<T>::LocalPool*
 ResourcePool<T>::_local_pool = NULL;
 
 template <typename T>
-mutil::static_atomic<ResourcePool<T>*> ResourcePool<T>::_singleton =
-    MUTIL_STATIC_ATOMIC_INIT(NULL);
+std::atomic<ResourcePool<T>*> ResourcePool<T>::_singleton{nullptr};
 
 template <typename T>
 pthread_mutex_t ResourcePool<T>::_singleton_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 template <typename T>
-mutil::static_atomic<long> ResourcePool<T>::_nlocal = MUTIL_STATIC_ATOMIC_INIT(0);
+std::atomic<long> ResourcePool<T>::_nlocal{0};
 
 template <typename T>
-mutil::static_atomic<size_t> ResourcePool<T>::_ngroup = MUTIL_STATIC_ATOMIC_INIT(0);
+std::atomic<size_t> ResourcePool<T>::_ngroup{0};
 
 template <typename T>
 pthread_mutex_t ResourcePool<T>::_block_group_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -589,12 +588,12 @@ pthread_mutex_t ResourcePool<T>::_change_thread_mutex =
     PTHREAD_MUTEX_INITIALIZER;
 
 template <typename T>
-mutil::static_atomic<typename ResourcePool<T>::BlockGroup*>
+std::atomic<typename ResourcePool<T>::BlockGroup*>
 ResourcePool<T>::_block_groups[RP_MAX_BLOCK_NGROUP] = {};
 
 #ifdef MUTIL_RESOURCE_POOL_NEED_FREE_ITEM_NUM
 template <typename T>
-mutil::static_atomic<size_t> ResourcePool<T>::_global_nfree = MUTIL_STATIC_ATOMIC_INIT(0);
+std::atomic<size_t> ResourcePool<T>::_global_nfree{0};
 #endif
 
 template <typename T>

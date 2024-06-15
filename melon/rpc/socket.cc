@@ -19,8 +19,8 @@
 
 
 
-#include <melon/utility/compat.h>                        // OS_MACOSX
-#include <melon/utility/ssl_compat.h>                    // BIO_fd_non_fatal_error
+#include <melon/base/compat.h>                        // OS_MACOSX
+#include <melon/base/ssl_compat.h>                    // BIO_fd_non_fatal_error
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <netinet/tcp.h>                         // getsockopt
@@ -134,8 +134,8 @@ namespace melon {
         mutil::Mutex _mutex;
         std::vector<SocketId> _pool;
         mutil::EndPoint _remote_side;
-        mutil::atomic<int> _numfree; // #free sockets in all sub pools.
-        mutil::atomic<int> _numinflight; // #inflight sockets in all sub pools.
+         std::atomic<int> _numfree; // #free sockets in all sub pools.
+         std::atomic<int> _numinflight; // #inflight sockets in all sub pools.
     };
 
 // NOTE: sizeof of this class is 1200 bytes. If we have 10K sockets, total
@@ -171,27 +171,27 @@ namespace melon {
         // Before rev <= r32136, the pool is managed globally in socket_map.cpp
         // which has the disadvantage that accesses to different pools contend
         // with each other.
-        mutil::atomic<SocketPool *> socket_pool;
+         std::atomic<SocketPool *> socket_pool;
 
         // The socket newing this object.
         SocketId creator_socket_id;
 
         // Counting number of continuous ETIMEDOUT
-        mutil::atomic<int> num_continuous_connect_timeouts;
+         std::atomic<int> num_continuous_connect_timeouts;
 
         // _in_size, _in_num_messages, _out_size, _out_num_messages of pooled
         // sockets are counted into the corresponding fields in their _main_socket.
-        mutil::atomic<size_t> in_size;
-        mutil::atomic<size_t> in_num_messages;
-        mutil::atomic<size_t> out_size;
-        mutil::atomic<size_t> out_num_messages;
+         std::atomic<size_t> in_size;
+         std::atomic<size_t> in_num_messages;
+         std::atomic<size_t> out_size;
+         std::atomic<size_t> out_num_messages;
 
         // For computing stats.
         ExtendedSocketStat *extended_stat;
 
         CircuitBreaker circuit_breaker;
 
-        mutil::atomic<uint64_t> recent_error_count;
+         std::atomic<uint64_t> recent_error_count;
 
         explicit SharedPart(SocketId creator_socket_id);
 
@@ -209,7 +209,7 @@ namespace melon {
     Socket::SharedPart::~SharedPart() {
         delete extended_stat;
         extended_stat = NULL;
-        delete socket_pool.exchange(NULL, mutil::memory_order_relaxed);
+        delete socket_pool.exchange(NULL, std::memory_order_relaxed);
     }
 
     void Socket::SharedPart::UpdateStatsEverySecond(int64_t now_ms) {
@@ -223,10 +223,10 @@ namespace melon {
         }
 
         // Save volatile counters.
-        const size_t in_sz = in_size.load(mutil::memory_order_relaxed);
-        const size_t in_nmsg = in_num_messages.load(mutil::memory_order_relaxed);
-        const size_t out_sz = out_size.load(mutil::memory_order_relaxed);
-        const size_t out_nmsg = out_num_messages.load(mutil::memory_order_relaxed);
+        const size_t in_sz = in_size.load(std::memory_order_relaxed);
+        const size_t in_nmsg = in_num_messages.load(std::memory_order_relaxed);
+        const size_t out_sz = out_size.load(std::memory_order_relaxed);
+        const size_t out_nmsg = out_num_messages.load(std::memory_order_relaxed);
 
         // Notice that we don't normalize any data, mainly because normalization
         // often make data inaccurate and confuse users. This assumes that this
@@ -370,7 +370,7 @@ namespace melon {
                 }
             }
             const int64_t before_write =
-                    s->_unwritten_bytes.fetch_add(data.size(), mutil::memory_order_relaxed);
+                    s->_unwritten_bytes.fetch_add(data.size(), std::memory_order_relaxed);
             if (before_write + (int64_t) data.size() >= FLAGS_socket_max_unwritten_bytes) {
                 s->_overcrowded = true;
             }
@@ -435,7 +435,7 @@ namespace melon {
               _total_streams_unconsumed_size(0), _ninflight_app_health_check(0), _http_request_method(HTTP_METHOD_GET) {
         CreateVarsOnce();
         pthread_mutex_init(&_id_wait_list_mutex, NULL);
-        _epollout_butex = fiber::butex_create_checked<mutil::atomic<int> >();
+        _epollout_butex = fiber::butex_create_checked< std::atomic<int> >();
     }
 
     Socket::~Socket() {
@@ -500,7 +500,7 @@ namespace melon {
         _avg_msg_size = 0;
         // MUST store `_fd' before adding itself into epoll device to avoid
         // race conditions with the callback function inside epoll
-        _fd.store(fd, mutil::memory_order_release);
+        _fd.store(fd, std::memory_order_release);
         _reset_fd_real_us = mutil::gettimeofday_us();
         if (!ValidFileDescriptor(fd)) {
             return 0;
@@ -550,7 +550,7 @@ namespace melon {
             if (GetGlobalEventDispatcher(fd, _fiber_tag).AddConsumer(id(), fd) != 0) {
                 PLOG(ERROR) << "Fail to add SocketId=" << id()
                             << " into EventDispatcher";
-                _fd.store(-1, mutil::memory_order_release);
+                _fd.store(-1, std::memory_order_release);
                 return -1;
             }
         }
@@ -631,8 +631,8 @@ namespace melon {
             return -1;
         }
         g_vars->nsocket << 1;
-        CHECK(NULL == m->_shared_part.load(mutil::memory_order_relaxed));
-        m->_nevent.store(0, mutil::memory_order_relaxed);
+        CHECK(NULL == m->_shared_part.load(std::memory_order_relaxed));
+        m->_nevent.store(0, std::memory_order_relaxed);
         m->_keytable_pool = options.keytable_pool;
         m->_tos = 0;
         m->_remote_side = options.remote_side;
@@ -646,19 +646,19 @@ namespace melon {
         // to put the id into SocketUniquePtr.
         m->_this_id = MakeSocketId(
                 VersionOfVRef(m->_versioned_ref.fetch_add(
-                        1, mutil::memory_order_release)), slot);
+                        1, std::memory_order_release)), slot);
         m->_preferred_index = -1;
         m->_hc_count = 0;
         CHECK(m->_read_buf.empty());
         const int64_t cpuwide_now = mutil::cpuwide_time_us();
-        m->_last_readtime_us.store(cpuwide_now, mutil::memory_order_relaxed);
+        m->_last_readtime_us.store(cpuwide_now, std::memory_order_relaxed);
         m->reset_parsing_context(options.initial_parsing_context);
         m->_correlation_id = 0;
         m->_health_check_interval_s = options.health_check_interval_s;
         m->_is_hc_related_ref_held = false;
-        m->_hc_started.store(false, mutil::memory_order_relaxed);
-        m->_ninprocess.store(1, mutil::memory_order_relaxed);
-        m->_auth_flag_error.store(0, mutil::memory_order_relaxed);
+        m->_hc_started.store(false, std::memory_order_relaxed);
+        m->_ninprocess.store(1, std::memory_order_relaxed);
+        m->_auth_flag_error.store(0, std::memory_order_relaxed);
         const int rc2 = fiber_session_create(&m->_auth_id, NULL, NULL);
         if (rc2) {
             LOG(ERROR) << "Fail to create auth_id: " << berror(rc2);
@@ -671,17 +671,17 @@ namespace melon {
         m->_ssl_session = NULL;
         m->_ssl_ctx = options.initial_ssl_ctx;
         m->_connection_type_for_progressive_read = CONNECTION_TYPE_UNKNOWN;
-        m->_controller_released_socket.store(false, mutil::memory_order_relaxed);
+        m->_controller_released_socket.store(false, std::memory_order_relaxed);
         m->_overcrowded = false;
         // May be non-zero for RTMP connections.
         m->_fail_me_at_server_stop = false;
-        m->_logoff_flag.store(false, mutil::memory_order_relaxed);
-        m->_additional_ref_status.store(REF_USING, mutil::memory_order_relaxed);
+        m->_logoff_flag.store(false, std::memory_order_relaxed);
+        m->_additional_ref_status.store(REF_USING, std::memory_order_relaxed);
         m->_error_code = 0;
         m->_error_text.clear();
-        m->_agent_socket_id.store(INVALID_SOCKET_ID, mutil::memory_order_relaxed);
-        m->_total_streams_unconsumed_size.store(0, mutil::memory_order_relaxed);
-        m->_ninflight_app_health_check.store(0, mutil::memory_order_relaxed);
+        m->_agent_socket_id.store(INVALID_SOCKET_ID, std::memory_order_relaxed);
+        m->_total_streams_unconsumed_size.store(0, std::memory_order_relaxed);
+        m->_ninflight_app_health_check.store(0, std::memory_order_relaxed);
         // NOTE: last two params are useless in fiber > r32787
         const int rc = fiber_session_list_init(&m->_id_wait_list, 512, 512);
         if (rc) {
@@ -689,11 +689,11 @@ namespace melon {
             m->SetFailed(rc, "Fail to init _id_wait_list: %s", berror(rc));
             return -1;
         }
-        m->_last_writetime_us.store(cpuwide_now, mutil::memory_order_relaxed);
-        m->_unwritten_bytes.store(0, mutil::memory_order_relaxed);
+        m->_last_writetime_us.store(cpuwide_now, std::memory_order_relaxed);
+        m->_unwritten_bytes.store(0, std::memory_order_relaxed);
         m->_keepalive_options = options.keepalive_options;
         m->_fiber_tag = options.fiber_tag;
-        CHECK(NULL == m->_write_head.load(mutil::memory_order_relaxed));
+        CHECK(NULL == m->_write_head.load(std::memory_order_relaxed));
         // Must be last one! Internal fields of this Socket may be access
         // just after calling ResetFileDescriptor.
         if (m->ResetFileDescriptor(options.fd) != 0) {
@@ -714,7 +714,7 @@ namespace melon {
         while (1) {
             // The acquire fence pairs with release fence in Dereference to avoid
             // inconsistent states to be seen by others.
-            vref = _versioned_ref.load(mutil::memory_order_acquire);
+            vref = _versioned_ref.load(std::memory_order_acquire);
             if (VersionOfVRef(vref) != id_ver + 1) {
                 LOG(WARNING) << "SocketId=" << _this_id << " is already alive or recycled";
                 return -1;
@@ -742,7 +742,7 @@ namespace melon {
         }
 
         // It's safe to close previous fd (provided expected_nref is correct).
-        const int prev_fd = _fd.exchange(-1, mutil::memory_order_relaxed);
+        const int prev_fd = _fd.exchange(-1, std::memory_order_relaxed);
         if (ValidFileDescriptor(prev_fd)) {
             if (_on_edge_triggered_events != NULL) {
                 GetGlobalEventDispatcher(prev_fd, _fiber_tag).RemoveConsumer(prev_fd);
@@ -759,15 +759,15 @@ namespace melon {
             _ssl_session = NULL;
         }
         _ssl_state = SSL_UNKNOWN;
-        _nevent.store(0, mutil::memory_order_relaxed);
+        _nevent.store(0, std::memory_order_relaxed);
         // parsing_context is very likely to be associated with the fd,
         // removing it is a safer choice and required by http2.
         reset_parsing_context(NULL);
         // Must clear _read_buf otehrwise even if the connections is recovered,
         // the kept old data is likely to make parsing fail.
         _read_buf.clear();
-        _ninprocess.store(1, mutil::memory_order_relaxed);
-        _auth_flag_error.store(0, mutil::memory_order_relaxed);
+        _ninprocess.store(1, std::memory_order_relaxed);
+        _auth_flag_error.store(0, std::memory_order_relaxed);
         fiber_session_error(_auth_id, 0);
         const int rc = fiber_session_create(&_auth_id, NULL, NULL);
         if (rc != 0) {
@@ -776,9 +776,9 @@ namespace melon {
         }
 
         const int64_t cpuwide_now = mutil::cpuwide_time_us();
-        _last_readtime_us.store(cpuwide_now, mutil::memory_order_relaxed);
-        _last_writetime_us.store(cpuwide_now, mutil::memory_order_relaxed);
-        _logoff_flag.store(false, mutil::memory_order_relaxed);
+        _last_readtime_us.store(cpuwide_now, std::memory_order_relaxed);
+        _last_writetime_us.store(cpuwide_now, std::memory_order_relaxed);
+        _logoff_flag.store(false, std::memory_order_relaxed);
         {
             MELON_SCOPED_LOCK(_pipeline_mutex);
             if (_pipeline_q) {
@@ -789,7 +789,7 @@ namespace melon {
         SharedPart *sp = GetSharedPart();
         if (sp) {
             sp->circuit_breaker.Reset();
-            sp->recent_error_count.store(0, mutil::memory_order_relaxed);
+            sp->recent_error_count.store(0, std::memory_order_relaxed);
         }
         return 0;
     }
@@ -797,15 +797,15 @@ namespace melon {
 // We don't care about the return value of Revive.
     void Socket::Revive() {
         const uint32_t id_ver = VersionOfSocketId(_this_id);
-        uint64_t vref = _versioned_ref.load(mutil::memory_order_relaxed);
-        _additional_ref_status.store(REF_REVIVING, mutil::memory_order_relaxed);
+        uint64_t vref = _versioned_ref.load(std::memory_order_relaxed);
+        _additional_ref_status.store(REF_REVIVING, std::memory_order_relaxed);
         while (1) {
             CHECK_EQ(id_ver + 1, VersionOfVRef(vref));
 
             int32_t nref = NRefOfVRef(vref);
             if (nref <= 1) {
                 // Set status to REF_RECYLED since no one uses this socket
-                _additional_ref_status.store(REF_RECYCLED, mutil::memory_order_relaxed);
+                _additional_ref_status.store(REF_RECYCLED, std::memory_order_relaxed);
                 CHECK_EQ(1, nref);
                 LOG(WARNING) << *this << " was abandoned during revival";
                 return;
@@ -814,10 +814,10 @@ namespace melon {
             // remove this additional nref someday.
             if (_versioned_ref.compare_exchange_weak(
                     vref, MakeVRef(id_ver, nref + 1/*note*/),
-                    mutil::memory_order_release,
-                    mutil::memory_order_relaxed)) {
+                    std::memory_order_release,
+                    std::memory_order_relaxed)) {
                 // Set status to REF_USING since we add additional ref again
-                _additional_ref_status.store(REF_USING, mutil::memory_order_relaxed);
+                _additional_ref_status.store(REF_USING, std::memory_order_relaxed);
                 if (_user) {
                     _user->AfterRevived(this);
                 } else {
@@ -834,8 +834,8 @@ namespace melon {
             if (_additional_ref_status.compare_exchange_strong(
                     expect,
                     REF_RECYCLED,
-                    mutil::memory_order_relaxed,
-                    mutil::memory_order_relaxed)) {
+                    std::memory_order_relaxed,
+                    std::memory_order_relaxed)) {
                 return Dereference();
             }
 
@@ -850,14 +850,14 @@ namespace melon {
     void Socket::AddRecentError() {
         SharedPart *sp = GetSharedPart();
         if (sp) {
-            sp->recent_error_count.fetch_add(1, mutil::memory_order_relaxed);
+            sp->recent_error_count.fetch_add(1, std::memory_order_relaxed);
         }
     }
 
     int64_t Socket::recent_error_count() const {
         SharedPart *sp = GetSharedPart();
         if (sp) {
-            return sp->recent_error_count.load(mutil::memory_order_relaxed);
+            return sp->recent_error_count.load(std::memory_order_relaxed);
         }
         return 0;
     }
@@ -876,7 +876,7 @@ namespace melon {
             error_code = EFAILEDSOCKET;
         }
         const uint32_t id_ver = VersionOfSocketId(_this_id);
-        uint64_t vref = _versioned_ref.load(mutil::memory_order_relaxed);
+        uint64_t vref = _versioned_ref.load(std::memory_order_relaxed);
         for (;;) {  // need iteration to retry compare_exchange_strong
             if (VersionOfVRef(vref) != id_ver) {
                 return -1;
@@ -885,8 +885,8 @@ namespace melon {
             // retry on fail.
             if (_versioned_ref.compare_exchange_strong(
                     vref, MakeVRef(id_ver + 1, NRefOfVRef(vref)),
-                    mutil::memory_order_release,
-                    mutil::memory_order_relaxed)) {
+                    std::memory_order_release,
+                    std::memory_order_relaxed)) {
                 // Update _error_text
                 std::string error_text;
                 if (error_fmt != NULL) {
@@ -907,8 +907,8 @@ namespace melon {
                     bool expect = false;
                     if (_hc_started.compare_exchange_strong(expect,
                                                             true,
-                                                            mutil::memory_order_relaxed,
-                                                            mutil::memory_order_relaxed)) {
+                                                            std::memory_order_relaxed,
+                                                            std::memory_order_relaxed)) {
                         GetOrNewSharedPart()->circuit_breaker.MarkAsBroken();
                         StartHealthCheck(id(),
                                          GetOrNewSharedPart()->circuit_breaker.isolation_duration_ms());
@@ -919,7 +919,7 @@ namespace melon {
                     }
                 }
                 // Wake up all threads waiting on EPOLLOUT when closing fd
-                _epollout_butex->fetch_add(1, mutil::memory_order_relaxed);
+                _epollout_butex->fetch_add(1, std::memory_order_relaxed);
                 fiber::butex_wake_all(_epollout_butex);
 
                 // Wake up all unresponded RPC.
@@ -1006,7 +1006,7 @@ namespace melon {
         const mutil::ResourceId<Socket> slot = SlotOfSocketId(id);
         Socket *const m = address_resource(slot);
         if (m != NULL) {
-            const uint64_t vref = m->_versioned_ref.load(mutil::memory_order_relaxed);
+            const uint64_t vref = m->_versioned_ref.load(std::memory_order_relaxed);
             if (VersionOfVRef(vref) == VersionOfSocketId(id)) {
                 if (nref) {
                     *nref = NRefOfVRef(vref);
@@ -1039,11 +1039,11 @@ namespace melon {
             _user = NULL;
             saved_user->BeforeRecycle(this);
         }
-        SharedPart *sp = _shared_part.exchange(NULL, mutil::memory_order_acquire);
+        SharedPart *sp = _shared_part.exchange(NULL, std::memory_order_acquire);
         if (sp) {
             sp->RemoveRefManually();
         }
-        const int prev_fd = _fd.exchange(-1, mutil::memory_order_relaxed);
+        const int prev_fd = _fd.exchange(-1, std::memory_order_relaxed);
         if (ValidFileDescriptor(prev_fd)) {
             if (_on_edge_triggered_events != NULL) {
                 GetGlobalEventDispatcher(prev_fd, _fiber_tag).RemoveConsumer(prev_fd);
@@ -1057,7 +1057,7 @@ namespace melon {
         reset_parsing_context(NULL);
         _read_buf.clear();
 
-        _auth_flag_error.store(0, mutil::memory_order_relaxed);
+        _auth_flag_error.store(0, std::memory_order_relaxed);
         fiber_session_error(_auth_id, 0);
 
         fiber_session_list_destroy(&_id_wait_list);
@@ -1078,7 +1078,7 @@ namespace melon {
         delete _stream_set;
         _stream_set = NULL;
 
-        const SocketId asid = _agent_socket_id.load(mutil::memory_order_relaxed);
+        const SocketId asid = _agent_socket_id.load(std::memory_order_relaxed);
         if (asid != INVALID_SOCKET_ID) {
             SocketUniquePtr ptr;
             if (Socket::Address(asid, &ptr) == 0) {
@@ -1118,7 +1118,7 @@ namespace melon {
             return_when_no_more = false;
         }
         if (_write_head.compare_exchange_strong(
-                new_head, desired, mutil::memory_order_acquire)) {
+                new_head, desired, std::memory_order_acquire)) {
             // No one added new requests.
             if (new_tail) {
                 *new_tail = old_head;
@@ -1165,7 +1165,7 @@ namespace melon {
         }
         // Do not need to check addressable since it will be called by
         // health checker which called `SetFailed' before
-        const int expected_val = _epollout_butex->load(mutil::memory_order_relaxed);
+        const int expected_val = _epollout_butex->load(std::memory_order_relaxed);
         EventDispatcher &edisp = GetGlobalEventDispatcher(fd, _fiber_tag);
         if (edisp.AddEpollOut(id(), fd, pollin) != 0) {
             return -1;
@@ -1310,7 +1310,7 @@ namespace melon {
     }
 
     int Socket::ConnectIfNot(const timespec *abstime, WriteRequest *req) {
-        if (_fd.load(mutil::memory_order_consume) >= 0) {
+        if (_fd.load(std::memory_order_consume) >= 0) {
             return 0;
         }
         // Set tag for client side socket
@@ -1333,7 +1333,7 @@ namespace melon {
     }
 
     void Socket::WakeAsEpollOut() {
-        _epollout_butex->fetch_add(1, mutil::memory_order_release);
+        _epollout_butex->fetch_add(1, std::memory_order_release);
         fiber::butex_wake_except(_epollout_butex, 0);
     }
 
@@ -1355,7 +1355,7 @@ namespace melon {
 
         // Currently `WaitEpollOut' needs `_epollout_butex'
         // TODO(jiangrujie): Remove this in the future
-        s->_epollout_butex->fetch_add(1, mutil::memory_order_relaxed);
+        s->_epollout_butex->fetch_add(1, std::memory_order_relaxed);
         fiber::butex_wake_except(s->_epollout_butex, 0);
         return 0;
     }
@@ -1393,7 +1393,7 @@ namespace melon {
             Socket *const s = req->socket;
             SharedPart *sp = s->GetSharedPart();
             if (sp) {
-                sp->num_continuous_connect_timeouts.store(0, mutil::memory_order_relaxed);
+                sp->num_continuous_connect_timeouts.store(0, std::memory_order_relaxed);
             }
             // requests are not setup yet. check the comment on Setup() in Write()
             req->Setup(s);
@@ -1408,12 +1408,12 @@ namespace melon {
             if (err == ETIMEDOUT) {
                 SharedPart *sp = s->GetOrNewSharedPart();
                 if (sp->num_continuous_connect_timeouts.fetch_add(
-                        1, mutil::memory_order_relaxed) + 1 >=
+                        1, std::memory_order_relaxed) + 1 >=
                     FLAGS_connect_timeout_as_unreachable) {
                     // the race between store and fetch_add(in another thread) is
                     // OK since a critial error is about to return.
                     sp->num_continuous_connect_timeouts.store(
-                            0, mutil::memory_order_relaxed);
+                            0, std::memory_order_relaxed);
                     err = ENETUNREACH;
                 }
             }
@@ -1590,7 +1590,7 @@ namespace melon {
     int Socket::StartWrite(WriteRequest *req, const WriteOptions &opt) {
         // Release fence makes sure the thread getting request sees *req
         WriteRequest *const prev_head =
-                _write_head.exchange(req, mutil::memory_order_release);
+                _write_head.exchange(req, std::memory_order_release);
         if (prev_head != NULL) {
             // Someone is writing to the fd. The KeepWrite thread may spin
             // until req->next to be non-UNCONNECTED. This process is not
@@ -2004,7 +2004,7 @@ namespace melon {
     int Socket::FightAuthentication(int *auth_error) {
         // Use relaxed fence since `fiber_session_trylock' ensures thread safety
         // Here `flag_error' just acts like a cache information
-        uint64_t flag_error = _auth_flag_error.load(mutil::memory_order_relaxed);
+        uint64_t flag_error = _auth_flag_error.load(std::memory_order_relaxed);
         if (flag_error & AUTH_FLAG) {
             // Already authenticated
             *auth_error = (int32_t) (flag_error & 0xFFFFFFFFul);
@@ -2017,7 +2017,7 @@ namespace melon {
             // Use relaxed fence since `fiber_session_join' has acquire fence to ensure
             // `_auth_flag_error' to be the latest value
             fiber_session_join(_auth_id);
-            flag_error = _auth_flag_error.load(mutil::memory_order_relaxed);
+            flag_error = _auth_flag_error.load(std::memory_order_relaxed);
             *auth_error = (int32_t) (flag_error & 0xFFFFFFFFul);
             return EINVAL;
         }
@@ -2029,7 +2029,7 @@ namespace melon {
         // reordered after it.
         if (_auth_flag_error.compare_exchange_strong(
                 expected, (AUTH_FLAG | error_code),
-                mutil::memory_order_relaxed)) {
+                std::memory_order_relaxed)) {
             // As expected
             if (error_code != 0) {
                 SetFailed(error_code, "Fail to authenticate %s", description().c_str());
@@ -2075,7 +2075,7 @@ namespace melon {
         // Passing e[i].events causes complex visibility issues and
         // requires stronger memory fences, since reading the fd returns
         // error as well, we don't pass the events.
-        if (s->_nevent.fetch_add(1, mutil::memory_order_acq_rel) == 0) {
+        if (s->_nevent.fetch_add(1, std::memory_order_acq_rel) == 0) {
             // According to the stats, above fetch_add is very effective. In a
             // server processing 1 million requests per second, this counter
             // is just 1500~1700/s
@@ -2145,7 +2145,7 @@ namespace melon {
             // }
             os << "# This is a broken Socket\n";
         }
-        const uint64_t vref = ptr->_versioned_ref.load(mutil::memory_order_relaxed);
+        const uint64_t vref = ptr->_versioned_ref.load(std::memory_order_relaxed);
         size_t npipelined = 0;
         size_t idsizes[4];
         size_t nidsize = 0;
@@ -2168,7 +2168,7 @@ namespace melon {
         if (sp) {
             os << "\nshared_part={\n  ref_count=" << sp->ref_count()
                << "\n  socket_pool=";
-            SocketPool *pool = sp->socket_pool.load(mutil::memory_order_consume);
+            SocketPool *pool = sp->socket_pool.load(std::memory_order_consume);
             if (pool) {
                 os << '[';
                 std::vector<SocketId> pooled_sockets;
@@ -2180,24 +2180,24 @@ namespace melon {
                     os << pooled_sockets[i];
                 }
                 os << "]\n  numfree="
-                   << pool->_numfree.load(mutil::memory_order_relaxed)
+                   << pool->_numfree.load(std::memory_order_relaxed)
                    << "\n  numinflight="
-                   << pool->_numinflight.load(mutil::memory_order_relaxed);
+                   << pool->_numinflight.load(std::memory_order_relaxed);
             } else {
                 os << "null";
             }
             os << "\n  creator_socket=" << sp->creator_socket_id
-               << "\n  in_size=" << sp->in_size.load(mutil::memory_order_relaxed)
-               << "\n  in_num_messages=" << sp->in_num_messages.load(mutil::memory_order_relaxed)
-               << "\n  out_size=" << sp->out_size.load(mutil::memory_order_relaxed)
-               << "\n  out_num_messages=" << sp->out_num_messages.load(mutil::memory_order_relaxed)
+               << "\n  in_size=" << sp->in_size.load(std::memory_order_relaxed)
+               << "\n  in_num_messages=" << sp->in_num_messages.load(std::memory_order_relaxed)
+               << "\n  out_size=" << sp->out_size.load(std::memory_order_relaxed)
+               << "\n  out_num_messages=" << sp->out_num_messages.load(std::memory_order_relaxed)
                << "\n}";
         }
-        const int fd = ptr->_fd.load(mutil::memory_order_relaxed);
+        const int fd = ptr->_fd.load(std::memory_order_relaxed);
         os << "\nnref=" << NRefOfVRef(vref) - 1
            //                                ^
            // minus the ref of current callsite(calling PrintSocket)
-           << "\nnevent=" << ptr->_nevent.load(mutil::memory_order_relaxed)
+           << "\nnevent=" << ptr->_nevent.load(std::memory_order_relaxed)
            << "\nfd=" << fd
            << "\ntos=" << ptr->_tos
            << "\nreset_fd_to_now=" << mutil::gettimeofday_us() - ptr->_reset_fd_real_us << "us"
@@ -2244,26 +2244,26 @@ namespace melon {
         os << "\npipeline_q=" << npipelined
            << "\nhc_interval_s=" << ptr->_health_check_interval_s
            << "\nis_hc_related_ref_held=" << ptr->_is_hc_related_ref_held
-           << "\nninprocess=" << ptr->_ninprocess.load(mutil::memory_order_relaxed)
-           << "\nauth_flag_error=" << ptr->_auth_flag_error.load(mutil::memory_order_relaxed)
+           << "\nninprocess=" << ptr->_ninprocess.load(std::memory_order_relaxed)
+           << "\nauth_flag_error=" << ptr->_auth_flag_error.load(std::memory_order_relaxed)
            << "\nauth_id=" << ptr->_auth_id.value
            << "\nauth_context=" << ptr->_auth_context
-           << "\nlogoff_flag=" << ptr->_logoff_flag.load(mutil::memory_order_relaxed)
+           << "\nlogoff_flag=" << ptr->_logoff_flag.load(std::memory_order_relaxed)
            << "\n_additional_ref_status="
-           << ptr->_additional_ref_status.load(mutil::memory_order_relaxed)
+           << ptr->_additional_ref_status.load(std::memory_order_relaxed)
            << "\ntotal_streams_buffer_size="
-           << ptr->_total_streams_unconsumed_size.load(mutil::memory_order_relaxed)
+           << ptr->_total_streams_unconsumed_size.load(std::memory_order_relaxed)
            << "\nninflight_app_health_check="
-           << ptr->_ninflight_app_health_check.load(mutil::memory_order_relaxed)
+           << ptr->_ninflight_app_health_check.load(std::memory_order_relaxed)
            << "\nagent_socket_id=";
-        const SocketId asid = ptr->_agent_socket_id.load(mutil::memory_order_relaxed);
+        const SocketId asid = ptr->_agent_socket_id.load(std::memory_order_relaxed);
         if (asid != INVALID_SOCKET_ID) {
             os << asid;
         } else {
             os << "(none)";
         }
         os << "\ncid=" << ptr->_correlation_id
-           << "\nwrite_head=" << ptr->_write_head.load(mutil::memory_order_relaxed)
+           << "\nwrite_head=" << ptr->_write_head.load(std::memory_order_relaxed)
            << "\nssl_state=" << SSLStateToString(ssl_state);
         const SocketSSLContext *ssl_ctx = ptr->_ssl_ctx.get();
         if (ssl_ctx) {
@@ -2496,11 +2496,11 @@ namespace melon {
                     sid = _pool.back();
                     _pool.pop_back();
                 }
-                _numfree.fetch_sub(1, mutil::memory_order_relaxed);
+                _numfree.fetch_sub(1, std::memory_order_relaxed);
                 // Not address inside the lock since at most time the pooled socket
                 // is likely to be valid.
                 if (Socket::Address(sid, ptr) == 0) {
-                    _numinflight.fetch_add(1, mutil::memory_order_relaxed);
+                    _numinflight.fetch_add(1, std::memory_order_relaxed);
                     return 0;
                 }
             }
@@ -2510,7 +2510,7 @@ namespace melon {
         opt.health_check_interval_s = -1;
         if (get_client_side_messenger()->Create(opt, &sid) == 0 &&
             Socket::Address(sid, ptr) == 0) {
-            _numinflight.fetch_add(1, mutil::memory_order_relaxed);
+            _numinflight.fetch_add(1, std::memory_order_relaxed);
             return 0;
         }
         return -1;
@@ -2521,17 +2521,17 @@ namespace melon {
         const int connection_pool_size = FLAGS_max_connection_pool_size;
 
         // Check if the pool is full.
-        if (_numfree.fetch_add(1, mutil::memory_order_relaxed) <
+        if (_numfree.fetch_add(1, std::memory_order_relaxed) <
             connection_pool_size) {
             const SocketId sid = sock->id();
             MELON_SCOPED_LOCK(_mutex);
             _pool.push_back(sid);
         } else {
             // Cancel the addition and close the pooled socket.
-            _numfree.fetch_sub(1, mutil::memory_order_relaxed);
+            _numfree.fetch_sub(1, std::memory_order_relaxed);
             sock->SetFailed(EUNUSED, "Close unused pooled socket");
         }
-        _numinflight.fetch_sub(1, mutil::memory_order_relaxed);
+        _numinflight.fetch_sub(1, std::memory_order_relaxed);
     }
 
     inline void SocketPool::ListSockets(std::vector<SocketId> *out, size_t max_count) {
@@ -2566,7 +2566,7 @@ namespace melon {
             shared_part->AddRefManually();
             SharedPart *expected = NULL;
             if (!_shared_part.compare_exchange_strong(
-                    expected, shared_part, mutil::memory_order_acq_rel)) {
+                    expected, shared_part, std::memory_order_acq_rel)) {
                 shared_part->RemoveRefManually();
                 CHECK(expected);
                 shared_part = expected;
@@ -2579,7 +2579,7 @@ namespace melon {
         SharedPart *main_sp = main_socket->GetOrNewSharedPart();
         main_sp->AddRefManually();
         SharedPart *my_sp =
-                _shared_part.exchange(main_sp, mutil::memory_order_acq_rel);
+                _shared_part.exchange(main_sp, std::memory_order_acq_rel);
         if (my_sp) {
             my_sp->RemoveRefManually();
         }
@@ -2596,7 +2596,7 @@ namespace melon {
             return -1;
         }
         // Create socket_pool optimistically.
-        SocketPool *socket_pool = main_sp->socket_pool.load(mutil::memory_order_consume);
+        SocketPool *socket_pool = main_sp->socket_pool.load(std::memory_order_consume);
         if (socket_pool == NULL) {
             SocketOptions opt;
             opt.remote_side = remote_side();
@@ -2609,7 +2609,7 @@ namespace melon {
             socket_pool = new SocketPool(opt);
             SocketPool *expected = NULL;
             if (!main_sp->socket_pool.compare_exchange_strong(
-                    expected, socket_pool, mutil::memory_order_acq_rel)) {
+                    expected, socket_pool, std::memory_order_acq_rel)) {
                 delete socket_pool;
                 CHECK(expected);
                 socket_pool = expected;
@@ -2627,13 +2627,13 @@ namespace melon {
     }
 
     int Socket::ReturnToPool() {
-        SharedPart *sp = _shared_part.exchange(NULL, mutil::memory_order_acquire);
+        SharedPart *sp = _shared_part.exchange(NULL, std::memory_order_acquire);
         if (sp == NULL) {
             LOG(ERROR) << "_shared_part is NULL";
             SetFailed(EINVAL, "_shared_part is NULL");
             return -1;
         }
-        SocketPool *pool = sp->socket_pool.load(mutil::memory_order_consume);
+        SocketPool *pool = sp->socket_pool.load(std::memory_order_consume);
         if (pool == NULL) {
             LOG(ERROR) << "_shared_part->socket_pool is NULL";
             SetFailed(EINVAL, "_shared_part->socket_pool is NULL");
@@ -2648,11 +2648,11 @@ namespace melon {
         // - related fields must be reset before returning to pool
         // - sp must be released after returning to pool because it owns pool
         _connection_type_for_progressive_read = CONNECTION_TYPE_UNKNOWN;
-        _controller_released_socket.store(false, mutil::memory_order_relaxed);
+        _controller_released_socket.store(false, std::memory_order_relaxed);
         // Reset the write timestamp to make the returned connection live (longer)
         // This is useful for using a fake Socket + SocketConnection impl. to integrate
         // 3rd-party client into melon (like MySQL Client).
-        _last_writetime_us.store(mutil::cpuwide_time_us(), mutil::memory_order_relaxed);
+        _last_writetime_us.store(mutil::cpuwide_time_us(), std::memory_order_relaxed);
         pool->ReturnSocket(this);
         sp->RemoveRefManually();
         return 0;
@@ -2661,7 +2661,7 @@ namespace melon {
     bool Socket::HasSocketPool() const {
         SharedPart *sp = GetSharedPart();
         if (sp != NULL) {
-            return sp->socket_pool.load(mutil::memory_order_consume) != NULL;
+            return sp->socket_pool.load(std::memory_order_consume) != NULL;
         }
         return false;
     }
@@ -2672,7 +2672,7 @@ namespace melon {
         if (sp == NULL) {
             return;
         }
-        SocketPool *pool = sp->socket_pool.load(mutil::memory_order_consume);
+        SocketPool *pool = sp->socket_pool.load(std::memory_order_consume);
         if (pool == NULL) {
             return;
         }
@@ -2684,12 +2684,12 @@ namespace melon {
         if (sp == NULL) {
             return false;
         }
-        SocketPool *pool = sp->socket_pool.load(mutil::memory_order_consume);
+        SocketPool *pool = sp->socket_pool.load(std::memory_order_consume);
         if (pool == NULL) {
             return false;
         }
-        *numfree = pool->_numfree.load(mutil::memory_order_relaxed);
-        *numinflight = pool->_numinflight.load(mutil::memory_order_relaxed);
+        *numfree = pool->_numfree.load(std::memory_order_relaxed);
+        *numinflight = pool->_numinflight.load(std::memory_order_relaxed);
         return true;
     }
 
@@ -2716,7 +2716,7 @@ namespace melon {
     }
 
     int Socket::GetAgentSocket(SocketUniquePtr *out, bool (*checkfn)(Socket *)) {
-        SocketId id = _agent_socket_id.load(mutil::memory_order_relaxed);
+        SocketId id = _agent_socket_id.load(std::memory_order_relaxed);
         SocketUniquePtr tmp_sock;
         do {
             if (Socket::Address(id, &tmp_sock) == 0) {
@@ -2738,7 +2738,7 @@ namespace melon {
             } while (1);
 
             if (_agent_socket_id.compare_exchange_strong(
-                    id, tmp_sock->id(), mutil::memory_order_acq_rel)) {
+                    id, tmp_sock->id(), std::memory_order_acq_rel)) {
                 out->swap(tmp_sock);
                 return 0;
             }
@@ -2748,7 +2748,7 @@ namespace melon {
     }
 
     int Socket::PeekAgentSocket(SocketUniquePtr *out) const {
-        SocketId id = _agent_socket_id.load(mutil::memory_order_relaxed);
+        SocketId id = _agent_socket_id.load(std::memory_order_relaxed);
         if (id == INVALID_SOCKET_ID) {
             return -1;
         }
@@ -2768,30 +2768,30 @@ namespace melon {
     }
 
     void Socket::AddInputBytes(size_t bytes) {
-        GetOrNewSharedPart()->in_size.fetch_add(bytes, mutil::memory_order_relaxed);
+        GetOrNewSharedPart()->in_size.fetch_add(bytes, std::memory_order_relaxed);
     }
 
     void Socket::AddInputMessages(size_t count) {
-        GetOrNewSharedPart()->in_num_messages.fetch_add(count, mutil::memory_order_relaxed);
+        GetOrNewSharedPart()->in_num_messages.fetch_add(count, std::memory_order_relaxed);
     }
 
     void Socket::CancelUnwrittenBytes(size_t bytes) {
         const int64_t before_minus =
-                _unwritten_bytes.fetch_sub(bytes, mutil::memory_order_relaxed);
+                _unwritten_bytes.fetch_sub(bytes, std::memory_order_relaxed);
         if (before_minus < (int64_t) bytes + FLAGS_socket_max_unwritten_bytes) {
             _overcrowded = false;
         }
     }
 
     void Socket::AddOutputBytes(size_t bytes) {
-        GetOrNewSharedPart()->out_size.fetch_add(bytes, mutil::memory_order_relaxed);
+        GetOrNewSharedPart()->out_size.fetch_add(bytes, std::memory_order_relaxed);
         _last_writetime_us.store(mutil::cpuwide_time_us(),
-                                 mutil::memory_order_relaxed);
+                                 std::memory_order_relaxed);
         CancelUnwrittenBytes(bytes);
     }
 
     void Socket::AddOutputMessages(size_t count) {
-        GetOrNewSharedPart()->out_num_messages.fetch_add(count, mutil::memory_order_relaxed);
+        GetOrNewSharedPart()->out_num_messages.fetch_add(count, std::memory_order_relaxed);
     }
 
     SocketId Socket::main_socket_id() const {
@@ -2804,9 +2804,9 @@ namespace melon {
 
     void Socket::OnProgressiveReadCompleted() {
         if (is_read_progressive() &&
-            (_controller_released_socket.load(mutil::memory_order_relaxed) ||
+            (_controller_released_socket.load(std::memory_order_relaxed) ||
              _controller_released_socket.exchange(
-                     true, mutil::memory_order_relaxed))) {
+                     true, std::memory_order_relaxed))) {
             if (_connection_type_for_progressive_read == CONNECTION_TYPE_POOLED) {
                 ReturnToPool();
             } else if (_connection_type_for_progressive_read == CONNECTION_TYPE_SHORT) {

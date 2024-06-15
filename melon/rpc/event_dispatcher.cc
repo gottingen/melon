@@ -20,7 +20,7 @@
 
 
 #include <gflags/gflags.h>                            // DEFINE_int32
-#include <melon/utility/compat.h>
+#include <melon/base/compat.h>
 #include <melon/base/fd_utility.h>                         // make_close_on_exec
 #include <turbo/log/logging.h>                            // LOG
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>// fmix32

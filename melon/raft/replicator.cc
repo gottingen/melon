@@ -19,7 +19,7 @@
 
 
 #include <gflags/gflags.h>                       // DEFINE_int32
-#include <melon/utility/unique_ptr.h>                    // std::unique_ptr
+#include <memory>                    // std::unique_ptr
 #include <melon/utility/time.h>                          // mutil::gettimeofday_us
 #include <melon/rpc/controller.h>                     // melon::Controller
 #include <melon/rpc/reloadable_flags.h>               // MELON_VALIDATE_GFLAG

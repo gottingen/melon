@@ -5,8 +5,8 @@
 #ifndef MUTIL_THREADING_THREAD_RESTRICTIONS_H_
 #define MUTIL_THREADING_THREAD_RESTRICTIONS_H_
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 
 // See comment at top of thread_checker.h
 #if (!defined(NDEBUG)|| defined(DCHECK_ALWAYS_ON))

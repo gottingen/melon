@@ -6,7 +6,7 @@
 
 #include <errno.h>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

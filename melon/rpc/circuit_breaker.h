@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <melon/utility/atomicops.h>
+#include <atomic>
 
 namespace melon {
 
@@ -51,13 +51,13 @@ namespace melon {
 
         // Number of times marked as broken
         int isolated_times() const {
-            return _isolated_times.load(mutil::memory_order_relaxed);
+            return _isolated_times.load(std::memory_order_relaxed);
         }
 
         // The duration that should be isolated when the socket fails in milliseconds.
         // The higher the frequency of socket errors, the longer the duration.
         int isolation_duration_ms() const {
-            return _isolation_duration_ms.load(mutil::memory_order_relaxed);
+            return _isolation_duration_ms.load(std::memory_order_relaxed);
         }
 
     private:
@@ -80,18 +80,18 @@ namespace melon {
             const int _max_error_percent;
             const double _smooth;
 
-            mutil::atomic<int32_t> _sample_count_when_initializing;
-            mutil::atomic<int32_t> _error_count_when_initializing;
-            mutil::atomic<int64_t> _ema_error_cost;
-            mutil::atomic<int64_t> _ema_latency;
+            std::atomic<int32_t> _sample_count_when_initializing;
+            std::atomic<int32_t> _error_count_when_initializing;
+            std::atomic<int64_t> _ema_error_cost;
+            std::atomic<int64_t> _ema_latency;
         };
 
         EmaErrorRecorder _long_window;
         EmaErrorRecorder _short_window;
         int64_t _last_reset_time_ms;
-        mutil::atomic<int> _isolation_duration_ms;
-        mutil::atomic<int> _isolated_times;
-        mutil::atomic<bool> _broken;
+        std::atomic<int> _isolation_duration_ms;
+        std::atomic<int> _isolated_times;
+        std::atomic<bool> _broken;
     };
 
 }  // namespace melon

@@ -22,7 +22,7 @@
 #ifndef MUTIL_COMPAT_H
 #define MUTIL_COMPAT_H
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <pthread.h>
 
 #if defined(OS_MACOSX)

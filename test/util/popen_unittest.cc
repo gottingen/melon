@@ -23,7 +23,7 @@
 #include <melon/base/popen.h>
 #include <melon/base/errno.h>
 #include <melon/utility/strings/string_piece.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

@@ -20,16 +20,13 @@ SET(TEST_UTILITY_SOURCES
         atomicops_unittest
         hash_tables_unittest
         linked_list_unittest
-        mru_cache_unittest
         small_map_unittest
         stack_container_unittest
-        mpsc_queue_unittest
         leak_tracker_unittest
         dir_reader_posix_unittest
         file_path_unittest
         file_unittest
         scoped_temp_dir_unittest
-        hash_unittest
         lazy_instance_unittest
         aligned_memory_unittest
         linked_ptr_unittest

@@ -18,7 +18,7 @@
 //
 
 
-#include <melon/utility/compat.h>
+#include <melon/base/compat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/utsname.h>                           // uname
@@ -43,7 +43,7 @@
 
 #ifndef NDEBUG
 namespace fiber {
-extern mutil::atomic<int> break_nums;
+extern std::atomic<int> break_nums;
 extern TaskControl* global_task_control;
 int stop_and_join_epoll_threads();
 }

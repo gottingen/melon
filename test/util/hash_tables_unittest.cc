@@ -4,7 +4,7 @@
 
 #include <melon/utility/containers/hash_tables.h>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <gtest/gtest.h>
 
 namespace {

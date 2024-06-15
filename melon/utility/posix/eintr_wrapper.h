@@ -16,7 +16,7 @@
 #ifndef MUTIL_POSIX_EINTR_WRAPPER_H_
 #define MUTIL_POSIX_EINTR_WRAPPER_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <melon/utility/macros.h>   // MELON_TYPEOF
 
 #if defined(OS_POSIX)

@@ -5,7 +5,7 @@
 #ifndef MUTIL_DEBUG_ALIAS_H_
 #define MUTIL_DEBUG_ALIAS_H_
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 
 namespace mutil {
 namespace debug {

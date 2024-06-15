@@ -16,7 +16,7 @@
 #include <stdint.h>  // For intptr_t.
 
 #include <melon/utility/macros.h>
-#include "melon/utility/port.h"  // Types that only need exist on certain systems.
+#include <melon/base/port.h>  // Types that only need exist on certain systems.
 
 // DEPRECATED: Please use std::numeric_limits (from <limits>) instead.
 const uint8_t  kuint8max  = (( uint8_t) 0xFF);

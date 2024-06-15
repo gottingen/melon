@@ -19,7 +19,7 @@
 
 
 #include <sys/uio.h>               // writev
-#include <melon/utility/compat.h>
+#include <melon/base/compat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <gtest/gtest.h>
@@ -57,7 +57,7 @@ struct MELON_CACHELINE_ALIGNMENT ClientMeta {
 struct MELON_CACHELINE_ALIGNMENT SocketMeta {
     int fd;
     int epfd;
-    mutil::atomic<int> req;
+    std::atomic<int> req;
     char* buf;
     size_t buf_cap;
     size_t bytes;
@@ -97,11 +97,11 @@ void* process_thread(void* arg) {
             }
         } while (1);
         
-        if (m->req.exchange(0, mutil::memory_order_release) == 1) {
+        if (m->req.exchange(0, std::memory_order_release) == 1) {
             // no events during reading.
             break;
         }
-        if (m->req.fetch_add(1, mutil::memory_order_relaxed) != 0) {
+        if (m->req.fetch_add(1, std::memory_order_relaxed) != 0) {
             // someone else takes the fd.
             break;
         }
@@ -146,7 +146,7 @@ void* epoll_thread(void* arg) {
 #elif defined(OS_MACOSX)
             SocketMeta* m = (SocketMeta*)e[i].udata;
 #endif
-            if (m->req.fetch_add(1, mutil::memory_order_acquire) == 0) {
+            if (m->req.fetch_add(1, std::memory_order_acquire) == 0) {
                 fiber_t th;
                 fiber_start_urgent(
                     &th, &FIBER_ATTR_SMALL, process_thread, m);

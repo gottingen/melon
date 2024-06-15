@@ -24,10 +24,10 @@
 #include <google/protobuf/descriptor.h>
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/build_config.h>    // OS_MACOSX
+#include <melon/base/build_config.h>    // OS_MACOSX
 #include <melon/utility/string_printf.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/config.h>
+#include <melon/base/config.h>
 #include <melon/utility/time.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/unstable.h>

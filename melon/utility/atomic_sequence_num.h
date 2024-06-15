@@ -6,7 +6,7 @@
 #define MUTIL_ATOMIC_SEQUENCE_NUM_H_
 
 #include <melon/utility/atomicops.h>
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 
 namespace mutil {
 

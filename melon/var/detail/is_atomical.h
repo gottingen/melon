@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <melon/utility/type_traits.h>
+#include <melon/base/type_traits.h>
 
 namespace melon::var::detail {
     template<class T>

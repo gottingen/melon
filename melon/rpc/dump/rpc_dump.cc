@@ -23,8 +23,8 @@
 #include <fcntl.h>                    // O_CREAT
 #include <melon/utility/file_util.h>
 #include <melon/base/raw_pack.h>
-#include <melon/utility/unique_ptr.h>
-#include <melon/utility/fast_rand.h>
+#include <memory>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/var/var.h>
 #include <melon/rpc/log.h>

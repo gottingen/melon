@@ -38,8 +38,8 @@
 #include <new>  // For placement new.
 
 #include <melon/utility/atomicops.h>
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include "melon/utility/debug/leak_annotations.h"
 #include <turbo/log/logging.h>
 #include "melon/utility/memory/aligned_memory.h"

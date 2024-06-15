@@ -23,7 +23,7 @@
 #include <math.h>                       // round
 #include <ostream>
 #include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
-#include <melon/utility/type_traits.h>
+#include <melon/base/type_traits.h>
 #include <melon/var/vector.h>
 #include <melon/var/detail/call_op_returning_void.h>
 #include <melon/utility/string_splitter.h>

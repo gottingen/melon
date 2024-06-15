@@ -26,9 +26,9 @@
 #include <openssl/err.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include <melon/utility/unique_ptr.h>
+#include <memory>
 #include <turbo/log/logging.h>
-#include <melon/utility/ssl_compat.h>
+#include <melon/base/ssl_compat.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/details/ssl_helper.h>

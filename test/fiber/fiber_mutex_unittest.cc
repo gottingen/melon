@@ -19,7 +19,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/compat.h>
+#include <melon/base/compat.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/string_printf.h>

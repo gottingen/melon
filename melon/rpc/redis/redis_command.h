@@ -27,7 +27,7 @@
 #include <vector>
 #include <melon/base/iobuf.h>
 #include <melon/utility/status.h>
-#include <melon/utility/arena.h>
+#include <melon/base/arena.h>
 #include <melon/rpc/parse_result.h>
 
 namespace melon {

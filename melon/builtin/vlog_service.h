@@ -19,7 +19,7 @@
 
 
 #pragma once
-#include <melon/utility/config.h>
+#include <melon/base/config.h>
 #if !MELON_WITH_GLOG
 
 #include <ostream>

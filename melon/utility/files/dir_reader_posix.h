@@ -5,7 +5,7 @@
 #ifndef MUTIL_FILES_DIR_READER_POSIX_H_
 #define MUTIL_FILES_DIR_READER_POSIX_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 // This header provides a class, DirReaderPosix, which allows one to open and
 // read from directories without allocating memory. For the interface, see

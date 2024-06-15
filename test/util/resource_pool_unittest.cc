@@ -21,7 +21,7 @@
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 
 #define MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
 #include <melon/base/resource_pool.h>
@@ -80,13 +80,13 @@ protected:
 TEST_F(ResourcePoolTest, atomic_array_init) {
     for (int i = 0; i < 2; ++i) {
         if (i == 0) {
-            mutil::atomic<int> a[2];
+            std::atomic<int> a[2];
             a[0] = 1;
             // The folowing will cause compile error with gcc3.4.5 and the
             // reason is unknown
             // a[1] = 2;
         } else if (i == 2) {
-            mutil::atomic<int> a[2];
+            std::atomic<int> a[2];
             ASSERT_EQ(0, a[0]);
             ASSERT_EQ(0, a[1]);
         }

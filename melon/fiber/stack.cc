@@ -46,9 +46,9 @@ MELON_CASSERT(FIBER_STACKTYPE_NORMAL == STACK_TYPE_NORMAL, must_match);
 MELON_CASSERT(FIBER_STACKTYPE_LARGE == STACK_TYPE_LARGE, must_match);
 MELON_CASSERT(STACK_TYPE_MAIN == 0, must_be_0);
 
-static mutil::static_atomic<int64_t> s_stack_count = MUTIL_STATIC_ATOMIC_INIT(0);
+static std::atomic<int64_t> s_stack_count{0};
 static int64_t get_stack_count(void*) {
-    return s_stack_count.load(mutil::memory_order_relaxed);
+    return s_stack_count.load(std::memory_order_relaxed);
 }
 static melon::var::PassiveStatus<int64_t> var_stack_count(
     "fiber_stack_count", get_stack_count, NULL);
@@ -71,7 +71,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
                                      << stacksize << ")";
             return -1;
         }
-        s_stack_count.fetch_add(1, mutil::memory_order_relaxed);
+        s_stack_count.fetch_add(1, std::memory_order_relaxed);
         s->bottom = (char*)mem + stacksize;
         s->stacksize = stacksize;
         s->guardsize = 0;
@@ -95,7 +95,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
         if (MAP_FAILED == mem) {
             PLOG_EVERY_N_SEC(ERROR, 1)
                 << "Fail to mmap size=" << memsize << " stack_count="
-                << s_stack_count.load(mutil::memory_order_relaxed)
+                << s_stack_count.load(std::memory_order_relaxed)
                 << ", possibly limited by /proc/sys/vm/max_map_count";
             // may fail due to limit of max_map_count (65536 in default)
             return -1;
@@ -116,7 +116,7 @@ int allocate_stack_storage(StackStorage* s, int stacksize_in, int guardsize_in) 
             return -1;
         }
 
-        s_stack_count.fetch_add(1, mutil::memory_order_relaxed);
+        s_stack_count.fetch_add(1, std::memory_order_relaxed);
         s->bottom = (char*)mem + memsize;
         s->stacksize = stacksize;
         s->guardsize = guardsize;
@@ -138,7 +138,7 @@ void deallocate_stack_storage(StackStorage* s) {
     if ((uintptr_t)s->bottom <= (uintptr_t)memsize) {
         return;
     }
-    s_stack_count.fetch_sub(1, mutil::memory_order_relaxed);
+    s_stack_count.fetch_sub(1, std::memory_order_relaxed);
     if (s->guardsize <= 0) {
         free((char*)s->bottom - memsize);
     } else {

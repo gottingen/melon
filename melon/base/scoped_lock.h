@@ -21,7 +21,7 @@
 #ifndef MUTIL_MELON_SCOPED_LOCK_H
 #define MUTIL_MELON_SCOPED_LOCK_H
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(MUTIL_CXX11_ENABLED)
 #include <mutex>                           // std::lock_guard

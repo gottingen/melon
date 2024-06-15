@@ -22,7 +22,7 @@
 #include <openssl/hmac.h> // HMAC_CTX_init
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <melon/base/scoped_lock.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/details/controller_private_accessor.h>

@@ -5,7 +5,7 @@
 #ifndef MUTIL_COMPILER_SPECIFIC_H_
 #define MUTIL_COMPILER_SPECIFIC_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(COMPILER_MSVC)
 

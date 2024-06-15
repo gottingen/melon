@@ -24,7 +24,7 @@
 
 #include <melon/base/scoped_lock.h>
 #include <melon/rpc/data_factory.h>
-#include <melon/utility/atomicops.h>
+#include <atomic>
 
 
 namespace melon {
@@ -54,7 +54,7 @@ private:
     mutil::Mutex _mutex;
     unsigned _capacity;
     unsigned _size;
-    mutil::atomic<unsigned> _ncreated;
+     std::atomic<unsigned> _ncreated;
     void** _pool;
     const DataFactory* _factory;
 };

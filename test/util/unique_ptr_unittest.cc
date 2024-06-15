@@ -19,7 +19,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/unique_ptr.h>
+#include <memory>
 
 namespace {
 

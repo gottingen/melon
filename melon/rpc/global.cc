@@ -24,7 +24,7 @@
 #include <fcntl.h>                               // O_RDONLY
 #include <signal.h>
 
-#include <melon/utility/build_config.h>                  // OS_LINUX
+#include <melon/base/build_config.h>                  // OS_LINUX
 // Naming services
 #include <melon/naming/file_naming_service.h>
 #include <melon/naming/list_naming_service.h>

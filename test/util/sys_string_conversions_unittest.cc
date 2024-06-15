@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <melon/utility/strings/string_piece.h>
 #include "melon/utility/strings/sys_string_conversions.h"
 #include "melon/utility/strings/utf_string_conversions.h"

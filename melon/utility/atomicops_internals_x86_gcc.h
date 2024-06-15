@@ -7,7 +7,7 @@
 #ifndef MUTIL_ATOMICOPS_INTERNALS_X86_GCC_H_
 #define MUTIL_ATOMICOPS_INTERNALS_X86_GCC_H_
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 
 // This struct is not part of the public API of this module; clients may not
 // use it.  (However, it's exported via MUTIL_EXPORT because clients implicitly

@@ -6,7 +6,7 @@
 
 #include "melon/utility/at_exit.h"
 #include <melon/utility/atomicops.h>
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h>
 

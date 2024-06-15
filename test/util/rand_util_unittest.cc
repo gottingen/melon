@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/rand_util.h"
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/time.h>
 #include <algorithm>
 #include <limits>

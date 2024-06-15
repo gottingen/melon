@@ -19,7 +19,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/utility/build_config.h>                       // OS_MACOSX
+#include <melon/base/build_config.h>                       // OS_MACOSX
 #include <netdb.h>                                    // gethostbyname_r
 #include <cstdlib>                                   // strtol
 #include <string>                                     // std::string

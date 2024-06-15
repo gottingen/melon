@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <melon/utility/unique_ptr.h>           // std::unique_ptr
+#include <memory>           // std::unique_ptr
 
 
 namespace melon {

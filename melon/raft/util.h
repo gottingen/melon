@@ -29,11 +29,11 @@
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>
 #include <melon/base/endpoint.h>
 #include <melon/base/scoped_lock.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
 #include <melon/base/iobuf.h>
-#include <melon/utility/unique_ptr.h>
+#include <memory>
 #include <melon/utility/memory/singleton.h>
 #include <melon/utility/containers/doubly_buffered_data.h>
 #include <turbo/crypto/crc32c.h>

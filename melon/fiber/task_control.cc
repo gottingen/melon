@@ -85,7 +85,7 @@ namespace fiber {
             return NULL;
         }
         std::string worker_thread_name = mutil::string_printf(
-                "melon_wkr:%d-%d", g->tag(), c->_next_worker_id.fetch_add(1, mutil::memory_order_relaxed));
+                "melon_wkr:%d-%d", g->tag(), c->_next_worker_id.fetch_add(1, std::memory_order_relaxed));
         mutil::PlatformThread::SetName(worker_thread_name.c_str());
         BT_VLOG << "Created worker=" << pthread_self() << " fiber=" << g->main_tid()
                  << " tag=" << g->tag();
@@ -223,7 +223,7 @@ namespace fiber {
             ++i;
         }
 
-        _init.store(true, mutil::memory_order_release);
+        _init.store(true, std::memory_order_release);
 
         return 0;
     }
@@ -237,7 +237,7 @@ namespace fiber {
         } catch (...) {
             return 0;
         }
-        const int old_concurency = _concurrency.load(mutil::memory_order_relaxed);
+        const int old_concurency = _concurrency.load(std::memory_order_relaxed);
         for (int i = 0; i < num; ++i) {
             // Worker will add itself to _idle_workers, so we have to add
             // _concurrency before create a worker.
@@ -249,19 +249,19 @@ namespace fiber {
                 delete arg;
                 LOG(WARNING) << "Fail to create _workers[" << i + old_concurency
                               << "], " << berror(rc);
-                _concurrency.fetch_sub(1, mutil::memory_order_release);
+                _concurrency.fetch_sub(1, std::memory_order_release);
                 break;
             }
         }
         // Cannot fail
-        _workers.resize(_concurrency.load(mutil::memory_order_relaxed));
-        return _concurrency.load(mutil::memory_order_relaxed) - old_concurency;
+        _workers.resize(_concurrency.load(std::memory_order_relaxed));
+        return _concurrency.load(std::memory_order_relaxed) - old_concurency;
     }
 
     TaskGroup *TaskControl::choose_one_group(fiber_tag_t tag) {
         CHECK(tag >= FIBER_TAG_DEFAULT && tag < FLAGS_task_group_ntags);
         auto &groups = tag_group(tag);
-        const auto ngroup = tag_ngroup(tag).load(mutil::memory_order_acquire);
+        const auto ngroup = tag_ngroup(tag).load(std::memory_order_acquire);
         if (ngroup != 0) {
             return groups[mutil::fast_rand_less_than(ngroup)];
         }
@@ -282,7 +282,7 @@ namespace fiber {
             _stop = true;
             std::for_each(
                     _tagged_ngroup.begin(), _tagged_ngroup.end(),
-                    [](mutil::atomic<size_t> &index) { index.store(0, mutil::memory_order_relaxed); });
+                    [](std::atomic<size_t> &index) { index.store(0, std::memory_order_relaxed); });
         }
         for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
             for (auto &pl: _pl[i]) {
@@ -302,7 +302,7 @@ namespace fiber {
     TaskControl::~TaskControl() {
         // NOTE: g_task_control is not destructed now because the situation
         //       is extremely racy.
-        delete _pending_time.exchange(NULL, mutil::memory_order_relaxed);
+        delete _pending_time.exchange(NULL, std::memory_order_relaxed);
         _worker_usage_second.hide();
         _switch_per_second.hide();
         _signal_per_second.hide();
@@ -321,10 +321,10 @@ namespace fiber {
         }
         g->set_tag(tag);
         g->set_pl(&_pl[tag][mutil::fmix64(pthread_numeric_id()) % PARKING_LOT_NUM]);
-        size_t ngroup = _tagged_ngroup[tag].load(mutil::memory_order_relaxed);
+        size_t ngroup = _tagged_ngroup[tag].load(std::memory_order_relaxed);
         if (ngroup < (size_t) FIBER_MAX_CONCURRENCY) {
             _tagged_groups[tag][ngroup] = g;
-            _tagged_ngroup[tag].store(ngroup + 1, mutil::memory_order_release);
+            _tagged_ngroup[tag].store(ngroup + 1, std::memory_order_release);
         }
         mu.unlock();
         // See the comments in _destroy_group
@@ -352,7 +352,7 @@ namespace fiber {
             MELON_SCOPED_LOCK(_modify_group_mutex);
             auto tag = g->tag();
             auto &groups = tag_group(tag);
-            const size_t ngroup = tag_ngroup(tag).load(mutil::memory_order_relaxed);
+            const size_t ngroup = tag_ngroup(tag).load(std::memory_order_relaxed);
             for (size_t i = 0; i < ngroup; ++i) {
                 if (groups[i] == g) {
                     // No need for atomic_thread_fence because lock did it.
@@ -366,7 +366,7 @@ namespace fiber {
                     //    overwrite it, since we do signal_task in _add_group(),
                     //    we think the pending tasks of _groups[ngroup - 1] would
                     //    not miss.
-                    tag_ngroup(tag).store(ngroup - 1, mutil::memory_order_release);
+                    tag_ngroup(tag).store(ngroup - 1, std::memory_order_release);
                     //_groups[ngroup - 1] = NULL;
                     erased = true;
                     break;
@@ -391,7 +391,7 @@ namespace fiber {
         auto tag = tls_task_group->tag();
         // 1: Acquiring fence is paired with releasing fence in _add_group to
         // avoid accessing uninitialized slot of _groups.
-        const size_t ngroup = tag_ngroup(tag).load(mutil::memory_order_acquire/*1*/);
+        const size_t ngroup = tag_ngroup(tag).load(std::memory_order_acquire/*1*/);
         if (0 == ngroup) {
             return false;
         }
@@ -442,10 +442,10 @@ namespace fiber {
         }
         if (num_task > 0 &&
             FLAGS_fiber_min_concurrency > 0 &&    // test min_concurrency for performance
-            _concurrency.load(mutil::memory_order_relaxed) < FLAGS_fiber_concurrency) {
+            _concurrency.load(std::memory_order_relaxed) < FLAGS_fiber_concurrency) {
             // TODO: Reduce this lock
             MELON_SCOPED_LOCK(g_task_control_mutex);
-            if (_concurrency.load(mutil::memory_order_acquire) < FLAGS_fiber_concurrency) {
+            if (_concurrency.load(std::memory_order_acquire) < FLAGS_fiber_concurrency) {
                 add_workers(1, tag);
             }
         }
@@ -453,8 +453,8 @@ namespace fiber {
 
     void TaskControl::print_rq_sizes(std::ostream &os) {
         size_t ngroup = 0;
-        std::for_each(_tagged_ngroup.begin(), _tagged_ngroup.end(), [&](mutil::atomic<size_t> &index) {
-            ngroup += index.load(mutil::memory_order_relaxed);
+        std::for_each(_tagged_ngroup.begin(), _tagged_ngroup.end(), [&](std::atomic<size_t> &index) {
+            ngroup += index.load(std::memory_order_relaxed);
         });
         DEFINE_SMALL_ARRAY(int, nums, ngroup, 128);
         {
@@ -486,7 +486,7 @@ namespace fiber {
     double TaskControl::get_cumulated_worker_time_with_tag(fiber_tag_t tag) {
         int64_t cputime_ns = 0;
         MELON_SCOPED_LOCK(_modify_group_mutex);
-        const size_t ngroup = tag_ngroup(tag).load(mutil::memory_order_relaxed);
+        const size_t ngroup = tag_ngroup(tag).load(std::memory_order_relaxed);
         auto &groups = tag_group(tag);
         for (size_t i = 0; i < ngroup; ++i) {
             if (groups[i]) {
@@ -521,10 +521,10 @@ namespace fiber {
     melon::var::LatencyRecorder *TaskControl::create_exposed_pending_time() {
         bool is_creator = false;
         _pending_time_mutex.lock();
-        melon::var::LatencyRecorder *pt = _pending_time.load(mutil::memory_order_consume);
+        melon::var::LatencyRecorder *pt = _pending_time.load(std::memory_order_consume);
         if (!pt) {
             pt = new melon::var::LatencyRecorder;
-            _pending_time.store(pt, mutil::memory_order_release);
+            _pending_time.store(pt, std::memory_order_release);
             is_creator = true;
         }
         _pending_time_mutex.unlock();

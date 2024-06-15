@@ -34,7 +34,7 @@
 #include <turbo/log/logging.h>
 #include <melon/base/fd_guard.h>
 #include <melon/base/errno.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/atomicops.h>
 #if BAZEL_TEST
 #include "test/iobuf.pb.h"

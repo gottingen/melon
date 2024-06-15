@@ -5,7 +5,7 @@
 #ifndef MUTIL_STRINGS_SAFE_SPRINTF_H_
 #define MUTIL_STRINGS_SAFE_SPRINTF_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -16,8 +16,8 @@
 #include <unistd.h>
 #endif
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 
 namespace mutil {
 namespace strings {

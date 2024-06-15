@@ -27,7 +27,7 @@
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <melon/utility/build_config.h> // OS_MACOSX
+#include <melon/base/build_config.h> // OS_MACOSX
 #if defined(OS_MACOSX)
 #include <sys/event.h>
 #endif

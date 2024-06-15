@@ -22,7 +22,7 @@
 #define  MELON_FIBER_EXECUTION_QUEUE_H_
 
 #include <melon/fiber/fiber.h>
-#include <melon/utility/type_traits.h>
+#include <melon/base/type_traits.h>
 
 namespace fiber {
 

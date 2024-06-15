@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <melon/utility/containers/hash_tables.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>

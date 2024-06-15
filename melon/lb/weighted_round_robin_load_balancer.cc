@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/rpc/socket.h>
 #include <melon/lb/weighted_round_robin_load_balancer.h>
 #include <melon/utility/strings/string_number_conversions.h>

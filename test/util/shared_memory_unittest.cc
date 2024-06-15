@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/memory/shared_memory.h"
 #include "melon/utility/process/kill.h"

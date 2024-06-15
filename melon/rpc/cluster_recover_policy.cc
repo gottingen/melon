@@ -26,7 +26,7 @@
 #include <melon/utility/synchronization/lock.h>
 #include <melon/rpc/server_id.h>
 #include <melon/rpc/socket.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/time.h>
 #include <melon/utility/string_splitter.h>
 

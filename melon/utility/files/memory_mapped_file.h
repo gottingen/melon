@@ -5,10 +5,10 @@
 #ifndef MUTIL_FILES_MEMORY_MAPPED_FILE_H_
 #define MUTIL_FILES_MEMORY_MAPPED_FILE_H_
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/files/file.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(OS_WIN)
 #include <windows.h>

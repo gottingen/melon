@@ -29,8 +29,8 @@
 #include <stdio.h>
 #include <string>
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 
 #if defined(WCHAR_T_IS_UTF16)
 

@@ -33,8 +33,8 @@
 #include <iosfwd>
 #include <string>
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/containers/hash_tables.h>
 #include "melon/utility/strings/string16.h"
 

@@ -23,7 +23,7 @@
 
 #include <vector>                     // std::vector
 #include <pthread.h>                  // pthread_*
-#include <melon/utility/atomicops.h>
+#include <atomic>
 #include <melon/utility/time.h>                // time utilities
 #include <melon/fiber/mutex.h>
 
@@ -91,7 +91,7 @@ private:
     static void* run_this(void* arg);
 
     bool _started;            // whether the timer thread was started successfully.
-    mutil::atomic<bool> _stop;
+    std::atomic<bool> _stop;
 
     TimerThreadOptions _options;
     Bucket* _buckets;        // list of tasks to be run

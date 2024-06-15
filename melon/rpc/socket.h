@@ -22,7 +22,7 @@
 #include <iostream>                            // std::ostream
 #include <deque>                               // std::deque
 #include <set>                                 // std::set
-#include <melon/utility/atomicops.h>                    // mutil::atomic
+#include <atomic>
 #include <melon/fiber/types.h>                      // fiber_session_t
 #include <melon/base/iobuf.h>                        // mutil::IOBuf, IOPortal
 #include <melon/utility/macros.h>                       // DISALLOW_COPY_AND_ASSIGN
@@ -343,7 +343,7 @@ namespace melon {
         int Write(SocketMessagePtr<> &msg, const WriteOptions *options = NULL);
 
         // The file descriptor
-        int fd() const { return _fd.load(mutil::memory_order_relaxed); }
+        int fd() const { return _fd.load(std::memory_order_relaxed); }
 
         // ip/port of the local end of the connection
         mutil::EndPoint local_side() const { return _local_side; }
@@ -370,7 +370,7 @@ namespace melon {
         bool IsHCRelatedRefHeld() const { return _is_hc_related_ref_held; }
 
         // After health checking is complete, set _hc_started to false.
-        void AfterHCCompleted() { _hc_started.store(false, mutil::memory_order_relaxed); }
+        void AfterHCCompleted() { _hc_started.store(false, std::memory_order_relaxed); }
 
         // The unique identifier.
         SocketId id() const { return _this_id; }
@@ -389,7 +389,7 @@ namespace melon {
 
         Destroyable *release_parsing_context();
 
-        Destroyable *parsing_context() const { return _parsing_context.load(mutil::memory_order_consume); }
+        Destroyable *parsing_context() const { return _parsing_context.load(std::memory_order_consume); }
 
         // Try to set _parsing_context to *ctx when _parsing_context is NULL.
         // If _parsing_context is NULL, the set is successful and true is returned.
@@ -449,7 +449,7 @@ namespace melon {
         bool Failed() const;
 
         bool DidReleaseAdditionalRereference() const {
-            return _additional_ref_status.load(mutil::memory_order_relaxed) == REF_RECYCLED;
+            return _additional_ref_status.load(std::memory_order_relaxed) == REF_RECYCLED;
         }
 
         // Notify `id' object (by calling fiber_session_error) when this Socket
@@ -618,8 +618,8 @@ namespace melon {
         // Last cpuwide-time at when this socket was read or write.
         int64_t last_active_time_us() const {
             return std::max(
-                    _last_readtime_us.load(mutil::memory_order_relaxed),
-                    _last_writetime_us.load(mutil::memory_order_relaxed));
+                    _last_readtime_us.load(std::memory_order_relaxed),
+                    _last_writetime_us.load(std::memory_order_relaxed));
         }
 
         // A brief description of this socket, consistent with os << *this
@@ -804,25 +804,25 @@ namespace melon {
         //   also the version encoded in SocketId.
         // * Failed version: = created version + 1, SetFailed()-ed but returned.
         // * Other versions: the socket is already recycled.
-        mutil::atomic<uint64_t> _versioned_ref;
+         std::atomic<uint64_t> _versioned_ref;
 
         // In/Out bytes/messages, SocketPool etc
         // _shared_part is shared by a main socket and all its pooled sockets.
         // Can't use intrusive_ptr because the creation is based on optimistic
         // locking and relies on atomic CAS. We manage references manually.
-        mutil::atomic<SharedPart *> _shared_part;
+         std::atomic<SharedPart *> _shared_part;
 
         // [ Set in dispatcher ]
         // To keep the callback in at most one fiber at any time. Read comments
         // about ProcessEvent in socket.cpp to understand the tricks.
-        mutil::atomic<int> _nevent;
+         std::atomic<int> _nevent;
 
         // May be set by Acceptor to share keytables between reading threads
         // on sockets created by the Acceptor.
         fiber_keytable_pool_t *_keytable_pool;
 
         // [ Set in ResetFileDescriptor ]
-        mutil::atomic<int> _fd;  // -1 when not connected.
+         std::atomic<int> _fd;  // -1 when not connected.
         fiber_tag_t _fiber_tag;  // fiber tag of this socket
         int _tos;                // Type of service which is actually only 8bits.
         int64_t _reset_fd_real_us; // When _fd was reset, in microseconds.
@@ -869,10 +869,10 @@ namespace melon {
         mutil::IOPortal _read_buf;
 
         // Set with cpuwide_time_us() at last read operation
-        mutil::atomic<int64_t> _last_readtime_us;
+         std::atomic<int64_t> _last_readtime_us;
 
         // Saved context for parsing, reset before trying other protocols.
-        mutil::atomic<Destroyable *> _parsing_context;
+         std::atomic<Destroyable *> _parsing_context;
 
         // Saving the correlation_id of RPC on protocols that cannot put
         // correlation_id on-wire and do not send multiple requests on one
@@ -889,14 +889,14 @@ namespace melon {
 
         // Default: false.
         // true, if health checking is started.
-        mutil::atomic<bool> _hc_started;
+         std::atomic<bool> _hc_started;
 
         // +-1 bit-+---31 bit---+
         // |  flag |   counter  |
         // +-------+------------+
         // 1-bit flag to ensure `SetEOF' to be called only once
         // 31-bit counter of requests that are currently being processed
-        mutil::atomic<uint32_t> _ninprocess;
+         std::atomic<uint32_t> _ninprocess;
 
         // +---32 bit---+---32 bit---+
         // |  auth flag | auth error |
@@ -905,7 +905,7 @@ namespace melon {
         // 0 - not authenticated yet
         // 1 - authentication completed (whether it succeeded or not
         //     depends on `auth error')
-        mutil::atomic<uint64_t> _auth_flag_error;
+         std::atomic<uint64_t> _auth_flag_error;
         fiber_session_t _auth_id;
 
         // Stores authentication result/context of this socket. This only
@@ -928,7 +928,7 @@ namespace melon {
 
         // Pass from controller, for progressive reading.
         ConnectionType _connection_type_for_progressive_read;
-        mutil::atomic<bool> _controller_released_socket;
+         std::atomic<bool> _controller_released_socket;
 
         // True if the socket is too full to write.
         volatile bool _overcrowded;
@@ -936,7 +936,7 @@ namespace melon {
         bool _fail_me_at_server_stop;
 
         // Set by SetLogOff
-        mutil::atomic<bool> _logoff_flag;
+         std::atomic<bool> _logoff_flag;
 
         // Status flag used to mark that
         enum AdditionalRefStatus {
@@ -951,7 +951,7 @@ namespace melon {
         // `Socket'、`Create': REF_USING
         // `SetFailed': REF_USING -> REF_RECYCLED
         // `Revive' REF_RECYCLED -> REF_REVIVING -> REF_USING
-        mutil::atomic<AdditionalRefStatus> _additional_ref_status;
+         std::atomic<AdditionalRefStatus> _additional_ref_status;
 
         // Concrete error information from SetFailed()
         // Accesses to these 2 fields(especially _error_text) must be protected
@@ -959,7 +959,7 @@ namespace melon {
         int _error_code;
         std::string _error_text;
 
-        mutil::atomic<SocketId> _agent_socket_id;
+         std::atomic<SocketId> _agent_socket_id;
 
         mutil::Mutex _pipeline_mutex;
         std::deque<PipelinedInfo> *_pipeline_q;
@@ -969,21 +969,21 @@ namespace melon {
         fiber_session_list_t _id_wait_list;
 
         // Set with cpuwide_time_us() at last write operation
-        mutil::atomic<int64_t> _last_writetime_us;
+         std::atomic<int64_t> _last_writetime_us;
         // Queued but written
-        mutil::atomic<int64_t> _unwritten_bytes;
+         std::atomic<int64_t> _unwritten_bytes;
 
         // Butex to wait for EPOLLOUT event
-        mutil::atomic<int> *_epollout_butex;
+         std::atomic<int> *_epollout_butex;
 
         // Storing data that are not flushed into `fd' yet.
-        mutil::atomic<WriteRequest *> _write_head;
+         std::atomic<WriteRequest *> _write_head;
 
         mutil::Mutex _stream_mutex;
         std::set<StreamId> *_stream_set;
-        mutil::atomic<int64_t> _total_streams_unconsumed_size;
+         std::atomic<int64_t> _total_streams_unconsumed_size;
 
-        mutil::atomic<int64_t> _ninflight_app_health_check;
+         std::atomic<int64_t> _ninflight_app_health_check;
 
         // Socket keepalive related options.
         // Refer to `SocketKeepaliveOptions' for details.

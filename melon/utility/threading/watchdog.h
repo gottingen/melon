@@ -20,8 +20,8 @@
 
 #include <string>
 
-#include "melon/utility/base_export.h"
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/base_export.h>
+#include <melon/base/compiler_specific.h>
 #include <melon/utility/synchronization/condition_variable.h>
 #include <melon/utility/synchronization/lock.h>
 #include <melon/utility/threading/platform_thread.h>

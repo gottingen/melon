@@ -21,7 +21,7 @@
 // Date: 2010/05/29
 
 #include <sys/stat.h>
-#include <melon/utility/build_config.h>              // OS_MACOSX
+#include <melon/base/build_config.h>              // OS_MACOSX
 #include <melon/utility/files/file_watcher.h>
 
 namespace mutil {

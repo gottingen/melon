@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 
 // BEFORE using anything from this file, first look at PLOG and friends in
 // logging.h and use them instead if applicable.

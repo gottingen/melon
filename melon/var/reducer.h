@@ -23,7 +23,7 @@
 
 #include <limits>                                 // std::numeric_limits
 #include <turbo/log/logging.h>                         // LOG()
-#include <melon/utility/type_traits.h>                     // mutil::add_cr_non_integral
+#include <melon/base/type_traits.h>                      // mutil::add_cr_non_integral
 #include <melon/base/class_name.h>                      // class_name_str
 #include <melon/var/variable.h>                        // Variable
 #include <melon/var/detail/combiner.h>                 // detail::AgentCombiner

@@ -1,4 +1,4 @@
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <stdint.h>
 
 #define CHAR62 '+'

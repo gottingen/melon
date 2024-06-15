@@ -8,11 +8,11 @@
 #include <stack>
 #include <vector>
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/time/time.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(OS_WIN)
 #include <windows.h>

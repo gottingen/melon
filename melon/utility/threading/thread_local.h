@@ -51,8 +51,8 @@
 #ifndef MUTIL_THREADING_THREAD_LOCAL_H_
 #define MUTIL_THREADING_THREAD_LOCAL_H_
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include "melon/utility/threading/thread_local_storage.h"
 
 #if defined(OS_POSIX)

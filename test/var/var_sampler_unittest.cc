@@ -23,7 +23,7 @@
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
 #include <gtest/gtest.h>
-#include <melon/utility/config.h>
+#include <melon/base/config.h>
 namespace {
 
 TEST(SamplerTest, linked_list) {

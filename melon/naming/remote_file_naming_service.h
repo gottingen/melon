@@ -21,7 +21,7 @@
 
 #include <melon/naming/periodic_naming_service.h>
 #include <melon/rpc/channel.h>
-#include <melon/utility/unique_ptr.h>
+#include <memory>
 
 
 namespace melon {

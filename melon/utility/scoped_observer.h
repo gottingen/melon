@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 
 // ScopedObserver is used to keep track of the set of sources an object has
 // attached itself to as an observer. When ScopedObserver is destroyed it

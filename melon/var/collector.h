@@ -20,26 +20,26 @@
 #pragma once
 
 #include <melon/utility/containers/linked_list.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/time.h>
-#include <melon/utility/atomicops.h>
+#include <atomic>
 #include <melon/var/passive_status.h>
 
 namespace melon::var {
 
-// Containing the context for limiting sampling speed.
+    // Containing the context for limiting sampling speed.
     struct CollectorSpeedLimit {
         // [Managed by Collector, don't change!]
         size_t sampling_range;
         bool ever_grabbed;
-        mutil::static_atomic<int> count_before_grabbed;
+        std::atomic<int> count_before_grabbed;
         int64_t first_sample_real_us;
     };
 
     static const size_t COLLECTOR_SAMPLING_BASE = 16384;
 
 #define MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER                          \
-    { ::melon::var::COLLECTOR_SAMPLING_BASE, false, MUTIL_STATIC_ATOMIC_INIT(0), 0 }
+    { ::melon::var::COLLECTOR_SAMPLING_BASE, false, {0}, 0 }
 
     class Collected;
 

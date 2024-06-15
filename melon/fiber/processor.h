@@ -21,7 +21,7 @@
 #ifndef MELON_FIBER_PROCESSOR_H_
 #define MELON_FIBER_PROCESSOR_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 // Pause instruction to prevent excess processor bus usage, only works in GCC
 # ifndef cpu_relax

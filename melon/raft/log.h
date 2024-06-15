@@ -23,7 +23,7 @@
 #include <vector>
 #include <map>
 #include <melon/utility/memory/ref_counted.h>
-#include <melon/utility/atomicops.h>
+#include <atomic>
 #include <melon/base/iobuf.h>
 #include <turbo/log/logging.h>
 #include <melon/raft/log_entry.h>
@@ -91,7 +91,7 @@ namespace melon::raft {
         }
 
         int64_t last_index() const {
-            return _last_index.load(mutil::memory_order_consume);
+            return _last_index.load(std::memory_order_consume);
         }
 
         std::string file_name();
@@ -126,7 +126,7 @@ namespace melon::raft {
         int _fd;
         bool _is_open;
         const int64_t _first_index;
-        mutil::atomic<int64_t> _last_index;
+        std::atomic<int64_t> _last_index;
         int _checksum_type;
         std::vector<std::pair<int64_t/*offset*/, int64_t/*term*/> > _offset_and_term;
     };
@@ -155,7 +155,7 @@ namespace melon::raft {
 
         // first log index in log
         virtual int64_t first_log_index() {
-            return _first_log_index.load(mutil::memory_order_acquire);
+            return _first_log_index.load(std::memory_order_acquire);
         }
 
         // last log index in log
@@ -218,8 +218,8 @@ namespace melon::raft {
 
 
         std::string _path;
-        mutil::atomic<int64_t> _first_log_index;
-        mutil::atomic<int64_t> _last_log_index;
+        std::atomic<int64_t> _first_log_index;
+        std::atomic<int64_t> _last_log_index;
         raft_mutex_t _mutex;
         SegmentMap _segments;
         scoped_refptr<Segment> _open_segment;

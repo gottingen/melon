@@ -17,7 +17,7 @@
 #ifndef MUTIL_THIRD_PARTY_ICU_ICU_UTF_H_
 #define MUTIL_THIRD_PARTY_ICU_ICU_UTF_H_
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 
 namespace base_icu {
 

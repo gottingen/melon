@@ -19,7 +19,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/macros.h>
 #if defined(OS_LINUX)

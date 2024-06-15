@@ -8,8 +8,8 @@
 #include <iosfwd>
 #include <string>
 
-#include "melon/utility/base_export.h"
-#include <melon/utility/build_config.h>
+#include <melon/base/base_export.h>
+#include <melon/base/build_config.h>
 
 #if defined(OS_POSIX)
 #include <unistd.h>

@@ -19,7 +19,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <cinttypes>
 #if defined(OS_LINUX)
 #include <syscall.h>                         // SYS_clock_gettime

@@ -31,7 +31,7 @@
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
-#include <melon/utility/config.h>
+#include <melon/base/config.h>
 
 class ControllerTest : public ::testing::Test{
 protected:

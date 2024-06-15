@@ -20,7 +20,7 @@
 #ifndef MELON_FIBER_SYS_FUTEX_H_
 #define MELON_FIBER_SYS_FUTEX_H_
 
-#include <melon/utility/build_config.h>         // OS_MACOSX
+#include <melon/base/build_config.h>         // OS_MACOSX
 #include <unistd.h>                     // syscall
 #include <time.h>                       // timespec
 #if defined(OS_LINUX)

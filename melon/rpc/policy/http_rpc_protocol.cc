@@ -27,7 +27,7 @@
 #include <string>
 
 #include <melon/rpc/policy/http_rpc_protocol.h>
-#include <melon/utility/unique_ptr.h>                       // std::unique_ptr
+#include <memory>                       // std::unique_ptr
 #include <melon/utility/string_splitter.h>                  // StringMultiSplitter
 #include <melon/utility/string_printf.h>
 #include <melon/utility/time.h>

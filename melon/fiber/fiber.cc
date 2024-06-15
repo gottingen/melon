@@ -72,7 +72,7 @@ namespace fiber {
             ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency_by_tag,
                                             validate_fiber_concurrency_by_tag);
 
-    MELON_CASSERT(sizeof(TaskControl *) == sizeof(mutil::atomic<TaskControl *>), atomic_size_match);
+    MELON_CASSERT(sizeof(TaskControl *) == sizeof(std::atomic<TaskControl *>), atomic_size_match);
 
     pthread_mutex_t g_task_control_mutex = PTHREAD_MUTEX_INITIALIZER;
     // Referenced in rpc, needs to be extern.
@@ -91,13 +91,13 @@ namespace fiber {
     }
 
     inline TaskControl *get_or_new_task_control() {
-        mutil::atomic<TaskControl *> *p = (mutil::atomic<TaskControl *> *) &g_task_control;
-        TaskControl *c = p->load(mutil::memory_order_consume);
+        std::atomic<TaskControl *> *p = (std::atomic<TaskControl *> *) &g_task_control;
+        TaskControl *c = p->load(std::memory_order_consume);
         if (c != NULL) {
             return c;
         }
         MELON_SCOPED_LOCK(g_task_control_mutex);
-        c = p->load(mutil::memory_order_consume);
+        c = p->load(std::memory_order_consume);
         if (c != NULL) {
             return c;
         }
@@ -113,7 +113,7 @@ namespace fiber {
             delete c;
             return NULL;
         }
-        p->store(c, mutil::memory_order_release);
+        p->store(c, std::memory_order_release);
         return c;
     }
 

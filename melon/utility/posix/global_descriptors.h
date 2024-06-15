@@ -5,7 +5,7 @@
 #ifndef MUTIL_POSIX_GLOBAL_DESCRIPTORS_H_
 #define MUTIL_POSIX_GLOBAL_DESCRIPTORS_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #include <vector>
 #include <utility>

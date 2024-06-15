@@ -31,7 +31,7 @@
 #include <sys/socket.h>                        // SO_REUSEADDR SO_REUSEPORT
 #include <memory>
 #include <gflags/gflags.h>
-#include <melon/utility/build_config.h>                // OS_MACOSX
+#include <melon/base/build_config.h>                // OS_MACOSX
 #include <melon/base/fd_guard.h>                    // fd_guard
 #include <melon/base/endpoint.h>                    // ip_t
 #include <turbo/log/logging.h>

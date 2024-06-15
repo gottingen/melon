@@ -18,13 +18,13 @@
 #include <algorithm>
 #include <vector>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <turbo/log/logging.h>
 #include "melon/utility/memory/singleton.h"
 #include "melon/utility/strings/utf_string_conversion_utils.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include "melon/utility/third_party/icu/icu_utf.h"
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 // Remove when this entire file is in namespace mutil.
 using mutil::char16;

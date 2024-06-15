@@ -29,7 +29,7 @@
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 #include <melon/var/var.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 
 DEFINE_int32(thread_num, 2, "Number of threads to send requests");
 DEFINE_bool(use_fiber, false, "Use fiber to send requests");

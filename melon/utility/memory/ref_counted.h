@@ -8,8 +8,8 @@
 #include <cassert>
 
 #include "melon/utility/atomic_ref_count.h"
-#include "melon/utility/base_export.h"
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/base_export.h>
+#include <melon/base/compiler_specific.h>
 #ifndef NDEBUG
 #include <turbo/log/logging.h>
 #endif

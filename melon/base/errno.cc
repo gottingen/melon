@@ -17,7 +17,7 @@
 //
 //
 
-#include <melon/utility/build_config.h>                        // OS_MACOSX
+#include <melon/base/build_config.h>                        // OS_MACOSX
 #include <errno.h>                                     // errno
 #include <string.h>                                    // strerror_r
 #include <stdlib.h>                                    // EXIT_FAILURE

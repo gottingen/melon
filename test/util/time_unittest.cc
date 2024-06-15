@@ -6,11 +6,11 @@
 
 #include <time.h>
 
-#include <melon/utility/compiler_specific.h>
+#include <melon/base/compiler_specific.h>
 #include <turbo/log/logging.h>
 #include "melon/utility/strings/stringprintf.h"
 #include <melon/utility/threading/platform_thread.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <gtest/gtest.h>
 
 using mutil::Time;

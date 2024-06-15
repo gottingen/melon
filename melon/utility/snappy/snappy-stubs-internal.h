@@ -35,8 +35,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include "melon/utility/compiler_specific.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/compiler_specific.h>
+#include <melon/base/basictypes.h>
 
 #define SNAPPY_MAJOR 1
 #define SNAPPY_MINOR 1

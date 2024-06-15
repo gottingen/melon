@@ -7,8 +7,8 @@
 
 #include <stack>
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/synchronization/lock.h>
 
 namespace mutil {

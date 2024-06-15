@@ -5,7 +5,7 @@
 #ifndef MUTIL_SYNCHRONIZATION_CANCELLATION_FLAG_H_
 #define MUTIL_SYNCHRONIZATION_CANCELLATION_FLAG_H_
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 #include <melon/utility/atomicops.h>
 #include <melon/utility/threading/platform_thread.h>
 

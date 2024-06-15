@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/strings/string_util.h>
 

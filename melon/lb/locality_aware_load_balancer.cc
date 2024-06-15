@@ -20,7 +20,7 @@
 #include <limits>                                            // numeric_limits
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>                                       // gettimeofday_us
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/reloadable_flags.h>

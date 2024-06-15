@@ -15,7 +15,7 @@
 #include <melon/utility/file_util.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #include <gtest/gtest.h>
 
 #if defined(OS_POSIX)

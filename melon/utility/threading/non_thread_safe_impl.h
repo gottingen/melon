@@ -5,7 +5,7 @@
 #ifndef MUTIL_THREADING_NON_THREAD_SAFE_IMPL_H_
 #define MUTIL_THREADING_NON_THREAD_SAFE_IMPL_H_
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 #include "melon/utility/threading/thread_checker_impl.h"
 
 namespace mutil {

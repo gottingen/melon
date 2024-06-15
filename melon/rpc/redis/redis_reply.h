@@ -24,7 +24,7 @@
 
 #include <melon/base/iobuf.h>                  // mutil::IOBuf
 #include <melon/utility/strings/string_piece.h>   // mutil::StringPiece
-#include <melon/utility/arena.h>                  // mutil::Arena
+#include <melon/base/arena.h>                  // mutil::Arena
 #include <turbo/log/logging.h>                // CHECK
 #include <melon/rpc/parse_result.h>                 // ParseError
 

@@ -24,7 +24,7 @@
 #include <signal.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include <melon/utility/compat.h>
+#include <melon/base/compat.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
 #include <melon/base/errno.h>

@@ -20,7 +20,7 @@
 
 
 #include <melon/rpc/retry_policy.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 
 
 namespace melon {

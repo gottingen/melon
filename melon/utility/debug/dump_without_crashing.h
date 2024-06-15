@@ -5,9 +5,9 @@
 #ifndef MUTIL_DEBUG_DUMP_WITHOUT_CRASHING_H_
 #define MUTIL_DEBUG_DUMP_WITHOUT_CRASHING_H_
 
-#include "melon/utility/base_export.h"
-#include <melon/utility/compiler_specific.h>
-#include <melon/utility/build_config.h>
+#include <melon/base/base_export.h>
+#include <melon/base/compiler_specific.h>
+#include <melon/base/build_config.h>
 
 namespace mutil {
 

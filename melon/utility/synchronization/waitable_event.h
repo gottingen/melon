@@ -5,8 +5,8 @@
 #ifndef MUTIL_SYNCHRONIZATION_WAITABLE_EVENT_H_
 #define MUTIL_SYNCHRONIZATION_WAITABLE_EVENT_H_
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 
 #if defined(OS_WIN)
 #include <windows.h>

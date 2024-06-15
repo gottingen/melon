@@ -46,7 +46,7 @@ void SimpleDataPool::Reset(const DataFactory* factory) {
         saved_factory = _factory;
         _capacity = 0;
         _size = 0;
-        _ncreated.store(0, mutil::memory_order_relaxed);
+        _ncreated.store(0, std::memory_order_relaxed);
         _pool = NULL;
         _factory = factory;
     }
@@ -87,7 +87,7 @@ void SimpleDataPool::Reserve(unsigned n) {
         if (data == NULL) {
             break;
         }
-        _ncreated.fetch_add(1,  mutil::memory_order_relaxed);
+        _ncreated.fetch_add(1,  std::memory_order_relaxed);
         _pool[_size++] = data;
     }
 }
@@ -101,7 +101,7 @@ void* SimpleDataPool::Borrow() {
     }
     void* data = _factory->CreateData();
     if (data) {
-        _ncreated.fetch_add(1,  mutil::memory_order_relaxed);
+        _ncreated.fetch_add(1,  std::memory_order_relaxed);
     }
     return data;
 }
@@ -132,7 +132,7 @@ void SimpleDataPool::Return(void* data) {
 }
 
 SimpleDataPool::Stat SimpleDataPool::stat() const {
-    Stat s = { _size, _ncreated.load(mutil::memory_order_relaxed) };
+    Stat s = { _size, _ncreated.load(std::memory_order_relaxed) };
     return s;
 }
 

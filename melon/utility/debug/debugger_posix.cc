@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/debug/debugger.h"
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/posix/eintr_wrapper.h"

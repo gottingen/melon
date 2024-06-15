@@ -22,10 +22,10 @@
 
 #include <limits>          // numeric_limits
 #include <math.h>
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/time.h>     // gettimeofday_us()
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 
 namespace mutil {
 

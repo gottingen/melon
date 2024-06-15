@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include "melon/utility/strings/string16.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include <gtest/gtest.h>

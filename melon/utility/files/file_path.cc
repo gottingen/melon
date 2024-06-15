@@ -7,7 +7,7 @@
 #include <string.h>
 #include <algorithm>
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 #include <turbo/log/logging.h>
 
 // These includes are just for the *Hack functions, and should be removed

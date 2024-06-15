@@ -9,7 +9,7 @@
 #ifndef MUTIL_STRINGS_STRINGIZE_MACROS_H_
 #define MUTIL_STRINGS_STRINGIZE_MACROS_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 // This is not very useful as it does not expand defined symbols if
 // called directly. Use its counterpart without the _NO_EXPANSION

@@ -31,7 +31,7 @@
 #include <melon/var/window.h>                // Window
 #include <melon/var/detail/combiner.h>       // AgentCombiner
 #include <melon/var/detail/sampler.h>        // ReducerSampler
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 
 namespace melon::var {
 namespace detail {

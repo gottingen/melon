@@ -30,7 +30,7 @@
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
 #include <melon/base/object_pool.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/utility/file_util.h>
 #include <melon/rpc/shared_object.h>
 #include <melon/rpc/reloadable_flags.h>

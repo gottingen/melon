@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "melon/utility/debug/alias.h"
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 namespace mutil {
 namespace debug {

@@ -25,7 +25,7 @@
 #include <melon/utility/third_party/rapidjson/writer.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/strings/string_split.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>

@@ -8,7 +8,7 @@
 #ifndef MUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
 #define MUTIL_PROCESS_MEMORY_UNITTEST_MAC_H_
 
-#include "melon/utility/basictypes.h"
+#include <melon/base/basictypes.h>
 
 namespace mutil {
 

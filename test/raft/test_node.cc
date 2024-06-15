@@ -10,7 +10,7 @@
 #include <turbo/log/logging.h>
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/file_util.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/rpc/closure_guard.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/countdown_event.h>

@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
-#include <melon/utility/fast_rand.h>
+#include <melon/base/fast_rand.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/channel.h>
 #include <melon/proto/rpc/trackme.pb.h>

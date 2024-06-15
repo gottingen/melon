@@ -8,7 +8,7 @@
 #ifndef MUTIL_FILE_UTIL_H_
 #define MUTIL_FILE_UTIL_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(OS_WIN)
 #include <windows.h>
@@ -23,8 +23,8 @@
 #include <string>
 #include <vector>
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/files/file.h>
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/memory/scoped_ptr.h>

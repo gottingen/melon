@@ -17,7 +17,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <turbo/log/logging.h>
-#include <melon/utility/ssl_compat.h>
+#include <melon/base/ssl_compat.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/policy/dh.h>
 

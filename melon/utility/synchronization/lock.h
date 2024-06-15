@@ -21,16 +21,16 @@
 #ifndef MUTIL_SYNCHRONIZATION_LOCK_H_
 #define MUTIL_SYNCHRONIZATION_LOCK_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #if defined(OS_WIN)
 #include <windows.h>
 #elif defined(OS_POSIX)
 #include <pthread.h>
 #endif
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/compat.h>
+#include <melon/base/compat.h>
 
 namespace mutil {
 

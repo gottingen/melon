@@ -5,7 +5,7 @@
 #ifndef MUTIL_FILES_FILE_H_
 #define MUTIL_FILES_FILE_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 #if defined(OS_WIN)
 #include <windows.h>
 #endif
@@ -16,8 +16,8 @@
 
 #include <string>
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/files/scoped_file.h>
 #include "melon/utility/move.h"
 #include <melon/utility/time/time.h>

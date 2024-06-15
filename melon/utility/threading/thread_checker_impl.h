@@ -5,7 +5,7 @@
 #ifndef MUTIL_THREADING_THREAD_CHECKER_IMPL_H_
 #define MUTIL_THREADING_THREAD_CHECKER_IMPL_H_
 
-#include "melon/utility/base_export.h"
+#include <melon/base/base_export.h>
 #include <melon/utility/synchronization/lock.h>
 #include <melon/utility/threading/platform_thread.h>
 

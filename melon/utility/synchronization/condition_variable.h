@@ -65,14 +65,14 @@
 #ifndef MUTIL_SYNCHRONIZATION_CONDITION_VARIABLE_H_
 #define MUTIL_SYNCHRONIZATION_CONDITION_VARIABLE_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #if defined(OS_POSIX)
 #include <pthread.h>
 #endif
 
-#include "melon/utility/base_export.h"
-#include "melon/utility/basictypes.h"
+#include <melon/base/base_export.h>
+#include <melon/base/basictypes.h>
 #include <melon/utility/synchronization/lock.h>
 
 namespace mutil {

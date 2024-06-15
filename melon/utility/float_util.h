@@ -5,7 +5,7 @@
 #ifndef MUTIL_FLOAT_UTIL_H_
 #define MUTIL_FLOAT_UTIL_H_
 
-#include <melon/utility/build_config.h>
+#include <melon/base/build_config.h>
 
 #include <float.h>
 

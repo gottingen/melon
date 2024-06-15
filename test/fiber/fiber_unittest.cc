@@ -104,7 +104,7 @@ TEST_F(FiberTest, call_fiber_functions_before_tls_created) {
     ASSERT_EQ(0UL, fiber_self());
 }
 
-mutil::atomic<bool> stop(false);
+std::atomic<bool> stop(false);
 
 void* sleep_for_awhile(void* arg) {
     LOG(INFO) << "sleep_for_awhile(" << arg << ")";
@@ -267,7 +267,7 @@ TEST_F(FiberTest, errno_not_changed) {
 static long sleep_in_adding_func = 0;
 
 void* adding_func(void* arg) {
-    mutil::atomic<size_t>* s = (mutil::atomic<size_t>*)arg;
+    std::atomic<size_t>* s = (std::atomic<size_t>*)arg;
     if (sleep_in_adding_func > 0) {
         long t1 = 0;
         if (10000 == s->fetch_add(1)) {
@@ -293,7 +293,7 @@ TEST_F(FiberTest, small_threads) {
             snprintf(prof_name, sizeof(prof_name), "smallthread_nosleep.prof");
         }
 
-        mutil::atomic<size_t> s(0);
+        std::atomic<size_t> s(0);
         size_t N = (sleep_in_adding_func ? 40000 : 100000);
         std::vector<fiber_t> th;
         th.reserve(N);
@@ -329,7 +329,7 @@ TEST_F(FiberTest, small_threads) {
 }
 
 void* fiber_starter(void* void_counter) {
-    while (!stop.load(mutil::memory_order_relaxed)) {
+    while (!stop.load(std::memory_order_relaxed)) {
         fiber_t th;
         EXPECT_EQ(0, fiber_start_urgent(&th, NULL, adding_func, void_counter));
     }
@@ -338,7 +338,7 @@ void* fiber_starter(void* void_counter) {
 
 struct MELON_CACHELINE_ALIGNMENT AlignedCounter {
     AlignedCounter() : value(0) {}
-    mutil::atomic<size_t> value;
+    std::atomic<size_t> value;
 };
 
 TEST_F(FiberTest, start_fibers_frequently) {
