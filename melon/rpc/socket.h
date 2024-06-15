@@ -24,10 +24,10 @@
 #include <set>                                 // std::set
 #include <melon/utility/atomicops.h>                    // mutil::atomic
 #include <melon/fiber/types.h>                      // fiber_session_t
-#include <melon/utility/iobuf.h>                        // mutil::IOBuf, IOPortal
+#include <melon/base/iobuf.h>                        // mutil::IOBuf, IOPortal
 #include <melon/utility/macros.h>                       // DISALLOW_COPY_AND_ASSIGN
-#include <melon/utility/endpoint.h>                     // mutil::EndPoint
-#include <melon/utility/resource_pool.h>                // mutil::ResourceId
+#include <melon/base/endpoint.h>                     // mutil::EndPoint
+#include <melon/base/resource_pool.h>                // mutil::ResourceId
 #include <melon/fiber/butex.h>                      // butex_create_checked
 #include <melon/rpc/authenticator.h>           // Authenticator
 #include <melon/proto/rpc/errno.pb.h>                // EFAILEDSOCKET

@@ -37,7 +37,6 @@
 #include <string.h>
 #include "melon/utility/compiler_specific.h"
 #include "melon/utility/basictypes.h"
-#include "melon/utility/sys_byteorder.h"
 
 #define SNAPPY_MAJOR 1
 #define SNAPPY_MINOR 1

@@ -24,8 +24,8 @@
 
 #include <melon/rpc/callback.h>
 #include <melon/utility/atomicops.h>
-#include <melon/utility/iobuf.h>
-#include <melon/utility/endpoint.h>       // mutil::EndPoint
+#include <melon/base/iobuf.h>
+#include <melon/base/endpoint.h>       // mutil::EndPoint
 #include <melon/fiber/types.h>        // fiber_session_t
 #include <melon/rpc/socket_id.h>       // SocketUniquePtr
 #include <melon/rpc/shared_object.h>   // SharedObject

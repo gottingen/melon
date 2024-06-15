@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <memory>
 #include <list>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/utility/arena.h>
 #include <melon/proto/rpc/proto_base.pb.h>

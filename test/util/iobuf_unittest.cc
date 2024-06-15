@@ -29,11 +29,11 @@
 #include <melon/utility/containers/flat_map.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/time.h>                 // Timer
-#include <melon/utility/fd_utility.h>           // make_non_blocking
-#include <melon/utility/iobuf.h>
+#include <melon/base/fd_utility.h>           // make_non_blocking
+#include <melon/base/iobuf.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/fd_guard.h>
-#include <melon/utility/errno.h>
+#include <melon/base/fd_guard.h>
+#include <melon/base/errno.h>
 #include <melon/utility/fast_rand.h>
 #include <melon/utility/atomicops.h>
 #if BAZEL_TEST

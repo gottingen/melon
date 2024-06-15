@@ -22,7 +22,7 @@
 #define MELON_RPC_SERVER_NODE_H_
 
 #include <string>
-#include <melon/utility/endpoint.h>
+#include <melon/base/endpoint.h>
 
 namespace melon {
 

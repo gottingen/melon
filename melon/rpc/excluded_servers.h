@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/containers/bounded_queue.h>
 #include <melon/rpc/socket_id.h>                       // SocketId
 

@@ -31,12 +31,12 @@
 
 #include <melon/utility/time.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/files/scoped_file.h>
 #include <melon/utility/files/dir_reader_posix.h>
 #include <melon/utility/file_util.h>
-#include <melon/utility/process_util.h>            // ReadCommandLine
-#include <melon/utility/popen.h>                   // read_command_output
+#include <melon/base/process_util.h>            // ReadCommandLine
+#include <melon/base/popen.h>                   // read_command_output
 #include <melon/var/passive_status.h>
 #include <melon/utility/macros.h>
 

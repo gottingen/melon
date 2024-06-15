@@ -23,7 +23,7 @@
 
 #include <turbo/log/logging.h>                           // MELON_*
 #include <melon/utility/macros.h>                            // ARRAY_SIZE
-#include <melon/utility/thread_local.h>                      // thread_local
+#include <melon/base/thread_local.h>                      // thread_local
 #include <melon/proto/rpc/errno.pb.h>
 #include <melon/rpc/http/http_status_code.h>
 

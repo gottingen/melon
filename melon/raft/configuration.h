@@ -25,7 +25,7 @@
 #include <set>
 #include <map>
 #include <melon/utility/strings/string_piece.h>
-#include <melon/utility/endpoint.h>
+#include <melon/base/endpoint.h>
 #include <turbo/log/logging.h>
 
 namespace melon::raft {

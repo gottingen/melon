@@ -22,7 +22,7 @@
 #ifndef MELON_RPC_SIMPLE_DATA_POOL_H_
 #define MELON_RPC_SIMPLE_DATA_POOL_H_
 
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/rpc/data_factory.h>
 #include <melon/utility/atomicops.h>
 

@@ -24,8 +24,8 @@
 #include <melon/utility/file_util.h>                         // mutil::CreateDirectory
 #include <melon/utility/string_printf.h>                     // mutil::string_appendf
 #include <melon/utility/time.h>
-#include <melon/utility/raw_pack.h>                          // mutil::RawPacker
-#include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
+#include <melon/base/raw_pack.h>                          // mutil::RawPacker
+#include <melon/base/fd_utility.h>                        // mutil::make_close_on_exec
 #include <melon/rpc/reloadable_flags.h>             //
 
 #include <melon/proto/raft/local_storage.pb.h>
@@ -682,13 +682,8 @@ namespace melon::raft {
             return -1;
         }
 
-        if (mutil::crc32c::IsFastCrc32Supported()) {
-            _checksum_type = CHECKSUM_CRC32;
-            LOG_FIRST_N(INFO, 1) << "Use crc32c as the checksum type of appending entries";
-        } else {
-            _checksum_type = CHECKSUM_MURMURHASH32;
-            LOG_FIRST_N(INFO, 1) << "Use murmurhash32 as the checksum type of appending entries";
-        }
+        _checksum_type = CHECKSUM_CRC32;
+        LOG_FIRST_N(INFO, 1) << "Use crc32c as the checksum type of appending entries";
 
         int ret = 0;
         bool is_empty = false;

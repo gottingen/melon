@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include "melon/raft/log_entry.h"
 
 class TestUsageSuits : public testing::Test {

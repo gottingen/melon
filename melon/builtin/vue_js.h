@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 
 namespace melon {
 

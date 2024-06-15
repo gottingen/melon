@@ -23,7 +23,7 @@
 #define MELON_RPC_DUMP_RPC_DUMP_H_
 
 #include <gflags/gflags_declare.h>
-#include <melon/utility/iobuf.h>                            // IOBuf
+#include <melon/base/iobuf.h>                            // IOBuf
 #include <melon/utility/files/file_path.h>                  // FilePath
 #include <melon/var/collector.h>
 #include <melon/proto/rpc/rpc_dump.pb.h>                       // RpcDumpMeta

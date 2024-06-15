@@ -89,7 +89,7 @@ template <typename T> struct ResourcePoolValidator {
 
 }  // namespace mutil
 
-#include "melon/utility/resource_pool_inl.h"
+#include <melon/base/resource_pool_inl.h>
 
 namespace mutil {
 

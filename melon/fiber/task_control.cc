@@ -18,8 +18,8 @@
 //
 
 
-#include <melon/utility/scoped_lock.h>             // MELON_SCOPED_LOCK
-#include <melon/utility/errno.h>                   // berror
+#include <melon/base/scoped_lock.h>             // MELON_SCOPED_LOCK
+#include <melon/base/errno.h>                   // berror
 #include <turbo/log/logging.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>

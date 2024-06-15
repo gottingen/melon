@@ -25,9 +25,9 @@
 #include <memory>                      // std::unique_ptr
 #include <string>                      // std::string
 #include <melon/utility/macros.h>
-#include <melon/utility/iobuf.h>               // mutil::IOBuf
-#include <melon/utility/scoped_lock.h>         // mutil::unique_lock
-#include <melon/utility/endpoint.h>
+#include <melon/base/iobuf.h>               // mutil::IOBuf
+#include <melon/base/scoped_lock.h>         // mutil::unique_lock
+#include <melon/base/endpoint.h>
 #include <melon/rpc/http/http_parser.h>  // http_parser
 #include <melon/rpc/http/http_header.h>          // HttpHeader
 #include <melon/rpc/progressive_reader.h>   // ProgressiveReader

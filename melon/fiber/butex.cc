@@ -19,7 +19,7 @@
 
 
 #include <melon/utility/atomicops.h>                // mutil::atomic
-#include <melon/utility/scoped_lock.h>              // MELON_SCOPED_LOCK
+#include <melon/base/scoped_lock.h>              // MELON_SCOPED_LOCK
 #include <melon/utility/macros.h>
 #include <melon/utility/containers/linked_list.h>   // LinkNode
 
@@ -28,7 +28,7 @@
 #endif
 
 #include <turbo/log/logging.h>
-#include <melon/utility/object_pool.h>
+#include <melon/base/object_pool.h>
 #include <melon/fiber/errno.h>                 // EWOULDBLOCK
 #include <melon/fiber/sys_futex.h>             // futex_*
 #include <melon/fiber/processor.h>             // cpu_relax

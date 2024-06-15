@@ -28,10 +28,10 @@
 #include <sys/uio.h>
 #include <unistd.h>                     // read, gitpid
 #include <sstream>                      // std::ostringstream
-#include <melon/utility/fd_guard.h>             // mutil::fd_guard
+#include <melon/base/fd_guard.h>             // mutil::fd_guard
 #include <turbo/log/logging.h>
-#include <melon/utility/popen.h>                // read_command_output
-#include <melon/utility/process_util.h>
+#include <melon/base/popen.h>                // read_command_output
+#include <melon/base/process_util.h>
 #include <melon/utility/macros.h>
 
 namespace mutil {

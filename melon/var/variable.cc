@@ -25,9 +25,9 @@
 #include <gflags/gflags.h>
 #include <melon/utility/macros.h>                        // MELON_CASSERT
 #include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
-#include <melon/utility/scoped_lock.h>                   // MELON_SCOPE_LOCK
+#include <melon/base/scoped_lock.h>                   // MELON_SCOPE_LOCK
 #include <melon/utility/string_splitter.h>               // mutil::StringSplitter
-#include <melon/utility/errno.h>                         // berror
+#include <melon/base/errno.h>                         // berror
 #include <melon/utility/time.h>                          // milliseconds_from_now
 #include <melon/utility/file_util.h>                     // mutil::FilePath
 #include <melon/utility/threading/platform_thread.h>

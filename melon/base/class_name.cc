@@ -23,7 +23,7 @@
 #include <cxxabi.h>                              // __cxa_demangle
 #include <string>                                // std::string
 #include <stdlib.h>                              // free()
-
+#include <melon/base/class_name.h>                //
 namespace mutil {
 
 // Try to convert mangled |name| to human-readable name.

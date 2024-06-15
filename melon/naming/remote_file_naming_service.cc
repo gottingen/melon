@@ -24,7 +24,7 @@
 #include <string>                                       // std::string
 #include <set>                                          // std::set
 #include <melon/fiber/fiber.h>                            // fiber_usleep
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/channel.h>
 #include <melon/naming/remote_file_naming_service.h>

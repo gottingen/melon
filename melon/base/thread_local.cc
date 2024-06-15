@@ -17,9 +17,6 @@
 //
 //
 
- 
-// Date: Mon. Nov 7 14:47:36 CST 2011
-
 #include <errno.h>                       // errno
 #include <pthread.h>                     // pthread_key_t
 #include <stdio.h>

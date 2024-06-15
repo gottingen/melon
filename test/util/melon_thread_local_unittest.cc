@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 #include <errno.h>
-#include <melon/utility/thread_local.h>
+#include <melon/base/thread_local.h>
 
 namespace {
 

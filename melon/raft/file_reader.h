@@ -19,7 +19,7 @@
 #pragma once
 #include <set>                              // std::set
 #include <melon/utility/memory/ref_counted.h>        // mutil::RefCountedThreadsafe
-#include <melon/utility/iobuf.h>                     // mutil::IOBuf
+#include <melon/base/iobuf.h>                     // mutil::IOBuf
 #include <melon/raft/macros.h>
 #include <melon/raft/file_system_adaptor.h>
 

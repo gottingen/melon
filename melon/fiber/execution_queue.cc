@@ -21,8 +21,8 @@
 #include <melon/fiber/execution_queue.h>
 
 #include <melon/utility/memory/singleton_on_pthread_once.h>
-#include <melon/utility/object_pool.h>           // mutil::get_object
-#include <melon/utility/resource_pool.h>         // mutil::get_resource
+#include <melon/base/object_pool.h>           // mutil::get_object
+#include <melon/base/resource_pool.h>         // mutil::get_resource
 #include <melon/utility/threading/platform_thread.h>
 
 namespace fiber {

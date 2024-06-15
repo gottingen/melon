@@ -26,7 +26,7 @@
 #include <melon/fiber/task_meta.h>                     // fiber_t, TaskMeta
 #include <melon/fiber/work_stealing_queue.h>           // WorkStealingQueue
 #include <melon/fiber/remote_task_queue.h>             // RemoteTaskQueue
-#include <melon/utility/resource_pool.h>                    // ResourceId
+#include <melon/base/resource_pool.h>                    // ResourceId
 #include <melon/fiber/parking_lot.h>
 
 namespace fiber {

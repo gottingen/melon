@@ -27,10 +27,10 @@
 #include <deque>                            // std::deque
 #include <vector>                           // std::vector
 
-#include <melon/utility/errno.h>                     // errno
-#include <melon/utility/thread_local.h>              // thread_atexit
+#include <melon/base/errno.h>                     // errno
+#include <melon/base/thread_local.h>              // thread_atexit
 #include <melon/utility/macros.h>                    // MELON_CACHELINE_ALIGNMENT
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
 
 namespace melon::var {

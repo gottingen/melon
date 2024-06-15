@@ -24,8 +24,8 @@
 #include <gflags/gflags.h>
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/utility/file_util.h>                     // mutil::FilePath
-#include <melon/utility/popen.h>                         // mutil::read_command_output
-#include <melon/utility/fd_guard.h>                      // mutil::fd_guard
+#include <melon/base/popen.h>                         // mutil::read_command_output
+#include <melon/base/fd_guard.h>                      // mutil::fd_guard
 #include <melon/rpc/log.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/server.h>

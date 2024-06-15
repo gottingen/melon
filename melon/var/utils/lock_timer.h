@@ -21,7 +21,7 @@
 #pragma once
 
 #include <melon/utility/time.h>             // mutil::Timer
-#include <melon/utility/scoped_lock.h>      // std::lock_guard std::unique_lock
+#include <melon/base/scoped_lock.h>      // std::lock_guard std::unique_lock
 #include <melon/utility/macros.h>           // DISALLOW_COPY_AND_ASSIGN
 
 #include <melon/var/recorder.h>         // IntRecorder

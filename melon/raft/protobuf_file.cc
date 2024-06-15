@@ -17,22 +17,22 @@
 //
 //
 
-#include <melon/utility/iobuf.h>
-#include <melon/utility/sys_byteorder.h>
+#include <melon/base/iobuf.h>
+#include <turbo/base/endian.h>
 #include <melon/raft/protobuf_file.h>
 
 namespace melon::raft {
 
     ProtoBufFile::ProtoBufFile(const char *path, FileSystemAdaptor *fs)
             : _path(path), _fs(fs) {
-        if (_fs == NULL) {
+        if (_fs == nullptr) {
             _fs = default_file_system();
         }
     }
 
     ProtoBufFile::ProtoBufFile(const std::string &path, FileSystemAdaptor *fs)
             : _path(path), _fs(fs) {
-        if (_fs == NULL) {
+        if (_fs == nullptr) {
             _fs = default_file_system();
         }
     }
@@ -42,7 +42,7 @@ namespace melon::raft {
         tmp_path.append(".tmp");
 
         mutil::File::Error e;
-        FileAdaptor *file = _fs->open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, NULL, &e);
+        FileAdaptor *file = _fs->open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, nullptr, &e);
         if (!file) {
             LOG(WARNING) << "open file failed, path: " << _path
                          << ": " << mutil::File::ErrorToString(e);
@@ -57,7 +57,7 @@ namespace melon::raft {
         message->SerializeToZeroCopyStream(&msg_wrapper);
 
         // write len
-        int32_t header_len = mutil::HostToNet32(msg_buf.length());
+        int32_t header_len = turbo::ghtonl(msg_buf.length());
         header_buf.append(&header_len, sizeof(int32_t));
         if (sizeof(int32_t) != file->write(header_buf, 0)) {
             LOG(WARNING) << "write len failed, path: " << tmp_path;
@@ -88,7 +88,7 @@ namespace melon::raft {
 
     int ProtoBufFile::load(google::protobuf::Message *message) {
         mutil::File::Error e;
-        FileAdaptor *file = _fs->open(_path, O_RDONLY, NULL, &e);
+        FileAdaptor *file = _fs->open(_path, O_RDONLY, nullptr, &e);
         if (!file) {
             LOG(WARNING) << "open file failed, path: " << _path
                          << ": " << mutil::File::ErrorToString(e);
@@ -105,7 +105,7 @@ namespace melon::raft {
         }
         int32_t len = 0;
         header_buf.copy_to(&len, sizeof(int32_t));
-        int32_t left_len = mutil::NetToHost32(len);
+        int32_t left_len = turbo::gntohl(len);
 
         // read protobuf data
         mutil::IOPortal msg_buf;

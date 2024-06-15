@@ -22,7 +22,7 @@
 #include <string>
 
 #include <turbo/log/logging.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/utility/status.h>
 #include <melon/rpc/callback.h>
 #include <melon/raft/configuration.h>

@@ -22,7 +22,7 @@
 #define  MELON_FIBER_MUTEX_H_
 
 #include <melon/fiber/types.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/var/utils/lock_timer.h>
 
 __BEGIN_DECLS

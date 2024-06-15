@@ -19,7 +19,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/class_name.h>
+#include <melon/base/class_name.h>
 #include <turbo/log/logging.h>
 
 namespace mutil {

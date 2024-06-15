@@ -29,7 +29,7 @@
 
 #include <melon/utility/atomicops.h>
 #include <melon/utility/time.h>
-#include <melon/utility/fd_utility.h>                     // make_non_blocking
+#include <melon/base/fd_utility.h>                     // make_non_blocking
 #include <turbo/log/logging.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>   // fmix32
 #include <melon/fiber/butex.h>                       // butex_*

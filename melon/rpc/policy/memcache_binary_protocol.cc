@@ -24,8 +24,8 @@
 #include <gflags/gflags.h>
 #include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
-#include <melon/utility/iobuf.h>                         // mutil::IOBuf
-#include <melon/utility/sys_byteorder.h>
+#include <melon/base/iobuf.h>                         // mutil::IOBuf
+#include <turbo/base/endian.h>
 #include <melon/rpc/controller.h>               // Controller
 #include <melon/rpc/details/controller_private_accessor.h>
 #include <melon/rpc/socket.h>                   // Socket
@@ -92,7 +92,7 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
         const MemcacheResponseHeader* header = (const MemcacheResponseHeader*)p;
-        uint32_t total_body_length = mutil::NetToHost32(header->total_body_length);
+        uint32_t total_body_length = turbo::gntohl(header->total_body_length);
         if (source->size() < sizeof(*header) + total_body_length) {
             return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);
         }
@@ -120,13 +120,13 @@ ParseResult ParseMemcacheMessage(mutil::IOBuf* source,
         const MemcacheResponseHeader local_header = {
             header->magic,
             header->command,
-            mutil::NetToHost16(header->key_length),
+            turbo::ghtons(header->key_length),
             header->extras_length,
             header->data_type,
-            mutil::NetToHost16(header->status),
+            turbo::ghtons(header->status),
             total_body_length,
-            mutil::NetToHost32(header->opaque),
-            mutil::NetToHost64(header->cas_value),
+            turbo::gntohl(header->opaque),
+            turbo::gntohll(header->cas_value),
         };
         msg->meta.append(&local_header, sizeof(local_header));
         source->pop_front(sizeof(*header));

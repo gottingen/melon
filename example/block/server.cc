@@ -15,7 +15,7 @@
 #include <sys/types.h>                  // O_CREAT
 #include <fcntl.h>                      // open
 #include <gflags/gflags.h>              // DEFINE_*
-#include <melon/utility/sys_byteorder.h>        // mutil::NetToHost32
+#include <turbo/base/endian.h>
 #include <melon/rpc/controller.h>            // melon::Controller
 #include <melon/rpc/server.h>                // melon::Server
 #include <melon/raft/raft.h>                 // melon::raft::Node melon::raft::StateMachine
@@ -274,7 +274,7 @@ friend class BlockClosure;
                 saved_log.cutn(&meta_size, sizeof(uint32_t));
                 // Remember that meta_size is in network order which hould be
                 // covert to host order
-                meta_size = mutil::NetToHost32(meta_size);
+                meta_size = turbo::gntohl(meta_size);
                 mutil::IOBuf meta;
                 saved_log.cutn(&meta, meta_size);
                 mutil::IOBufAsZeroCopyInputStream wrapper(meta);

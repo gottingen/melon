@@ -21,7 +21,7 @@
 #include <melon/raft/log_manager.h>
 
 #include <turbo/log/logging.h>                       // LOG
-#include <melon/utility/object_pool.h>                   // mutil::get_object
+#include <melon/base/object_pool.h>                   // mutil::get_object
 #include <melon/fiber/unstable.h>                   // fiber_flush
 #include <melon/fiber/countdown_event.h>            // fiber::CountdownEvent
 #include <melon/rpc/reloadable_flags.h>         // MELON_VALIDATE_GFLAG

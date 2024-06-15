@@ -29,7 +29,7 @@
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/fd_guard.h>
+#include <melon/base/fd_guard.h>
 #include <melon/utility/files/scoped_file.h>
 #include <melon/rpc/socket.h>
 #include <melon/builtin/version_service.h>

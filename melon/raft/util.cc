@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include <stdlib.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/raw_pack.h>                     // mutil::RawPacker
+#include <melon/base/raw_pack.h>                     // mutil::RawPacker
 #include <melon/utility/file_util.h>
 #include <melon/raft/raft.h>
 

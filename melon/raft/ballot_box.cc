@@ -17,7 +17,7 @@
 //
 //
 
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/var/latency_recorder.h>
 #include <melon/fiber/unstable.h>
 #include <melon/raft/ballot_box.h>

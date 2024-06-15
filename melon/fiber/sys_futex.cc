@@ -19,7 +19,7 @@
 
 
 #include <melon/fiber/sys_futex.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/atomicops.h>
 #include <pthread.h>
 #include <unordered_map>

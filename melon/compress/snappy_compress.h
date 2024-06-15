@@ -20,7 +20,7 @@
 #pragma once
 
 #include <google/protobuf/message.h>          // Message
-#include <melon/utility/iobuf.h>                       // IOBuf
+#include <melon/base/iobuf.h>                       // IOBuf
 
 
 namespace melon::compress {

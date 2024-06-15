@@ -17,9 +17,6 @@
 //
 //
 
-
-// Date: Fri Sep 10 13:34:25 CST 2010
-
 #include <melon/utility/build_config.h>                        // OS_MACOSX
 #include <errno.h>                                     // errno
 #include <string.h>                                    // strerror_r
@@ -27,7 +24,7 @@
 #include <stdio.h>                                     // snprintf
 #include <pthread.h>                                   // pthread_mutex_t
 #include <unistd.h>                                    // _exit
-#include <melon/utility/scoped_lock.h>                         // MELON_SCOPED_LOCK
+#include <melon/base/scoped_lock.h>                         // MELON_SCOPED_LOCK
 
 namespace mutil {
 

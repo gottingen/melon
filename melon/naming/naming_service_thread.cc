@@ -23,7 +23,7 @@
 #include <pthread.h>
 #include <gflags/gflags.h>
 #include <melon/fiber/butex.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/socket_map.h>

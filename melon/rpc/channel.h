@@ -21,8 +21,8 @@
 
 #include <ostream>                          // std::ostream
 #include <melon/fiber/errno.h>                  // Redefine errno
-#include <melon/utility/intrusive_ptr.hpp>          // mutil::intrusive_ptr
-#include <melon/utility/ptr_container.h>
+#include <melon/base/intrusive_ptr.h>          // mutil::intrusive_ptr
+#include <melon/base/ptr_container.h>
 #include <melon/rpc/ssl_options.h>               // ChannelSSLOptions
 #include <melon/rpc/channel_base.h>              // ChannelBase
 #include <melon/rpc/adaptive_protocol_type.h>    // AdaptiveProtocolType

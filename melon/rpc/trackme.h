@@ -24,7 +24,7 @@
 
 // [Internal] RPC users are not supposed to call functions below. 
 
-#include <melon/utility/endpoint.h>
+#include <melon/base/endpoint.h>
 
 
 namespace melon {

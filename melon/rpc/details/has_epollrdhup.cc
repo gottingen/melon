@@ -26,7 +26,7 @@
 #include <sys/epoll.h>                             // epoll_create
 #include <sys/types.h>                             // socketpair
 #include <sys/socket.h>                            // ^
-#include <melon/utility/fd_guard.h>                         // fd_guard
+#include <melon/base/fd_guard.h>                         // fd_guard
 #include <melon/rpc/details/has_epollrdhup.h>
 
 #ifndef EPOLLRDHUP

@@ -21,7 +21,7 @@
 
 #include <google/protobuf/message.h>              // Message
 #include <google/protobuf/io/gzip_stream.h>
-#include <melon/utility/iobuf.h>                           // mutil::IOBuf
+#include <melon/base/iobuf.h>                           // mutil::IOBuf
 
 
 namespace melon::compress {

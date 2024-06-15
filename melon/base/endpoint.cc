@@ -32,8 +32,8 @@
 #include <memory>
 #include <gflags/gflags.h>
 #include <melon/utility/build_config.h>                // OS_MACOSX
-#include <melon/utility/fd_guard.h>                    // fd_guard
-#include <melon/utility/endpoint.h>                    // ip_t
+#include <melon/base/fd_guard.h>                    // fd_guard
+#include <melon/base/endpoint.h>                    // ip_t
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #include <melon/utility/strings/string_piece.h>
@@ -52,7 +52,7 @@ int MELON_WEAK fiber_connect(
 }
 __END_DECLS
 
-#include "details/extended_endpoint.hpp"
+#include <melon/base/details/extended_endpoint.hpp>
 
 namespace mutil {
 

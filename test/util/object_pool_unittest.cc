@@ -23,7 +23,7 @@
 #include <melon/utility/macros.h>
 #include <cinttypes>
 #define MELON_CLEAR_OBJECT_POOL_AFTER_ALL_THREADS_QUIT
-#include <melon/utility/object_pool.h>
+#include <melon/base/object_pool.h>
 
 namespace {
 struct MyObject {};

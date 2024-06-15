@@ -21,7 +21,7 @@
 #ifndef MELON_RPC_MONGO_MONGO_SERVICE_ADAPTOR_H_
 #define MELON_RPC_MONGO_MONGO_SERVICE_ADAPTOR_H_
 
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/rpc/input_message_base.h>
 #include <melon/rpc/shared_object.h>
 

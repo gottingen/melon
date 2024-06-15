@@ -22,7 +22,7 @@
 #include <string>
 #include <google/protobuf/message.h>
 
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/proto/rpc/proto_base.pb.h>
 #include <melon/rpc/pb_compat.h>

@@ -22,7 +22,7 @@
 #include <string>                       // std::string
 #include <vector>                       // std::vector
 #include <melon/utility/atomicops.h>             // mutil::atomic
-#include <melon/utility/scoped_lock.h>           // MELON_SCOPED_LOCK
+#include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
 #include <melon/utility/type_traits.h>           // mutil::add_cr_non_integral
 #include <melon/utility/synchronization/lock.h>  // mutil::Lock
 #include <melon/utility/containers/linked_list.h>// LinkNode

@@ -22,7 +22,7 @@
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>
-#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/base/iobuf.h>                         // mutil::IOBuf
 #include <melon/rpc/controller.h>               // Controller
 #include <melon/rpc/socket.h>                   // Socket
 #include <melon/rpc/server.h>                   // Server

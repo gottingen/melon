@@ -25,7 +25,7 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include <melon/utility/status.h>
-#include <melon/utility/class_name.h>
+#include <melon/base/class_name.h>
 #include <melon/rpc/extension.h>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/raft/configuration.h>

@@ -33,10 +33,10 @@
 #include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyInputStream
 #include <melon/utility/strings/string_piece.h>           // mutil::StringPiece
 #include <melon/utility/snappy/snappy-sinksource.h>
-#include "melon/utility/zero_copy_stream_as_streambuf.h"
+#include <melon/base/zero_copy_stream_as_streambuf.h>
 #include <melon/utility/macros.h>
-#include "melon/utility/reader_writer.h"
-#include "melon/utility/binary_printer.h"
+#include <melon/base/reader_writer.h>
+#include <melon/base/binary_printer.h>
 
 // For IOBuf::appendv(const const_iovec*, size_t). The only difference of this
 // struct from iovec (defined in sys/uio.h) is that iov_base is `const void*'
@@ -821,6 +821,6 @@ namespace std {
     }
 } // namespace std
 
-#include "melon/utility/iobuf_inl.h"
+#include <melon/base/iobuf_inl.h>
 
 #endif  // MUTIL_IOBUF_H

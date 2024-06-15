@@ -21,7 +21,7 @@
 #pragma once
 
 #include <string>
-#include <melon/utility/intrusive_ptr.hpp>               // mutil::intrusive_ptr
+#include <melon/base/intrusive_ptr.h>               // mutil::intrusive_ptr
 #include <melon/fiber/fiber.h>                    // fiber_t
 #include <melon/rpc/server_id.h>                     // ServerId
 #include <melon/rpc/shared_object.h>                 // SharedObject

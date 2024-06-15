@@ -25,7 +25,7 @@
 #ifndef MUTIL_MPSC_QUEUE_H
 #define MUTIL_MPSC_QUEUE_H
 
-#include <melon/utility/object_pool.h>
+#include <melon/base/object_pool.h>
 #include <melon/utility/type_traits.h>
 
 namespace mutil {

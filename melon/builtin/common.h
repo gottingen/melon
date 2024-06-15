@@ -22,7 +22,7 @@
 
 #include <vector>                           // std::vector
 #include <gflags/gflags_declare.h>
-#include <melon/utility/endpoint.h>
+#include <melon/base/endpoint.h>
 #include <melon/rpc/http/http_header.h>
 
 

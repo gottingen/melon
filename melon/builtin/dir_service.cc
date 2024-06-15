@@ -22,8 +22,8 @@
 #include <ostream>
 #include <dirent.h>                    // opendir
 #include <fcntl.h>                     // O_RDONLY
-#include <melon/utility/fd_guard.h>
-#include <melon/utility/fd_utility.h>
+#include <melon/base/fd_guard.h>
+#include <melon/base/fd_utility.h>
 
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/rpc/controller.h>           // Controller

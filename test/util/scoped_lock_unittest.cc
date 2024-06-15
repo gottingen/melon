@@ -19,7 +19,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <errno.h>
 
 namespace {

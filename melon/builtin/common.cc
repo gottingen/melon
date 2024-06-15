@@ -24,10 +24,10 @@
 #include <fcntl.h>                           // O_RDONLY
 #include <gflags/gflags.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/fd_guard.h>                  // fd_guard
+#include <melon/base/fd_guard.h>                  // fd_guard
 #include <melon/utility/file_util.h>                 // mutil::FilePath
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>
-#include <melon/utility/process_util.h>              // ReadCommandLine
+#include <melon/base/process_util.h>              // ReadCommandLine
 #include <melon/rpc/server.h>
 #include <melon/builtin/common.h>
 

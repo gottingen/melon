@@ -68,7 +68,7 @@ template <typename T> struct ObjectPoolValidator {
 
 }  // namespace mutil
 
-#include "melon/utility/object_pool_inl.h"
+#include <melon/base/object_pool_inl.h>
 
 namespace mutil {
 

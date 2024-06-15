@@ -22,7 +22,7 @@
 #ifndef MELON_BUILTIN_FLOT_MIN_JS_H_
 #define MELON_BUILTIN_FLOT_MIN_JS_H_
 
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 
 
 namespace melon {

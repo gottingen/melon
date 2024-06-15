@@ -25,7 +25,7 @@
 #include <gflags/gflags.h>          // DECLARE_int32
 #include <melon/fiber/types.h>
 #include <melon/fiber/context.h>        // fiber_fcontext_t
-#include <melon/utility/object_pool.h>
+#include <melon/base/object_pool.h>
 
 namespace fiber {
 

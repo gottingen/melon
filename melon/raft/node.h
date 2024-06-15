@@ -21,7 +21,7 @@
 #include <set>
 #include <melon/utility/atomic_ref_count.h>
 #include <melon/utility/memory/ref_counted.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/fiber/execution_queue.h>
 #include <melon/rpc/server.h>
 #include <melon/raft/raft.h>

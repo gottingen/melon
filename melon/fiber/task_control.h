@@ -34,7 +34,7 @@
 #include <melon/utility/atomicops.h>                     // mutil::atomic
 #include <melon/var/var.h>                          // melon::var::PassiveStatus
 #include <melon/fiber/task_meta.h>                  // TaskMeta
-#include <melon/utility/resource_pool.h>                 // ResourcePool
+#include <melon/base/resource_pool.h>                 // ResourcePool
 #include <melon/fiber/work_stealing_queue.h>        // WorkStealingQueue
 #include <melon/fiber/parking_lot.h>
 

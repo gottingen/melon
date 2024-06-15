@@ -26,12 +26,12 @@
 #include <deque>
 #include <vector>                                       // std::vector
 #include <pthread.h>
-#include <melon/utility/scoped_lock.h>
-#include <melon/utility/thread_local.h>
+#include <melon/base/scoped_lock.h>
+#include <melon/base/thread_local.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/macros.h>
 #include <melon/utility/type_traits.h>
-#include <melon/utility/errno.h>
+#include <melon/base/errno.h>
 #include <melon/utility/atomicops.h>
 #include <melon/utility/unique_ptr.h>
 #include <melon/utility/type_traits.h>

@@ -24,7 +24,6 @@ SET(TEST_UTILITY_SOURCES
         small_map_unittest
         stack_container_unittest
         mpsc_queue_unittest
-        cpu_unittest
         leak_tracker_unittest
         dir_reader_posix_unittest
         file_path_unittest
@@ -40,7 +39,6 @@ SET(TEST_UTILITY_SOURCES
         scoped_vector_unittest
         #singleton_unittest
         weak_ptr_unittest
-        observer_list_unittest
         file_descriptor_shuffle_unittest
         rand_util_unittest
         safe_numerics_unittest
@@ -85,13 +83,10 @@ SET(TEST_UTILITY_SOURCES
         status_unittest
         string_printf_unittest
         string_splitter_unittest
-        synchronous_event_unittest
         temp_file_unittest
         melon_thread_local_unittest
-        thread_key_unittest
         melon_time_unittest
         flat_map_unittest
-        crc32c_unittest
         iobuf_unittest
         object_pool_unittest
         test_switches

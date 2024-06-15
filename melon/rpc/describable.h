@@ -22,7 +22,7 @@
 
 #include <ostream>
 #include <melon/utility/macros.h>
-#include <melon/utility/class_name.h>
+#include <melon/base/class_name.h>
 
 namespace melon {
 

@@ -30,8 +30,8 @@
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/fd_utility.h>
-#include <melon/utility/fd_guard.h>
+#include <melon/base/fd_utility.h>
+#include <melon/base/fd_guard.h>
 #include <melon/fiber/unstable.h>
 #include <melon/fiber/task_control.h>
 #include <melon/rpc/socket.h>

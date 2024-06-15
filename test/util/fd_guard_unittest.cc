@@ -23,7 +23,7 @@
 #include <fcntl.h>                              // ^
 #include <gtest/gtest.h>
 #include <errno.h>
-#include <melon/utility/fd_guard.h>
+#include <melon/base/fd_guard.h>
 
 namespace {
 

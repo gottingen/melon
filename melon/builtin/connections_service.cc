@@ -30,7 +30,7 @@
 #include <melon/rpc/server.h>
 #include <melon/builtin/common.h>
 #include <melon/builtin/connections_service.h>
-#include <melon/utility/class_name.h>
+#include <melon/base/class_name.h>
 
 
 namespace melon {

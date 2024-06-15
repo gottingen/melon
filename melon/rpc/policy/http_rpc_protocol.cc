@@ -31,7 +31,7 @@
 #include <melon/utility/string_splitter.h>                  // StringMultiSplitter
 #include <melon/utility/string_printf.h>
 #include <melon/utility/time.h>
-#include <melon/utility/sys_byteorder.h>
+#include <turbo/base/endian.h>
 #include <melon/rpc/compress.h>
 #include <melon/proto/rpc/errno.pb.h>                     // ENOSERVICE, ENOMETHOD
 #include <melon/rpc/controller.h>                   // Controller
@@ -228,7 +228,7 @@ namespace melon {
         static void AddGrpcPrefix(mutil::IOBuf *body, bool compressed) {
             char buf[5];
             buf[0] = (compressed ? 1 : 0);
-            *(uint32_t *) (buf + 1) = mutil::HostToNet32(body->size());
+            *(uint32_t *) (buf + 1) = turbo::ghtonl(body->size());
             mutil::IOBuf tmp_buf;
             tmp_buf.append(buf, sizeof(buf));
             tmp_buf.append(mutil::IOBuf::Movable(*body));
@@ -247,7 +247,7 @@ namespace melon {
             char buf[5];
             body->cutn(buf, sizeof(buf));
             *compressed = buf[0];
-            const size_t message_length = mutil::NetToHost32(*(uint32_t *) (buf + 1));
+            const size_t message_length = turbo::gntohl(*(uint32_t *) (buf + 1));
             return (message_length + 5 == sz);
         }
 

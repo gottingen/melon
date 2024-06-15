@@ -22,7 +22,7 @@
 #include <array>
 #include <gflags/gflags.h>
 #include <melon/utility/containers/flat_map.h>
-#include <melon/utility/errno.h>
+#include <melon/base/errno.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/socket.h>
 #include <melon/lb/consistent_hashing_load_balancer.h>

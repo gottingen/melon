@@ -22,8 +22,8 @@
 #include <vector>                                  // std::vector
 #include <stdint.h>                                // uint64_t
 #include <gflags/gflags_declare.h>                 // DECLARE_xxx
-#include <melon/utility/endpoint.h>                         // mutil::EndPoint
-#include <melon/utility/iobuf.h>
+#include <melon/base/endpoint.h>                         // mutil::EndPoint
+#include <melon/base/iobuf.h>
 #include <turbo/log/logging.h>
 #include <melon/proto/rpc/options.pb.h>                  // ProtocolType
 #include <melon/rpc/socket_id.h>                   // SocketId

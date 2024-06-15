@@ -23,7 +23,7 @@
 #include <melon/utility/atomicops.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/fiber/fiber.h>
 #include "melon/fiber/condition_variable.h"

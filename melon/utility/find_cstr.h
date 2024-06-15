@@ -26,7 +26,7 @@
 #include <string>
 #include <map>
 #include <algorithm>
-#include <melon/utility/thread_local.h>
+#include <melon/base/thread_local.h>
 
 // Find c-string in maps with std::string as keys without memory allocations.
 // Example:

@@ -22,7 +22,7 @@
 #pragma once
 
 #include <ostream>
-#include <melon/utility/endpoint.h>                    // mutil::EndPoint
+#include <melon/base/endpoint.h>                    // mutil::EndPoint
 #include <melon/utility/macros.h>                      // MELON_CONCAT
 #include <melon/rpc/extension.h>              // Extension<T>
 

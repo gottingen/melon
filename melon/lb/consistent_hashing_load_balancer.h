@@ -24,7 +24,7 @@
 #include <stdint.h>                                     // uint32_t
 #include <functional>
 #include <vector>                                       // std::vector
-#include <melon/utility/endpoint.h>                              // mutil::EndPoint
+#include <melon/base/endpoint.h>                              // mutil::EndPoint
 #include <melon/utility/containers/doubly_buffered_data.h>
 #include <melon/rpc/load_balancer.h>
 

@@ -32,11 +32,11 @@
 #include <stdexcept>                       // std::invalid_argument
 #include <melon/utility/build_config.h>             // ARCH_CPU_X86_64
 #include <melon/utility/atomicops.h>                // mutil::atomic
-#include <melon/utility/thread_local.h>             // thread_atexit
+#include <melon/base/thread_local.h>             // thread_atexit
 #include <melon/utility/macros.h>                   // MELON_CASSERT
 #include <turbo/log/logging.h>                  // CHECK, LOG
-#include <melon/utility/fd_guard.h>                 // mutil::fd_guard
-#include <melon/utility/iobuf.h>
+#include <melon/base/fd_guard.h>                 // mutil::fd_guard
+#include <melon/base/iobuf.h>
 
 namespace mutil {
 namespace iobuf {

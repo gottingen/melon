@@ -19,8 +19,8 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/errno.h>
-#include <melon/utility/endpoint.h>
+#include <melon/base/errno.h>
+#include <melon/base/endpoint.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/containers/flat_map.h>
 #include "melon/utility/details/extended_endpoint.hpp"

@@ -23,7 +23,7 @@
 #include <vector>                                   // std::vector
 #include <string>                                   // std::string
 #include <ostream>                                  // std::ostream
-#include <melon/utility/endpoint.h>                         // mutil::EndPoint
+#include <melon/base/endpoint.h>                         // mutil::EndPoint
 #include <melon/utility/macros.h>                           // MELON_CONCAT
 #include <melon/rpc/describable.h>
 #include <melon/rpc/destroyable.h>

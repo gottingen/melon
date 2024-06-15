@@ -18,8 +18,6 @@
 //
 
 
-// Date: 2017/11/04 17:37:43
-
 #include <gflags/gflags.h>
 #include <melon/utility/build_config.h>
 #include <turbo/log/logging.h>

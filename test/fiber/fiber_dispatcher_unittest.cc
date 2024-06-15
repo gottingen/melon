@@ -25,8 +25,8 @@
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/scoped_lock.h>
-#include <melon/utility/fd_utility.h>
+#include <melon/base/scoped_lock.h>
+#include <melon/base/fd_utility.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/fiber/fiber.h>

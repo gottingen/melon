@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/base/iobuf.h>                         // mutil::IOBuf
 #include <melon/utility/memory/ref_counted.h>            // mutil::RefCountedThreadSafe
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>  // fmix64
 #include <melon/raft/configuration.h>

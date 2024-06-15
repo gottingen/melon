@@ -23,7 +23,7 @@
 #include <melon/fiber/butex.h>                       // butex_*
 #include <melon/fiber/mutex.h>
 #include <melon/fiber/list_of_abafree_id.h>
-#include <melon/utility/resource_pool.h>
+#include <melon/base/resource_pool.h>
 #include <melon/fiber/fiber.h>
 
 namespace fiber {

@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <melon/raft/util.h>
-#include <melon/utility/crc32c.h>
+#include <turbo/crypto/crc32c.h>
 
 class ChecksumTest : public testing::Test {
 protected:
@@ -28,13 +28,13 @@ TEST_F(ChecksumTest, benchmark) {
     
     timer.start();
     for (size_t i = 0; i < N; ++i) {
-        mutil::crc32c::Value(data, sizeof(data));
+        turbo::compute_crc32c(std::string_view{data, sizeof(data)});
     }
     timer.stop();
     const long crc_elp = timer.u_elapsed();
 
     LOG(INFO) << "murmurhash32_TP=" << sizeof(data) * N / (double)mur_elp << "MB/s"
               << " base_crc32_TP=" << sizeof(data) * N / (double)crc_elp << "MB/s";
-    LOG(INFO) << "base_is_fast_crc32_support=" << mutil::crc32c::IsFastCrc32Supported();
+    LOG(INFO) << "base_is_fast_crc32_support=" << true;
 
 }

@@ -23,7 +23,7 @@
 #include <sys/types.h>                          // socket
 #include <sys/socket.h>                         // ^
 #include <sys/un.h>                             // unix domain socket
-#include <melon/utility/fd_guard.h>                     // fd_guard
+#include <melon/base/fd_guard.h>                     // fd_guard
 #include <turbo/log/logging.h>
 
 namespace mutil {

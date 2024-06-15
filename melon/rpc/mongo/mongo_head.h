@@ -21,13 +21,13 @@
 #ifndef MELON_RPC_MONGO_MONGO_HEAD_H_
 #define MELON_RPC_MONGO_MONGO_HEAD_H_
 
-#include <melon/utility/sys_byteorder.h>
+#include <turbo/base/endian.h>
 
 namespace melon {
 
-// Sync with
-//   https://github.com/mongodb/mongo-c-driver/blob/master/src/mongoc/mongoc-opcode.h
-//   https://docs.mongodb.org/manual/reference/mongodb-wire-protocol/#request-opcodes
+        // Sync with
+        //   https://github.com/mongodb/mongo-c-driver/blob/master/src/mongoc/mongoc-opcode.h
+        //   https://docs.mongodb.org/manual/reference/mongodb-wire-protocol/#request-opcodes
     enum MongoOpCode {
         MONGO_OPCODE_REPLY = 1,
         MONGO_OPCODE_MSG = 1000,
@@ -74,10 +74,10 @@ namespace melon {
 
         void make_host_endian() {
             if (!ARCH_CPU_LITTLE_ENDIAN) {
-                message_length = mutil::ByteSwap((uint32_t) message_length);
-                request_id = mutil::ByteSwap((uint32_t) request_id);
-                response_to = mutil::ByteSwap((uint32_t) response_to);
-                op_code = mutil::ByteSwap((uint32_t) op_code);
+                message_length = turbo::gbswap_32((uint32_t) message_length);
+                request_id =turbo::gbswap_32((uint32_t) request_id);
+                response_to = turbo::gbswap_32((uint32_t) response_to);
+                op_code = turbo::gbswap_32((uint32_t) op_code);
             }
         }
     };

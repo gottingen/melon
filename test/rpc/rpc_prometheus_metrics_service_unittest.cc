@@ -23,7 +23,7 @@
 #include <gtest/gtest.h>
 
 #include <melon/utility/strings/string_piece.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/builtin/prometheus_metrics_service.h>
 
 namespace {

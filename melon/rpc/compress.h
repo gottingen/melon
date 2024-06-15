@@ -21,7 +21,7 @@
 #pragma once
 
 #include <google/protobuf/message.h>              // Message
-#include <melon/utility/iobuf.h>                           // mutil::IOBuf
+#include <melon/base/iobuf.h>                           // mutil::IOBuf
 #include <melon/proto/rpc/options.pb.h>                     // CompressType
 
 namespace melon {

@@ -25,7 +25,7 @@
 #include <limits>
 #include <memory>           // std::unique_ptr
 #include <vector>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/utility/status.h>
 #include <melon/utility/arena.h>
 #include <melon/rpc/parse_result.h>

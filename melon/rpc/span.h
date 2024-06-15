@@ -29,7 +29,7 @@
 #include <deque>
 #include <ostream>
 #include <melon/utility/macros.h>
-#include <melon/utility/endpoint.h>
+#include <melon/base/endpoint.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/var/collector.h>
 #include <melon/fiber/task_meta.h>

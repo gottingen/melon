@@ -22,7 +22,7 @@
 #include <deque>
 #include <vector>
 #include <gflags/gflags.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/rpc/details/usercode_backup_pool.h>
 

@@ -23,7 +23,7 @@
 #include <vector>
 #include <deque>
 #include <melon/utility/atomicops.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <turbo/log/logging.h>
 #include <melon/raft/log_entry.h>
 #include <melon/raft/storage.h>

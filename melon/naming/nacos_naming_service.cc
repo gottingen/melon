@@ -26,7 +26,7 @@
 
 #include <melon/rpc/http/http_status_code.h>
 #include <melon/rpc/log.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/third_party/rapidjson/document.h>
 

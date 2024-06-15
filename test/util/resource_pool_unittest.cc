@@ -24,7 +24,7 @@
 #include <melon/utility/fast_rand.h>
 
 #define MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT
-#include <melon/utility/resource_pool.h>
+#include <melon/base/resource_pool.h>
 
 namespace {
 struct MyObject {};

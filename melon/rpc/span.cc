@@ -24,12 +24,12 @@
 #include <leveldb/db.h>
 #include <leveldb/comparator.h>
 #include <melon/fiber/fiber.h>
-#include <melon/utility/scoped_lock.h>
-#include <melon/utility/thread_local.h>
+#include <melon/base/scoped_lock.h>
+#include <melon/base/thread_local.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/object_pool.h>
+#include <melon/base/object_pool.h>
 #include <melon/utility/fast_rand.h>
 #include <melon/utility/file_util.h>
 #include <melon/rpc/shared_object.h>

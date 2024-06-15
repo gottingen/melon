@@ -22,7 +22,7 @@
 #include <vector>
 #include <gflags/gflags.h>
 #include <melon/rpc/cluster_recover_policy.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/synchronization/lock.h>
 #include <melon/rpc/server_id.h>
 #include <melon/rpc/socket.h>

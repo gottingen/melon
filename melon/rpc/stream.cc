@@ -23,7 +23,7 @@
 
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>
-#include <melon/utility/object_pool.h>
+#include <melon/base/object_pool.h>
 #include <melon/utility/unique_ptr.h>
 #include <melon/fiber/unstable.h>
 #include <melon/rpc/log.h>

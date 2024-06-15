@@ -22,7 +22,7 @@
 #define MELON_FIBER_ERRNO_H_
 
 #include <errno.h>                    // errno
-#include <melon/utility/errno.h>
+#include <melon/base/errno.h>
 
 __BEGIN_DECLS
 

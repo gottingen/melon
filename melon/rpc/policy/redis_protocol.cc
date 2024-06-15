@@ -26,7 +26,7 @@
 #include <melon/rpc/policy/redis_authenticator.h>
 #include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
-#include <melon/utility/iobuf.h>                         // mutil::IOBuf
+#include <melon/base/iobuf.h>                         // mutil::IOBuf
 #include <melon/rpc/controller.h>               // Controller
 #include <melon/rpc/details/controller_private_accessor.h>
 #include <melon/rpc/socket.h>                   // Socket

@@ -23,7 +23,7 @@
 #include <gflags/gflags.h>
 #include <melon/utility/compat.h>                   // OS_MACOSX
 #include <melon/utility/macros.h>                   // ARRAY_SIZE
-#include <melon/utility/scoped_lock.h>              // MELON_SCOPED_LOCK
+#include <melon/base/scoped_lock.h>              // MELON_SCOPED_LOCK
 #include <melon/utility/fast_rand.h>
 #include <melon/utility/unique_ptr.h>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h> // fmix64

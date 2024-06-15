@@ -29,8 +29,8 @@
 #include <melon/utility/file_util.h>                 // mutil::FilePath
 #include <melon/utility/files/scoped_file.h>         // ScopedFILE
 #include <melon/utility/time.h>
-#include <melon/utility/popen.h>                    // mutil::read_command_output
-#include <melon/utility/process_util.h>           // mutil::ReadCommandLine
+#include <melon/base/popen.h>                    // mutil::read_command_output
+#include <melon/base/process_util.h>           // mutil::ReadCommandLine
 #include <melon/rpc/log.h>
 #include <melon/rpc/controller.h>                // Controller
 #include <melon/rpc/closure_guard.h>             // ClosureGuard
@@ -38,7 +38,7 @@
 #include <melon/builtin/common.h>
 #include <melon/rpc/details/tcmalloc_extension.h>
 #include <melon/fiber/fiber.h>                // fiber_usleep
-#include <melon/utility/fd_guard.h>
+#include <melon/base/fd_guard.h>
 
 extern "C" {
 #if defined(OS_LINUX)

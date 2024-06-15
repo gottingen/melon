@@ -27,7 +27,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/arena.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/cpu.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/asan_invalid_access.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/crash_logging.cc
@@ -51,7 +50,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/file_util_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/hash.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/lazy_instance.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/location.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/aligned_memory.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted_memory.cc
@@ -59,7 +57,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/weak_ptr.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/posix/file_descriptor_shuffle.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/posix/global_descriptors.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/process_util.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/fast_rand.cpp
@@ -100,25 +97,24 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/time/tick_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/class_name.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/errno.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/class_name.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/errno.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/status.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/string_printf.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/thread_local.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/thread_key.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/thread_local.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/unix_socket.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/endpoint.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/fd_utility.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/endpoint.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/fd_utility.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/temp_file.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_watcher.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/time.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/zero_copy_stream_as_streambuf.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/crc32c.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/zero_copy_stream_as_streambuf.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/iobuf.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/binary_printer.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/popen.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/iobuf.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/binary_printer.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/popen.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/process_util.cc
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

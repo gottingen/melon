@@ -26,8 +26,8 @@
 #include <gflags/gflags.h>
 #include <melon/utility/macros.h>
 #include <turbo/log/logging.h>                       // LOG
-#include <melon/utility/scoped_lock.h>
-#include <melon/utility/endpoint.h>
+#include <melon/base/scoped_lock.h>
+#include <melon/base/endpoint.h>
 #include <turbo/strings/escaping.h>
 #include <melon/fiber/fiber.h>                    // fiber_usleep
 #include <melon/rpc/log.h>

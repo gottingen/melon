@@ -23,10 +23,10 @@
 #include <functional>                          // std::function
 #include <gflags/gflags.h>                     // Users often need gflags
 #include <string>
-#include <melon/utility/intrusive_ptr.hpp>             // mutil::intrusive_ptr
+#include <melon/base/intrusive_ptr.h>             // mutil::intrusive_ptr
 #include <melon/fiber/errno.h>                     // Redefine errno
-#include <melon/utility/endpoint.h>                    // mutil::EndPoint
-#include <melon/utility/iobuf.h>                       // mutil::IOBuf
+#include <melon/base/endpoint.h>                    // mutil::EndPoint
+#include <melon/base/iobuf.h>                       // mutil::IOBuf
 #include <melon/fiber/types.h>                     // fiber_session_t
 #include <melon/proto/rpc/options.pb.h>                   // CompressType
 #include <melon/proto/rpc/errno.pb.h>                     // error code

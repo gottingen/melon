@@ -23,7 +23,7 @@
 #include <map>
 #include <melon/fiber/fiber.h>
 #include <melon/utility/time.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/protocol.h>

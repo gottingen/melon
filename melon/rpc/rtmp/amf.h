@@ -24,7 +24,6 @@
 #include <deque>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/message.h>
-#include <melon/utility/sys_byteorder.h>
 #include <melon/utility/strings/string_piece.h>
 
 

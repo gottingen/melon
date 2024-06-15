@@ -22,7 +22,7 @@
 #ifndef MELON_RPC_INPUT_MESSENGER_H_
 #define MELON_RPC_INPUT_MESSENGER_H_
 
-#include <melon/utility/iobuf.h>                    // mutil::IOBuf
+#include <melon/base/iobuf.h>                    // mutil::IOBuf
 #include <melon/rpc/socket.h>              // SocketId, SocketUser
 #include <melon/rpc/parse_result.h>        // ParseResult
 #include <melon/rpc/input_message_base.h>  // InputMessageBase

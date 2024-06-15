@@ -27,16 +27,16 @@
 #include <string>
 #include <set>
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>
-#include <melon/utility/endpoint.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/endpoint.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/utility/fast_rand.h>
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/utility/unique_ptr.h>
 #include <melon/utility/memory/singleton.h>
 #include <melon/utility/containers/doubly_buffered_data.h>
-#include <melon/utility/crc32c.h>
+#include <turbo/crypto/crc32c.h>
 #include <melon/utility/file_util.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/unstable.h>
@@ -221,22 +221,22 @@ namespace melon::raft {
     }
 
     inline uint32_t crc32(const void *key, int len) {
-        return mutil::crc32c::Value((const char *) key, len);
+        return (uint32_t)turbo::compute_crc32c(std::string_view{(const char *) key, len});
     }
 
     inline uint32_t crc32(const mutil::IOBuf &buf) {
-        uint32_t hash = 0;
+        turbo::CRC32C hash;
         const size_t block_num = buf.backing_block_num();
         for (size_t i = 0; i < block_num; ++i) {
             mutil::StringPiece sp = buf.backing_block(i);
             if (!sp.empty()) {
-                hash = mutil::crc32c::Extend(hash, sp.data(), sp.size());
+                hash = turbo::extend_crc32c(hash, std::string_view{sp.data(), sp.size()});
             }
         }
-        return hash;
+        return (uint32_t)hash;
     }
 
-// Start a fiber to run closure
+    // Start a fiber to run closure
     void run_closure_in_fiber(::google::protobuf::Closure *closure,
                                 bool in_pthread = false);
 
@@ -249,8 +249,8 @@ namespace melon::raft {
     typedef std::unique_ptr<google::protobuf::Closure, RunClosureInFiber>
             AsyncClosureGuard;
 
-// Start a fiber to run closure without signal other worker thread to steal
-// it. You should call fiber_flush() at last.
+    // Start a fiber to run closure without signal other worker thread to steal
+    // it. You should call fiber_flush() at last.
     void run_closure_in_fiber_nosig(::google::protobuf::Closure *closure,
                                       bool in_pthread = false);
 
@@ -264,7 +264,7 @@ namespace melon::raft {
 
     ssize_t file_pwrite(const mutil::IOBuf &data, int fd, off_t offset);
 
-// unsequence file data, reduce the overhead of copy some files have hole.
+    // unsequence file data, reduce the overhead of copy some files have hole.
     class FileSegData {
     public:
         // for reader

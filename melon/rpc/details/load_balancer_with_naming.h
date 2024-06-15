@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <melon/utility/intrusive_ptr.hpp>
+#include <melon/base/intrusive_ptr.h>
 #include <melon/rpc/load_balancer.h>
 #include <melon/naming/naming_service_thread.h>         // NamingServiceWatcher
 

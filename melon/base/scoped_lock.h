@@ -30,7 +30,7 @@
 #include <melon/utility/synchronization/lock.h>
 #include <melon/utility/macros.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/errno.h>
+#include <melon/base/errno.h>
 
 #if !defined(MUTIL_CXX11_ENABLED)
 #define MELON_SCOPED_LOCK(ref_of_lock)                                  \

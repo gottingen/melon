@@ -20,7 +20,6 @@
 
 
 #include <google/protobuf/descriptor.h>
-#include <melon/utility/sys_byteorder.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/find_cstr.h>
 #include <melon/rpc/log.h>

@@ -24,7 +24,7 @@
 #include <fstream>
 #include <string>
 #include <google/protobuf/text_format.h>
-#include <melon/utility/iobuf.h>
+#include <melon/base/iobuf.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/strings/string_util.h>
 #include <melon/utility/third_party/rapidjson/rapidjson.h>

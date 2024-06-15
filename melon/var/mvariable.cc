@@ -21,9 +21,9 @@
 #include <gflags/gflags.h>
 #include <gflags/gflags_declare.h>
 #include <turbo/log/logging.h>                       // LOG
-#include <melon/utility/errno.h>                         // berror
+#include <melon/base/errno.h>                         // berror
 #include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
-#include <melon/utility/scoped_lock.h>                   // MELON_SCOPE_LOCK
+#include <melon/base/scoped_lock.h>                   // MELON_SCOPE_LOCK
 #include <melon/utility/file_util.h>                     // mutil::FilePath
 #include <melon/var/variable.h>
 #include <melon/var/mvariable.h>

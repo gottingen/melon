@@ -22,7 +22,7 @@
 #ifndef MELON_RPC_SHARED_OBJECT_H_
 #define MELON_RPC_SHARED_OBJECT_H_
 
-#include <melon/utility/intrusive_ptr.hpp>                   // mutil::intrusive_ptr
+#include <melon/base/intrusive_ptr.h>                   // mutil::intrusive_ptr
 #include <melon/utility/atomicops.h>
 
 

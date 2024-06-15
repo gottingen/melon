@@ -22,7 +22,7 @@
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/scoped_lock.h>
+#include <melon/base/scoped_lock.h>
 #include <melon/fiber/work_stealing_queue.h>
 
 namespace {

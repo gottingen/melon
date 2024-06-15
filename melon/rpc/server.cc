@@ -28,10 +28,10 @@
 #include <melon/proto/idl_options.pb.h>                         // option(idl_support)
 #include <melon/fiber/unstable.h>                       // fiber_keytable_pool_init
 #include <melon/utility/macros.h>                            // ARRAY_SIZE
-#include <melon/utility/fd_guard.h>                          // fd_guard
+#include <melon/base/fd_guard.h>                          // fd_guard
 #include <turbo/log/logging.h>                           // CHECK
 #include <melon/utility/time.h>
-#include <melon/utility/class_name.h>
+#include <melon/base/class_name.h>
 #include <melon/utility/string_printf.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/compress.h>

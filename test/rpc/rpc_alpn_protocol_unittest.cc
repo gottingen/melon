@@ -27,8 +27,8 @@
 #include "echo.pb.h"
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
-#include <melon/utility/fd_guard.h>
-#include <melon/utility/endpoint.h>
+#include <melon/base/fd_guard.h>
+#include <melon/base/endpoint.h>
 
 DEFINE_string(listen_addr, "0.0.0.0:8011", "Server listen address.");
 

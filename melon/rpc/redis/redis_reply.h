@@ -22,7 +22,7 @@
 #ifndef MELON_RPC_REDIS_REDIS_REPLY_H_
 #define MELON_RPC_REDIS_REDIS_REPLY_H_
 
-#include <melon/utility/iobuf.h>                  // mutil::IOBuf
+#include <melon/base/iobuf.h>                  // mutil::IOBuf
 #include <melon/utility/strings/string_piece.h>   // mutil::StringPiece
 #include <melon/utility/arena.h>                  // mutil::Arena
 #include <turbo/log/logging.h>                // CHECK

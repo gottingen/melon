@@ -29,8 +29,8 @@
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/utility/time.h>
 #include <melon/utility/macros.h>
-#include <melon/utility/fd_utility.h>
-#include <melon/utility/fd_guard.h>
+#include <melon/base/fd_utility.h>
+#include <melon/base/fd_guard.h>
 #include "melon/utility/unix_socket.h"
 #include <melon/rpc/acceptor.h>
 #include <melon/rpc/policy/hulu_pbrpc_protocol.h>

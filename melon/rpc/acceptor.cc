@@ -21,8 +21,8 @@
 
 #include <inttypes.h>
 #include <gflags/gflags.h>
-#include <melon/utility/fd_guard.h>                 // fd_guard
-#include <melon/utility/fd_utility.h>               // make_close_on_exec
+#include <melon/base/fd_guard.h>                 // fd_guard
+#include <melon/base/fd_utility.h>               // make_close_on_exec
 #include <melon/utility/time.h>                     // gettimeofday_us
 #include <melon/rpc/acceptor.h>
 

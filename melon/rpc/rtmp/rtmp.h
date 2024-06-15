@@ -23,7 +23,7 @@
 #define MELON_RPC_RTMP_RTMP_H_
 
 #include <melon/utility/strings/string_piece.h>   // mutil::StringPiece
-#include <melon/utility/endpoint.h>               // mutil::EndPoint
+#include <melon/base/endpoint.h>               // mutil::EndPoint
 #include <melon/rpc/shared_object.h>          // SharedObject, intrusive_ptr
 #include <melon/rpc/socket_id.h>              // SocketUniquePtr
 #include <melon/rpc/controller.h>             // Controller, IOBuf
