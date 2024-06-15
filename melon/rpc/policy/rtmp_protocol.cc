@@ -30,6 +30,7 @@
 #include <melon/rpc/span.h>
 #include <melon/rpc/policy/dh.h>
 #include <melon/rpc/policy/rtmp_protocol.h>
+#include <turbo/base/endian.h>
 
 // For printing logs with useful prefixes.
 #define RTMP_LOG(level, socket, mh)                                     \

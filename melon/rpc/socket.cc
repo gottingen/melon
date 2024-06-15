@@ -61,9 +61,9 @@ namespace fiber {
 
 namespace melon {
 
-// NOTE: This flag was true by default before r31206. Connected to somewhere
-// is not an important event now, we can check the connection in /connections
-// if we're in doubt.
+    // NOTE: This flag was true by default before r31206. Connected to somewhere
+    // is not an important event now, we can check the connection in /connections
+    // if we're in doubt.
     DEFINE_bool(log_connected, false, "Print log when a connection is established");
     MELON_VALIDATE_GFLAG(log_connected, PassValidate);
 
