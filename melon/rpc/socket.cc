@@ -131,15 +131,15 @@ namespace melon {
     private:
         // options used to create this instance
         SocketOptions _options;
-        mutil::Mutex _mutex;
+        std::mutex _mutex;
         std::vector<SocketId> _pool;
         mutil::EndPoint _remote_side;
          std::atomic<int> _numfree; // #free sockets in all sub pools.
          std::atomic<int> _numinflight; // #inflight sockets in all sub pools.
     };
 
-// NOTE: sizeof of this class is 1200 bytes. If we have 10K sockets, total
-// memory is 12MB, not lightweight, but acceptable.
+    // NOTE: sizeof of this class is 1200 bytes. If we have 10K sockets, total
+    // memory is 12MB, not lightweight, but acceptable.
     struct ExtendedSocketStat : public SocketStat {
         // For computing stat.
         size_t last_in_size;
@@ -161,7 +161,7 @@ namespace melon {
         }
     };
 
-// Shared by main socket and derivative sockets.
+    // Shared by main socket and derivative sockets.
     class Socket::SharedPart : public SharedObject {
     public:
         // A pool of sockets on which only a request can be sent, corresponding

@@ -24,7 +24,7 @@
 #include <atomic>
 #include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
 #include <type_traits>
-#include <melon/utility/synchronization/lock.h>  // mutil::Lock
+#include <mutex>
 #include <melon/base/linked_list.h>// LinkNode
 #include <melon/var/detail/agent_group.h>    // detail::AgentGroup
 #include <melon/base/details/type_traits.h>
@@ -52,15 +52,15 @@ namespace melon::var {
             // global_result will not be changed provided this method is called
             // from the thread owning the agent.
             result_type *lock() {
-                _a->element._lock.Release();
-                _c->_lock.Acquire();
+                _a->element._lock.unlock();
+                _c->_lock.lock();
                 return &_c->_global_result;
             }
 
             // Call this method to unlock the combiner and lock tls element again.
             void unlock() {
-                _c->_lock.Release();
-                _a->element._lock.Acquire();
+                _c->_lock.unlock();
+                _a->element._lock.lock();
             }
 
         private:
@@ -68,7 +68,7 @@ namespace melon::var {
             Combiner *_c;
         };
 
-// Abstraction of tls element whose operations are all atomic.
+        // Abstraction of tls element whose operations are all atomic.
         template<typename T, typename Enabler = void>
         class ElementContainer {
             template<typename> friend
@@ -76,38 +76,37 @@ namespace melon::var {
 
         public:
             void load(T *out) {
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 *out = _value;
             }
 
             void store(const T &new_value) {
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 _value = new_value;
             }
 
             void exchange(T *prev, const T &new_value) {
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 *prev = _value;
                 _value = new_value;
             }
 
             template<typename Op, typename T1>
             void modify(const Op &op, const T1 &value2) {
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 call_op_returning_void(op, _value, value2);
             }
 
             // [Unique]
             template<typename Op, typename GlobalValue>
             void merge_global(const Op &op, GlobalValue &global_value) {
-                _lock.Acquire();
+                std::unique_lock guard(_lock);
                 op(global_value, _value);
-                _lock.Release();
             }
 
         private:
             T _value;
-            mutil::Lock _lock;
+            std::mutex _lock;
         };
 
         template<typename T>
@@ -235,7 +234,7 @@ namespace melon::var {
             // [Threadsafe] May be called from anywhere
             ResultTp combine_agents() const {
                 ElementTp tls_value;
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 ResultTp ret = _global_result;
                 for (mutil::LinkNode<Agent> *node = _agents.head();
                      node != _agents.end(); node = node->next()) {
@@ -252,7 +251,7 @@ namespace melon::var {
             // [Threadsafe] May be called from anywhere.
             ResultTp reset_all_agents() {
                 ElementTp prev;
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 ResultTp tmp = _global_result;
                 _global_result = _result_identity;
                 for (mutil::LinkNode<Agent> *node = _agents.head();
@@ -269,7 +268,7 @@ namespace melon::var {
                     return;
                 }
                 ElementTp local;
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 // TODO: For non-atomic types, we can pass the reference to op directly.
                 // But atomic types cannot. The code is a little troublesome to write.
                 agent->element.load(&local);
@@ -283,7 +282,7 @@ namespace melon::var {
                     return;
                 }
                 ElementTp prev;
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 agent->element.exchange(&prev, _element_identity);
                 call_op_returning_void(_op, _global_result, prev);
             }
@@ -305,14 +304,14 @@ namespace melon::var {
                 agent->reset(_element_identity, this);
                 // TODO: Is uniqueness-checking necessary here?
                 {
-                    mutil::AutoLock guard(_lock);
+                    std::unique_lock guard(_lock);
                     _agents.Append(agent);
                 }
                 return agent;
             }
 
             void clear_all_agents() {
-                mutil::AutoLock guard(_lock);
+                std::unique_lock guard(_lock);
                 // reseting agents is must because the agent object may be reused.
                 // Set element to be default-constructed so that if it's non-pod,
                 // internal allocations should be released.
@@ -332,7 +331,7 @@ namespace melon::var {
         private:
             AgentId _id;
             BinaryOp _op;
-            mutable mutil::Lock _lock;
+            mutable std::mutex _lock;
             ResultTp _global_result;
             ResultTp _result_identity;
             ElementTp _element_identity;

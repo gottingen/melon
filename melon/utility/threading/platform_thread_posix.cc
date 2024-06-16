@@ -13,7 +13,6 @@
 #include "melon/utility/safe_strerror_posix.h"
 #include "melon/utility/synchronization/waitable_event.h"
 #include "melon/utility/threading/thread_id_name_manager.h"
-#include "melon/utility/threading/thread_restrictions.h"
 
 #if defined(OS_MACOSX)
 #include <sys/resource.h>
@@ -58,8 +57,6 @@ void* ThreadFunc(void* params) {
   ThreadParams* thread_params = static_cast<ThreadParams*>(params);
 
   PlatformThread::Delegate* delegate = thread_params->delegate;
-  if (!thread_params->joinable)
-    mutil::ThreadRestrictions::SetSingletonAllowed(false);
 
   if (thread_params->priority != kThreadPriority_Normal) {
     PlatformThread::SetThreadPriority(PlatformThread::CurrentHandle(),
@@ -201,7 +198,6 @@ const char* PlatformThread::GetName() {
 // static
 bool PlatformThread::Create(size_t stack_size, Delegate* delegate,
                             PlatformThreadHandle* thread_handle) {
-  mutil::ThreadRestrictions::ScopedAllowWait allow_wait;
   return CreateThread(stack_size, true /* joinable thread */,
                       delegate, thread_handle, kThreadPriority_Normal);
 }
@@ -210,7 +206,6 @@ bool PlatformThread::Create(size_t stack_size, Delegate* delegate,
 bool PlatformThread::CreateWithPriority(size_t stack_size, Delegate* delegate,
                                         PlatformThreadHandle* thread_handle,
                                         ThreadPriority priority) {
-  mutil::ThreadRestrictions::ScopedAllowWait allow_wait;
   return CreateThread(stack_size, true,  // joinable thread
                       delegate, thread_handle, priority);
 }
@@ -219,7 +214,6 @@ bool PlatformThread::CreateWithPriority(size_t stack_size, Delegate* delegate,
 bool PlatformThread::CreateNonJoinable(size_t stack_size, Delegate* delegate) {
   PlatformThreadHandle unused;
 
-  mutil::ThreadRestrictions::ScopedAllowWait allow_wait;
   bool result = CreateThread(stack_size, false /* non-joinable thread */,
                              delegate, &unused, kThreadPriority_Normal);
   return result;
@@ -230,7 +224,6 @@ void PlatformThread::Join(PlatformThreadHandle thread_handle) {
   // Joining another thread may block the current thread for a long time, since
   // the thread referred to by |thread_handle| may still be running long-lived /
   // blocking tasks.
-  mutil::ThreadRestrictions::AssertIOAllowed();
   CHECK_EQ(0, pthread_join(thread_handle.handle_, NULL));
 }
 

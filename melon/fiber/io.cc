@@ -31,7 +31,7 @@
 #include <melon/utility/time.h>
 #include <melon/base/fd_utility.h>                     // make_non_blocking
 #include <turbo/log/logging.h>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>   // fmix32
+#include <melon/base/murmurhash3.h>   // fmix32
 #include <melon/fiber/butex.h>                       // butex_*
 #include <melon/fiber/task_group.h>                  // TaskGroup
 #include <melon/fiber/fiber.h>                             // fiber_start_urgent
@@ -56,21 +56,21 @@ namespace fiber {
          std::atomic<T> *get_or_new(size_t index) {
             const size_t block_index = index / BLOCK_SIZE;
             if (block_index >= NBLOCK) {
-                return NULL;
+                return nullptr;
             }
             const size_t block_offset = index - block_index * BLOCK_SIZE;
             Block *b = _blocks[block_index].load(std::memory_order_consume);
-            if (b != NULL) {
+            if (b != nullptr) {
                 return b->items + block_offset;
             }
             b = new(std::nothrow) Block;
-            if (NULL == b) {
+            if (nullptr == b) {
                 b = _blocks[block_index].load(std::memory_order_consume);
-                return (b ? b->items + block_offset : NULL);
+                return (b ? b->items + block_offset : nullptr);
             }
             // Set items to default value of T.
             std::fill(b->items, b->items + BLOCK_SIZE, T());
-            Block *expected = NULL;
+            Block *expected = nullptr;
             if (_blocks[block_index].compare_exchange_strong(
                     expected, b, std::memory_order_release,
                     std::memory_order_consume)) {
@@ -85,11 +85,11 @@ namespace fiber {
             if (__builtin_expect(block_index < NBLOCK, 1)) {
                 const size_t block_offset = index - block_index * BLOCK_SIZE;
                 Block *const b = _blocks[block_index].load(std::memory_order_consume);
-                if (__builtin_expect(b != NULL, 1)) {
+                if (__builtin_expect(b != nullptr, 1)) {
                     return b->items + block_offset;
                 }
             }
-            return NULL;
+            return nullptr;
         }
 
     private:
@@ -136,7 +136,7 @@ namespace fiber {
                 return -1;
             }
             if (fiber_start_background(
-                    &_tid, NULL, EpollThread::run_this, this) != 0) {
+                    &_tid, nullptr, EpollThread::run_this, this) != 0) {
                 close(_epfd);
                 _epfd = -1;
                 LOG(FATAL) << "Fail to create epoll fiber";
@@ -170,21 +170,21 @@ namespace fiber {
                 return -1;
             }
 #if defined(OS_LINUX)
-            epoll_event evt = {EPOLLOUT, {NULL}};
+            epoll_event evt = {EPOLLOUT, {nullptr}};
             if (epoll_ctl(saved_epfd, EPOLL_CTL_ADD,
                           closing_epoll_pipe[1], &evt) < 0) {
 #elif defined(OS_MACOSX)
                 struct kevent kqueue_event;
                 EV_SET(&kqueue_event, closing_epoll_pipe[1], EVFILT_WRITE, EV_ADD | EV_ENABLE,
-                        0, 0, NULL);
-                if (kevent(saved_epfd, &kqueue_event, 1, NULL, 0, NULL) < 0) {
+                        0, 0, nullptr);
+                if (kevent(saved_epfd, &kqueue_event, 1, nullptr, 0, nullptr) < 0) {
 #endif
                 PLOG(FATAL) << "Fail to add closing_epoll_pipe into epfd="
                              << saved_epfd;
                 return -1;
             }
 
-            const int rc = fiber_join(_tid, NULL);
+            const int rc = fiber_join(_tid, nullptr);
             if (rc) {
                 LOG(FATAL) << "Fail to join EpollThread, " << berror(rc);
                 return -1;
@@ -197,19 +197,19 @@ namespace fiber {
 
         int fd_wait(int fd, unsigned events, const timespec *abstime) {
              std::atomic<EpollButex *> *p = fd_butexes.get_or_new(fd);
-            if (NULL == p) {
+            if (nullptr == p) {
                 errno = ENOMEM;
                 return -1;
             }
 
             EpollButex *butex = p->load(std::memory_order_consume);
-            if (NULL == butex) {
+            if (nullptr == butex) {
                 // It is rare to wait on one file descriptor from multiple threads
                 // simultaneously. Creating singleton by optimistic locking here
                 // saves mutexes for each butex.
                 butex = butex_create_checked<EpollButex>();
                 butex->store(0, std::memory_order_relaxed);
-                EpollButex *expected = NULL;
+                EpollButex *expected = nullptr;
                 if (!p->compare_exchange_strong(expected, butex,
                                                 std::memory_order_release,
                                                 std::memory_order_consume)) {
@@ -242,7 +242,7 @@ namespace fiber {
             struct kevent kqueue_event;
             EV_SET(&kqueue_event, fd, events, EV_ADD | EV_ENABLE | EV_ONESHOT,
                     0, 0, butex);
-            if (kevent(_epfd, &kqueue_event, 1, NULL, 0, NULL) < 0) {
+            if (kevent(_epfd, &kqueue_event, 1, nullptr, 0, nullptr) < 0) {
                 PLOG(FATAL) << "Fail to add fd=" << fd << " into kqueuefd=" << _epfd;
                 return -1;
             }
@@ -261,7 +261,7 @@ namespace fiber {
                 return -1;
             }
              std::atomic<EpollButex *> *pbutex = fiber::fd_butexes.get(fd);
-            if (NULL == pbutex) {
+            if (nullptr == pbutex) {
                 // Did not call fiber_fd functions, close directly.
                 return close(fd);
             }
@@ -272,18 +272,18 @@ namespace fiber {
                 errno = EBADF;
                 return -1;
             }
-            if (butex != NULL) {
+            if (butex != nullptr) {
                 butex->fetch_add(1, std::memory_order_relaxed);
                 butex_wake_all(butex);
             }
 #if defined(OS_LINUX)
-            epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL);
+            epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr);
 #elif defined(OS_MACOSX)
             struct kevent evt;
-            EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-            kevent(_epfd, &evt, 1, NULL, 0, NULL);
-            EV_SET(&evt, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-            kevent(_epfd, &evt, 1, NULL, 0, NULL);
+            EV_SET(&evt, fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
+            kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
+            EV_SET(&evt, fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+            kevent(_epfd, &evt, 1, nullptr, 0, nullptr);
 #endif
             const int rc = close(fd);
             pbutex->exchange(butex, std::memory_order_relaxed);
@@ -308,9 +308,9 @@ namespace fiber {
             typedef struct kevent KEVENT;
             struct kevent* e = new (std::nothrow) KEVENT[MAX_EVENTS];
 #endif
-            if (NULL == e) {
+            if (nullptr == e) {
                 LOG(FATAL) << "Fail to new epoll_event";
-                return NULL;
+                return nullptr;
             }
 
 #if defined(OS_LINUX)
@@ -321,7 +321,7 @@ namespace fiber {
 #if defined(OS_LINUX)
                 const int n = epoll_wait(epfd, e, MAX_EVENTS, -1);
 #elif defined(OS_MACOSX)
-                const int n = kevent(epfd, NULL, 0, e, MAX_EVENTS, NULL);
+                const int n = kevent(epfd, nullptr, 0, e, MAX_EVENTS, nullptr);
 #endif
                 if (_stop) {
                     break;
@@ -346,18 +346,18 @@ namespace fiber {
 
 #if defined(OS_LINUX)
                 for (int i = 0; i < n; ++i) {
-                    epoll_ctl(epfd, EPOLL_CTL_DEL, e[i].data.fd, NULL);
+                    epoll_ctl(epfd, EPOLL_CTL_DEL, e[i].data.fd, nullptr);
                 }
 #endif
                 for (int i = 0; i < n; ++i) {
 #if defined(OS_LINUX)
                      std::atomic<EpollButex *> *pbutex = fd_butexes.get(e[i].data.fd);
                     EpollButex *butex = pbutex ?
-                                        pbutex->load(std::memory_order_consume) : NULL;
+                                        pbutex->load(std::memory_order_consume) : nullptr;
 #elif defined(OS_MACOSX)
                     EpollButex* butex = static_cast<EpollButex*>(e[i].udata);
 #endif
-                    if (butex != NULL && butex != CLOSING_GUARD) {
+                    if (butex != nullptr && butex != CLOSING_GUARD) {
                         butex->fetch_add(1, std::memory_order_relaxed);
                         butex_wake_all(butex);
                     }
@@ -367,13 +367,13 @@ namespace fiber {
             delete[] e;
             DLOG(INFO) << "EpollThread=" << _tid << "(epfd="
                         << initial_epfd << ") is about to stop";
-            return NULL;
+            return nullptr;
         }
 
         int _epfd;
         bool _stop;
         fiber_t _tid;
-        mutil::Mutex _start_mutex;
+        std::mutex _start_mutex;
     };
 
     EpollThread epoll_thread[FIBER_EPOLL_THREAD_NUM];
@@ -390,7 +390,7 @@ namespace fiber {
         return et;
     }
 
-//TODO(zhujiashun): change name
+        //TODO(zhujiashun): change name
     int stop_and_join_epoll_threads() {
         // Returns -1 if any epoll thread failed to stop.
         int rc = 0;
@@ -479,16 +479,16 @@ int fiber_fd_wait(int fd, unsigned events) {
         return -1;
     }
     fiber::TaskGroup *g = fiber::tls_task_group;
-    if (NULL != g && !g->is_current_pthread_task()) {
+    if (nullptr != g && !g->is_current_pthread_task()) {
         return fiber::get_epoll_thread(fd).fd_wait(
-                fd, events, NULL);
+                fd, events, nullptr);
     }
-    return fiber::pthread_fd_wait(fd, events, NULL);
+    return fiber::pthread_fd_wait(fd, events, nullptr);
 }
 
 int fiber_fd_timedwait(int fd, unsigned events,
                        const timespec *abstime) {
-    if (NULL == abstime) {
+    if (nullptr == abstime) {
         return fiber_fd_wait(fd, events);
     }
     if (fd < 0) {
@@ -496,7 +496,7 @@ int fiber_fd_timedwait(int fd, unsigned events,
         return -1;
     }
     fiber::TaskGroup *g = fiber::tls_task_group;
-    if (NULL != g && !g->is_current_pthread_task()) {
+    if (nullptr != g && !g->is_current_pthread_task()) {
         return fiber::get_epoll_thread(fd).fd_wait(
                 fd, events, abstime);
     }
@@ -506,7 +506,7 @@ int fiber_fd_timedwait(int fd, unsigned events,
 int fiber_connect(int sockfd, const sockaddr *serv_addr,
                   socklen_t addrlen) {
     fiber::TaskGroup *g = fiber::tls_task_group;
-    if (NULL == g || g->is_current_pthread_task()) {
+    if (nullptr == g || g->is_current_pthread_task()) {
         return ::connect(sockfd, serv_addr, addrlen);
     }
     // FIXME: Scoped non-blocking?

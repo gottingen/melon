@@ -65,7 +65,7 @@ namespace melon::var::detail {
 
         bool _used;
         // Sync destroy() and take_sample().
-        mutil::Mutex _mutex;
+        std::mutex _mutex;
     };
 
     // Representing a non-existing operator so that we can test
@@ -146,7 +146,7 @@ namespace melon::var::detail {
                 LOG(FATAL) << "Invalid window_size=" << window_size;
                 return false;
             }
-            MELON_SCOPED_LOCK(_mutex);
+            std::unique_lock mu(_mutex);
             if (_q.size() <= 1UL) {
                 // We need more samples to get reasonable result.
                 return false;
@@ -182,7 +182,7 @@ namespace melon::var::detail {
                 LOG(ERROR) << "Invalid window_size=" << window_size;
                 return -1;
             }
-            MELON_SCOPED_LOCK(_mutex);
+            std::unique_lock mu(_mutex);
             if (window_size > _window_size) {
                 _window_size = window_size;
             }
@@ -194,7 +194,7 @@ namespace melon::var::detail {
                 LOG(FATAL) << "Invalid window_size=" << window_size;
                 return;
             }
-            MELON_SCOPED_LOCK(_mutex);
+            std::unique_lock mu(_mutex);
             if (_q.size() <= 1) {
                 // We need more samples to get reasonable result.
                 return;

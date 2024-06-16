@@ -22,6 +22,7 @@
 #include <iostream>                            // std::ostream
 #include <deque>                               // std::deque
 #include <set>                                 // std::set
+#include <mutex>
 #include <atomic>
 #include <melon/fiber/types.h>                      // fiber_session_t
 #include <melon/base/iobuf.h>                        // mutil::IOBuf, IOPortal
@@ -65,9 +66,9 @@ namespace melon {
 
     class Stream;
 
-// A special closure for processing the about-to-recycle socket. Socket does
-// not delete SocketUser, if you want, `delete this' at the end of
-// BeforeRecycle().
+    // A special closure for processing the about-to-recycle socket. Socket does
+    // not delete SocketUser, if you want, `delete this' at the end of
+    // BeforeRecycle().
     class SocketUser {
     public:
         virtual ~SocketUser() {}
@@ -85,10 +86,10 @@ namespace melon {
         virtual void AfterRevived(Socket *);
     };
 
-// TODO: Remove this class which is replace-able with SocketMessage
-// A special closure for handling fd related connection. The Socket does
-// not delete SocketConnection, if you want, `delete this' at the end of
-// BeforeRecycle().
+    // TODO: Remove this class which is replace-able with SocketMessage
+    // A special closure for handling fd related connection. The Socket does
+    // not delete SocketConnection, if you want, `delete this' at the end of
+    // BeforeRecycle().
     class SocketConnection {
     public:
         virtual ~SocketConnection() {}
@@ -921,7 +922,7 @@ namespace melon {
         SSLState _ssl_state;
         // SSL objects cannot be read and written at the same time.
         // Use mutex to protect SSL objects when ssl_state is SSL_CONNECTED.
-        mutable mutil::Mutex _ssl_session_mutex;
+        mutable std::mutex _ssl_session_mutex;
         SSL *_ssl_session;               // owner
         std::shared_ptr<SocketSSLContext> _ssl_ctx;
 
@@ -965,7 +966,7 @@ namespace melon {
 
          std::atomic<SocketId> _agent_socket_id;
 
-        mutil::Mutex _pipeline_mutex;
+        std::mutex _pipeline_mutex;
         std::deque<PipelinedInfo> *_pipeline_q;
 
         // For storing call-id of in-progress RPC.
@@ -983,7 +984,7 @@ namespace melon {
         // Storing data that are not flushed into `fd' yet.
          std::atomic<WriteRequest *> _write_head;
 
-        mutil::Mutex _stream_mutex;
+        std::mutex _stream_mutex;
         std::set<StreamId> *_stream_set;
          std::atomic<int64_t> _total_streams_unconsumed_size;
 

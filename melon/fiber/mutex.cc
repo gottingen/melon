@@ -33,7 +33,7 @@
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/file_util.h>
 #include <memory>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/base/murmurhash3.h>
 #include <turbo/log/logging.h>
 #include <melon/base/object_pool.h>
 #include <melon/fiber/butex.h>                       // butex_*

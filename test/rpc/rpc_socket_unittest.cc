@@ -18,10 +18,6 @@
 //
 
 
-
-
-// Date: Sun Jul 13 15:04:18 CST 2014
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>  // F_GETFD
@@ -45,6 +41,7 @@
 #include <melon/rpc/controller.h>
 #include <cinttypes>
 #include <turbo/strings/match.h>
+#include <melon/base/compat.h>
 #include "health_check.pb.h"
 #if defined(OS_MACOSX)
 #include <sys/event.h>

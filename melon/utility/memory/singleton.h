@@ -24,7 +24,6 @@
 #include <melon/base/base_export.h>
 #include "melon/utility/memory/aligned_memory.h"
 #include <melon/base/dynamic_annotations/dynamic_annotations.h>
-#include "melon/utility/threading/thread_restrictions.h"
 
 namespace mutil {
 namespace internal {

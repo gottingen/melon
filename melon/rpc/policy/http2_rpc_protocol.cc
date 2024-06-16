@@ -399,7 +399,7 @@ namespace melon {
         H2StreamContext *H2Context::RemoveStreamAndDeferWU(int stream_id) {
             H2StreamContext *sctx = NULL;
             {
-                std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                std::unique_lock mu(_stream_mutex);
                 if (!_pending_streams.erase(stream_id, &sctx)) {
                     return NULL;
                 }
@@ -417,7 +417,7 @@ namespace melon {
             if (goaway_stream_id == 0) {  // quick path
                 StreamMap tmp;
                 {
-                    std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                    std::unique_lock mu(_stream_mutex);
                     _goaway_stream_id = goaway_stream_id;
                     _pending_streams.swap(tmp);
                 }
@@ -425,7 +425,7 @@ namespace melon {
                     out_streams->push_back(it->second);
                 }
             } else {
-                std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                std::unique_lock mu(_stream_mutex);
                 _goaway_stream_id = goaway_stream_id;
                 for (StreamMap::const_iterator it = _pending_streams.begin();
                      it != _pending_streams.end(); ++it) {
@@ -440,7 +440,7 @@ namespace melon {
         }
 
         H2StreamContext *H2Context::FindStream(int stream_id) {
-            std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+            std::unique_lock mu(_stream_mutex);
             H2StreamContext **psctx = _pending_streams.seek(stream_id);
             if (psctx) {
                 return *psctx;
@@ -449,7 +449,7 @@ namespace melon {
         }
 
         int H2Context::TryToInsertStream(int stream_id, H2StreamContext *ctx) {
-            std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+            std::unique_lock mu(_stream_mutex);
             if (_goaway_stream_id >= 0 && stream_id > _goaway_stream_id) {
                 return 1;
             }
@@ -919,7 +919,7 @@ namespace melon {
                 // be changed using WINDOW_UPDATE frames.
                 // https://tools.ietf.org/html/rfc7540#section-6.9.2
                 // TODO(gejun): Has race conditions with AppendAndDestroySelf
-                std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                std::unique_lock mu(_stream_mutex);
                 for (StreamMap::const_iterator it = _pending_streams.begin();
                      it != _pending_streams.end(); ++it) {
                     if (!AddWindowSize(&it->second->_remote_window_left, window_diff)) {
@@ -1161,12 +1161,12 @@ namespace melon {
         }
 
         void H2Context::AddAbandonedStream(uint32_t stream_id) {
-            std::unique_lock<mutil::Mutex> mu(_abandoned_streams_mutex);
+            std::unique_lock mu(_abandoned_streams_mutex);
             _abandoned_streams.push_back(stream_id);
         }
 
         inline void H2Context::ClearAbandonedStreams() {
-            std::unique_lock<mutil::Mutex> mu(_abandoned_streams_mutex);
+            std::unique_lock mu(_abandoned_streams_mutex);
             while (!_abandoned_streams.empty()) {
                 const uint32_t stream_id = _abandoned_streams.back();
                 _abandoned_streams.pop_back();
@@ -1500,7 +1500,7 @@ namespace melon {
             RemoveRefOnQuit deref_self(this);
             if (sending_sock != NULL && error_code != 0) {
                 CHECK_EQ(cntl, _cntl);
-                std::unique_lock<mutil::Mutex> mu(_mutex);
+                std::unique_lock mu(_mutex);
                 _cntl = NULL;
                 if (_stream_id != 0) {
                     H2Context *ctx = static_cast<H2Context *>(sending_sock->parsing_context());
@@ -1554,7 +1554,7 @@ namespace melon {
 
             // Although the critical section looks huge, it should rarely be contended
             // since timeout of RPC is much larger than the delay of sending.
-            std::unique_lock<mutil::Mutex> mu(_mutex);
+            std::unique_lock mu(_mutex);
             if (_cntl == NULL) {
                 return mutil::Status(ECANCELED, "The RPC was already failed");
             }
@@ -1620,7 +1620,7 @@ namespace melon {
             for (size_t i = 0; i < _size; ++i) {
                 sz += _list[i].name.size() + _list[i].value.size() + 1;
             }
-            std::unique_lock<mutil::Mutex> mu(_mutex);
+            std::unique_lock mu(_mutex);
             if (_cntl == NULL) {
                 return 0;
             }
@@ -1640,7 +1640,7 @@ namespace melon {
             for (size_t i = 0; i < _size; ++i) {
                 os << "> " << _list[i].name << " = " << _list[i].value << '\n';
             }
-            std::unique_lock<mutil::Mutex> mu(_mutex);
+            std::unique_lock mu(_mutex);
             if (_cntl == NULL) {
                 return;
             }

@@ -13,7 +13,6 @@
 #include <turbo/log/logging.h>
 #include "melon/utility/posix/eintr_wrapper.h"
 #include "melon/utility/strings/utf_string_conversions.h"
-#include "melon/utility/threading/thread_restrictions.h"
 
 #if defined(OS_ANDROID)
 #include "melon/utility/os_compat_android.h"
@@ -35,7 +34,6 @@ static int CallFstat(int fd, stat_wrapper_t *sb) {
 }
 #else
 static int CallFstat(int fd, stat_wrapper_t *sb) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   return fstat64(fd, sb);
 }
 #endif
@@ -169,7 +167,6 @@ void File::Info::FromStat(const stat_wrapper_t& stat_info) {
 #if !defined(OS_NACL)
 // TODO(erikkay): does it make sense to support FLAG_EXCLUSIVE_* here?
 void File::InitializeUnsafe(const FilePath& name, uint32_t flags) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(!IsValid());
 
   int open_flags = 0;
@@ -269,13 +266,10 @@ PlatformFile File::TakePlatformFile() {
 void File::Close() {
   if (!IsValid())
     return;
-
-  mutil::ThreadRestrictions::AssertIOAllowed();
   file_.reset();
 }
 
 int64_t File::Seek(Whence whence, int64_t offset) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
 
 #if defined(OS_ANDROID)
@@ -290,7 +284,6 @@ int64_t File::Seek(Whence whence, int64_t offset) {
 }
 
 int File::Read(int64_t offset, char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   if (size < 0)
     return -1;
@@ -310,7 +303,6 @@ int File::Read(int64_t offset, char* data, int size) {
 }
 
 int File::ReadAtCurrentPos(char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   if (size < 0)
     return -1;
@@ -329,14 +321,12 @@ int File::ReadAtCurrentPos(char* data, int size) {
 }
 
 int File::ReadNoBestEffort(int64_t offset, char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
 
   return HANDLE_EINTR(pread(file_.get(), data, size, offset));
 }
 
 int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   if (size < 0)
     return -1;
@@ -345,7 +335,6 @@ int File::ReadAtCurrentPosNoBestEffort(char* data, int size) {
 }
 
 int File::Write(int64_t offset, const char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
 
   if (IsOpenAppend(file_.get()))
     return WriteAtCurrentPos(data, size);
@@ -369,7 +358,6 @@ int File::Write(int64_t offset, const char* data, int size) {
 }
 
 int File::WriteAtCurrentPos(const char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   if (size < 0)
     return -1;
@@ -389,7 +377,6 @@ int File::WriteAtCurrentPos(const char* data, int size) {
 }
 
 int File::WriteAtCurrentPosNoBestEffort(const char* data, int size) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   if (size < 0)
     return -1;
@@ -408,19 +395,16 @@ int64_t File::GetLength() {
 }
 
 bool File::SetLength(int64_t length) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   return !CallFtruncate(file_.get(), length);
 }
 
 bool File::Flush() {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
   return !CallFsync(file_.get());
 }
 
 bool File::SetTimes(Time last_access_time, Time last_modified_time) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DCHECK(IsValid());
 
   timeval times[2];

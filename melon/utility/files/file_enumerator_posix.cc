@@ -9,7 +9,6 @@
 #include <fnmatch.h>
 
 #include <turbo/log/logging.h>
-#include "melon/utility/threading/thread_restrictions.h"
 
 namespace mutil {
 
@@ -118,7 +117,6 @@ FileEnumerator::FileInfo FileEnumerator::GetInfo() const {
 
 bool FileEnumerator::ReadDirectory(std::vector<FileInfo>* entries,
                                    const FilePath& source, bool show_links) {
-  mutil::ThreadRestrictions::AssertIOAllowed();
   DIR* dir = opendir(source.value().c_str());
   if (!dir)
     return false;

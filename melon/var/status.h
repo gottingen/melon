@@ -22,8 +22,8 @@
 
 #include <string>                       // std::string
 #include <atomic>
+#include <mutex>
 #include <type_traits>
-#include <melon/utility/synchronization/lock.h>
 #include <melon/base/details/type_traits.h>
 #include <melon/var/variable.h>
 #include <melon/var/reducer.h>
@@ -60,13 +60,13 @@ namespace melon::var {
         }
     
         T get_value() const {
-            mutil::AutoLock guard(_lock);
+            std::unique_lock guard(_lock);
             const T res = _value;
             return res;
         }
     
         void set_value(const T& value) {
-            mutil::AutoLock guard(_lock);
+            std::unique_lock guard(_lock);
             _value = value;
         }
     
@@ -74,7 +74,7 @@ namespace melon::var {
         T _value;
         // We use lock rather than  std::atomic for generic values because
         //  std::atomic requires the type to be memcpy-able (POD basically)
-        mutable mutil::Lock _lock;
+        mutable std::mutex _lock;
     };
     
     template <typename T>
@@ -188,24 +188,24 @@ namespace melon::var {
         }
     
         std::string get_value() const {
-            mutil::AutoLock guard(_lock);
+            std::unique_lock guard(_lock);
             return _value;
         }
 
         template<typename ...Args>
         void set_value(const turbo::FormatSpec<Args...> &fmt, Args&&... args) {
-            mutil::AutoLock guard(_lock);
+            std::unique_lock guard(_lock);
             _value = turbo::str_format(fmt, std::forward<Args>(args)...);
         }
     
         void set_value(const std::string& s) {
-            mutil::AutoLock guard(_lock);
+            std::unique_lock guard(_lock);
             _value = s;
         }
     
     private:
         std::string _value;
-        mutable mutil::Lock _lock;
+        mutable std::mutex _lock;
     };
 
 }  // namespace melon::var

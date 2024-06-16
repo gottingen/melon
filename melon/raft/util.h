@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string>
 #include <set>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/base/murmurhash3.h>
 #include <melon/base/endpoint.h>
 #include <melon/base/scoped_lock.h>
 #include <melon/base/fast_rand.h>

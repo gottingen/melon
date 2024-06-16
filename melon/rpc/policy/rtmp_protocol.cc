@@ -976,7 +976,7 @@ namespace melon {
             }
             uint32_t chunk_stream_id = 0;
             {
-                std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                std::unique_lock mu(_stream_mutex);
                 MessageStreamInfo &info = _mstream_map[stream_id];
                 if (info.stream != NULL) {
                     mu.unlock();
@@ -993,7 +993,7 @@ namespace melon {
         bool RtmpContext::AddServerStream(RtmpStreamBase *stream) {
             uint32_t stream_id = 0;
             {
-                std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                std::unique_lock mu(_stream_mutex);
                 if (!AllocateMessageStreamId(&stream_id)) {
                     return false;
                 }
@@ -1024,7 +1024,7 @@ namespace melon {
             // for deref the stream outside _stream_mutex.
             mutil::intrusive_ptr<RtmpStreamBase> deref_ptr;
             {
-                std::unique_lock<mutil::Mutex> mu(_stream_mutex);
+                std::unique_lock mu(_stream_mutex);
                 MessageStreamInfo *info = _mstream_map.seek(stream_id);
                 if (info == NULL) {
                     mu.unlock();

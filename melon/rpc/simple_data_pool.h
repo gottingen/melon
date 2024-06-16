@@ -19,46 +19,43 @@
 
 
 
-#ifndef MELON_RPC_SIMPLE_DATA_POOL_H_
-#define MELON_RPC_SIMPLE_DATA_POOL_H_
+#pragma once
 
 #include <melon/base/scoped_lock.h>
 #include <melon/rpc/data_factory.h>
 #include <atomic>
-
+#include <mutex>
 
 namespace melon {
 
-// As the name says, this is a simple unbounded dynamic-size pool for
-// reusing void* data. We're assuming that data consumes considerable
-// memory and should be reused as much as possible, thus unlike the
-// multi-threaded allocator caching objects thread-locally, we just
-// put everything in a global list to maximize sharing. It's currently
-// used by Server to reuse session-local data. 
-class SimpleDataPool {
-public:
-    struct Stat {
-        unsigned nfree;
-        unsigned ncreated;
+    // As the name says, this is a simple unbounded dynamic-size pool for
+    // reusing void* data. We're assuming that data consumes considerable
+    // memory and should be reused as much as possible, thus unlike the
+    // multi-threaded allocator caching objects thread-locally, we just
+    // put everything in a global list to maximize sharing. It's currently
+    // used by Server to reuse session-local data.
+    class SimpleDataPool {
+    public:
+        struct Stat {
+            unsigned nfree;
+            unsigned ncreated;
+        };
+
+        explicit SimpleDataPool(const DataFactory* factory);
+        ~SimpleDataPool();
+        void Reset(const DataFactory* factory);
+        void Reserve(unsigned n);
+        void* Borrow();
+        void Return(void*);
+        Stat stat() const;
+
+    private:
+        std::mutex _mutex;
+        unsigned _capacity;
+        unsigned _size;
+         std::atomic<unsigned> _ncreated;
+        void** _pool;
+        const DataFactory* _factory;
     };
 
-    explicit SimpleDataPool(const DataFactory* factory);
-    ~SimpleDataPool();
-    void Reset(const DataFactory* factory);
-    void Reserve(unsigned n);
-    void* Borrow();
-    void Return(void*);
-    Stat stat() const;
-    
-private:
-    mutil::Mutex _mutex;
-    unsigned _capacity;
-    unsigned _size;
-     std::atomic<unsigned> _ncreated;
-    void** _pool;
-    const DataFactory* _factory;
-};
-
 } // namespace melon
-
-#endif  // MELON_RPC_SIMPLE_DATA_POOL_H_

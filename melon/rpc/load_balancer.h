@@ -180,7 +180,7 @@ namespace melon {
         LoadBalancer *_lb;
         std::atomic<int> _weight_sum;
         volatile bool _exposed;
-        mutil::Mutex _st_mutex;
+        std::mutex _st_mutex;
         melon::var::PassiveStatus<std::string> _st;
     };
 

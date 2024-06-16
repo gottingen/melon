@@ -18,8 +18,7 @@
 //
 
 
-#ifndef MELON_FIBER_TASK_CONTROL_H_
-#define MELON_FIBER_TASK_CONTROL_H_
+#pragma once
 
 #ifndef NDEBUG
 
@@ -126,7 +125,7 @@ namespace fiber {
 
         std::vector<std::atomic<size_t>> _tagged_ngroup;
         std::vector<TaggedGroups> _tagged_groups;
-        mutil::Mutex _modify_group_mutex;
+        std::mutex _modify_group_mutex;
 
         std::atomic<bool> _init;  // if not init, var will case coredump
         bool _stop;
@@ -135,7 +134,7 @@ namespace fiber {
         std::atomic<int> _next_worker_id;
 
         melon::var::Adder<int64_t> _nworkers;
-        mutil::Mutex _pending_time_mutex;
+        std::mutex _pending_time_mutex;
         std::atomic<melon::var::LatencyRecorder *> _pending_time;
         melon::var::PassiveStatus<double> _cumulated_worker_time;
         melon::var::PerSecond<melon::var::PassiveStatus<double> > _worker_usage_second;
@@ -185,5 +184,3 @@ namespace fiber {
     }
 
 }  // namespace fiber
-
-#endif  // MELON_FIBER_TASK_CONTROL_H_

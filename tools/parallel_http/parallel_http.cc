@@ -23,13 +23,14 @@
 
 #include <gflags/gflags.h>
 #include <deque>
+#include <mutex>
 #include <melon/fiber/fiber.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/files/scoped_file.h>
 #include <melon/rpc/channel.h>
 
 DEFINE_string(url_file, "", "The file containing urls to fetch. If this flag is"
-              " empty, read urls from stdin");
+                            " empty, read urls from stdin");
 DEFINE_int32(timeout_ms, 1000, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
 DEFINE_int32(thread_num, 8, "Number of threads to access urls");
@@ -38,38 +39,39 @@ DEFINE_bool(one_line_mode, false, "Output as `URL HTTP-RESPONSE' on true");
 DEFINE_bool(only_show_host, false, "Print host name only");
 
 struct AccessThreadArgs {
-    const std::deque<std::string>* url_list;
+    const std::deque<std::string> *url_list;
     size_t offset;
     std::deque<std::pair<std::string, mutil::IOBuf> > output_queue;
-    mutil::Mutex output_queue_mutex;
+    std::mutex output_queue_mutex;
     std::atomic<int> current_concurrency;
 };
 
 class OnHttpCallEnd : public google::protobuf::Closure {
 public:
     void Run();
+
 public:
     melon::Controller cntl;
-    AccessThreadArgs* args;
+    AccessThreadArgs *args;
     std::string url;
 };
 
 void OnHttpCallEnd::Run() {
     std::unique_ptr<OnHttpCallEnd> delete_self(this);
     {
-        MELON_SCOPED_LOCK(args->output_queue_mutex);
+        std::unique_lock mu(args->output_queue_mutex);
         if (cntl.Failed()) {
             args->output_queue.push_back(std::make_pair(url, mutil::IOBuf()));
         } else {
             args->output_queue.push_back(
-                std::make_pair(url, cntl.response_attachment()));
+                    std::make_pair(url, cntl.response_attachment()));
         }
     }
     args->current_concurrency.fetch_sub(1, std::memory_order_relaxed);
 }
 
-void* access_thread(void* void_args) {
-    AccessThreadArgs* args = (AccessThreadArgs*)void_args;
+void *access_thread(void *void_args) {
+    AccessThreadArgs *args = (AccessThreadArgs *) void_args;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
     options.connect_timeout_ms = FLAGS_timeout_ms / 2;
@@ -78,11 +80,11 @@ void* access_thread(void* void_args) {
     const int concurrency_for_this_thread = FLAGS_concurrency / FLAGS_thread_num;
 
     for (size_t i = args->offset; i < args->url_list->size(); i += FLAGS_thread_num) {
-        std::string const& url = (*args->url_list)[i];
+        std::string const &url = (*args->url_list)[i];
         melon::Channel channel;
         if (channel.Init(url.c_str(), &options) != 0) {
             LOG(ERROR) << "Fail to create channel to url=" << url;
-            MELON_SCOPED_LOCK(args->output_queue_mutex);
+            std::unique_lock mu(args->output_queue_mutex);
             args->output_queue.push_back(std::make_pair(url, mutil::IOBuf()));
             continue;
         }
@@ -91,7 +93,7 @@ void* access_thread(void* void_args) {
             args->current_concurrency.fetch_sub(1, std::memory_order_relaxed);
             fiber_usleep(5000);
         }
-        OnHttpCallEnd* done = new OnHttpCallEnd;
+        OnHttpCallEnd *done = new OnHttpCallEnd;
         done->cntl.http_request().uri() = url;
         done->args = args;
         done->url = url;
@@ -100,16 +102,16 @@ void* access_thread(void* void_args) {
     return NULL;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     // Parse gflags. We recommend you to use gflags as well.
     google::ParseCommandLineFlags(&argc, &argv, true);
-    
+
     // if (FLAGS_path.empty() || FLAGS_path[0] != '/') {
     //     FLAGS_path = "/" + FLAGS_path;
     // }
 
     mutil::ScopedFILE fp_guard;
-    FILE* fp = NULL;
+    FILE *fp = NULL;
     if (!FLAGS_url_file.empty()) {
         fp_guard.reset(fopen(FLAGS_url_file.c_str(), "r"));
         if (!fp_guard) {
@@ -120,7 +122,7 @@ int main(int argc, char** argv) {
     } else {
         fp = stdin;
     }
-    char* line_buf = NULL;
+    char *line_buf = NULL;
     size_t line_len = 0;
     ssize_t nr = 0;
     std::deque<std::string> url_list;
@@ -138,7 +140,7 @@ int main(int argc, char** argv) {
     if (url_list.empty()) {
         return 0;
     }
-    AccessThreadArgs* args = new AccessThreadArgs[FLAGS_thread_num];
+    AccessThreadArgs *args = new AccessThreadArgs[FLAGS_thread_num];
     for (int i = 0; i < FLAGS_thread_num; ++i) {
         args[i].url_list = &url_list;
         args[i].offset = i;
@@ -154,7 +156,7 @@ int main(int argc, char** argv) {
     while (nprinted != url_list.size()) {
         for (int i = 0; i < FLAGS_thread_num; ++i) {
             {
-                MELON_SCOPED_LOCK(args[i].output_queue_mutex);
+                std::unique_lock mu(args[i].output_queue_mutex);
                 output_queue.swap(args[i].output_queue);
             }
             for (size_t i = 0; i < output_queue.size(); ++i) {

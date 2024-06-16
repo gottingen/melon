@@ -19,11 +19,11 @@
 
 
 
-#ifndef MELON_RPC_HTTP_HTTP_MESSAGE_H_
-#define MELON_RPC_HTTP_HTTP_MESSAGE_H_
+#pragma once
 
 #include <memory>                      // std::unique_ptr
 #include <string>                      // std::string
+#include <mutex>
 #include <melon/base/macros.h>
 #include <melon/base/iobuf.h>               // mutil::IOBuf
 #include <melon/base/scoped_lock.h>         // mutil::unique_lock
@@ -121,7 +121,7 @@ namespace melon {
     private:
         DISALLOW_COPY_AND_ASSIGN(HttpMessage);
 
-        int UnlockAndFlushToBodyReader(std::unique_lock<mutil::Mutex> &locked);
+        int UnlockAndFlushToBodyReader(std::unique_lock<std::mutex> &locked);
 
         HttpParserStage _stage;
         std::string _url;
@@ -129,7 +129,7 @@ namespace melon {
         HttpHeader _header;
         bool _read_body_progressively;
         // For mutual exclusion between on_body and SetBodyReader.
-        mutil::Mutex _body_mutex;
+        std::mutex _body_mutex;
         // Read body progressively
         ProgressiveReader *_body_reader;
         mutil::IOBuf _body;
@@ -164,5 +164,3 @@ namespace melon {
                              mutil::IOBuf *content);
 
 } // namespace melon
-
-#endif  // MELON_RPC_HTTP_HTTP_MESSAGE_H_

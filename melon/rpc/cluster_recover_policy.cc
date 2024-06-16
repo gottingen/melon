@@ -23,12 +23,12 @@
 #include <gflags/gflags.h>
 #include <melon/rpc/cluster_recover_policy.h>
 #include <melon/base/scoped_lock.h>
-#include <melon/utility/synchronization/lock.h>
 #include <melon/rpc/server_id.h>
 #include <melon/rpc/socket.h>
 #include <melon/base/fast_rand.h>
 #include <melon/utility/time.h>
 #include <melon/utility/string_splitter.h>
+#include <turbo/strings/numbers.h>
 
 namespace melon {
 
@@ -41,7 +41,7 @@ namespace melon {
               _last_usable_change_time_ms(0), _hold_seconds(hold_seconds), _usable_cache(0), _usable_cache_time_ms(0) {}
 
     void DefaultClusterRecoverPolicy::StartRecover() {
-        std::unique_lock<mutil::Mutex> mu(_mutex);
+        std::unique_lock mu(_mutex);
         _recovering = true;
     }
 
@@ -50,7 +50,7 @@ namespace melon {
             return false;
         }
         int64_t now_ms = mutil::gettimeofday_ms();
-        std::unique_lock<mutil::Mutex> mu(_mutex);
+        std::unique_lock mu(_mutex);
         if (_last_usable_change_time_ms != 0 && _last_usable != 0 &&
             (now_ms - _last_usable_change_time_ms > _hold_seconds * 1000)) {
             _recovering = false;
@@ -78,7 +78,7 @@ namespace melon {
             }
         }
         {
-            std::unique_lock<mutil::Mutex> mu(_mutex);
+            std::unique_lock mu(_mutex);
             _usable_cache = usable;
             _usable_cache_time_ms = now_ms;
         }
@@ -93,7 +93,7 @@ namespace melon {
         int64_t now_ms = mutil::gettimeofday_ms();
         uint64_t usable = GetUsableServerCount(now_ms, server_list);
         if (_last_usable != usable) {
-            std::unique_lock<mutil::Mutex> mu(_mutex);
+            std::unique_lock mu(_mutex);
             if (_last_usable != usable) {
                 _last_usable = usable;
                 _last_usable_change_time_ms = now_ms;
@@ -117,13 +117,13 @@ namespace melon {
                 return false;
             }
             if (sp.key() == "min_working_instances") {
-                if (!mutil::StringToInt64(sp.value(), &min_working_instances)) {
+                if (!turbo::simple_atoi(sp.value(), &min_working_instances)) {
                     return false;
                 }
                 has_meet_params = true;
                 continue;
             } else if (sp.key() == "hold_seconds") {
-                if (!mutil::StringToInt64(sp.value(), &hold_seconds)) {
+                if (!turbo::simple_atoi(sp.value(), &hold_seconds)) {
                     return false;
                 }
                 has_meet_params = true;

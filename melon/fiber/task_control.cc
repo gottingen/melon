@@ -22,7 +22,7 @@
 #include <melon/base/errno.h>                   // berror
 #include <turbo/log/logging.h>
 #include <melon/utility/threading/platform_thread.h>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/base/murmurhash3.h>
 #include <melon/fiber/sys_futex.h>            // futex_wake_private
 #include <melon/fiber/interrupt_pthread.h>
 #include <melon/fiber/processor.h>            // cpu_relax
@@ -32,6 +32,7 @@
 #include <gflags/gflags.h>
 #include <melon/fiber/log.h>
 #include <turbo/strings/str_format.h>
+#include <melon/base/compat.h>
 
 namespace fiber {
 
@@ -316,7 +317,7 @@ namespace fiber {
         if (__builtin_expect(NULL == g, 0)) {
             return -1;
         }
-        std::unique_lock<mutil::Mutex> mu(_modify_group_mutex);
+        std::unique_lock mu(_modify_group_mutex);
         if (_stop) {
             return -1;
         }

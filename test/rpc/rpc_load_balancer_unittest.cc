@@ -33,7 +33,6 @@
 #include <melon/rpc/socket_map.h>
 #include <melon/rpc/global.h>
 #include <melon/rpc/details/load_balancer_with_naming.h>
-#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/lb/weighted_round_robin_load_balancer.h>
 #include <melon/lb/round_robin_load_balancer.h>
 #include <melon/lb/weighted_randomized_load_balancer.h>
@@ -44,6 +43,7 @@
 #include "echo.pb.h"
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
+#include <turbo/strings/numbers.h>
 
 namespace melon {
 DECLARE_int32(health_check_interval);
@@ -836,7 +836,7 @@ TEST_F(LoadBalancerTest, weighted_round_robin) {
         }
         if ( i < 4 ) {
             int weight_num = 0;
-            ASSERT_TRUE(mutil::StringToInt(weight[i], &weight_num));
+            ASSERT_TRUE(turbo::simple_atoi(weight[i], &weight_num));
             configed_weight[dummy] = weight_num;
             EXPECT_TRUE(wrrlb.AddServer(id));
         } else {
@@ -943,7 +943,7 @@ TEST_F(LoadBalancerTest, weighted_randomized) {
         id.tag = weight[i];
         if (i < valid_weight_num) {
             int weight_num = 0;
-            ASSERT_TRUE(mutil::StringToInt(weight[i], &weight_num));
+            ASSERT_TRUE(turbo::simple_atoi(weight[i], &weight_num));
             configed_weight[dummy] = weight_num;
             configed_weight_sum += weight_num;
             EXPECT_TRUE(wrlb.AddServer(id));

@@ -12,7 +12,6 @@
 #include <melon/utility/memory/scoped_ptr.h>
 #include "melon/utility/safe_strerror_posix.h"
 #include "melon/utility/threading/thread_id_name_manager.h"
-#include "melon/utility/threading/thread_restrictions.h"
 #include "melon/utility/tracked_objects.h"
 
 #if !defined(OS_NACL)

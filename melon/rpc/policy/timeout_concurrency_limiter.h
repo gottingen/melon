@@ -20,6 +20,7 @@
 #pragma once
 
 #include <melon/rpc/concurrency_limiter.h>
+#include <mutex>
 
 namespace melon {
 namespace policy {
@@ -66,7 +67,7 @@ class TimeoutConcurrencyLimiter : public ConcurrencyLimiter {
     int64_t _avg_latency_us;
     // modified per sample.
     MELON_CACHELINE_ALIGNMENT std::atomic<int64_t> _last_sampling_time_us;
-    mutil::Mutex _sw_mutex;
+    std::mutex _sw_mutex;
     SampleWindow _sw;
     int64_t _timeout_ms;
     int _max_concurrency;

@@ -60,7 +60,7 @@ namespace melon {
         // Controller::_accessed may be shared by sub channels in schan, protect
         // all mutable methods with this mutex. In ordinary channels, this mutex
         // is never contended.
-        mutable mutil::Mutex _mutex;
+        mutable std::mutex _mutex;
         mutil::BoundedQueue<SocketId> _l;
         SocketId _space[0];
     };
@@ -84,7 +84,7 @@ namespace melon {
     }
 
     inline void ExcludedServers::Add(SocketId id) {
-        MELON_SCOPED_LOCK(_mutex);
+        std::unique_lock mu(_mutex);
         const SocketId *last_id = _l.bottom();
         if (last_id == NULL || *last_id != id) {
             _l.elim_push(id);
@@ -92,7 +92,7 @@ namespace melon {
     }
 
     inline bool ExcludedServers::IsExcluded(SocketId id) const {
-        MELON_SCOPED_LOCK(_mutex);
+        std::unique_lock mu(_mutex);
         for (size_t i = 0; i < _l.size(); ++i) {
             if (*_l.bottom(i) == id) {
                 return true;

@@ -26,7 +26,7 @@
 #include <melon/base/basictypes.h>
 #include "melon/utility/strings/string16.h"
 #include <melon/base/build_config.h>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>   // fmix64
+#include <melon/base/murmurhash3.h>   // fmix64
 
 #if defined(COMPILER_MSVC)
 #include <hash_map>

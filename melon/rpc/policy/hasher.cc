@@ -21,7 +21,7 @@
 
 #include <limits.h>
 #include <openssl/md5.h>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/base/murmurhash3.h>
 #include <melon/rpc/policy/hasher.h>
 
 

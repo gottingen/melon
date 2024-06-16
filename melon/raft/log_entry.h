@@ -22,7 +22,7 @@
 
 #include <melon/base/iobuf.h>                         // mutil::IOBuf
 #include <melon/utility/memory/ref_counted.h>            // mutil::RefCountedThreadSafe
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>  // fmix64
+#include <melon/base/murmurhash3.h>  // fmix64
 #include <melon/raft/configuration.h>
 #include <melon/proto/raft/raft.pb.h>
 #include <melon/raft/util.h>

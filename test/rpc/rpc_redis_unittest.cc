@@ -30,6 +30,7 @@
 #include <melon/rpc/redis/redis_command.h>
 #include <gtest/gtest.h>
 #include <turbo/strings/match.h>
+#include <mutex>
 
 namespace melon {
 DECLARE_int32(idle_timeout_second);
@@ -797,7 +798,7 @@ TEST_F(RedisTest, redis_reply_codec) {
     }
 }
 
-mutil::Mutex s_mutex;
+std::mutex s_mutex;
 std::unordered_map<std::string, std::string> m;
 std::unordered_map<std::string, int64_t> int_map;
 

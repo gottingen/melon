@@ -47,7 +47,7 @@ namespace melon {
             LOG(ERROR) << "instance to \"" << name << "\" is nullptr";
             return -1;
         }
-        MELON_SCOPED_LOCK(_map_mutex);
+        std::unique_lock mu(_map_mutex);
         if (_instance_map.seek(name) != nullptr) {
             LOG(ERROR) << "\"" << name << "\" was registered";
             return -1;
@@ -69,7 +69,7 @@ namespace melon {
         if (nullptr == name) {
             return nullptr;
         }
-        MELON_SCOPED_LOCK(_map_mutex);
+        std::unique_lock mu(_map_mutex);
         T **p = _instance_map.seek(name);
         if (p) {
             return *p;
@@ -79,7 +79,7 @@ namespace melon {
 
     template<typename T>
     void Extension<T>::List(std::ostream &os, char separator) {
-        MELON_SCOPED_LOCK(_map_mutex);
+        std::unique_lock mu(_map_mutex);
         for (typename mutil::CaseIgnoredFlatMap<T *>::iterator
                      it = _instance_map.begin(); it != _instance_map.end(); ++it) {
             // private extensions which is not intended to be seen by users starts

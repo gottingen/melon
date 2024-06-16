@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #include "melon/utility/memory/ref_counted.h"
-#include "melon/utility/threading/thread_collision_warner.h"
 
 namespace mutil {
 

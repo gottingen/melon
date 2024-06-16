@@ -19,11 +19,11 @@
 
 
 
-#ifndef MELON_RPC_PROGRESSIVE_ATTACHMENT_H_
-#define MELON_RPC_PROGRESSIVE_ATTACHMENT_H_
+#pragma once
 
 #include <melon/rpc/callback.h>
 #include <atomic>
+#include <mutex>
 #include <melon/base/iobuf.h>
 #include <melon/base/endpoint.h>       // mutil::EndPoint
 #include <melon/fiber/types.h>        // fiber_session_t
@@ -73,7 +73,7 @@ namespace melon {
         bool _before_http_1_1;
         bool _pause_from_mark_rpc_as_done;
         std::atomic<int> _rpc_state;
-        mutil::Mutex _mutex;
+        std::mutex _mutex;
         SocketUniquePtr _httpsock;
         mutil::IOBuf _saved_buf;
         fiber_session_t _notify_id;
@@ -86,5 +86,3 @@ namespace melon {
 
 } // namespace melon
 
-
-#endif  // MELON_RPC_PROGRESSIVE_ATTACHMENT_H_

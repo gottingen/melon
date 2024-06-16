@@ -28,6 +28,7 @@
 #include <melon/naming/naming_service.h>                // NamingService
 #include <melon/naming/naming_service_filter.h>         // NamingServiceFilter
 #include <melon/rpc/socket_map.h>
+#include <mutex>
 
 namespace melon {
 
@@ -127,7 +128,7 @@ namespace melon {
                 const std::vector<ServerNodeWithId> &src,
                 std::vector<ServerId> *dst, const NamingServiceFilter *filter);
 
-        mutil::Mutex _mutex;
+        std::mutex _mutex;
         fiber_t _tid;
         NamingService *_ns;
         std::string _protocol;

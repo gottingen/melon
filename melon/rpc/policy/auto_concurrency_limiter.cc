@@ -147,7 +147,7 @@ int64_t AutoConcurrencyLimiter::NextResetTime(int64_t sampling_time_us) {
 bool AutoConcurrencyLimiter::AddSample(int error_code, 
                                        int64_t latency_us, 
                                        int64_t sampling_time_us) {
-    std::unique_lock<mutil::Mutex> lock_guard(_sw_mutex);
+    std::unique_lock lock_guard(_sw_mutex);
     if (_reset_latency_us != 0) {
         // min_latency is about to be reset soon.
         if (_reset_latency_us > sampling_time_us) {

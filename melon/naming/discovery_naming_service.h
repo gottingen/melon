@@ -19,12 +19,10 @@
 
 
 
-#ifndef MELON_NAMING_DISCOVERY_NAMING_SERVICE_H_
-#define MELON_NAMING_DISCOVERY_NAMING_SERVICE_H_
+#pragma once
 
 #include <melon/naming/periodic_naming_service.h>
 #include <melon/rpc/channel.h>
-#include <melon/utility/synchronization/lock.h>
 
 namespace melon::naming {
 
@@ -90,5 +88,3 @@ namespace melon::naming {
 
 
 } // namespace melon::naming
-
-#endif // MELON_NAMING_DISCOVERY_NAMING_SERVICE_H_

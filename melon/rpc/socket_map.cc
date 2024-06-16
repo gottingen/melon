@@ -35,7 +35,7 @@ namespace melon {
 
     DEFINE_int32(health_check_interval, 3,
                  "seconds between consecutive health-checkings");
-// NOTE: Must be limited to positive to guarantee correctness of SocketMapRemove.
+    // NOTE: Must be limited to positive to guarantee correctness of SocketMapRemove.
     MELON_VALIDATE_GFLAG(health_check_interval, PositiveInteger);
 
     DEFINE_int32(idle_timeout_second, 30,
@@ -201,7 +201,7 @@ namespace melon {
         // TODO: Elaborate.
         size_t count = 0;
         {
-            std::unique_lock<mutil::Mutex> mu(_mutex);
+            std::unique_lock mu(_mutex);
             count = _map.size();
         }
         os << "count=" << count;
@@ -226,7 +226,7 @@ namespace melon {
                           bool use_rdma) {
         ShowSocketMapInVarIfNeed();
 
-        std::unique_lock<mutil::Mutex> mu(_mutex);
+        std::unique_lock mu(_mutex);
         SingleConnection *sc = _map.seek(key);
         if (sc) {
             if (!sc->socket->Failed() || sc->socket->HCEnabled()) {
@@ -277,7 +277,7 @@ namespace melon {
                                    bool remove_orphan) {
         ShowSocketMapInVarIfNeed();
 
-        std::unique_lock<mutil::Mutex> mu(_mutex);
+        std::unique_lock mu(_mutex);
         SingleConnection *sc = _map.seek(key);
         if (!sc) {
             return;

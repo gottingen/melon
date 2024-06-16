@@ -22,9 +22,8 @@
 
 #include <cstdint>
 #include <memory>
-#include <melon/utility/synchronization/lock.h>
+#include <mutex>
 #include <string_view>
-#include <melon/utility/strings/string_number_conversions.h>
 
 namespace melon {
 
@@ -74,7 +73,7 @@ namespace melon {
     private:
         bool _recovering;
         int64_t _min_working_instances;
-        mutil::Mutex _mutex;
+        std::mutex _mutex;
         uint64_t _last_usable;
         int64_t _last_usable_change_time_ms;
         int64_t _hold_seconds;

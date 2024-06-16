@@ -23,7 +23,7 @@
 #include <melon/base/compat.h>
 #include <melon/base/fd_utility.h>                         // make_close_on_exec
 #include <turbo/log/logging.h>                            // LOG
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>// fmix32
+#include <melon/base/murmurhash3.h>// fmix32
 #include <melon/fiber/fiber.h>                          // fiber_start_background
 #include <melon/rpc/event_dispatcher.h>
 #include <melon/rpc/reloadable_flags.h>

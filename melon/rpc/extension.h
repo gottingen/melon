@@ -59,7 +59,7 @@ namespace melon {
         ~Extension();
 
         mutil::CaseIgnoredFlatMap<T *> _instance_map;
-        mutil::Mutex _map_mutex;
+        std::mutex _map_mutex;
     };
 
 } // namespace melon

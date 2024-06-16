@@ -24,6 +24,7 @@
 #include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include <melon/var/utils/lock_timer.h>
+#include <mutex>
 
 #define BRAFT_VLOG_IS_ON     VLOG_IS_ON(89)
 #define BRAFT_VLOG           VLOG(89)
@@ -43,9 +44,8 @@ typedef ::fiber::Mutex raft_mutex_t;
 
 #else   // USE_FIBER_MUTEX
 
-#include <melon/utility/synchronization/lock.h>
 namespace melon::raft {
-typedef ::mutil::Mutex raft_mutex_t;
+typedef ::std::mutex raft_mutex_t;
 }  // namespace melon::raft
 
 #endif  // USE_FIBER_MUTEX

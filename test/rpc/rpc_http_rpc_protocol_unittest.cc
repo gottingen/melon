@@ -35,7 +35,6 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/text_format.h>
 #include <unistd.h>
-#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/policy/http_rpc_protocol.h>
 #include <turbo/strings/escaping.h>
 #include <melon/rpc/http/http_method.h>
@@ -57,7 +56,9 @@
 #include <melon/rpc/details/method_status.h>
 #include <melon/rpc/dump/rpc_dump.h>
 #include <melon/fiber/unstable.h>
+#include <melon/base/compat.h>
 #include <turbo/strings/match.h>
+#include <turbo/strings/numbers.h>
 
 namespace melon {
 DECLARE_bool(rpc_dump);
@@ -1796,7 +1797,7 @@ class HttpServiceImpl : public ::test::HttpService {
         const std::string* index = cntl->http_request().GetHeader("x-db-index");
         ASSERT_NE(nullptr, index);
         int i;
-        ASSERT_TRUE(mutil::StringToInt(*index, &i));
+        ASSERT_TRUE(turbo::simple_atoi(*index, &i));
         cntl->http_response().set_content_type("text/plain");
         if (i % 2 == 0) {
             cntl->http_response().SetHeader("Content-Length",
@@ -1836,7 +1837,7 @@ TEST_F(HttpTest, http_head) {
         melon::Controller cntl;
         cntl.http_request().set_method(melon::HTTP_METHOD_HEAD);
         cntl.http_request().uri().set_path("/HttpService/Head");
-        cntl.http_request().SetHeader("x-db-index", mutil::IntToString(i));
+        cntl.http_request().SetHeader("x-db-index", std::to_string(i));
         channel.CallMethod(NULL, &cntl, NULL, NULL, NULL);
 
         ASSERT_FALSE(cntl.Failed()) << cntl.ErrorText();

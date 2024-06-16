@@ -6,10 +6,9 @@
 #define MUTIL_AT_EXIT_H_
 
 #include <stack>
-
+#include <mutex>
 #include <melon/base/base_export.h>
 #include <melon/base/basictypes.h>
-#include <melon/utility/synchronization/lock.h>
 
 namespace mutil {
 
@@ -57,7 +56,7 @@ class MUTIL_EXPORT AtExitManager {
     AtExitCallbackType func;
     void* param;
   };
-  mutil::Lock lock_;
+  std::mutex lock_;
   std::stack<Callback> stack_;
   AtExitManager* next_manager_;  // Stack of managers to allow shadowing.
 

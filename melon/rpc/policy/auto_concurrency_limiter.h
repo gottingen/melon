@@ -75,7 +75,7 @@ private:
   
     // modified per sample.
     MELON_CACHELINE_ALIGNMENT std::atomic<int64_t> _last_sampling_time_us;
-    mutil::Mutex _sw_mutex;
+    std::mutex _sw_mutex;
     SampleWindow _sw;
 
     // modified per request.

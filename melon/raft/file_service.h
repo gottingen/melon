@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include <melon/utility/memory/singleton.h>
 #include <melon/proto/raft/file_service.pb.h>
 #include <melon/raft/file_reader.h>
 #include <melon/raft/util.h>

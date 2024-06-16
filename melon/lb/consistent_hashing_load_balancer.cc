@@ -23,10 +23,10 @@
 #include <gflags/gflags.h>
 #include <melon/base/containers/flat_map.h>
 #include <melon/base/errno.h>
-#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/socket.h>
 #include <melon/lb/consistent_hashing_load_balancer.h>
 #include <melon/rpc/policy/hasher.h>
+#include <turbo/strings/numbers.h>
 
 namespace melon::policy {
     // Defined in hasher.cpp.
@@ -392,7 +392,7 @@ namespace melon::lb {
                 return false;
             }
             if (sp.key() == "replicas") {
-                if (!mutil::StringToSizeT(sp.value(), &_num_replicas)) {
+                if (!turbo::simple_atoi(sp.value(), &_num_replicas)) {
                     return false;
                 }
                 continue;

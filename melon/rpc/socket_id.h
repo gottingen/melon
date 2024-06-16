@@ -19,9 +19,7 @@
 
 
 
-#ifndef MELON_RPC_SOCKET_ID_H_
-#define MELON_RPC_SOCKET_ID_H_
-
+#pragma  once
 
 
 #include <stdint.h>               // uint64_t
@@ -30,27 +28,25 @@
 
 namespace melon {
 
-// Unique identifier of a Socket.
-// Users shall store SocketId instead of Sockets and call Socket::Address()
-// to convert the identifier to an unique_ptr at each access. Whenever a
-// unique_ptr is not destructed, the enclosed Socket will not be recycled.
-typedef uint64_t SocketId;
+    // Unique identifier of a Socket.
+    // Users shall store SocketId instead of Sockets and call Socket::Address()
+    // to convert the identifier to an unique_ptr at each access. Whenever a
+    // unique_ptr is not destructed, the enclosed Socket will not be recycled.
+    typedef uint64_t SocketId;
 
-const SocketId INVALID_SOCKET_ID = (SocketId)-1;
+    const SocketId INVALID_SOCKET_ID = (SocketId) -1;
 
-class Socket;
+    class Socket;
 
-extern void DereferenceSocket(Socket*);
+    extern void DereferenceSocket(Socket *);
 
-struct SocketDeleter {
-    void operator()(Socket* m) const {
-        DereferenceSocket(m);
-    }
-};
+    struct SocketDeleter {
+        void operator()(Socket *m) const {
+            DereferenceSocket(m);
+        }
+    };
 
-typedef std::unique_ptr<Socket, SocketDeleter> SocketUniquePtr;
+    typedef std::unique_ptr<Socket, SocketDeleter> SocketUniquePtr;
 
 } // namespace melon
 
-
-#endif  // MELON_RPC_SOCKET_ID_H_

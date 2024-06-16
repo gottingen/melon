@@ -18,65 +18,62 @@
 //
 
 
-#ifndef MELON_FIBER_REMOTE_TASK_QUEUE_H_
-#define MELON_FIBER_REMOTE_TASK_QUEUE_H_
+#pragma once
 
 #include <melon/base/bounded_queue.h>
 #include <melon/base/macros.h>
 
 namespace fiber {
 
-class TaskGroup;
+    class TaskGroup;
 
-// A queue for storing fibers created by non-workers. Since non-workers
-// randomly choose a TaskGroup to push which distributes the contentions,
-// this queue is simply implemented as a queue protected with a lock.
-// The function names should be self-explanatory.
-class RemoteTaskQueue {
-public:
-    RemoteTaskQueue() {}
+    // A queue for storing fibers created by non-workers. Since non-workers
+    // randomly choose a TaskGroup to push which distributes the contentions,
+    // this queue is simply implemented as a queue protected with a lock.
+    // The function names should be self-explanatory.
+    class RemoteTaskQueue {
+    public:
+        RemoteTaskQueue() {}
 
-    int init(size_t cap) {
-        const size_t memsize = sizeof(fiber_t) * cap;
-        void* q_mem = malloc(memsize);
-        if (q_mem == NULL) {
-            return -1;
+        int init(size_t cap) {
+            const size_t memsize = sizeof(fiber_t) * cap;
+            void* q_mem = malloc(memsize);
+            if (q_mem == NULL) {
+                return -1;
+            }
+            mutil::BoundedQueue<fiber_t> q(q_mem, memsize, mutil::OWNS_STORAGE);
+            _tasks.swap(q);
+            return 0;
         }
-        mutil::BoundedQueue<fiber_t> q(q_mem, memsize, mutil::OWNS_STORAGE);
-        _tasks.swap(q);
-        return 0;
-    }
 
-    bool pop(fiber_t* task) {
-        if (_tasks.empty()) {
-            return false;
+        bool pop(fiber_t* task) {
+            if (_tasks.empty()) {
+                return false;
+            }
+            _mutex.lock();
+            const bool result = _tasks.pop(task);
+            _mutex.unlock();
+            return result;
         }
-        _mutex.lock();
-        const bool result = _tasks.pop(task);
-        _mutex.unlock();
-        return result;
-    }
 
-    bool push(fiber_t task) {
-        _mutex.lock();
-        const bool res = push_locked(task);
-        _mutex.unlock();
-        return res;
-    }
+        bool push(fiber_t task) {
+            _mutex.lock();
+            const bool res = push_locked(task);
+            _mutex.unlock();
+            return res;
+        }
 
-    bool push_locked(fiber_t task) {
-        return _tasks.push(task);
-    }
+        bool push_locked(fiber_t task) {
+            return _tasks.push(task);
+        }
 
-    size_t capacity() const { return _tasks.capacity(); }
-    
-private:
-friend class TaskGroup;
-    DISALLOW_COPY_AND_ASSIGN(RemoteTaskQueue);
-    mutil::BoundedQueue<fiber_t> _tasks;
-    mutil::Mutex _mutex;
-};
+        size_t capacity() const { return _tasks.capacity(); }
+
+    private:
+    friend class TaskGroup;
+        DISALLOW_COPY_AND_ASSIGN(RemoteTaskQueue);
+        mutil::BoundedQueue<fiber_t> _tasks;
+        std::mutex _mutex;
+    };
 
 }  // namespace fiber
-
-#endif  // MELON_FIBER_REMOTE_TASK_QUEUE_H_

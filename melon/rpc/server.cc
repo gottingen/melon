@@ -1170,7 +1170,7 @@ namespace melon {
         return 0;
     }
 
-// NOTE: Join() can happen before Stop().
+    // NOTE: Join() can happen before Stop().
     int Server::Join() {
         if (_status != RUNNING && _status != STOPPING) {
             return -1;

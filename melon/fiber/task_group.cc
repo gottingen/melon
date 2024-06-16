@@ -26,7 +26,7 @@
 #include <melon/base/scoped_lock.h>              // MELON_SCOPED_LOCK
 #include <melon/base/fast_rand.h>
 #include <memory>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h> // fmix64
+#include <melon/base/murmurhash3.h> // fmix64
 #include <melon/fiber/errno.h>                  // ESTOP
 #include <melon/fiber/butex.h>                  // butex_*
 #include <melon/fiber/sys_futex.h>              // futex_wake_private
@@ -694,7 +694,7 @@ void TaskGroup::ready_to_run_remote(fiber_t tid, bool nosignal) {
     }
 }
 
-void TaskGroup::flush_nosignal_tasks_remote_locked(mutil::Mutex& locked_mutex) {
+void TaskGroup::flush_nosignal_tasks_remote_locked(std::mutex& locked_mutex) {
     const int val = _remote_num_nosignal;
     if (!val) {
         locked_mutex.unlock();

@@ -26,12 +26,9 @@ SET(TEST_UTILITY_SOURCES
         scoped_temp_dir_unittest
         lazy_instance_unittest
         aligned_memory_unittest
-        linked_ptr_unittest
         ref_counted_memory_unittest
         ref_counted_unittest
         scoped_ptr_unittest
-        scoped_vector_unittest
-        file_descriptor_shuffle_unittest
         rand_util_unittest
         scoped_clear_errno_unittest
         scoped_generic_unittest
@@ -40,20 +37,14 @@ SET(TEST_UTILITY_SOURCES
         nullable_string16_unittest
         string16_unittest
         stringprintf_unittest
-        string_number_conversions_unittest
         string_split_unittest
         string_tokenizer_unittest
         string_util_unittest
         stringize_macros_unittest
-        condition_variable_unittest
-        lock_unittest
         waitable_event_unittest
         platform_thread_unittest
         simple_thread_unittest
-        thread_collision_warner_unittest
         thread_id_name_manager_unittest
-        thread_local_storage_unittest
-        thread_local_unittest
         time_unittest
         cacheline_unittest
         class_name_unittest

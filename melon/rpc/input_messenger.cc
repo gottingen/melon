@@ -417,7 +417,7 @@ namespace melon {
             CHECK(false) << "Invalid argument";
             return -1;
         }
-        MELON_SCOPED_LOCK(_add_handler_mutex);
+        std::unique_lock mu(_add_handler_mutex);
         if (nullptr == _handlers) {
             _handlers = new(std::nothrow) InputMessageHandler[_capacity];
             if (nullptr == _handlers) {
@@ -462,7 +462,7 @@ namespace melon {
             CHECK(false) << "Invalid argument";
             return -1;
         }
-        MELON_SCOPED_LOCK(_add_handler_mutex);
+        std::unique_lock mu(_add_handler_mutex);
         if (nullptr == _handlers) {
             _handlers = new(std::nothrow) InputMessageHandler[_capacity];
             if (nullptr == _handlers) {

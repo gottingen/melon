@@ -26,7 +26,7 @@
 #include <turbo/log/logging.h>
 #include <melon/base/fd_guard.h>                  // fd_guard
 #include <melon/utility/file_util.h>                 // mutil::FilePath
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/base/murmurhash3.h>
 #include <melon/base/process_util.h>              // ReadCommandLine
 #include <melon/rpc/server.h>
 #include <melon/builtin/common.h>

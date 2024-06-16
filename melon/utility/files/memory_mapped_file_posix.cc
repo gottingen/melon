@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include <turbo/log/logging.h>
-#include "melon/utility/threading/thread_restrictions.h"
 
 namespace mutil {
 
@@ -17,7 +16,7 @@ MemoryMappedFile::MemoryMappedFile() : data_(NULL), length_(0) {
 }
 
 bool MemoryMappedFile::MapFileToMemory() {
-  ThreadRestrictions::AssertIOAllowed();
+  
 
   struct stat file_stat;
   if (fstat(file_.GetPlatformFile(), &file_stat) == -1 ) {
@@ -35,7 +34,7 @@ bool MemoryMappedFile::MapFileToMemory() {
 }
 
 void MemoryMappedFile::CloseHandles() {
-  ThreadRestrictions::AssertIOAllowed();
+  
 
   if (data_ != NULL)
     munmap(data_, length_);

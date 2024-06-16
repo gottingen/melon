@@ -22,8 +22,8 @@
 #include <strings.h>
 #include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/adaptive_max_concurrency.h>
+#include <turbo/strings/numbers.h>
 
 namespace melon {
 
@@ -58,7 +58,7 @@ namespace melon {
     AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const std::string_view &value)
             : _max_concurrency(0) {
         int max_concurrency = 0;
-        if (mutil::StringToInt(value, &max_concurrency)) {
+        if (turbo::simple_atoi(value, &max_concurrency)) {
             operator=(max_concurrency);
         } else {
             _value.assign(value.data(), value.size());
@@ -68,7 +68,7 @@ namespace melon {
 
     void AdaptiveMaxConcurrency::operator=(const std::string_view &value) {
         int max_concurrency = 0;
-        if (mutil::StringToInt(value, &max_concurrency)) {
+        if (turbo::simple_atoi(value, &max_concurrency)) {
             return operator=(max_concurrency);
         } else {
             _value = value;

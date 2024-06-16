@@ -26,7 +26,6 @@
 #include <typeinfo>
 #include <limits>
 #include <google/protobuf/descriptor.h>
-#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/utility/third_party/rapidjson/error/error.h>
 #include <melon/utility/third_party/rapidjson/rapidjson.h>
 #include <melon/json2pb/json_to_pb.h>
@@ -36,6 +35,7 @@
 #include <turbo/strings/str_format.h>
 #include <melon/json2pb/protobuf_map.h>
 #include <melon/json2pb/rapidjson.h>
+#include <turbo/strings/numbers.h>
 
 
 #define J2PERROR(perr, fmt, ...)                                    \
@@ -229,7 +229,7 @@ namespace json2pb {
                 reflection->SetInt64(message, field, item.GetInt64());
             }
         } else if (item.IsString() &&
-                   mutil::StringToInt64({item.GetString(), item.GetStringLength()},
+                   turbo::simple_atoi({item.GetString(), item.GetStringLength()},
                                         &num)) {
             if (repeated) {
                 reflection->AddInt64(message, field, num);
@@ -256,7 +256,7 @@ namespace json2pb {
                 reflection->SetUInt64(message, field, item.GetUint64());
             }
         } else if (item.IsString() &&
-                   mutil::StringToUint64({item.GetString(), item.GetStringLength()},
+                  turbo::simple_atoi({item.GetString(), item.GetStringLength()},
                                          &num)) {
             if (repeated) {
                 reflection->AddUInt64(message, field, num);

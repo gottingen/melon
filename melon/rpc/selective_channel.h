@@ -19,80 +19,77 @@
 
 
 
-#ifndef MELON_RPC_SELECTIVE_CHANNEL_H_
-#define MELON_RPC_SELECTIVE_CHANNEL_H_
-
+#pragma once
 
 
 #include <melon/rpc/socket_id.h>
 #include <melon/rpc/channel.h>
-
+#include <mutex>
 
 namespace melon {
 
-// A combo channel to split traffic to sub channels, aka "schan". The main
-// purpose of schan is to load balance between groups of servers.
-// SelectiveChannel is a fully functional Channel:
-//   * synchronous and asynchronous RPC.
-//   * deletable immediately after an asynchronous call.
-//   * cancelable call_id (cancels all sub calls).
-//   * timeout.
-// Due to its designing goal, schan has a separate layer of retrying and
-// backup request. Namely when schan fails to access a sub channel, it may
-// retry another channel. sub channels inside a schan share the information
-// of accessed servers and avoid retrying accessed servers by best efforts.
-// When a schan would send a backup request, it calls a sub channel with
-// the request. Since a sub channel can be a combo channel as well, the
-// "backup request" may be "backup requests".
-//                                        ^
-// CAUTION:
-// =======
-// Currently SelectiveChannel requires `request' to CallMethod be
-// valid before the RPC ends. Other channels do not. If you're doing async
-// calls with SelectiveChannel, make sure that `request' is owned and deleted
-// in `done'.
-class SelectiveChannel : public ChannelBase/*non-copyable*/ {
-public:
-    typedef SocketId ChannelHandle;
+    // A combo channel to split traffic to sub channels, aka "schan". The main
+    // purpose of schan is to load balance between groups of servers.
+    // SelectiveChannel is a fully functional Channel:
+    //   * synchronous and asynchronous RPC.
+    //   * deletable immediately after an asynchronous call.
+    //   * cancelable call_id (cancels all sub calls).
+    //   * timeout.
+    // Due to its designing goal, schan has a separate layer of retrying and
+    // backup request. Namely when schan fails to access a sub channel, it may
+    // retry another channel. sub channels inside a schan share the information
+    // of accessed servers and avoid retrying accessed servers by best efforts.
+    // When a schan would send a backup request, it calls a sub channel with
+    // the request. Since a sub channel can be a combo channel as well, the
+    // "backup request" may be "backup requests".
+    //                                        ^
+    // CAUTION:
+    // =======
+    // Currently SelectiveChannel requires `request' to CallMethod be
+    // valid before the RPC ends. Other channels do not. If you're doing async
+    // calls with SelectiveChannel, make sure that `request' is owned and deleted
+    // in `done'.
+    class SelectiveChannel : public ChannelBase/*non-copyable*/ {
+    public:
+        typedef SocketId ChannelHandle;
 
-    SelectiveChannel();
-    ~SelectiveChannel();
+        SelectiveChannel();
 
-    // You MUST initialize a schan before using it. `load_balancer_name' is the
-    // name of load balancing algorithm which is listed in melon/rpc/channel.h
-    // if `options' is NULL, use default options.
-    int Init(const char* load_balancer_name, const ChannelOptions* options);
+        ~SelectiveChannel();
 
-    // Add a sub channel, which will be deleted along with schan or explicitly
-    // by RemoveAndDestroyChannel.
-    // On success, handle is set with the key for removal.
-    // NOTE: Different from pchan, schan can add channels at any time.
-    // Returns 0 on success, -1 otherwise.
-    int AddChannel(ChannelBase* sub_channel, ChannelHandle* handle);
+        // You MUST initialize a schan before using it. `load_balancer_name' is the
+        // name of load balancing algorithm which is listed in melon/rpc/channel.h
+        // if `options' is NULL, use default options.
+        int Init(const char *load_balancer_name, const ChannelOptions *options);
 
-    // Remove and destroy the sub_channel associated with `handle'.
-    void RemoveAndDestroyChannel(ChannelHandle handle);
+        // Add a sub channel, which will be deleted along with schan or explicitly
+        // by RemoveAndDestroyChannel.
+        // On success, handle is set with the key for removal.
+        // NOTE: Different from pchan, schan can add channels at any time.
+        // Returns 0 on success, -1 otherwise.
+        int AddChannel(ChannelBase *sub_channel, ChannelHandle *handle);
 
-    // Send request by a sub channel. schan may retry another sub channel
-    // according to retrying/backup-request settings.
-    void CallMethod(const google::protobuf::MethodDescriptor* method,
-                    google::protobuf::RpcController* controller,
-                    const google::protobuf::Message* request,
-                    google::protobuf::Message* response,
-                    google::protobuf::Closure* done);
+        // Remove and destroy the sub_channel associated with `handle'.
+        void RemoveAndDestroyChannel(ChannelHandle handle);
 
-    // True iff Init() was successful.
-    bool initialized() const;
+        // Send request by a sub channel. schan may retry another sub channel
+        // according to retrying/backup-request settings.
+        void CallMethod(const google::protobuf::MethodDescriptor *method,
+                        google::protobuf::RpcController *controller,
+                        const google::protobuf::Message *request,
+                        google::protobuf::Message *response,
+                        google::protobuf::Closure *done);
 
-    void Describe(std::ostream& os, const DescribeOptions& options) const;
+        // True iff Init() was successful.
+        bool initialized() const;
 
-private:
-    int CheckHealth();
-    
-    Channel _chan;
-};
+        void Describe(std::ostream &os, const DescribeOptions &options) const;
+
+    private:
+        int CheckHealth();
+
+        Channel _chan;
+    };
 
 } // namespace melon
 
-
-#endif  // MELON_RPC_SELECTIVE_CHANNEL_H_

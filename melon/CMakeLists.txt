@@ -15,10 +15,8 @@
 #
 
 set(UTILITY_SOURCES
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dmg_fp/g_fmt.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dmg_fp/dtoa_wrapper.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/icu/icu_utf.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/murmurhash3/murmurhash3.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/murmurhash3.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file.cc
@@ -38,17 +36,13 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted_memory.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/singleton.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/posix/file_descriptor_shuffle.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/posix/global_descriptors.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/base/fast_rand.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/safe_strerror_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/latin1_string_conversions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/nullable_string16.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/strings/safe_sprintf.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/string16.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_number_conversions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_split.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_piece.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/string_util.cc
@@ -57,18 +51,11 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_offset_string_conversions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_string_conversion_utils.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_string_conversions.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/condition_variable_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/waitable_event_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/non_thread_safe_impl.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/platform_thread_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/simple_thread.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_checker_impl.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_collision_warner.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_id_name_manager.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_restrictions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/default_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/default_tick_clock.cc
@@ -81,6 +68,7 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/files/temp_file.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_watcher.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/time.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/murmurhash3.cc
         ${PROJECT_SOURCE_DIR}/melon/base/dynamic_annotations/dynamic_annotations.c
         ${PROJECT_SOURCE_DIR}/melon/base/arena.cc
         ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy.cc

@@ -22,13 +22,14 @@
 #include <queue>                           // heap functions
 #include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>   // fmix64
+#include <melon/base/murmurhash3.h>   // fmix64
 #include <melon/base/resource_pool.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/var/var.h>
 #include <melon/fiber/sys_futex.h>
 #include <melon/fiber/timer_thread.h>
 #include <melon/fiber/log.h>
+#include <melon/base/compat.h>
 
 namespace fiber {
 

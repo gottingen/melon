@@ -112,7 +112,7 @@ namespace melon::lb {
         private:
             int64_t _weight;
             int64_t _base_weight;
-            mutil::Mutex _mutex;
+            std::mutex _mutex;
             int64_t _begin_time_sum;
             int _begin_time_count;
             int64_t _old_diff_sum;
@@ -213,7 +213,7 @@ namespace melon::lb {
     inline LocalityAwareLoadBalancer::Weight::AddInflightResult
     LocalityAwareLoadBalancer::Weight::AddInflight(
             const SelectIn &in, size_t index, int64_t dice) {
-        MELON_SCOPED_LOCK(_mutex);
+        std::unique_lock mu(_mutex);
         if (Disabled()) {
             AddInflightResult r = {false, 0};
             return r;
@@ -232,7 +232,7 @@ namespace melon::lb {
 
     inline int64_t LocalityAwareLoadBalancer::Weight::MarkFailed(
             size_t index, int64_t avg_weight) {
-        MELON_SCOPED_LOCK(_mutex);
+        std::unique_lock mu(_mutex);
         if (_base_weight <= avg_weight) {
             return 0;
         }

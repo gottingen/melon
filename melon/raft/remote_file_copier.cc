@@ -20,7 +20,6 @@
 #include <melon/raft/remote_file_copier.h>
 #include <gflags/gflags.h>
 #include <string_view>
-#include <melon/utility/strings/string_number_conversions.h>
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/file_util.h>
 #include <melon/fiber/fiber.h>
@@ -29,6 +28,7 @@
 #include <melon/raft/snapshot.h>
 #include <melon/raft/config.h>
 #include <turbo/strings/match.h>
+#include <turbo/strings/numbers.h>
 
 namespace melon::raft {
 
@@ -60,7 +60,7 @@ namespace melon::raft {
         size_t slash_pos = uri_str.find('/');
         std::string_view ip_and_port = uri_str.substr(0, slash_pos);
         uri_str.remove_prefix(slash_pos + 1);
-        if (!mutil::StringToInt64(uri_str, &_reader_id)) {
+        if (!turbo::simple_atoi(uri_str, &_reader_id)) {
             LOG(ERROR) << "Invalid reader_id_format=" << uri_str
                        << " in " << uri;
             return -1;

@@ -43,7 +43,6 @@
 #include <turbo/log/logging.h>
 #include "melon/utility/memory/aligned_memory.h"
 #include <melon/base/dynamic_annotations/dynamic_annotations.h>
-#include "melon/utility/threading/thread_restrictions.h"
 
 // LazyInstance uses its own struct initializer-list style static
 // initialization, as base's LINKER_INITIALIZED requires a constructor and on
@@ -154,11 +153,6 @@ class LazyInstance {
   }
 
   Type* Pointer() {
-#ifndef NDEBUG
-    // Avoid making TLS lookup on release builds.
-    if (!Traits::kAllowedToAccessOnNonjoinableThread)
-      ThreadRestrictions::AssertSingletonAllowed();
-#endif
     // If any bit in the created mask is true, the instance has already been
     // fully constructed.
     static const subtle::AtomicWord kLazyInstanceCreatedMask =

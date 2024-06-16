@@ -25,7 +25,7 @@
 #include <memory>
 #include <melon/utility/time.h>                              // milliseconds_from_now
 #include <turbo/log/logging.h>
-#include <melon/utility/third_party/murmurhash3/murmurhash3.h>
+#include <melon/base/murmurhash3.h>
 #include <melon/utility/strings/string_util.h>
 #include <melon/fiber/unstable.h>                        // fiber_timer_add
 #include <melon/rpc/socket_map.h>                         // SocketMapInsert

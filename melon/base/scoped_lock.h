@@ -23,20 +23,11 @@
 
 #include <melon/base/build_config.h>
 
-#if defined(MUTIL_CXX11_ENABLED)
 #include <mutex>                           // std::lock_guard
-#endif
-
-#include <melon/utility/synchronization/lock.h>
 #include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include <melon/base/errno.h>
 
-#if !defined(MUTIL_CXX11_ENABLED)
-#define MELON_SCOPED_LOCK(ref_of_lock)                                  \
-    std::lock_guard<MELON_TYPEOF(ref_of_lock)>                          \
-    MELON_CONCAT(scoped_locker_dummy_at_line_, __LINE__)(ref_of_lock)
-#else
 
 // NOTE(gejun): c++11 deduces additional reference to the type.
 namespace mutil {
@@ -49,7 +40,6 @@ std::lock_guard<typename std::remove_reference<T>::type> get_lock_guard();
 #define MELON_SCOPED_LOCK(ref_of_lock)                                  \
     decltype(::mutil::detail::get_lock_guard<decltype(ref_of_lock)>()) \
     MELON_CONCAT(scoped_locker_dummy_at_line_, __LINE__)(ref_of_lock)
-#endif
 
 namespace std {
 
