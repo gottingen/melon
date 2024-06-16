@@ -32,7 +32,7 @@
 #include <ostream>                               // std::ostream
 #include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyInputStream
 #include <string_view>
-#include <melon/utility/snappy/snappy-sinksource.h>
+#include <melon/base/snappy/snappy-sinksource.h>
 #include <melon/base/zero_copy_stream_as_streambuf.h>
 #include <melon/base/macros.h>
 #include <melon/base/reader_writer.h>

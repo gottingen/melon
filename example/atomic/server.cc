@@ -15,7 +15,7 @@
 #include <fstream>
 #include <melon/fiber/fiber.h>
 #include <gflags/gflags.h>
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/controller.h>

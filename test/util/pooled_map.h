@@ -23,7 +23,7 @@
 #ifndef MUTIL_POOLED_MAP_H
 #define MUTIL_POOLED_MAP_H
 
-#include "melon/utility/single_threaded_pool.h"
+#include <melon/base/internal/single_threaded_pool.h>
 #include <new>
 #include <map>
 

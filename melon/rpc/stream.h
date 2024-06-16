@@ -21,7 +21,7 @@
 #pragma once
 
 #include <melon/base/iobuf.h>
-#include <melon/utility/scoped_generic.h>
+#include <melon/base/scoped_generic.h>
 #include <melon/rpc/socket_id.h>
 
 namespace melon {

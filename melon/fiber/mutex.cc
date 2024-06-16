@@ -26,7 +26,7 @@
 #include <melon/var/var.h>
 #include <melon/var/collector.h>
 #include <melon/base/macros.h>
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <melon/base/iobuf.h>
 #include <melon/base/fd_guard.h>
 #include <melon/utility/files/file.h>

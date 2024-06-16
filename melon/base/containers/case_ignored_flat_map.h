@@ -23,7 +23,7 @@
 #ifndef MUTIL_CASE_IGNORED_FLAT_MAP_H
 #define MUTIL_CASE_IGNORED_FLAT_MAP_H
 
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 
 namespace mutil {
 

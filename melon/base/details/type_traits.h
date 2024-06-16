@@ -16,23 +16,23 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 //
-
+// Created by jeff on 24-6-16.
+//
 
 #pragma once
 
-#include <melon/base/type_traits.h>
+#include <type_traits>
 
-namespace melon::var::detail {
+namespace mutil {
+
+    template <typename T> struct add_const_reference {
+        typedef typename std::add_lvalue_reference<typename std::add_const<T>::type>::type type;
+    };
+
     template<class T>
     struct is_atomical
-            : mutil::integral_constant<bool, (mutil::is_integral<T>::value ||
-                                              mutil::is_floating_point<T>::value)
-                    // FIXME(gejun): Not work in gcc3.4
-                    // mutil::is_enum<T>::value ||
-                    // NOTE(gejun): Ops on pointers are not
-                    // atomic generally
-                    // mutil::is_pointer<T>::value
-            > {
+            : std::integral_constant<bool, (std::is_integral<T>::value ||
+                                            std::is_floating_point<T>::value)> {
     };
     template<class T>
     struct is_atomical<const T> : is_atomical<T> {
@@ -44,4 +44,13 @@ namespace melon::var::detail {
     struct is_atomical<const volatile T> : is_atomical<T> {
     };
 
-}  // namespace melon::var::detail
+    // Add const& for non-integral types.
+    // add_cr_non_integral<int>::type      -> int
+    // add_cr_non_integral<FooClass>::type -> const FooClass&
+    template <typename T> struct add_cr_non_integral {
+        typedef typename std::conditional<std::is_integral<T>::value, T,
+                typename std::add_lvalue_reference<typename std::add_const<T>::type>::type>::type type;
+    };
+
+
+}  // namespace mutil

@@ -23,11 +23,11 @@
 #include <vector>                       // std::vector
 #include <atomic>
 #include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
-#include <melon/base/type_traits.h>            // mutil::add_cr_non_integral
+#include <type_traits>
 #include <melon/utility/synchronization/lock.h>  // mutil::Lock
 #include <melon/base/linked_list.h>// LinkNode
 #include <melon/var/detail/agent_group.h>    // detail::AgentGroup
-#include <melon/var/detail/is_atomical.h>
+#include <melon/base/details/type_traits.h>
 #include <melon/var/detail/call_op_returning_void.h>
 
 namespace melon::var {
@@ -112,7 +112,7 @@ namespace melon::var {
 
         template<typename T>
         class ElementContainer<
-                T, typename mutil::enable_if<is_atomical<T>::value>::type> {
+                T, typename std::enable_if<mutil::is_atomical<T>::value>::type> {
         public:
             // We don't need any memory fencing here, every op is relaxed.
 
@@ -247,7 +247,7 @@ namespace melon::var {
 
             typename mutil::add_cr_non_integral<ElementTp>::type element_identity() const { return _element_identity; }
 
-            typename mutil::add_cr_non_integral<ResultTp>::type result_identity() const { return _result_identity; }
+            typename  mutil::add_cr_non_integral<ResultTp>::type result_identity() const { return _result_identity; }
 
             // [Threadsafe] May be called from anywhere.
             ResultTp reset_all_agents() {

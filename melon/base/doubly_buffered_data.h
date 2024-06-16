@@ -30,64 +30,63 @@
 #include <melon/base/thread_local.h>
 #include <turbo/log/logging.h>
 #include <melon/base/macros.h>
-#include <melon/base/type_traits.h>
+#include <type_traits>
 #include <melon/base/errno.h>
 #include <atomic>
 #include <memory>
-#include <melon/base/type_traits.h>
 
 namespace mutil {
 
-// This data structure makes Read() almost lock-free by making Modify()
-// *much* slower. It's very suitable for implementing LoadBalancers which
-// have a lot of concurrent read-only ops from many threads and occasional
-// modifications of data. As a side effect, this data structure can store
-// a thread-local data for user.
-//
-// --- `AllowFiberSuspended=false' ---
-// Read(): Begin with a thread-local mutex locked then read the foreground
-// instance which will not be changed before the mutex is unlocked. Since the
-// mutex is only locked by Modify() with an empty critical section, the
-// function is almost lock-free.
-//
-// Modify(): Modify background instance which is not used by any Read(), flip
-// foreground and background, lock thread-local mutexes one by one to make
-// sure all existing Read() finish and later Read() see new foreground,
-// then modify background(foreground before flip) again.
-//
-// But, when `AllowFiberSuspended=false', it is not allowed to suspend fiber
-// while reading. Otherwise, it may cause deadlock.
-//
-//
-// --- `AllowFiberSuspended=true' ---
-// It is allowed to suspend fiber while reading.
-// It is not allowed to use non-Void TLS.
-// If fiber will not be suspended while reading, it also makes Read() almost
-// lock-free by making Modify() *much* slower.
-// If fiber will be suspended while reading, there is competition among
-// fibers using the same Wrapper.
-//
-// Read(): Begin with thread-local reference count of foreground instance
-// incremented by one which be protected by a thread-local mutex, then read
-// the foreground instance which will not be changed before its all thread-local
-// reference count become zero. At last, after the query completes, thread-local
-// reference count of foreground instance will be decremented by one, and if
-// it becomes zero, notifies Modify().
-//
-// Modify(): Modify background instance which is not used by any Read(), flip
-// foreground and background, lock thread-local mutexes one by one and wait
-// until thread-local reference counts which be protected by a thread-local
-// mutex become 0 to make sure all existing Read() finish and later Read()
-// see new foreground, then modify background(foreground before flip) again.
+    // This data structure makes Read() almost lock-free by making Modify()
+    // *much* slower. It's very suitable for implementing LoadBalancers which
+    // have a lot of concurrent read-only ops from many threads and occasional
+    // modifications of data. As a side effect, this data structure can store
+    // a thread-local data for user.
+    //
+    // --- `AllowFiberSuspended=false' ---
+    // Read(): Begin with a thread-local mutex locked then read the foreground
+    // instance which will not be changed before the mutex is unlocked. Since the
+    // mutex is only locked by Modify() with an empty critical section, the
+    // function is almost lock-free.
+    //
+    // Modify(): Modify background instance which is not used by any Read(), flip
+    // foreground and background, lock thread-local mutexes one by one to make
+    // sure all existing Read() finish and later Read() see new foreground,
+    // then modify background(foreground before flip) again.
+    //
+    // But, when `AllowFiberSuspended=false', it is not allowed to suspend fiber
+    // while reading. Otherwise, it may cause deadlock.
+    //
+    //
+    // --- `AllowFiberSuspended=true' ---
+    // It is allowed to suspend fiber while reading.
+    // It is not allowed to use non-Void TLS.
+    // If fiber will not be suspended while reading, it also makes Read() almost
+    // lock-free by making Modify() *much* slower.
+    // If fiber will be suspended while reading, there is competition among
+    // fibers using the same Wrapper.
+    //
+    // Read(): Begin with thread-local reference count of foreground instance
+    // incremented by one which be protected by a thread-local mutex, then read
+    // the foreground instance which will not be changed before its all thread-local
+    // reference count become zero. At last, after the query completes, thread-local
+    // reference count of foreground instance will be decremented by one, and if
+    // it becomes zero, notifies Modify().
+    //
+    // Modify(): Modify background instance which is not used by any Read(), flip
+    // foreground and background, lock thread-local mutexes one by one and wait
+    // until thread-local reference counts which be protected by a thread-local
+    // mutex become 0 to make sure all existing Read() finish and later Read()
+    // see new foreground, then modify background(foreground before flip) again.
 
     class Void {
     };
 
     template<typename T>
-    struct IsVoid : false_type {
+    struct IsVoid : std::false_type {
     };
     template<>
-    struct IsVoid<Void> : true_type {
+    struct IsVoid<Void> : std::true_type {
     };
 
     template<typename T, typename TLS = Void, bool AllowFiberSuspended = false>
@@ -553,8 +552,8 @@ namespace mutil {
         _wrapper_key = WrapperTLSGroup::key_create();
         // Initialize _data for some POD types. This is essential for pointer
         // types because they should be Read() as NULL before any Modify().
-        if (is_integral<T>::value || is_floating_point<T>::value ||
-            is_pointer<T>::value || is_member_function_pointer<T>::value) {
+        if (std::is_integral<T>::value || std::is_floating_point<T>::value ||
+                std::is_pointer<T>::value ||std::is_member_function_pointer<T>::value) {
             _data[0] = T();
             _data[1] = T();
         }

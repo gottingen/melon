@@ -28,7 +28,7 @@
 #include <netinet/in.h>                          // in_addr
 #include <sys/un.h>                              // sockaddr_un
 #include <iostream>                              // std::ostream
-#include <melon/utility/containers/hash_tables.h>         // hashing functions
+#include <melon/base/containers/hash_tables.h>         // hashing functions
 
 namespace mutil {
 

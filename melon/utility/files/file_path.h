@@ -108,7 +108,7 @@
 
 #include <melon/base/base_export.h>
 #include <melon/base/compiler_specific.h>
-#include <melon/utility/containers/hash_tables.h>
+#include <melon/base/containers/hash_tables.h>
 #include "melon/utility/strings/string16.h"
 #include <melon/utility/strings/string_piece.h>  // For implicit conversions.
 #include <melon/base/build_config.h>

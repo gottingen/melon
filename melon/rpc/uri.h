@@ -23,7 +23,7 @@
 #define  MELON_RPC_URI_H_
 
 #include <string>                   // std::string
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <melon/utility/status.h>
 #include <melon/utility/string_splitter.h>
 

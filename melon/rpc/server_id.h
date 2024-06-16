@@ -24,8 +24,8 @@
 
 
 #include <vector>
-#include <melon/utility/containers/hash_tables.h>   // hash
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/hash_tables.h>   // hash
+#include <melon/base/containers/flat_map.h>
 #include <melon/rpc/socket_id.h>
 
 namespace melon {

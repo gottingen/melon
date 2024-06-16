@@ -21,7 +21,7 @@
 #include <turbo/log/logging.h>
 #include <melon/compress/snappy_compress.h>
 #include <melon/rpc/protocol.h>
-#include <melon/utility/snappy/snappy.h>
+#include <melon/base/snappy/snappy.h>
 
 
 namespace melon::compress {

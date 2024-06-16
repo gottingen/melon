@@ -32,11 +32,8 @@ SET(TEST_UTILITY_SOURCES
         ref_counted_unittest
         scoped_ptr_unittest
         scoped_vector_unittest
-        #singleton_unittest
-        weak_ptr_unittest
         file_descriptor_shuffle_unittest
         rand_util_unittest
-        safe_numerics_unittest
         scoped_clear_errno_unittest
         scoped_generic_unittest
         security_unittest
@@ -53,7 +50,6 @@ SET(TEST_UTILITY_SOURCES
         condition_variable_unittest
         lock_unittest
         waitable_event_unittest
-        type_traits_unittest
         platform_thread_unittest
         simple_thread_unittest
         thread_collision_warner_unittest

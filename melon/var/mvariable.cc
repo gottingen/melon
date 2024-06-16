@@ -22,7 +22,7 @@
 #include <gflags/gflags_declare.h>
 #include <turbo/log/logging.h>                       // LOG
 #include <melon/base/errno.h>                         // berror
-#include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
+#include <melon/base/containers/flat_map.h>           // mutil::FlatMap
 #include <melon/base/scoped_lock.h>                   // MELON_SCOPE_LOCK
 #include <melon/utility/file_util.h>                     // mutil::FilePath
 #include <melon/var/variable.h>

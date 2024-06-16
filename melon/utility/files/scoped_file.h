@@ -10,7 +10,7 @@
 #include <melon/base/base_export.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/scoped_ptr.h>
-#include <melon/utility/scoped_generic.h>
+#include <melon/base/scoped_generic.h>
 #include <melon/base/build_config.h>
 
 namespace mutil {

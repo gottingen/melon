@@ -28,7 +28,7 @@
 
 #include <string.h>
 
-#include "melon/utility/snappy/snappy-sinksource.h"
+#include <melon/base/snappy/snappy-sinksource.h>
 
 namespace mutil {
 namespace snappy {

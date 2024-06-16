@@ -24,7 +24,7 @@
 #include <sstream>                              // std::ostringstream
 #include <gflags/gflags.h>
 #include <melon/base/macros.h>
-#include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
+#include <melon/base/containers/flat_map.h>           // mutil::FlatMap
 #include <melon/base/scoped_lock.h>                   // MELON_SCOPE_LOCK
 #include <melon/utility/string_splitter.h>               // mutil::StringSplitter
 #include <melon/base/errno.h>                         // berror

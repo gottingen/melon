@@ -22,9 +22,9 @@
 
 #include <string>                       // std::string
 #include <atomic>
-#include <melon/base/type_traits.h>
+#include <type_traits>
 #include <melon/utility/synchronization/lock.h>
-#include <melon/var/detail/is_atomical.h>
+#include <melon/base/details/type_traits.h>
 #include <melon/var/variable.h>
 #include <melon/var/reducer.h>
 #include <turbo/strings/str_format.h>
@@ -78,7 +78,7 @@ namespace melon::var {
     };
     
     template <typename T>
-    class Status<T, typename mutil::enable_if<detail::is_atomical<T>::value>::type>
+    class Status<T, typename std::enable_if<mutil::is_atomical<T>::value>::type>
         : public Variable {
     public:
         struct PlaceHolderOp {
@@ -86,7 +86,7 @@ namespace melon::var {
         };
         class SeriesSampler : public detail::Sampler {
         public:
-            typedef typename mutil::conditional<
+            typedef typename std::conditional<
             true, detail::AddTo<T>, PlaceHolderOp>::type Op;
             explicit SeriesSampler(Status* owner)
                 : _owner(owner), _series(Op()) {}

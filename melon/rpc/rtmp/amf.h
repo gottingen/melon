@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include <map>
 #include <deque>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/message.h>
 #include <string_view>
+#include <turbo/container/btree_map.h>
 
 
 namespace melon {
@@ -215,13 +215,13 @@ namespace melon {
 
     std::ostream &operator<<(std::ostream &os, const AMFField &field);
 
-// A general AMF object.
+    // A general AMF object.
     class AMFObject {
     public:
-        typedef std::map<std::string, AMFField>::iterator iterator;
-        typedef std::map<std::string, AMFField>::const_iterator const_iterator;
+        typedef turbo::btree_map<std::string, AMFField>::iterator iterator;
+        typedef turbo::btree_map<std::string, AMFField>::const_iterator const_iterator;
 
-        const AMFField *Find(const char *name) const;
+        const AMFField *Find(std::string_view name) const;
 
         void Remove(const std::string &name) { _fields.erase(name); }
 
@@ -252,7 +252,7 @@ namespace melon {
         const_iterator end() const { return _fields.end(); }
 
     private:
-        std::map<std::string, AMFField> _fields;
+        turbo::btree_map<std::string, AMFField> _fields;
     };
 
     std::ostream &operator<<(std::ostream &os, const AMFObject &);

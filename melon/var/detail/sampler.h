@@ -25,7 +25,7 @@
 #include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
 #include <turbo/log/logging.h>               // LOG()
 #include <melon/base/bounded_queue.h>// BoundedQueue
-#include <melon/base/type_traits.h>            // is_same
+#include <type_traits>
 #include <melon/utility/time.h>                  // gettimeofday_us
 #include <melon/base/class_name.h>
 
@@ -122,7 +122,7 @@ namespace melon::var::detail {
             }
 
             Sample<T> latest;
-            if (mutil::is_same<InvOp, VoidOp>::value) {
+            if (std::is_same<InvOp, VoidOp>::value) {
                 // The operator can't be inversed.
                 // We reset the reducer and save the result as a sample.
                 // Suming up samples gives the result within a window.
@@ -157,7 +157,7 @@ namespace melon::var::detail {
             }
             Sample<T> *latest = _q.bottom();
             DCHECK(latest != oldest);
-            if (mutil::is_same<InvOp, VoidOp>::value) {
+            if (std::is_same<InvOp, VoidOp>::value) {
                 // No inverse op. Sum up all samples within the window.
                 result->data = latest->data;
                 for (int i = 1; true; ++i) {

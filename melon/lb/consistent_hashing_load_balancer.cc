@@ -21,7 +21,7 @@
 #include <algorithm>                                           // std::set_union
 #include <array>
 #include <gflags/gflags.h>
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <melon/base/errno.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/socket.h>

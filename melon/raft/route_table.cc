@@ -22,7 +22,7 @@
 #include <gflags/gflags.h>
 #include <melon/utility/memory/singleton.h>
 #include <melon/base/doubly_buffered_data.h>
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
 #include <melon/proto/raft/cli.pb.h>

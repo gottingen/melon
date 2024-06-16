@@ -22,7 +22,7 @@
 #include <string>
 #include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/containers/case_ignored_flat_map.h>
+#include <melon/base/containers/case_ignored_flat_map.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 
 namespace mutil {

@@ -28,8 +28,7 @@
 //
 // Various stubs for the open-source version of Snappy.
 
-#ifndef MUTIL_THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
-#define MUTIL_THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
+#pragma once
 
 #include <string>
 #include <assert.h>
@@ -397,5 +396,3 @@ inline char* string_as_array(std::string* str) {
 
 }  // namespace snappy
 }  // namespace mutil
-
-#endif  // MUTIL_THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_

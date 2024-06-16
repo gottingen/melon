@@ -24,19 +24,19 @@
 
 namespace melon::var {
 
-// Display a updated-by-need value. This is done by passing in an user callback
-// which is called to produce the value.
-// Example:
-//   int print_number(void* arg) {
-//      ...
-//      return 5;
-//   }
-//
-//   // number1 : 5
-//   melon::var::PassiveStatus<int> status1("number1", print_number, arg);
-//
-//   // foo_number2 : 5
-//   melon::var::PassiveStatus<int> status2("Foo", "number2", print_number, arg);
+    // Display a updated-by-need value. This is done by passing in an user callback
+    // which is called to produce the value.
+    // Example:
+    //   int print_number(void* arg) {
+    //      ...
+    //      return 5;
+    //   }
+    //
+    //   // number1 : 5
+    //   melon::var::PassiveStatus<int> status1("number1", print_number, arg);
+    //
+    //   // foo_number2 : 5
+    //   melon::var::PassiveStatus<int> status2("Foo", "number2", print_number, arg);
     template<typename Tp>
     class PassiveStatus : public Variable {
     public:
@@ -48,13 +48,13 @@ namespace melon::var {
             void operator()(Tp &, const Tp &) const {}
         };
 
-        static const bool ADDITIVE = (mutil::is_integral<Tp>::value ||
-                                      mutil::is_floating_point<Tp>::value ||
+        static const bool ADDITIVE = (std::is_integral<Tp>::value ||
+                                      std::is_floating_point<Tp>::value ||
                                       is_vector<Tp>::value);
 
         class SeriesSampler : public detail::Sampler {
         public:
-            typedef typename mutil::conditional<
+            typedef typename std::conditional<
                     ADDITIVE, detail::AddTo<Tp>, PlaceHolderOp>::type Op;
 
             explicit SeriesSampler(PassiveStatus *owner)
@@ -180,12 +180,12 @@ namespace melon::var {
         SeriesSampler *_series_sampler;
     };
 
-// ccover g++ may complain about ADDITIVE is undefined unless it's 
-// explicitly declared here.
+    // ccover g++ may complain about ADDITIVE is undefined unless it's
+    // explicitly declared here.
     template<typename Tp> const bool PassiveStatus<Tp>::ADDITIVE;
 
-// Specialize std::string for using std::ostream& as a more friendly
-// interface for user's callback.
+    // Specialize std::string for using std::ostream& as a more friendly
+    // interface for user's callback.
     template<>
     class PassiveStatus<std::string> : public Variable {
     public:

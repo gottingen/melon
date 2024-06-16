@@ -8,6 +8,7 @@ gottingen/carbin-recipes@ea
 testing
 #########################
 gottingen/turbo@v0.5.8 -DCARBIN_BUILD_TEST=OFF -DCARBIN_BUILD_BENCHMARK=OFF -DCARBIN_BUILD_EXAMPLES=OFF
+gottingen/alkaid@v0.1.7 -DCARBIN_BUILD_TEST=OFF -DCARBIN_BUILD_BENCHMARK=OFF -DCARBIN_BUILD_EXAMPLES=OFF
 ea/gflags
 ea/leveldb
 ea/protobuf

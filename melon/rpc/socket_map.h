@@ -24,7 +24,7 @@
 
 #include <vector>                             // std::vector
 #include <melon/var/var.h>                        // melon::var::PassiveStatus
-#include <melon/utility/containers/flat_map.h>        // FlatMap
+#include <melon/base/containers/flat_map.h>        // FlatMap
 #include <melon/rpc/socket_id.h>                   // SockdetId
 #include <melon/proto/rpc/options.pb.h>                  // ProtocolType
 #include <melon/rpc/input_messenger.h>             // InputMessageHandler

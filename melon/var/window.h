@@ -116,7 +116,7 @@ namespace melon::var {
             value_type get_value() const { return get_value(_window_size); }
 
             void describe(std::ostream &os, bool quote_string) const override {
-                if (mutil::is_same<value_type, std::string>::value && quote_string) {
+                if (std::is_same<value_type, std::string>::value && quote_string) {
                     os << '"' << get_value() << '"';
                 } else {
                     os << get_value();
@@ -239,7 +239,7 @@ namespace melon::var {
             if (s.time_us <= 0) {
                 return static_cast<value_type>(0);
             }
-            if (mutil::is_floating_point<value_type>::value) {
+            if (std::is_floating_point<value_type>::value) {
                 return static_cast<value_type>(s.data * 1000000.0 / s.time_us);
             } else {
                 return static_cast<value_type>(round(s.data * 1000000.0 / s.time_us));
@@ -304,7 +304,7 @@ namespace melon::var {
 
             // Implement Variable::describe()
             void describe(std::ostream &os, bool quote_string) const {
-                if (mutil::is_same<value_type, std::string>::value && quote_string) {
+                if (std::is_same<value_type, std::string>::value && quote_string) {
                     os << '"' << get_value() << '"';
                 } else {
                     os << get_value();

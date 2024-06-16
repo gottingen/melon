@@ -8,7 +8,7 @@
 #include <limits>
 
 #include <melon/base/macros.h>
-#include <melon/base/type_traits.h>
+#include <type_traits>
 
 namespace mutil {
 namespace internal {

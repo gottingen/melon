@@ -28,10 +28,10 @@
 #include <melon/base/macros.h>
 #include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/containers/hash_tables.h>
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/hash_tables.h>
+#include <melon/base/containers/flat_map.h>
 #include "pooled_map.h"
-#include <melon/utility/containers/case_ignored_flat_map.h>
+#include <melon/base/containers/case_ignored_flat_map.h>
 
 namespace {
 class FlatMapTest : public ::testing::Test{

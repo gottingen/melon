@@ -369,7 +369,7 @@ friend class AddLatency;
                 if (!iter->_intervals[i] || iter->_intervals[i]->empty()) {
                     continue;
                 }
-                typename mutil::add_reference<MELON_TYPEOF(*(iter->_intervals[i]))>::type
+                typename std::add_lvalue_reference<MELON_TYPEOF(*(iter->_intervals[i]))>::type
                         invl = *(iter->_intervals[i]);
                 if (total <= SAMPLE_SIZE) {
                     get_interval_at(i).merge_with_expectation(

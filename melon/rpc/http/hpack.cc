@@ -24,8 +24,8 @@
 #include <limits>                                       // std::numeric_limits
 #include <vector>
 #include <melon/base/bounded_queue.h>              // mutil::BoundedQueue
-#include <melon/utility/containers/flat_map.h>                   // mutil::FlatMap
-#include <melon/utility/containers/case_ignored_flat_map.h>      // mutil::FlatMap
+#include <melon/base/containers/flat_map.h>                   // mutil::FlatMap
+#include <melon/base/containers/case_ignored_flat_map.h>      // mutil::FlatMap
 #include <melon/rpc/http/hpack-static-table.h>       // s_static_headers
 
 

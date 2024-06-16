@@ -36,8 +36,7 @@
 // using BMDiff and then compressing the output of BMDiff with
 // Snappy.
 
-#ifndef MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_H__
-#define MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_H__
+#pragma once
 
 #include <melon/base/basictypes.h>
 #include <string>
@@ -206,5 +205,3 @@ static const int kMaxHashTableBits = 14;
 static const size_t kMaxHashTableSize = 1 << kMaxHashTableBits;
 }  // end namespace snappy
 }  // end namespace mutil
-
-#endif  // MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_H__

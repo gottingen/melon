@@ -53,7 +53,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted_memory.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/singleton.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/memory/weak_ptr.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/posix/file_descriptor_shuffle.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/posix/global_descriptors.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util.cc
@@ -87,9 +86,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_restrictions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/watchdog.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/snappy/snappy.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/snappy/snappy-sinksource.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/snappy/snappy-stubs-internal.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/default_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/default_tick_clock.cc
@@ -102,7 +98,10 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/files/temp_file.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_watcher.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/time.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy-sinksource.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy-stubs-internal.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/containers/case_ignored_flat_map.cc
         ${PROJECT_SOURCE_DIR}/melon/base/class_name.cc
         ${PROJECT_SOURCE_DIR}/melon/base/errno.cc
         ${PROJECT_SOURCE_DIR}/melon/base/thread_local.cc

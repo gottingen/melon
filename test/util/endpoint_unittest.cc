@@ -22,7 +22,7 @@
 #include <melon/base/errno.h>
 #include <melon/base/endpoint.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <melon/base/details/extended_endpoint.hpp>
 
 namespace {

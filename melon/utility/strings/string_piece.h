@@ -35,7 +35,7 @@
 #include <string_view>
 #include <melon/base/base_export.h>
 #include <melon/base/basictypes.h>
-#include <melon/utility/containers/hash_tables.h>
+#include <melon/base/containers/hash_tables.h>
 #include "melon/utility/strings/string16.h"
 
 namespace mutil {

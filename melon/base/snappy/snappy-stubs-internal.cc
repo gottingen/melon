@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <string>
 
-#include "melon/utility/snappy/snappy-stubs-internal.h"
+#include <melon/base/snappy/snappy-stubs-internal.h>
 
 namespace mutil {
 namespace snappy {

@@ -19,7 +19,7 @@
 
 
 
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/load_balancer.h>
 #include <melon/naming/naming_service_thread.h>

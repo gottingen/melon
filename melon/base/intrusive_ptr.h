@@ -26,7 +26,7 @@
 #include <cstddef>
 #include <ostream>
 #include <melon/base/build_config.h>
-#include <melon/utility/containers/hash_tables.h>
+#include <melon/base/containers/hash_tables.h>
 
 namespace mutil {
 

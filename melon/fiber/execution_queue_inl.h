@@ -29,6 +29,7 @@
 #include <melon/var/var.h>                  // melon::var::Adder
 #include <melon/fiber/butex.h>              // butex_construct
 #include <melon/utility/synchronization/condition_variable.h>
+#include <melon/base/details/type_traits.h>  // mutil::add_const_reference
 
 namespace fiber {
 

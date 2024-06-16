@@ -21,7 +21,7 @@
 #pragma once
 
 #include <melon/base/macros.h>                        // MELON_CACHELINE_ALIGNMENT
-#include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
+#include <melon/base/containers/flat_map.h>           // mutil::FlatMap
 #include <deque>                                // std::deque
 #include <melon/fiber/execution_queue.h>            // fiber::ExecutionQueueId
 

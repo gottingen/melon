@@ -26,9 +26,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "melon/utility/snappy/snappy.h"
-#include "melon/utility/snappy/snappy-internal.h"
-#include "melon/utility/snappy/snappy-sinksource.h"
+#include <melon/base/snappy/snappy.h>
+#include <melon/base/snappy/snappy-internal.h>
+#include <melon/base/snappy/snappy-sinksource.h>
 
 #include <stdio.h>
 

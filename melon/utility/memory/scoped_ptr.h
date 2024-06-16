@@ -99,7 +99,7 @@
 #include <melon/base/basictypes.h>
 #include <melon/base/compiler_specific.h>
 #include "melon/utility/move.h"
-#include <melon/base/type_traits.h>
+#include <type_traits>
 
 namespace mutil {
 
@@ -129,7 +129,7 @@ struct DefaultDeleter {
     // cannot convert to T*.
     enum { T_must_be_complete = sizeof(T) };
     enum { U_must_be_complete = sizeof(U) };
-      static_assert((mutil::is_convertible<U*, T*>::value),
+      static_assert((std::is_convertible<U*, T*>::value),
                    "U_ptr_must_implicitly_convert_to_T_ptr");
   }
   inline void operator()(T* ptr) const {
@@ -178,8 +178,8 @@ namespace internal {
 
 template <typename T> struct IsNotRefCounted {
   enum {
-    value = !mutil::is_convertible<T*, mutil::subtle::RefCountedBase*>::value &&
-        !mutil::is_convertible<T*, mutil::subtle::RefCountedThreadSafeBase*>::
+    value = !std::is_convertible<T*, mutil::subtle::RefCountedBase*>::value &&
+        !std::is_convertible<T*, mutil::subtle::RefCountedThreadSafeBase*>::
             value
   };
 };
@@ -338,7 +338,7 @@ class scoped_ptr {
   // implementation of scoped_ptr.
   template <typename U, typename V>
   scoped_ptr(scoped_ptr<U, V> other) : impl_(&other.impl_) {
-      static_assert(!mutil::is_array<U>::value, "U_cannot_be_an_array");
+      static_assert(!std::is_array<U>::value, "U_cannot_be_an_array");
   }
 
   // Constructor.  Move constructor for C++03 move emulation of this type.
@@ -356,7 +356,7 @@ class scoped_ptr {
   // scoped_ptr.
   template <typename U, typename V>
   scoped_ptr& operator=(scoped_ptr<U, V> rhs) {
-      static_assert(!mutil::is_array<U>::value, "U_cannot_be_an_array");
+      static_assert(!std::is_array<U>::value, "U_cannot_be_an_array");
     impl_.TakeState(&rhs.impl_);
     return *this;
   }

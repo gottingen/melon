@@ -21,7 +21,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/find_cstr.h>
+//#include <melon/utility/find_cstr.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/rtmp/amf.h>
 
@@ -131,13 +131,13 @@ namespace melon {
                 break;
             case AMF_MARKER_STRICT_ARRAY:
                 delete _arr;
-                _arr = NULL;
+                _arr = nullptr;
                 break;
             case AMF_MARKER_STRING:
             case AMF_MARKER_LONG_STRING:
                 if (!_is_shortstr) {
                     free(_str);
-                    _str = NULL;
+                    _str = nullptr;
                 }
                 _strsize = 0;
                 _is_shortstr = false;
@@ -145,19 +145,18 @@ namespace melon {
             case AMF_MARKER_OBJECT:
             case AMF_MARKER_ECMA_ARRAY:
                 delete _obj;
-                _obj = NULL;
+                _obj = nullptr;
                 break;
         }
         _type = AMF_MARKER_UNDEFINED;
     }
 
-    const AMFField *AMFObject::Find(const char *name) const {
-        std::map<std::string, AMFField>::const_iterator it =
-                mutil::find_cstr(_fields, name);
+    const AMFField *AMFObject::Find(std::string_view name) const {
+        auto it = _fields.find(name);
         if (it != _fields.end()) {
             return &it->second;
         }
-        return NULL;
+        return nullptr;
     }
 
     void AMFField::SetString(const std::string_view &str) {
@@ -405,7 +404,7 @@ namespace melon {
     static bool ReadAMFObjectField(AMFInputStream *stream,
                                    google::protobuf::Message *message,
                                    const google::protobuf::FieldDescriptor *field) {
-        const google::protobuf::Reflection *reflection = NULL;
+        const google::protobuf::Reflection *reflection = nullptr;
         if (field) {
             reflection = message->GetReflection();
         }
@@ -543,7 +542,7 @@ namespace melon {
                 break;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VLOG_IF(field == nullptr) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -568,7 +567,7 @@ namespace melon {
                 }
                 break;
             }
-            if (!ReadAMFObjectField(stream, NULL, NULL)) {
+            if (!ReadAMFObjectField(stream, nullptr, nullptr)) {
                 return false;
             }
         }
@@ -590,7 +589,7 @@ namespace melon {
                 return false;
             }
             const google::protobuf::FieldDescriptor *field = desc->FindFieldByName(name);
-            RPC_VLOG_IF(field == NULL) << "Unknown field=" << desc->full_name()
+            RPC_VLOG_IF(field == nullptr) << "Unknown field=" << desc->full_name()
                                        << "." << name;
             if (!ReadAMFObjectField(stream, message, field)) {
                 return false;
@@ -614,7 +613,7 @@ namespace melon {
                 return false;
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
-            // Notice that NULL is treated as an object w/o any fields.
+            // Notice that nullptr is treated as an object w/o any fields.
             LOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
             return false;
         }
@@ -785,7 +784,7 @@ namespace melon {
                 return false;
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
-            // NOTE: NULL is treated as an object w/o any fields.
+            // NOTE: nullptr is treated as an object w/o any fields.
             LOG(ERROR) << "Expected object/null, actually " << marker2str(marker);
             return false;
         }
@@ -909,7 +908,7 @@ namespace melon {
                 return false;
             }
         } else if ((AMFMarker) marker != AMF_MARKER_NULL) {
-            // NOTE: NULL is treated as an array w/o any items.
+            // NOTE: nullptr is treated as an array w/o any items.
             LOG(ERROR) << "Expected array/null, actually " << marker2str(marker);
             return false;
         }

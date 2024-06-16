@@ -23,7 +23,7 @@
 #include <vector>                                      // std::vector
 #include <deque>                                       // std::deque
 #include <map>                                         // std::map
-#include <melon/utility/containers/flat_map.h>                  // FlatMap
+#include <melon/base/containers/flat_map.h>                  // FlatMap
 #include <melon/base/doubly_buffered_data.h>      // DoublyBufferedData
 #include <melon/base/bounded_queue.h>             // BoundedQueue
 #include <melon/rpc/load_balancer.h>

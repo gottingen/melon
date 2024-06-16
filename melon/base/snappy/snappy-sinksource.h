@@ -26,8 +26,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_SINKSOURCE_H_
-#define MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_SINKSOURCE_H_
+#pragma once
 
 #include <stddef.h>
 
@@ -180,5 +179,3 @@ class UncheckedByteArraySink : public Sink {
 
 }  // namespace snappy
 }  // namespace mutil
-
-#endif  // MUTIL_THIRD_PARTY_SNAPPY_SNAPPY_SINKSOURCE_H_

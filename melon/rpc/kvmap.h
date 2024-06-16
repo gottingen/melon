@@ -21,7 +21,7 @@
 #ifndef MELON_RPC_KVMAP_H_
 #define MELON_RPC_KVMAP_H_
 
-#include <melon/utility/containers/flat_map.h>
+#include <melon/base/containers/flat_map.h>
 
 namespace melon {
     
