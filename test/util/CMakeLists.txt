@@ -45,14 +45,10 @@ SET(TEST_UTILITY_SOURCES
         string16_unittest
         stringprintf_unittest
         string_number_conversions_unittest
-        string_piece_unittest
         string_split_unittest
         string_tokenizer_unittest
         string_util_unittest
         stringize_macros_unittest
-        sys_string_conversions_unittest
-        utf_offset_string_conversions_unittest
-        utf_string_conversions_unittest
         cancellation_flag_unittest
         condition_variable_unittest
         lock_unittest

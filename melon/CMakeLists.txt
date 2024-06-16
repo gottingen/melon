@@ -96,19 +96,19 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/time/tick_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/base/class_name.cc
-        ${PROJECT_SOURCE_DIR}/melon/base/errno.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/status.cpp
-        ${PROJECT_SOURCE_DIR}/melon/base/thread_local.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/unix_socket.cpp
-        ${PROJECT_SOURCE_DIR}/melon/base/endpoint.cc
-        ${PROJECT_SOURCE_DIR}/melon/base/fd_utility.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/temp_file.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_watcher.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/time.cpp
-        ${PROJECT_SOURCE_DIR}/melon/base/zero_copy_stream_as_streambuf.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/class_name.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/errno.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/thread_local.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/endpoint.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/fd_utility.cc
+        ${PROJECT_SOURCE_DIR}/melon/base/zero_copy_stream_as_streambuf.cc
         ${PROJECT_SOURCE_DIR}/melon/base/iobuf.cc
         ${PROJECT_SOURCE_DIR}/melon/base/binary_printer.cc
         ${PROJECT_SOURCE_DIR}/melon/base/popen.cc

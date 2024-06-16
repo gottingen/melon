@@ -17,12 +17,7 @@
 //
 //
 
-
-// Date: 2023/05/06 15:10:00
-
 #include <gtest/gtest.h>
-
-#include <melon/utility/strings/string_piece.h>
 #include <melon/base/iobuf.h>
 #include <melon/builtin/prometheus_metrics_service.h>
 

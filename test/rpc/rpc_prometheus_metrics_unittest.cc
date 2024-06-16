@@ -24,7 +24,6 @@
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
-#include <melon/utility/strings/string_piece.h>
 #include <turbo/strings/match.h>
 #include "echo.pb.h"
 
