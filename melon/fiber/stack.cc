@@ -24,8 +24,8 @@
 #include <stdlib.h>                               // posix_memalign
 #include <melon/base/macros.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
-#include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h> // RunningOnValgrind
-#include <melon/utility/third_party/valgrind/valgrind.h>   // VALGRIND_STACK_REGISTER
+#include <melon/base/dynamic_annotations/dynamic_annotations.h> // RunningOnValgrind
+#include <melon/base/valgrind.h>   // VALGRIND_STACK_REGISTER
 #include <melon/var/passive_status.h>
 #include <melon/fiber/types.h>                        // FIBER_STACKTYPE_*
 #include <melon/fiber/stack.h>

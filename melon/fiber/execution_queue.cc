@@ -74,13 +74,13 @@ namespace fiber {
             _high_priority_tasks.fetch_add(1, std::memory_order_relaxed);
         }
         TaskNode *const prev_head = _head.exchange(node, std::memory_order_release);
-        if (prev_head != NULL) {
+        if (prev_head != nullptr) {
             node->next = prev_head;
             return;
         }
         // Get the right to execute the task, start a fiber to avoid deadlock
         // or stack overflow
-        node->next = NULL;
+        node->next = nullptr;
         node->q = this;
 
         ExecutionQueueVars *const vars = get_execq_vars();
@@ -103,12 +103,12 @@ namespace fiber {
         if (nullptr == _options.executor) {
             if (_options.use_pthread) {
                 if (_pthread_started) {
-                    MELON_SCOPED_LOCK(_mutex);
+                    std::unique_lock mu(_mutex);
                     _current_head = node;
-                    _cond.Signal();
+                    _cond.notify_one();
                 } else {
                     // Start the execution fiber in background once.
-                    if (pthread_create(&_pid, NULL,
+                    if (pthread_create(&_pid, nullptr,
                                        _execute_tasks_pthread,
                                        node) != 0) {
                         PLOG(FATAL) << "Fail to create pthread";
@@ -141,11 +141,11 @@ namespace fiber {
         ExecutionQueueVars *vars = get_execq_vars();
         TaskNode *head = (TaskNode *) arg;
         ExecutionQueueBase *m = (ExecutionQueueBase *) head->q;
-        TaskNode *cur_tail = NULL;
+        TaskNode *cur_tail = nullptr;
         bool destroy_queue = false;
         for (;;) {
             if (head->iterated) {
-                CHECK(head->next != NULL);
+                CHECK(head->next != nullptr);
                 TaskNode *saved_head = head;
                 head = head->next;
                 m->return_task_node(saved_head);
@@ -162,19 +162,19 @@ namespace fiber {
                     sched_yield();
                 }
             } else {
-                rc = m->_execute(head, false, NULL);
+                rc = m->_execute(head, false, nullptr);
             }
             if (rc == ESTOP) {
                 destroy_queue = true;
             }
             // Release TaskNode until uniterated task or last task
-            while (head->next != NULL && head->iterated) {
+            while (head->next != nullptr && head->iterated) {
                 TaskNode *saved_head = head;
                 head = head->next;
                 m->return_task_node(saved_head);
             }
-            if (cur_tail == NULL) {
-                for (cur_tail = head; cur_tail->next != NULL;
+            if (cur_tail == nullptr) {
+                for (cur_tail = head; cur_tail->next != nullptr;
                      cur_tail = cur_tail->next) {}
             }
             // break when no more tasks and head has been executed
@@ -186,7 +186,7 @@ namespace fiber {
             }
         }
         if (destroy_queue) {
-            CHECK(m->_head.load(std::memory_order_relaxed) == NULL);
+            CHECK(m->_head.load(std::memory_order_relaxed) == nullptr);
             CHECK(m->_stopped);
             // Add _join_butex by 2 to make it equal to the next version of the
             // ExecutionQueue from the same slot so that join with old id would
@@ -200,7 +200,7 @@ namespace fiber {
             mutil::return_resource(slot_of_id(m->_this_id));
         }
         vars->execq_active_count << -1;
-        return NULL;
+        return nullptr;
     }
 
     void *ExecutionQueueBase::_execute_tasks_pthread(void *arg) {
@@ -209,12 +209,12 @@ namespace fiber {
         auto m = (ExecutionQueueBase *) head->q;
         m->_current_head = head;
         while (true) {
-            MELON_SCOPED_LOCK(m->_mutex);
+            std::unique_lock mu(m->_mutex);
             while (!m->_current_head) {
-                m->_cond.Wait();
+                m->_cond.wait(mu);
             }
             _execute_tasks(m->_current_head);
-            m->_current_head = NULL;
+            m->_current_head = nullptr;
 
             int expected = _version_of_id(m->_this_id);
             if (expected != m->_join_butex->load(std::memory_order_relaxed)) {
@@ -222,7 +222,7 @@ namespace fiber {
                 break;
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     void ExecutionQueueBase::return_task_node(TaskNode *node) {
@@ -235,7 +235,7 @@ namespace fiber {
         // Push a closed tasks
         while (true) {
             TaskNode *node = mutil::get_object<TaskNode>();
-            if (MELON_LIKELY(node != NULL)) {
+            if (MELON_LIKELY(node != nullptr)) {
                 get_execq_vars()->running_task_count << 1;
                 node->stop_task = true;
                 node->high_priority = false;
@@ -251,21 +251,21 @@ namespace fiber {
     int ExecutionQueueBase::join(uint64_t id) {
         const slot_id_t slot = slot_of_id(id);
         ExecutionQueueBase *const m = mutil::address_resource(slot);
-        if (m == NULL) {
+        if (m == nullptr) {
             // The queue is not created yet, this join is definitely wrong.
             return EINVAL;
         }
         int expected = _version_of_id(id);
         // acquire fence makes this thread see changes before changing _join_butex.
         while (expected == m->_join_butex->load(std::memory_order_acquire)) {
-            if (butex_wait(m->_join_butex, expected, NULL) < 0 &&
+            if (butex_wait(m->_join_butex, expected, nullptr) < 0 &&
                 errno != EWOULDBLOCK && errno != EINTR) {
                 return errno;
             }
         }
         // Join pthread if it's started.
         if (m->_options.use_pthread && m->_pthread_started) {
-            pthread_join(m->_pid, NULL);
+            pthread_join(m->_pid, nullptr);
         }
         return 0;
     }
@@ -277,7 +277,7 @@ namespace fiber {
             if (_version_of_vref(vref) != id_ver) {
                 return EINVAL;
             }
-            // Try to set version=id_ver+1 (to make later address() return NULL),
+            // Try to set version=id_ver+1 (to make later address() return nullptr),
             // retry on fail.
             if (_versioned_ref.compare_exchange_strong(
                     vref, _make_vref(id_ver + 1, _ref_of_vref(vref)),
@@ -296,11 +296,11 @@ namespace fiber {
     }
 
     int ExecutionQueueBase::_execute(TaskNode *head, bool high_priority, int *niterated) {
-        if (head != NULL && head->stop_task) {
-            CHECK(head->next == NULL);
+        if (head != nullptr && head->stop_task) {
+            CHECK(head->next == nullptr);
             head->iterated = true;
             head->status = EXECUTED;
-            TaskIteratorBase iter(NULL, this, true, false);
+            TaskIteratorBase iter(nullptr, this, true, false);
             _execute_func(_meta, _type_specific_function, iter);
             if (niterated) {
                 *niterated = 1;
@@ -332,7 +332,7 @@ namespace fiber {
         scoped_ptr_t ret;
         const slot_id_t slot = slot_of_id(id);
         ExecutionQueueBase *const m = mutil::address_resource(slot);
-        if (MELON_LIKELY(m != NULL)) {
+        if (MELON_LIKELY(m != nullptr)) {
             // acquire fence makes sure this thread sees latest changes before
             // _dereference()
             const uint64_t vref1 = m->_versioned_ref.fetch_add(
@@ -382,21 +382,21 @@ namespace fiber {
                                    execute_func_t execute_func,
                                    clear_task_mem clear_func,
                                    void *meta, void *type_specific_function) {
-        if (execute_func == NULL || clear_func == NULL) {
+        if (execute_func == nullptr || clear_func == nullptr) {
             return EINVAL;
         }
 
         slot_id_t slot;
         ExecutionQueueBase *const m = mutil::get_resource(&slot, Forbidden());
-        if (MELON_LIKELY(m != NULL)) {
+        if (MELON_LIKELY(m != nullptr)) {
             m->_execute_func = execute_func;
             m->_clear_func = clear_func;
             m->_meta = meta;
             m->_type_specific_function = type_specific_function;
-            CHECK(m->_head.load(std::memory_order_relaxed) == NULL);
+            CHECK(m->_head.load(std::memory_order_relaxed) == nullptr);
             CHECK_EQ(0, m->_high_priority_tasks.load(std::memory_order_relaxed));
             ExecutionQueueOptions opt;
-            if (options != NULL) {
+            if (options != nullptr) {
                 opt = *options;
             }
             m->_options = opt;
@@ -406,7 +406,7 @@ namespace fiber {
                             1, std::memory_order_release)), slot);
             *id = m->_this_id;
             m->_pthread_started = false;
-            m->_current_head = NULL;
+            m->_current_head = nullptr;
             get_execq_vars()->execq_count << 1;
             return 0;
         }
@@ -461,7 +461,7 @@ namespace fiber {
             }
             _head = _head->next;
         }
-        if (_should_break && _cur_node != NULL
+        if (_should_break && _cur_node != nullptr
             && _cur_node->high_priority == _high_priority && _cur_node->iterated) {
             _cur_node->set_executed();
         }

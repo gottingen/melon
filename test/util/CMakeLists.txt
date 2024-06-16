@@ -20,7 +20,6 @@ SET(TEST_UTILITY_SOURCES
         atomicops_unittest
         hash_tables_unittest
         linked_list_unittest
-        leak_tracker_unittest
         dir_reader_posix_unittest
         file_path_unittest
         file_unittest
@@ -46,7 +45,6 @@ SET(TEST_UTILITY_SOURCES
         string_tokenizer_unittest
         string_util_unittest
         stringize_macros_unittest
-        cancellation_flag_unittest
         condition_variable_unittest
         lock_unittest
         waitable_event_unittest
@@ -56,7 +54,6 @@ SET(TEST_UTILITY_SOURCES
         thread_id_name_manager_unittest
         thread_local_storage_unittest
         thread_local_unittest
-        watchdog_unittest
         time_unittest
         cacheline_unittest
         class_name_unittest
@@ -80,11 +77,6 @@ SET(TEST_UTILITY_SOURCES
         resource_pool_unittest
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    SET(TEST_UTILITY_SOURCES ${TEST_UTILITY_SOURCES}
-            proc_maps_linux_unittest
-            test_file_util_linux)
-endif()
 
 foreach (test ${TEST_UTILITY_SOURCES})
     carbin_cc_test(

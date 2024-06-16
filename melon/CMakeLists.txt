@@ -17,25 +17,10 @@
 set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dmg_fp/g_fmt.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dmg_fp/dtoa_wrapper.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/dynamic_annotations/dynamic_annotations.c
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/icu/icu_utf.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/superfasthash/superfasthash.c
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/modp_b64/modp_b64.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/symbolize/demangle.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/third_party/symbolize/symbolize.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/third_party/murmurhash3/murmurhash3.cpp
-        ${PROJECT_SOURCE_DIR}/melon/base/arena.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/asan_invalid_access.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/crash_logging.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/debugger.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/debugger_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/dump_without_crashing.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/proc_maps_linux.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/stack_trace.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/debug/stack_trace_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_enumerator.cc
@@ -72,7 +57,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_offset_string_conversions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_string_conversion_utils.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/utf_string_conversions.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/cancellation_flag.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/condition_variable_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/synchronization/waitable_event_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/non_thread_safe_impl.cc
@@ -85,7 +69,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_local_storage_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/threading/thread_restrictions.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/threading/watchdog.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/default_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/default_tick_clock.cc
@@ -98,6 +81,8 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/files/temp_file.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/files/file_watcher.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/time.cpp
+        ${PROJECT_SOURCE_DIR}/melon/base/dynamic_annotations/dynamic_annotations.c
+        ${PROJECT_SOURCE_DIR}/melon/base/arena.cc
         ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy.cc
         ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy-sinksource.cc
         ${PROJECT_SOURCE_DIR}/melon/base/snappy/snappy-stubs-internal.cc

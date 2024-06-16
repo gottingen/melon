@@ -40,10 +40,9 @@
 #include <melon/utility/atomicops.h>
 #include <melon/base/base_export.h>
 #include <melon/base/basictypes.h>
-#include "melon/utility/debug/leak_annotations.h"
 #include <turbo/log/logging.h>
 #include "melon/utility/memory/aligned_memory.h"
-#include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h>
+#include <melon/base/dynamic_annotations/dynamic_annotations.h>
 #include "melon/utility/threading/thread_restrictions.h"
 
 // LazyInstance uses its own struct initializer-list style static
@@ -105,7 +104,6 @@ struct LeakyLazyInstanceTraits {
 #endif
 
   static Type* New(void* instance) {
-    ANNOTATE_SCOPED_MEMORY_LEAK;
     return DefaultLazyInstanceTraits<Type>::New(instance);
   }
   static void Delete(Type* instance) {

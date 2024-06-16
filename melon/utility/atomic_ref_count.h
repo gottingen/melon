@@ -12,7 +12,7 @@
 #define MUTIL_ATOMIC_REF_COUNT_H_
 
 #include <melon/utility/atomicops.h>
-#include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h>
+#include <melon/base/dynamic_annotations/dynamic_annotations.h>
 
 namespace mutil {
 
