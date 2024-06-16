@@ -25,7 +25,7 @@
 #include <gflags/gflags.h>
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/utility/rand_util.h>
 #include <melon/rpc/server.h>

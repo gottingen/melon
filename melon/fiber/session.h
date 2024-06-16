@@ -21,7 +21,7 @@
 #ifndef MELON_FIBER_SESSION_H_
 #define MELON_FIBER_SESSION_H_
 
-#include <melon/utility/macros.h>              // MELON_SYMBOLSTR
+#include <melon/base/macros.h>              // MELON_SYMBOLSTR
 #include <melon/fiber/types.h>
 
 __BEGIN_DECLS

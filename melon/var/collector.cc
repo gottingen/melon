@@ -38,8 +38,8 @@ namespace melon::var {
     // CAUTION: Don't change this value unless you know exactly what it means.
     static const int64_t COLLECTOR_GRAB_INTERVAL_US = 100000L; // 100ms
 
-    MELON_CASSERT(!(COLLECTOR_SAMPLING_BASE & (COLLECTOR_SAMPLING_BASE - 1)),
-                  must_be_power_of_2);
+    static_assert(!(COLLECTOR_SAMPLING_BASE & (COLLECTOR_SAMPLING_BASE - 1)),
+                  "must be power of 2");
 
     // Combine two circular linked list into one.
     struct CombineCollected {

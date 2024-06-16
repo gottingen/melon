@@ -23,7 +23,7 @@
 #include <melon/fiber/unstable.h>                 // fiber_timer_add
 #include <atomic>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/details/controller_private_accessor.h>
 #include <melon/rpc/parallel_channel.h>
 #include <cinttypes>

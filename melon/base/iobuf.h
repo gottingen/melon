@@ -34,7 +34,7 @@
 #include <string_view>
 #include <melon/utility/snappy/snappy-sinksource.h>
 #include <melon/base/zero_copy_stream_as_streambuf.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/reader_writer.h>
 #include <melon/base/binary_printer.h>
 

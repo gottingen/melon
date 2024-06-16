@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 #include <melon/base/build_config.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 #if defined(OS_WIN) && defined(ARCH_CPU_64_BITS)
 // windows.h #defines this (only on x64). This causes problems because the
@@ -240,7 +240,7 @@ private:
     // Make sure memory layout of std::atomic<T> and boost::atomic<T>
     // are same so that different compilation units seeing different 
     // definitions(enable C++11 or not) should be compatible.
-    MELON_CASSERT(sizeof(T) == sizeof(::std::atomic<T>), size_must_match);
+    static_assert(sizeof(T) == sizeof(::std::atomic<T>), "size must match");
 };
 } // namespace mutil
 #else
@@ -268,7 +268,7 @@ private:
     // Make sure memory layout of std::atomic<T> and boost::atomic<T>
     // are same so that different compilation units seeing different 
     // definitions(enable C++11 or not) should be compatible.
-    MELON_CASSERT(sizeof(T) == sizeof(::boost::atomic<T>), size_must_match);
+    static_assert(sizeof(T) == sizeof(::boost::atomic<T>), "size must match");
 };
 } // namespace mutil
 #endif
@@ -310,7 +310,7 @@ template <typename T> struct static_atomic {
     }
 private:
     DISALLOW_ASSIGN(static_atomic);
-    MELON_CASSERT(sizeof(T) == sizeof(atomic<T>), size_must_match);
+    static_assert(sizeof(T) == sizeof(atomic<T>), "size must match");
     atomic<T>& ref() {
         // Suppress strict-alias warnings.
         atomic<T>* p = reinterpret_cast<atomic<T>*>(&val);

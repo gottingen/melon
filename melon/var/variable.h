@@ -24,7 +24,7 @@
 #include <vector>                      // std::vector
 #include <string_view>
 #include <gflags/gflags_declare.h>
-#include <melon/utility/macros.h>               // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/macros.h>               // DISALLOW_COPY_AND_ASSIGN
 
 namespace melon::var {
 

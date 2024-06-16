@@ -20,7 +20,6 @@
 
 #include <melon/rpc/policy/redis_authenticator.h>
 #include <melon/base/iobuf.h>
-#include <melon/utility/string_printf.h>
 #include <melon/rpc/redis/redis_command.h>
 
 namespace melon::policy {

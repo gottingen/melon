@@ -22,7 +22,7 @@
 #include <melon/utility/atomicops.h>
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>

@@ -21,8 +21,8 @@
 #ifndef MELON_FIBER_REMOTE_TASK_QUEUE_H_
 #define MELON_FIBER_REMOTE_TASK_QUEUE_H_
 
-#include <melon/utility/containers/bounded_queue.h>
-#include <melon/utility/macros.h>
+#include <melon/base/bounded_queue.h>
+#include <melon/base/macros.h>
 
 namespace fiber {
 

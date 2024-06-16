@@ -17,13 +17,13 @@
 //
 //
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/zero_copy_stream_as_streambuf.h>
 
 namespace mutil {
 
-MELON_CASSERT(sizeof(std::streambuf::char_type) == sizeof(char),
-              only_support_char);
+    static_assert(sizeof(std::streambuf::char_type) == sizeof(char),
+              "only support char");
 
 int ZeroCopyStreamAsStreamBuf::overflow(int ch) {
     if (ch == std::streambuf::traits_type::eof()) {

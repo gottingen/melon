@@ -20,8 +20,8 @@
 
 #include <atomic>
 #include <melon/base/scoped_lock.h>              // MELON_SCOPED_LOCK
-#include <melon/utility/macros.h>
-#include <melon/utility/containers/linked_list.h>   // LinkNode
+#include <melon/base/macros.h>
+#include <melon/base/linked_list.h>   // LinkNode
 
 #ifdef SHOW_FIBER_BUTEX_WAITER_COUNT_IN_VARS
 #include <melon/utility/memory/singleton_on_pthread_once.h>
@@ -126,8 +126,8 @@ namespace fiber {
         internal::FastPthreadMutex waiter_lock;
     };
 
-    MELON_CASSERT(offsetof(Butex, value) == 0, offsetof_value_must_0);
-    MELON_CASSERT(sizeof(Butex) == MELON_CACHELINE_SIZE, butex_fits_in_one_cacheline);
+    static_assert(offsetof(Butex, value) == 0, "offsetof value must 0");
+    static_assert(sizeof(Butex) == MELON_CACHELINE_SIZE, "butex fits in one cacheline");
 
     static void wakeup_pthread(ButexPthreadWaiter *pw) {
         // release fence makes wait_pthread see changes before wakeup.

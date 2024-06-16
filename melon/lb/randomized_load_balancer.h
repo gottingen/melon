@@ -21,7 +21,7 @@
 
 #include <vector>                                      // std::vector
 #include <map>                                         // std::map
-#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/base/doubly_buffered_data.h>
 #include <melon/rpc/load_balancer.h>
 #include <melon/rpc/cluster_recover_policy.h>
 

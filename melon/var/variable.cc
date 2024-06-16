@@ -23,7 +23,7 @@
 #include <fstream>                              // std::ifstream
 #include <sstream>                              // std::ostringstream
 #include <gflags/gflags.h>
-#include <melon/utility/macros.h>                        // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
 #include <melon/base/scoped_lock.h>                   // MELON_SCOPE_LOCK
 #include <melon/utility/string_splitter.h>               // mutil::StringSplitter
@@ -63,7 +63,7 @@ namespace melon::var {
                 " into logstream before call Dumpper");
 
     const size_t SUB_MAP_COUNT = 32;  // must be power of 2
-    MELON_CASSERT(!(SUB_MAP_COUNT & (SUB_MAP_COUNT - 1)), must_be_power_of_2);
+    static_assert(!(SUB_MAP_COUNT & (SUB_MAP_COUNT - 1)), "must be power of 2");
 
     class VarEntry {
     public:

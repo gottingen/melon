@@ -22,7 +22,7 @@
 #include <sys/mman.h>                             // mmap, munmap, mprotect
 #include <algorithm>                              // std::max
 #include <stdlib.h>                               // posix_memalign
-#include <melon/utility/macros.h>                          // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #include <melon/utility/third_party/dynamic_annotations/dynamic_annotations.h> // RunningOnValgrind
 #include <melon/utility/third_party/valgrind/valgrind.h>   // VALGRIND_STACK_REGISTER
@@ -40,11 +40,11 @@ namespace fiber {
     DEFINE_int32(tc_stack_small, 32, "maximum small stacks cached by each thread");
     DEFINE_int32(tc_stack_normal, 8, "maximum normal stacks cached by each thread");
 
-MELON_CASSERT(FIBER_STACKTYPE_PTHREAD == STACK_TYPE_PTHREAD, must_match);
-MELON_CASSERT(FIBER_STACKTYPE_SMALL == STACK_TYPE_SMALL, must_match);
-MELON_CASSERT(FIBER_STACKTYPE_NORMAL == STACK_TYPE_NORMAL, must_match);
-MELON_CASSERT(FIBER_STACKTYPE_LARGE == STACK_TYPE_LARGE, must_match);
-MELON_CASSERT(STACK_TYPE_MAIN == 0, must_be_0);
+    static_assert(FIBER_STACKTYPE_PTHREAD == STACK_TYPE_PTHREAD, "must_match");
+    static_assert(FIBER_STACKTYPE_SMALL == STACK_TYPE_SMALL, "must_match");
+    static_assert(FIBER_STACKTYPE_NORMAL == STACK_TYPE_NORMAL, "must_match");
+    static_assert(FIBER_STACKTYPE_LARGE == STACK_TYPE_LARGE, "must_match");
+    static_assert(STACK_TYPE_MAIN == 0, "must_be_0");
 
 static std::atomic<int64_t> s_stack_count{0};
 static int64_t get_stack_count(void*) {

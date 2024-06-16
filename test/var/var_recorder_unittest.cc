@@ -26,7 +26,7 @@
 #include <memory>
 #include <iostream>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/var/recorder.h>
 #include <melon/var/latency_recorder.h>
 #include <gtest/gtest.h>

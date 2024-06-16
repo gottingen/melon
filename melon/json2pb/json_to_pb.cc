@@ -33,7 +33,7 @@
 #include <melon/json2pb/zero_copy_stream_reader.h>       // ZeroCopyStreamReader
 #include <melon/json2pb/encode_decode.h>
 #include <turbo/strings/escaping.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/json2pb/protobuf_map.h>
 #include <melon/json2pb/rapidjson.h>
 
@@ -46,9 +46,9 @@
         if (!perr->empty()) {                                           \
             perr->append(", ", 2);                                      \
         }                                                               \
-        mutil::string_appendf(perr, fmt, ##__VA_ARGS__);                \
+        turbo::str_append_format(perr, fmt, ##__VA_ARGS__);                \
         if ((pb) != nullptr) {                                            \
-            mutil::string_appendf(perr, " [%s]", (pb)->GetDescriptor()->name().c_str());  \
+            turbo::str_append_format(perr, " [%s]", (pb)->GetDescriptor()->name().c_str());  \
         }                                                               \
     } else { }
 
@@ -71,15 +71,15 @@ namespace json2pb {
         } else if (value.IsBool()) {
             output->append(value.GetBool() ? "true" : "false");
         } else if (value.IsInt()) {
-            mutil::string_appendf(output, "%d", value.GetInt());
+            turbo::str_append_format(output, "%d", value.GetInt());
         } else if (value.IsUint()) {
-            mutil::string_appendf(output, "%u", value.GetUint());
+            turbo::str_append_format(output, "%u", value.GetUint());
         } else if (value.IsInt64()) {
-            mutil::string_appendf(output, "%" PRId64, value.GetInt64());
+            turbo::str_append_format(output, "%d", value.GetInt64());
         } else if (value.IsUint64()) {
-            mutil::string_appendf(output, "%" PRIu64, value.GetUint64());
+            turbo::str_append_format(output, "%u", value.GetUint64());
         } else if (value.IsDouble()) {
-            mutil::string_appendf(output, "%f", value.GetDouble());
+            turbo::str_append_format(output, "%f", value.GetDouble());
         } else if (value.IsString()) {
             output->push_back('"');
             output->append(value.GetString(), value.GetStringLength());
@@ -91,12 +91,12 @@ namespace json2pb {
         }
     }
 
-//It will be called when type mismatch occurs, fg: convert string to uint, 
-//and will also be called when invalid value appears, fg: invalid enum name,
-//invalid enum number, invalid string content to convert to double or float.
-//for optional field error will just append error into error message
-//and ends with ',' and return true.
-//otherwise will append error into error message and return false.
+    //It will be called when type mismatch occurs, fg: convert string to uint,
+    //and will also be called when invalid value appears, fg: invalid enum name,
+    //invalid enum number, invalid string content to convert to double or float.
+    //for optional field error will just append error into error message
+    //and ends with ',' and return true.
+    //otherwise will append error into error message and return false.
     inline bool value_invalid(const google::protobuf::FieldDescriptor *field, const char *type,
                               const MUTIL_RAPIDJSON_NAMESPACE::Value &value, std::string *err) {
         bool optional = field->is_optional();
@@ -106,7 +106,7 @@ namespace json2pb {
             }
             err->append("Invalid value `");
             string_append_value(value, err);
-            mutil::string_appendf(err, "' for %sfield `%s' which SHOULD be %s",
+            turbo::str_append_format(err, "' for %sfield `%s' which SHOULD be %s",
                                   optional ? "optional " : "",
                                   field->full_name().c_str(), type);
         }

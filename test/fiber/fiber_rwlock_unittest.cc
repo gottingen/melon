@@ -24,7 +24,7 @@
 #include <signal.h>
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 namespace {
 void* read_thread(void* arg) {

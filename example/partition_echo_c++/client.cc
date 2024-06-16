@@ -23,9 +23,9 @@
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/partition_channel.h>
 #include <deque>
 #include "echo.pb.h"

@@ -26,7 +26,7 @@
 #include <google/protobuf/stubs/common.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>

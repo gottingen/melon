@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <melon/utility/containers/linked_list.h>
+#include <melon/base/linked_list.h>
 #include <melon/base/fast_rand.h>
 #include <melon/utility/time.h>
 #include <atomic>

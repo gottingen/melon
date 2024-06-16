@@ -21,7 +21,7 @@
 #ifndef  BRAFT_MACROS_H
 #define  BRAFT_MACROS_H
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include <melon/var/utils/lock_timer.h>
 

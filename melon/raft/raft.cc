@@ -20,7 +20,7 @@
 
 #include <pthread.h>
 #include <unistd.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/base/class_name.h>
 #include <melon/raft/raft.h>
 #include <melon/raft/node.h>

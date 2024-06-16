@@ -1083,7 +1083,7 @@ TEST_P(NodeTest, restart_without_stable_meta) {
     mutil::EndPoint follower_addr = nodes[0]->node_id().peer_id.addr;
     cluster.stop(follower_addr);
 
-    ::system(mutil::string_printf("rm -rf ./data/%s/stable/*",
+    ::system(turbo::str_format("rm -rf ./data/%s/stable/*",
                                  mutil::endpoint2str(follower_addr).c_str()).c_str());
 
     LOG(INFO) << "restart follower";

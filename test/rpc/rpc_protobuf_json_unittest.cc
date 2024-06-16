@@ -25,7 +25,7 @@
 #include <string>
 #include <google/protobuf/text_format.h>
 #include <melon/base/iobuf.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/strings/string_util.h>
 #include <melon/utility/third_party/rapidjson/rapidjson.h>
 #include <melon/utility/time.h>
@@ -1547,7 +1547,7 @@ TEST_F(ProtobufJsonTest, parse_multiple_json) {
     mutil::IOBuf jsonBuf;
     for (int i = 0; i < COUNT; ++i) {
         const std::string d =
-            mutil::string_printf(R"( { "name":"%s", "id":%d, "datadouble":%f } )",
+            turbo::str_format(R"( { "name":"%s", "id":%d, "datadouble":%f } )",
                               expectedNames[i].c_str(),
                               expectedIds[i],
                               expectedData[i]);

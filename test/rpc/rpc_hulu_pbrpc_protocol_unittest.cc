@@ -29,7 +29,7 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/acceptor.h>

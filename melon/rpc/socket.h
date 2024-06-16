@@ -25,7 +25,7 @@
 #include <atomic>
 #include <melon/fiber/types.h>                      // fiber_session_t
 #include <melon/base/iobuf.h>                        // mutil::IOBuf, IOPortal
-#include <melon/utility/macros.h>                       // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/macros.h>                       // DISALLOW_COPY_AND_ASSIGN
 #include <melon/base/endpoint.h>                     // mutil::EndPoint
 #include <melon/base/resource_pool.h>                // mutil::ResourceId
 #include <melon/fiber/butex.h>                      // butex_create_checked
@@ -433,8 +433,12 @@ namespace melon {
         // Returns -1 when the Socket was already SetFailed(), 0 otherwise.
         int SetFailed();
 
-        int SetFailed(int error_code, const char *error_fmt, ...)
-        __attribute__ ((__format__ (__printf__, 3, 4)));
+        int SetFailed(int error_code, std::string &&error_msg);
+
+        template<typename... Args>
+        int SetFailed(int error_code, const turbo::FormatSpec<Args...> &fmt, Args &&... args) {
+            return SetFailed(error_code, turbo::str_format(fmt, std::forward<Args>(args)...));
+        }
 
         static int SetFailed(SocketId id);
 

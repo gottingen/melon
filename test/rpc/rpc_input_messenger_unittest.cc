@@ -28,7 +28,7 @@
 #include <gtest/gtest.h>
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/fd_utility.h>
 #include <melon/base/fd_guard.h>
 #include "melon/utility/unix_socket.h"

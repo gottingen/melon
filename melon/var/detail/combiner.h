@@ -25,7 +25,7 @@
 #include <melon/base/scoped_lock.h>           // MELON_SCOPED_LOCK
 #include <melon/base/type_traits.h>            // mutil::add_cr_non_integral
 #include <melon/utility/synchronization/lock.h>  // mutil::Lock
-#include <melon/utility/containers/linked_list.h>// LinkNode
+#include <melon/base/linked_list.h>// LinkNode
 #include <melon/var/detail/agent_group.h>    // detail::AgentGroup
 #include <melon/var/detail/is_atomical.h>
 #include <melon/var/detail/call_op_returning_void.h>

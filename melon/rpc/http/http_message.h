@@ -24,7 +24,7 @@
 
 #include <memory>                      // std::unique_ptr
 #include <string>                      // std::string
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/iobuf.h>               // mutil::IOBuf
 #include <melon/base/scoped_lock.h>         // mutil::unique_lock
 #include <melon/base/endpoint.h>

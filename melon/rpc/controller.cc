@@ -25,7 +25,7 @@
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
 #include <melon/base/build_config.h>    // OS_MACOSX
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
 #include <melon/base/config.h>
 #include <melon/utility/time.h>
@@ -398,7 +398,7 @@ namespace melon {
             }
             _error_text.push_back(']');
         } else {
-            mutil::string_appendf(&_error_text, "[%s:%d]",
+            turbo::str_append_format(&_error_text, "[%s:%d]",
                                   mutil::my_ip_cstr(), _server->listen_address().port);
         }
     }
@@ -429,7 +429,7 @@ namespace melon {
             _error_text.push_back(' ');
         }
         if (_current_call.nretry != 0) {
-            mutil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
+            turbo::str_append_format(&_error_text, "[R%d]", _current_call.nretry);
         } else {
             AppendServerIdentiy();
         }
@@ -441,7 +441,7 @@ namespace melon {
         UpdateResponseHeader(this);
     }
 
-    void Controller::SetFailed(int error_code, const char *reason_fmt, ...) {
+    void Controller::SetFailed(int error_code, const std::string &reason) {
         if (error_code == 0) {
             CHECK(false) << "error_code is 0";
             error_code = -1;
@@ -451,18 +451,15 @@ namespace melon {
             _error_text.push_back(' ');
         }
         if (_current_call.nretry != 0) {
-            mutil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
+            turbo::str_append_format(&_error_text, "[R%d]", _current_call.nretry);
         } else {
             AppendServerIdentiy();
         }
         const size_t old_size = _error_text.size();
         if (_error_code != -1) {
-            mutil::string_appendf(&_error_text, "[E%d]", _error_code);
+            turbo::str_append_format(&_error_text, "[E%d]", _error_code);
         }
-        va_list ap;
-        va_start(ap, reason_fmt);
-        mutil::string_vappendf(&_error_text, reason_fmt, ap);
-        va_end(ap);
+        _error_text.append(reason);
         if (_span) {
             _span->set_error_code(_error_code);
             _span->AnnotateCStr(_error_text.c_str() + old_size, 0);
@@ -470,7 +467,7 @@ namespace melon {
         UpdateResponseHeader(this);
     }
 
-    void Controller::CloseConnection(const char *reason_fmt, ...) {
+    void Controller::CloseConnection(const std::string &reason) {
         if (_error_code == 0) {
             _error_code = ECLOSE;
         }
@@ -479,18 +476,15 @@ namespace melon {
             _error_text.push_back(' ');
         }
         if (_current_call.nretry != 0) {
-            mutil::string_appendf(&_error_text, "[R%d]", _current_call.nretry);
+            turbo::str_append_format(&_error_text, "[R%d]", _current_call.nretry);
         } else {
             AppendServerIdentiy();
         }
         const size_t old_size = _error_text.size();
         if (_error_code != -1) {
-            mutil::string_appendf(&_error_text, "[E%d]", _error_code);
+            turbo::str_append_format(&_error_text, "[E%d]", _error_code);
         }
-        va_list ap;
-        va_start(ap, reason_fmt);
-        mutil::string_vappendf(&_error_text, reason_fmt, ap);
-        va_end(ap);
+        _error_text.append(reason);
         if (_span) {
             _span->set_error_code(_error_code);
             _span->AnnotateCStr(_error_text.c_str() + old_size, 0);

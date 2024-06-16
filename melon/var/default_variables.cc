@@ -38,7 +38,7 @@
 #include <melon/base/process_util.h>            // ReadCommandLine
 #include <melon/base/popen.h>                   // read_command_output
 #include <melon/var/passive_status.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 namespace melon::var {
 

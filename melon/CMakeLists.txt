@@ -100,7 +100,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/base/errno.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/status.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/string_printf.cpp
         ${PROJECT_SOURCE_DIR}/melon/base/thread_local.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/unix_socket.cpp
         ${PROJECT_SOURCE_DIR}/melon/base/endpoint.cc

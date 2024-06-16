@@ -21,7 +21,7 @@
 // Date: Sun Nov  3 19:16:50 PST 2019
 
 #include <iostream>
-#include <melon/utility/containers/bounded_queue.h>
+#include <melon/base/bounded_queue.h>
 #include <gtest/gtest.h>
 
 namespace {

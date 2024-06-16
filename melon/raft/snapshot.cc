@@ -19,7 +19,7 @@
 
 
 #include <melon/utility/time.h>
-#include <melon/utility/string_printf.h>                     // mutil::string_appendf
+#include <turbo/strings/str_format.h>
 #include <melon/rpc/uri.h>
 #include <melon/raft/util.h>
 #include <melon/raft/protobuf_file.h>
@@ -487,7 +487,7 @@ namespace melon::raft {
                 snapshots.erase(index);
 
                 std::string snapshot_path(_path);
-                mutil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
+                turbo::str_append_format(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
                 LOG(INFO) << "Deleting snapshot `" << snapshot_path << "'";
                 // TODO: Notify Watcher before delete directories.
                 if (!_fs->delete_file(snapshot_path, true)) {
@@ -527,7 +527,7 @@ namespace melon::raft {
                 _ref_map.erase(it);
                 lck.unlock();
                 std::string old_path(_path);
-                mutil::string_appendf(&old_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
+                turbo::str_append_format(&old_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, index);
                 destroy_snapshot(old_path);
             }
         }
@@ -631,7 +631,7 @@ namespace melon::raft {
             temp_path.append("/");
             temp_path.append(_s_temp_path);
             std::string new_path(_path);
-            mutil::string_appendf(&new_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, new_index);
+            turbo::str_append_format(&new_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, new_index);
             LOG(INFO) << "Deleting " << new_path;
             if (!_fs->delete_file(new_path, true)) {
                 LOG(WARNING) << "delete new snapshot path failed, path " << new_path;
@@ -670,7 +670,7 @@ namespace melon::raft {
             ++_ref_map[last_snapshot_index];
             lck.unlock();
             std::string snapshot_path(_path);
-            mutil::string_appendf(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, last_snapshot_index);
+            turbo::str_append_format(&snapshot_path, "/" MELON_RAFT_SNAPSHOT_PATTERN, last_snapshot_index);
             LocalSnapshotReader *reader = new LocalSnapshotReader(snapshot_path, _addr,
                                                                   _fs.get(), _snapshot_throttle.get());
             if (reader->init() != 0) {

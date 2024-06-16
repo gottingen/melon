@@ -23,7 +23,7 @@
 #include <iomanip>
 #include <gflags/gflags.h>
 #include <melon/utility/string_splitter.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/utility/time.h>
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/rpc/controller.h>           // Controller

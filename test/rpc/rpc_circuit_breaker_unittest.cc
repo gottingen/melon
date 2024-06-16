@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include <gtest/gtest.h>
 #include <gflags/gflags.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/circuit_breaker.h>
 #include <melon/rpc/socket.h>

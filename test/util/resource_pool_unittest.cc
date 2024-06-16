@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/fast_rand.h>
 
 #define MELON_CLEAR_RESOURCE_POOL_AFTER_ALL_THREADS_QUIT

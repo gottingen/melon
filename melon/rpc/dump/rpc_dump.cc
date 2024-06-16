@@ -197,7 +197,7 @@ namespace melon {
             struct tm *timeinfo = localtime(&rawtime);
             char ts_buf[64];
             strftime(ts_buf, sizeof(ts_buf), "%Y%m%d_%H%M%S", timeinfo);
-            mutil::string_printf(&_cur_filename, "%s/" DUMPED_FILE_PREFIX ".%s_%06u",
+            _cur_filename = turbo::str_format("%s/" DUMPED_FILE_PREFIX ".%s_%06u",
                                  _dir.value().c_str(), ts_buf,
                                  (unsigned) (cur_file_time - rawtime * 1000000L));
             _cur_fd = open(_cur_filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0666);

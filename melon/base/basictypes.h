@@ -15,7 +15,7 @@
 #include <stddef.h>  // For size_t.
 #include <stdint.h>  // For intptr_t.
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/port.h>  // Types that only need exist on certain systems.
 
 // DEPRECATED: Please use std::numeric_limits (from <limits>) instead.

@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <gtest/gtest.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include "melon/raft/ballot_box.h"
 #include "melon/raft/configuration.h"
 #include "melon/raft/fsm_caller.h"
@@ -18,8 +18,7 @@ void benchmark_vector_set(int num_peers) {
     std::set<melon::raft::PeerId> peer_set;
     std::vector<melon::raft::PeerId> peer_vector;
     for (int i = 0; i < num_peers; ++i) {
-        std::string peer_desc;
-        mutil::string_printf(&peer_desc, "192.168.1.%d:9876", i);
+        std::string peer_desc = turbo::str_format("192.168.1.%d:9876", i);
         melon::raft::PeerId peer(peer_desc);
         peer_set.insert(peer);
         peer_vector.push_back(peer);
@@ -98,8 +97,7 @@ TEST_F(BallotBoxTest, odd_cluster) {
     ASSERT_EQ(0, cm.reset_pending_index(1));
     std::vector<melon::raft::PeerId> peers;
     for (int i = 1; i <= 3; ++i) {
-        std::string peer_addr;
-        mutil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
+        std::string peer_addr = turbo::str_format("192.168.1.%d:8888", i);
         peers.push_back(melon::raft::PeerId(peer_addr));
     }
     melon::raft::Configuration conf(peers);
@@ -131,8 +129,7 @@ TEST_F(BallotBoxTest, even_cluster) {
     ASSERT_EQ(0, cm.reset_pending_index(1));
     std::vector<melon::raft::PeerId> peers;
     for (int i = 1; i <= 4; ++i) {
-        std::string peer_addr;
-        mutil::string_printf(&peer_addr, "192.168.1.%d:8888", i);
+        std::string peer_addr = turbo::str_format("192.168.1.%d:8888", i);
         peers.push_back(melon::raft::PeerId(peer_addr));
     }
     melon::raft::Configuration conf(peers);

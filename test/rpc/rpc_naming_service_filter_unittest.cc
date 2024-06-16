@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 #include <vector>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include "melon/utility/files/temp_file.h"
 #include <melon/rpc/socket.h>
 #include <melon/rpc/channel.h>

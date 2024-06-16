@@ -23,7 +23,7 @@
 #include <limits>          // numeric_limits
 #include <math.h>
 #include <melon/base/basictypes.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/utility/time.h>     // gettimeofday_us()
 #include <melon/base/fast_rand.h>
 
@@ -151,7 +151,7 @@ uint64_t fast_rand_in_u64(uint64_t min, uint64_t max) {
 
 inline double fast_rand_double(FastRandSeed* seed) {
     // Copied from rand_util.cc
-    COMPILE_ASSERT(std::numeric_limits<double>::radix == 2, otherwise_use_scalbn);
+    static_assert(std::numeric_limits<double>::radix == 2, "otherwise use scalbn");
     static const int kBits = std::numeric_limits<double>::digits;
     uint64_t random_bits = xorshift128_next(seed) & ((UINT64_C(1) << kBits) - 1);
     double result = ldexp(static_cast<double>(random_bits), -1 * kBits);

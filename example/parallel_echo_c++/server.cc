@@ -22,7 +22,7 @@
 
 #include <gflags/gflags.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/rpc/server.h>
 #include "echo.pb.h"
 

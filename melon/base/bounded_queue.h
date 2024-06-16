@@ -28,7 +28,7 @@
 #ifndef MUTIL_BOUNDED_QUEUE_H
 #define MUTIL_BOUNDED_QUEUE_H
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 
 namespace mutil {

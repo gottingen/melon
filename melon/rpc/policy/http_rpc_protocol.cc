@@ -29,7 +29,7 @@
 #include <melon/rpc/policy/http_rpc_protocol.h>
 #include <memory>                       // std::unique_ptr
 #include <melon/utility/string_splitter.h>                  // StringMultiSplitter
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/time.h>
 #include <turbo/base/endian.h>
 #include <melon/rpc/compress.h>
@@ -370,7 +370,7 @@ namespace melon {
                 // ErrorCode of RPC is unified to EHTTP.
                 const int sc = res_header->status_code();
                 if (sc < 200 || sc >= 300) {
-                    std::string err = mutil::string_printf(
+                    std::string err = turbo::str_format(
                             "HTTP/%d.%d %d %s",
                             res_header->major_version(),
                             res_header->minor_version(),
@@ -587,7 +587,7 @@ namespace melon {
             // Fill log-id if user set it.
             if (cntl->has_log_id()) {
                 hreq.SetHeader(common->LOG_ID,
-                               mutil::string_printf("%llu", (unsigned long long) cntl->log_id()));
+                               turbo::str_format("%llu", (unsigned long long) cntl->log_id()));
             }
             if (!cntl->request_id().empty()) {
                 hreq.SetHeader(FLAGS_request_id_header, cntl->request_id());
@@ -611,7 +611,7 @@ namespace melon {
                     hreq.SetHeader(common->TE, common->TRAILERS);
                     if (cntl->timeout_ms() >= 0) {
                         hreq.SetHeader(common->GRPC_TIMEOUT,
-                                       mutil::string_printf("%" PRId64 "m", cntl->timeout_ms()));
+                                       turbo::str_format("%" PRId64 "m", cntl->timeout_ms()));
                     }
                     // Append compressed and length before body
                     AddGrpcPrefix(&cntl->request_attachment(), grpc_compressed);
@@ -635,11 +635,11 @@ namespace melon {
 
             Span *span = accessor.span();
             if (span) {
-                hreq.SetHeader("x-bd-trace-id", mutil::string_printf(
+                hreq.SetHeader("x-bd-trace-id", turbo::str_format(
                         "%llu", (unsigned long long) span->trace_id()));
-                hreq.SetHeader("x-bd-span-id", mutil::string_printf(
+                hreq.SetHeader("x-bd-span-id", turbo::str_format(
                         "%llu", (unsigned long long) span->span_id()));
-                hreq.SetHeader("x-bd-parent-span-id", mutil::string_printf(
+                hreq.SetHeader("x-bd-parent-span-id", turbo::str_format(
                         "%llu", (unsigned long long) span->parent_span_id()));
             }
         }
@@ -860,7 +860,7 @@ namespace melon {
                     }
                     // Fill ErrorCode into header
                     res_header->SetHeader(common->ERROR_CODE,
-                                          mutil::string_printf("%d", cntl->ErrorCode()));
+                                          turbo::str_format("%d", cntl->ErrorCode()));
 
                     if (!cntl->does_manage_http_body_on_error()) {
                         // Fill body with ErrorText.

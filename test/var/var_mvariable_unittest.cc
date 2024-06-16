@@ -29,7 +29,7 @@
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/var/var.h>
 #include "melon/var/multi_dimension.h"
 

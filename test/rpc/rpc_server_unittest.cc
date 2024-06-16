@@ -28,7 +28,7 @@
 #include <gtest/gtest.h>
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/fd_guard.h>
 #include <melon/utility/files/scoped_file.h>
 #include <melon/rpc/socket.h>
@@ -1473,7 +1473,7 @@ TEST_F(ServerTest, base64_to_string) {
         ASSERT_EQ(0, chan.Init("localhost:8613", &opt));
         melon::Controller cntl;
         cntl.http_request().uri() = "/EchoService/BytesEcho" +
-                mutil::string_printf("%d", i + 1);
+                turbo::str_format("%d", i + 1);
         cntl.http_request().set_method(melon::HTTP_METHOD_POST);
         cntl.http_request().set_content_type("application/json");
         cntl.set_pb_bytes_to_base64(true);

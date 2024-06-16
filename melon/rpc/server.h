@@ -24,8 +24,8 @@
 #include <melon/fiber/fiber.h>      // Server may need some fiber functions,
 // e.g. fiber_usleep
 #include <google/protobuf/service.h>                 // google::protobuf::Service
-#include <melon/utility/macros.h>                            // DISALLOW_COPY_AND_ASSIGN
-#include <melon/utility/containers/doubly_buffered_data.h>   // DoublyBufferedData
+#include <melon/base/macros.h>                            // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/doubly_buffered_data.h>   // DoublyBufferedData
 #include <melon/var/var.h>
 #include <melon/utility/containers/case_ignored_flat_map.h>  // [CaseIgnored]FlatMap
 #include <melon/base/ptr_container.h>

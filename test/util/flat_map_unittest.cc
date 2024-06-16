@@ -25,12 +25,12 @@
 #include <string_view>
 #include <vector>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
-#include <melon/utility/string_printf.h>
+#include <melon/base/macros.h>
+#include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/containers/hash_tables.h>
 #include <melon/utility/containers/flat_map.h>
-#include "melon/utility/containers/pooled_map.h"
+#include "pooled_map.h"
 #include <melon/utility/containers/case_ignored_flat_map.h>
 
 namespace {
@@ -380,7 +380,7 @@ TEST_F(FlatMapTest, flat_map_of_string) {
     size_t sum = 0;
     keys.reserve(N);
     for (size_t i = 0; i < N; ++i) {
-        keys.push_back(mutil::string_printf("up_latency_as_key_%lu", i));
+        keys.push_back(turbo::str_format("up_latency_as_key_%lu", i));
     }
 
     tm1.start();

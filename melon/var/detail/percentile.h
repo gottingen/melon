@@ -26,7 +26,7 @@
 #include <ostream>                      // std::ostream
 #include <algorithm>                    // std::sort
 #include <cmath>                       // ceil
-#include <melon/utility/macros.h>                // ARRAY_SIZE
+#include <melon/base/macros.h>                // ARRAY_SIZE
 #include <melon/var/reducer.h>               // Reducer
 #include <melon/var/window.h>                // Window
 #include <melon/var/detail/combiner.h>       // AgentCombiner
@@ -82,8 +82,8 @@ public:
         if (rhs._num_added == 0) {
             return;
         }
-        MELON_CASSERT(SAMPLE_SIZE >= size2,
-                      must_merge_small_interval_into_larger_one_currently);
+        static_assert(SAMPLE_SIZE >= size2,
+                      "must merge small interval into larger one currently");
         CHECK_EQ(rhs._num_samples, rhs._num_added);
         // Assume that the probability of each sample in |this| is a0/b0 and
         // the probability of each sample in |rhs| is a1/b1.
@@ -222,7 +222,7 @@ public:
 
 private:
 template <size_t size2> friend class PercentileInterval;
-    MELON_CASSERT(SAMPLE_SIZE <= 65536, SAMPLE_SIZE_must_be_16bit);
+    static_assert(SAMPLE_SIZE <= 65536, "SAMPLE_SIZE must be 16bit");
 
     uint32_t _num_added;
     bool _sorted;

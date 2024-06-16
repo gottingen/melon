@@ -23,7 +23,7 @@
 #include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/memcache/memcache.h>
 #include <melon/rpc/policy/couchbase_authenticator.h>

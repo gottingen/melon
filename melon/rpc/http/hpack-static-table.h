@@ -93,8 +93,8 @@ static const HeaderCstr s_static_headers[] = {
     {"www-authenticate", ""}
 };
 
-MELON_CASSERT(ARRAY_SIZE(s_static_headers) == 61u,
-              number_of_entries_in_static_table_must_be_61);
+    static_assert(ARRAY_SIZE(s_static_headers) == 61u,
+              "number of entries in static table must be 61");
 
 struct HuffmanCode {
     uint32_t code;
@@ -361,8 +361,8 @@ static const HuffmanCode s_huffman_table[] = {
     {0x3fffffff, 30},
 };
 
-MELON_CASSERT(ARRAY_SIZE(s_huffman_table) == 257u,
-              sizeof_s_huffman_table_must_be_257);
+    static_assert(ARRAY_SIZE(s_huffman_table) == 257u,
+              "sizeof s huffman table must be 257");
 
 const static int32_t HPACK_HUFFMAN_EOS = 256;
 

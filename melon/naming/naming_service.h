@@ -24,7 +24,7 @@
 #include <string>                                   // std::string
 #include <ostream>                                  // std::ostream
 #include <melon/base/endpoint.h>                         // mutil::EndPoint
-#include <melon/utility/macros.h>                           // MELON_CONCAT
+#include <melon/base/macros.h>                           // MELON_CONCAT
 #include <melon/rpc/describable.h>
 #include <melon/rpc/destroyable.h>
 #include <melon/rpc/extension.h>                         // Extension<T>

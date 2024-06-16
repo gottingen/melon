@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <melon/utility/macros.h>                     // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/macros.h>                     // DISALLOW_COPY_AND_ASSIGN
 #include <melon/fiber/types.h>                   // fiber_t, fiber_attr_t
 #include <melon/rpc/socket.h>                     // Socket, SocketId
 

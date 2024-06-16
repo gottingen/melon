@@ -18,7 +18,7 @@
 //
 
 #include <atomic>
-#include <melon/utility/macros.h>                         // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <melon/fiber/butex.h>                       // butex_*
 #include <melon/fiber/types.h>                       // fiber_cond_t
 
@@ -28,13 +28,13 @@ namespace fiber {
         std::atomic<int> *seq;
     };
 
-    MELON_CASSERT(sizeof(CondInternal) == sizeof(fiber_cond_t),
-                  sizeof_innercond_must_equal_cond);
-    MELON_CASSERT(offsetof(CondInternal, m) == offsetof(fiber_cond_t, m),
-                  offsetof_cond_mutex_must_equal);
-    MELON_CASSERT(offsetof(CondInternal, seq) ==
+    static_assert(sizeof(CondInternal) == sizeof(fiber_cond_t),
+                  "sizeof_innercond_must_equal_cond");
+    static_assert(offsetof(CondInternal, m) == offsetof(fiber_cond_t, m),
+                  "offsetof cond mutex must equal");
+    static_assert(offsetof(CondInternal, seq) ==
                   offsetof(fiber_cond_t, seq),
-                  offsetof_cond_seq_must_equal);
+                  "offsetof cond seq must equal");
 }
 
 extern "C" {

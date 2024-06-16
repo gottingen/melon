@@ -18,7 +18,7 @@
 //
 
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/fast_rand.h>
 #include <melon/rpc/socket.h>
 #include <melon/lb/round_robin_load_balancer.h>

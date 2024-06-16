@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
 #include <vector>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/strings/string_split.h>
 #include "melon/utility/files/temp_file.h"
 #include <melon/fiber/fiber.h>
@@ -127,7 +127,7 @@ TEST(NamingServiceTest, sanity) {
 
     std::string s;
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
-        ASSERT_EQ(0, mutil::string_appendf(&s, "%s,", address_list[i]));
+        ASSERT_GT(turbo::str_append_format(&s, "%s,", address_list[i]).size(), 0);
     }
     melon::naming::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));
@@ -177,7 +177,7 @@ TEST(NamingServiceTest, wrong_name) {
 
     std::string s;
     for (size_t i = 0; i < ARRAY_SIZE(address_list); ++i) {
-        ASSERT_EQ(0, mutil::string_appendf(&s, ", %s", address_list[i]));
+        turbo::str_append_format(&s, ", %s", address_list[i]);
     }
     melon::naming::ListNamingService lns;
     ASSERT_EQ(0, lns.GetServers(s.c_str(), &servers));

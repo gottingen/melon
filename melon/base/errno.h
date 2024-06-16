@@ -31,7 +31,7 @@
 #endif
 
 #include <errno.h>                           // errno
-#include <melon/utility/macros.h>                     // MELON_CONCAT
+#include <melon/base/macros.h>                     // MELON_CONCAT
 
 //-----------------------------------------
 // Use system errno before defining yours !

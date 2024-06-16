@@ -23,7 +23,7 @@
 
 #include <errno.h>                               // users need to check errno
 #include <time.h>                                // timespec
-#include <melon/utility/macros.h>                         // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <melon/fiber/types.h>                       // fiber_t
 
 namespace fiber {
@@ -37,7 +37,7 @@ namespace fiber {
     // Check width of user type before casting.
     template<typename T>
     T *butex_create_checked() {
-        MELON_CASSERT(sizeof(T) == sizeof(int), sizeof_T_must_equal_int);
+        static_assert(sizeof(T) == sizeof(int), "sizeof_T_must_equal_int");
         return static_cast<T *>(butex_create());
     }
 

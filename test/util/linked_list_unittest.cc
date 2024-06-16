@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include <melon/base/basictypes.h>
-#include <melon/utility/containers/linked_list.h>
+#include <melon/base/linked_list.h>
 #include <gtest/gtest.h>
 
 namespace mutil {

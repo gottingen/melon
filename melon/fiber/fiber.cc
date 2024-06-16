@@ -19,7 +19,7 @@
 
 
 #include <gflags/gflags.h>
-#include <melon/utility/macros.h>                       // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include <melon/fiber/task_group.h>                // TaskGroup
 #include <melon/fiber/task_control.h>              // TaskControl
@@ -72,7 +72,7 @@ namespace fiber {
             ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency_by_tag,
                                             validate_fiber_concurrency_by_tag);
 
-    MELON_CASSERT(sizeof(TaskControl *) == sizeof(std::atomic<TaskControl *>), atomic_size_match);
+    static_assert(sizeof(TaskControl *) == sizeof(std::atomic<TaskControl *>), "atomic size match");
 
     pthread_mutex_t g_task_control_mutex = PTHREAD_MUTEX_INITIALIZER;
     // Referenced in rpc, needs to be extern.

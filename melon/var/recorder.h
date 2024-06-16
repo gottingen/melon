@@ -21,7 +21,7 @@
 #pragma once
 
 #include <cstdint>                              // int64_t uint64_t
-#include <melon/utility/macros.h>                         // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>                        // LOG
 #include <melon/var/detail/combiner.h>                // detail::AgentCombiner
 #include <melon/var/variable.h>
@@ -96,8 +96,8 @@ namespace melon::var {
         const static size_t SUM_BIT_WIDTH = 44;
         const static uint64_t MAX_SUM_PER_THREAD = (1ul << SUM_BIT_WIDTH) - 1;
         const static uint64_t MAX_NUM_PER_THREAD = (1ul << (64ul - SUM_BIT_WIDTH)) - 1;
-        MELON_CASSERT(SUM_BIT_WIDTH > 32 && SUM_BIT_WIDTH < 64,
-                      SUM_BIT_WIDTH_must_be_between_33_and_63);
+        static_assert(SUM_BIT_WIDTH > 32 && SUM_BIT_WIDTH < 64,
+                      "SUM_BIT_WIDTH must be between 33 and 63");
 
         struct AddStat {
             void operator()(Stat &s1, const Stat &s2) const { s1 += s2; }

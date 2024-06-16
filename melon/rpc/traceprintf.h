@@ -22,18 +22,18 @@
 #ifndef MELON_RPC_TRACEPRINTF_H_
 #define MELON_RPC_TRACEPRINTF_H_
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
+#include <melon/rpc/span.h>
 
-
-
+/*
 
 namespace melon {
 
 bool CanAnnotateSpan();
-void AnnotateSpan(const char* fmt, ...);
-
+template<typename... Args>
+void AnnotateSpan(const turbo::FormatSpec<Args...> &fmt, Args... args);
 } // namespace melon
-
+*/
 
 // Use this macro to print log to /rpcz and tracing system.
 // If rpcz is not enabled, arguments to this macro is NOT evaluated, don't

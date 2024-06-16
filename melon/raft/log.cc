@@ -22,7 +22,7 @@
 #include <gflags/gflags.h>
 #include <melon/utility/files/dir_reader_posix.h>            // mutil::DirReaderPosix
 #include <melon/utility/file_util.h>                         // mutil::CreateDirectory
-#include <melon/utility/string_printf.h>                     // mutil::string_appendf
+#include <turbo/strings/str_format.h>
 #include <melon/utility/time.h>
 #include <melon/base/raw_pack.h>                          // mutil::RawPacker
 #include <melon/base/fd_utility.h>                        // mutil::make_close_on_exec
@@ -108,7 +108,7 @@ namespace melon::raft {
         }
 
         std::string path(_path);
-        mutil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
+        turbo::str_append_format(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
         _fd = ::open(path.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0644);
         if (_fd >= 0) {
             mutil::make_close_on_exec(_fd);
@@ -261,9 +261,9 @@ namespace melon::raft {
         std::string path(_path);
         // create fd
         if (_is_open) {
-            mutil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
+            turbo::str_append_format(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
         } else {
-            mutil::string_appendf(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+            turbo::str_append_format(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                                   _first_index, _last_index.load());
         }
         _fd = ::open(path.c_str(), O_RDWR);
@@ -526,10 +526,10 @@ namespace melon::raft {
         CHECK(_is_open);
 
         std::string old_path(_path);
-        mutil::string_appendf(&old_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
+        turbo::str_append_format(&old_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                               _first_index);
         std::string new_path(_path);
-        mutil::string_appendf(&new_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+        turbo::str_append_format(&new_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                               _first_index, _last_index.load());
 
         // TODO: optimize index memory usage by reconstruct vector
@@ -559,9 +559,9 @@ namespace melon::raft {
 
     std::string Segment::file_name() {
         if (!_is_open) {
-            return mutil::string_printf(BRAFT_SEGMENT_CLOSED_PATTERN, _first_index, _last_index.load());
+            return turbo::str_format(BRAFT_SEGMENT_CLOSED_PATTERN, _first_index, _last_index.load());
         } else {
-            return mutil::string_printf(BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
+            return turbo::str_format(BRAFT_SEGMENT_OPEN_PATTERN, _first_index);
         }
     }
 
@@ -582,10 +582,10 @@ namespace melon::raft {
         do {
             std::string path(_path);
             if (_is_open) {
-                mutil::string_appendf(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
+                turbo::str_append_format(&path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                                       _first_index);
             } else {
-                mutil::string_appendf(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+                turbo::str_append_format(&path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                                       _first_index, _last_index.load());
             }
 
@@ -629,11 +629,11 @@ namespace melon::raft {
         // because the node may crash before truncate.
         if (!_is_open) {
             std::string old_path(_path);
-            mutil::string_appendf(&old_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
+            turbo::str_append_format(&old_path, "/" BRAFT_SEGMENT_CLOSED_PATTERN,
                                   _first_index, _last_index.load());
 
             std::string new_path(_path);
-            mutil::string_appendf(&new_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
+            turbo::str_append_format(&new_path, "/" BRAFT_SEGMENT_OPEN_PATTERN,
                                   _first_index);
             int ret = ::rename(old_path.c_str(), new_path.c_str());
             LOG_IF(INFO, ret == 0) << "Renamed `" << old_path << "' to `"

@@ -23,7 +23,7 @@
 #include <sstream>                      // std::ostringstream
 #include <list>                         // std::list
 #include <string>                       // std::string
-#include <melon/utility/macros.h>               // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/macros.h>               // DISALLOW_COPY_AND_ASSIGN
 #include <string_view>
 
 namespace melon::var {

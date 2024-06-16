@@ -24,7 +24,7 @@
 #include <map>
 #include <vector>
 #include <unordered_set>
-#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/base/doubly_buffered_data.h>
 #include <melon/rpc/load_balancer.h>
 
 namespace melon::lb {

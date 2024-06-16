@@ -20,8 +20,6 @@ SET(TEST_UTILITY_SOURCES
         atomicops_unittest
         hash_tables_unittest
         linked_list_unittest
-        small_map_unittest
-        stack_container_unittest
         leak_tracker_unittest
         dir_reader_posix_unittest
         file_path_unittest
@@ -78,7 +76,6 @@ SET(TEST_UTILITY_SOURCES
         find_cstr_unittest
         scoped_lock_unittest
         status_unittest
-        string_printf_unittest
         string_splitter_unittest
         temp_file_unittest
         melon_thread_local_unittest

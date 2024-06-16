@@ -29,7 +29,7 @@
 #include <pthread.h>                     // pthread_mutex_t
 #include <algorithm>                     // std::max, std::min
 #include <atomic>
-#include <melon/utility/macros.h>                 // MELON_CACHELINE_ALIGNMENT
+#include <melon/base/macros.h>                 // MELON_CACHELINE_ALIGNMENT
 #include <melon/base/scoped_lock.h>            // MELON_SCOPED_LOCK
 #include <melon/base/thread_local.h>           // MELON_THREAD_LOCAL
 #include <vector>

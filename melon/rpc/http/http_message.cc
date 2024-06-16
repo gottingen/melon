@@ -24,7 +24,7 @@
 #include <string>                               // std::string
 #include <iostream>
 #include <gflags/gflags.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>                       // LOG
 #include <melon/base/scoped_lock.h>
 #include <melon/base/endpoint.h>

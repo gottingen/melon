@@ -25,7 +25,7 @@
 #include <atomic>
 #include <melon/var/var.h>
 #include <melon/var/collector.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/utility/containers/flat_map.h>
 #include <melon/base/iobuf.h>
 #include <melon/base/fd_guard.h>
@@ -100,9 +100,9 @@ namespace fiber {
         mutable uint32_t _hash_code; // For combining samples with hashmap.
     };
 
-    MELON_CASSERT(sizeof(SampledContention) == 256, be_friendly_to_allocator);
+    static_assert(sizeof(SampledContention) == 256, "be friendly to allocator");
 
-// Functor to compare contentions.
+    // Functor to compare contentions.
     struct ContentionEqual {
         bool operator()(const SampledContention *c1,
                         const SampledContention *c2) const {
@@ -288,7 +288,7 @@ namespace fiber {
 // The canceling rate should be small provided that programs are unlikely to
 // lock a lot of mutexes simultaneously.
     const size_t MUTEX_MAP_SIZE = 1024;
-    MELON_CASSERT((MUTEX_MAP_SIZE & (MUTEX_MAP_SIZE - 1)) == 0, must_be_power_of_2);
+    static_assert((MUTEX_MAP_SIZE & (MUTEX_MAP_SIZE - 1)) == 0, "must be power of 2");
     struct MELON_CACHELINE_ALIGNMENT MutexMapEntry {
         std::atomic<uint64_t> versioned_mutex;
         fiber_contention_site_t csite;
@@ -657,8 +657,8 @@ namespace fiber {
 #define FIBER_MUTEX_CONTENDED (*(const unsigned*)&fiber::MUTEX_CONTENDED_RAW)
 #define FIBER_MUTEX_LOCKED (*(const unsigned*)&fiber::MUTEX_LOCKED_RAW)
 
-    MELON_CASSERT(sizeof(unsigned) == sizeof(MutexInternal),
-                  sizeof_mutex_internal_must_equal_unsigned);
+    static_assert(sizeof(unsigned) == sizeof(MutexInternal),
+                  "sizeof mutex internal must equal unsigned");
 
     inline int mutex_lock_contended(fiber_mutex_t *m) {
         std::atomic<unsigned> *whole = (std::atomic<unsigned> *) m->butex;

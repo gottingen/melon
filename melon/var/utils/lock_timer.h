@@ -22,7 +22,7 @@
 
 #include <melon/utility/time.h>             // mutil::Timer
 #include <melon/base/scoped_lock.h>      // std::lock_guard std::unique_lock
-#include <melon/utility/macros.h>           // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/macros.h>           // DISALLOW_COPY_AND_ASSIGN
 
 #include <melon/var/recorder.h>         // IntRecorder
 #include <melon/var/latency_recorder.h> // LatencyRecorder

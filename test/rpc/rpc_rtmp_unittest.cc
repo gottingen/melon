@@ -30,7 +30,7 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/acceptor.h>
 #include <melon/rpc/server.h>
@@ -225,7 +225,7 @@ void PlayingDummyStream::SendData() {
         vmsg.frame_type = melon::FLV_VIDEO_FRAME_KEYFRAME;
         vmsg.codec = melon::FLV_VIDEO_AVC;
         vmsg.data.clear();
-        vmsg.data.append(mutil::string_printf("video_%d(ms_id=%u)",
+        vmsg.data.append(turbo::str_format("video_%d(ms_id=%u)",
                                              i, stream_id()));
         //failing to send is possible
         SendVideoMessage(vmsg);
@@ -235,7 +235,7 @@ void PlayingDummyStream::SendData() {
         amsg.bits = melon::FLV_SOUND_16BIT;
         amsg.type = melon::FLV_SOUND_STEREO;
         amsg.data.clear();
-        amsg.data.append(mutil::string_printf("audio_%d(ms_id=%u)",
+        amsg.data.append(turbo::str_format("audio_%d(ms_id=%u)",
                                              i, stream_id()));
         SendAudioMessage(amsg);
 
@@ -546,8 +546,8 @@ TEST(RtmpTest, successfully_play_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("play_name_%d", i);
-        //opt.publish_name = mutil::string_printf("pub_name_%d", i);
+        opt.play_name = turbo::str_format("play_name_%d", i);
+        //opt.publish_name = turbo::str_format("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
@@ -609,7 +609,7 @@ TEST(RtmpTest, successfully_publish_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.publish_name = mutil::string_printf("pub_name_%d", i);
+        opt.publish_name = turbo::str_format("pub_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
     }
@@ -619,7 +619,7 @@ TEST(RtmpTest, successfully_publish_streams) {
         vmsg.timestamp = 1000 + i * 20;
         vmsg.frame_type = melon::FLV_VIDEO_FRAME_KEYFRAME;
         vmsg.codec = melon::FLV_VIDEO_AVC;
-        vmsg.data.append(mutil::string_printf("video_%d", i));
+        vmsg.data.append(turbo::str_format("video_%d", i));
         for (int j = 0; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendVideoMessage(vmsg));
         }
@@ -630,7 +630,7 @@ TEST(RtmpTest, successfully_publish_streams) {
         amsg.rate = melon::FLV_SOUND_RATE_44100HZ;
         amsg.bits = melon::FLV_SOUND_16BIT;
         amsg.type = melon::FLV_SOUND_STEREO;
-        amsg.data.append(mutil::string_printf("audio_%d", i));
+        amsg.data.append(turbo::str_format("audio_%d", i));
         for (int j = 1; j < NSTREAM; j += 2) {
             ASSERT_EQ(0, cstreams[j]->SendAudioMessage(amsg));
         }
@@ -705,7 +705,7 @@ TEST(RtmpTest, failed_to_connect_client_streams) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("play_name_%d", i);
+        opt.play_name = turbo::str_format("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
@@ -730,7 +730,7 @@ TEST(RtmpTest, destroy_client_streams_before_init) {
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
         ASSERT_EQ(melon::RtmpClientStream::STATE_DESTROYING, cstreams[i]->_state);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("play_name_%d", i);
+        opt.play_name = turbo::str_format("play_name_%d", i);
         opt.wait_until_play_or_publish_is_sent = true;
         cstreams[i]->Init(&rtmp_client, opt);
         cstreams[i]->assertions_on_failure();
@@ -754,7 +754,7 @@ TEST(RtmpTest, destroy_retrying_client_streams_before_init) {
         cstreams[i]->Destroy();
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
         melon::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("play_name_%d", i);
+        opt.play_name = turbo::str_format("play_name_%d", i);
         melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(1, cstreams[i]->_called_on_stop);
@@ -782,7 +782,7 @@ TEST(RtmpTest, destroy_client_streams_during_creation) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpClientStream);
         melon::RtmpClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("play_name_%d", i);
+        opt.play_name = turbo::str_format("play_name_%d", i);
         cstreams[i]->Init(&rtmp_client, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
         usleep(500*1000);
@@ -814,7 +814,7 @@ TEST(RtmpTest, destroy_retrying_client_streams_during_creation) {
     for (int i = 0; i < NSTREAM; ++i) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         melon::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("play_name_%d", i);
+        opt.play_name = turbo::str_format("play_name_%d", i);
         melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
         ASSERT_EQ(0, cstreams[i]->_called_on_stop);
@@ -848,7 +848,7 @@ TEST(RtmpTest, retrying_stream) {
         cstreams[i].reset(new TestRtmpRetryingClientStream);
         melon::Controller cntl;
         melon::RtmpRetryingClientStreamOptions opt;
-        opt.play_name = mutil::string_printf("name_%d", i);
+        opt.play_name = turbo::str_format("name_%d", i);
         melon::SubStreamCreator* sc = new RtmpSubStreamCreator(&rtmp_client);
         cstreams[i]->Init(sc, opt);
     }

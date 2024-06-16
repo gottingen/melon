@@ -22,8 +22,8 @@
 #include <algorithm>
 #include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/wire_format.h>
-#include <melon/utility/string_printf.h>
-#include <melon/utility/macros.h>
+#include <turbo/strings/str_format.h>
+#include <melon/base/macros.h>
 #include <turbo/base/endian.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/memcache/memcache.h>
@@ -384,19 +384,19 @@ namespace melon {
         policy::MemcacheRequestHeader header;
         uint32_t exptime;
     } __attribute__((packed));
-    MELON_CASSERT(sizeof(FlushHeaderWithExtras) == 28, must_match);
+    static_assert(sizeof(FlushHeaderWithExtras) == 28, "must match");
 
-// MAY have extras.
-// MUST NOT have key.
-// MUST NOT have value.
-// Extra data for flush:
-//    Byte/     0       |       1       |       2       |       3       |
-//       /              |               |               |               |
-//      |0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|
-//      +---------------+---------------+---------------+---------------+
-//     0| Expiration                                                    |
-//      +---------------+---------------+---------------+---------------+
-//    Total 4 bytes
+    // MAY have extras.
+    // MUST NOT have key.
+    // MUST NOT have value.
+    // Extra data for flush:
+    //    Byte/     0       |       1       |       2       |       3       |
+    //       /              |               |               |               |
+    //      |0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|
+    //      +---------------+---------------+---------------+---------------+
+    //     0| Expiration                                                    |
+    //      +---------------+---------------+---------------+---------------+
+    //    Total 4 bytes
     bool MemcacheRequest::Flush(uint32_t timeout) {
         const uint8_t FLUSH_EXTRAS = (timeout == 0 ? 0 : 4);
         FlushHeaderWithExtras header_with_extras = {{
@@ -423,33 +423,33 @@ namespace melon {
         return true;
     }
 
-// (if found):
-// MUST have extras.
-// MAY have key.
-// MAY have value.
-// Extra data for the get commands:
-// Byte/     0       |       1       |       2       |       3       |
-//    /              |               |               |               |
-//   |0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|
-//   +---------------+---------------+---------------+---------------+
-//  0| Flags                                                         |
-//   +---------------+---------------+---------------+---------------+
-//   Total 4 bytes
+    // (if found):
+    // MUST have extras.
+    // MAY have key.
+    // MAY have value.
+    // Extra data for the get commands:
+    // Byte/     0       |       1       |       2       |       3       |
+    //    /              |               |               |               |
+    //   |0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|
+    //   +---------------+---------------+---------------+---------------+
+    //  0| Flags                                                         |
+    //   +---------------+---------------+---------------+---------------+
+    //   Total 4 bytes
     bool MemcacheResponse::PopGet(
             mutil::IOBuf *value, uint32_t *flags, uint64_t *cas_value) {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            mutil::string_printf(&_err, "buffer is too small to contain a header");
+            _err = turbo::str_format("buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != (uint8_t) policy::MC_BINARY_GET) {
-            mutil::string_printf(&_err, "not a GET response");
+            _err = turbo::str_format("not a GET response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            mutil::string_printf(&_err, "response=%u < header=%u + body=%u",
+            _err = turbo::str_format("response=%u < header=%u + body=%u",
                                  (unsigned) n, (unsigned) sizeof(header), header.total_body_length);
             return false;
         }
@@ -459,7 +459,7 @@ namespace melon {
             const int value_size = (int) header.total_body_length - (int) header.extras_length
                                    - (int) header.key_length;
             if (value_size < 0) {
-                mutil::string_printf(&_err, "value_size=%d is non-negative", value_size);
+                _err = turbo::str_format("value_size=%d is non-negative", value_size);
                 return false;
             }
             _buf.pop_front(sizeof(header) + header.extras_length +
@@ -469,18 +469,18 @@ namespace melon {
             return false;
         }
         if (header.extras_length != 4u) {
-            mutil::string_printf(&_err, "GET response must have flags as extras, actual length=%u",
+            _err = turbo::str_format("GET response must have flags as extras, actual length=%u",
                                  header.extras_length);
             return false;
         }
         if (header.key_length != 0) {
-            mutil::string_printf(&_err, "GET response must not have key");
+            _err = turbo::str_format("GET response must not have key");
             return false;
         }
         const int value_size = (int) header.total_body_length - (int) header.extras_length
                                - (int) header.key_length;
         if (value_size < 0) {
-            mutil::string_printf(&_err, "value_size=%d is non-negative", value_size);
+            _err = turbo::str_format("value_size=%d is non-negative", value_size);
             return false;
         }
         _buf.pop_front(sizeof(header));
@@ -526,7 +526,7 @@ namespace melon {
         uint32_t flags;
         uint32_t exptime;
     } __attribute__((packed));
-    MELON_CASSERT(sizeof(StoreHeaderWithExtras) == 32, must_match);
+    static_assert(sizeof(StoreHeaderWithExtras) == 32, "must match");
     const size_t STORE_EXTRAS = sizeof(StoreHeaderWithExtras) -
                                 sizeof(policy::MemcacheRequestHeader);
 
@@ -579,16 +579,16 @@ namespace melon {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            mutil::string_printf(&_err, "buffer is too small to contain a header");
+            _err = turbo::str_format("buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != command) {
-            mutil::string_printf(&_err, "Not a STORE response");
+            _err = turbo::str_format("Not a STORE response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            mutil::string_printf(&_err, "Not enough data");
+            _err = turbo::str_format("Not enough data");
             return false;
         }
         LOG_IF(ERROR, header.extras_length != 0) << "STORE response must not have flags";
@@ -676,7 +676,7 @@ namespace melon {
         uint64_t initial_value;
         uint32_t exptime;
     } __attribute__((packed));
-    MELON_CASSERT(sizeof(IncrHeaderWithExtras) == 44, must_match);
+    static_assert(sizeof(IncrHeaderWithExtras) == 44, "must match");
 
     const size_t INCR_EXTRAS = sizeof(IncrHeaderWithExtras) -
                                sizeof(policy::MemcacheRequestHeader);
@@ -748,16 +748,16 @@ namespace melon {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            mutil::string_printf(&_err, "buffer is too small to contain a header");
+            _err = turbo::str_format("buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != command) {
-            mutil::string_printf(&_err, "not a INCR/DECR response");
+            _err = turbo::str_format("not a INCR/DECR response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            mutil::string_printf(&_err, "response=%u < header=%u + body=%u",
+            _err = turbo::str_format("response=%u < header=%u + body=%u",
                                  (unsigned) n, (unsigned) sizeof(header), header.total_body_length);
             return false;
         }
@@ -769,7 +769,7 @@ namespace melon {
 
         if (header.status != (uint16_t) STATUS_SUCCESS) {
             if (value_size < 0) {
-                mutil::string_printf(&_err, "value_size=%d is negative", value_size);
+                _err = turbo::str_format("value_size=%d is negative", value_size);
             } else {
                 _err.clear();
                 _buf.cutn(&_err, value_size);
@@ -777,7 +777,7 @@ namespace melon {
             return false;
         }
         if (value_size != 8) {
-            mutil::string_printf(&_err, "value_size=%d is not 8", value_size);
+            _err = turbo::str_format("value_size=%d is not 8", value_size);
             return false;
         }
         uint64_t raw_value = 0;
@@ -805,7 +805,7 @@ namespace melon {
         policy::MemcacheRequestHeader header;
         uint32_t exptime;
     } __attribute__((packed));
-    MELON_CASSERT(sizeof(TouchHeaderWithExtras) == 28, must_match);
+    static_assert(sizeof(TouchHeaderWithExtras) == 28, "must match");
     const size_t TOUCH_EXTRAS = sizeof(TouchHeaderWithExtras) - sizeof(policy::MemcacheRequestHeader);
 
 // MAY have extras.
@@ -869,16 +869,16 @@ namespace melon {
         const size_t n = _buf.size();
         policy::MemcacheResponseHeader header;
         if (n < sizeof(header)) {
-            mutil::string_printf(&_err, "buffer is too small to contain a header");
+            _err = turbo::str_format("buffer is too small to contain a header");
             return false;
         }
         _buf.copy_to(&header, sizeof(header));
         if (header.command != policy::MC_BINARY_VERSION) {
-            mutil::string_printf(&_err, "not a VERSION response");
+            _err = turbo::str_format("not a VERSION response");
             return false;
         }
         if (n < sizeof(header) + header.total_body_length) {
-            mutil::string_printf(&_err, "response=%u < header=%u + body=%u",
+            _err = turbo::str_format("response=%u < header=%u + body=%u",
                                  (unsigned) n, (unsigned) sizeof(header), header.total_body_length);
             return false;
         }
@@ -888,7 +888,7 @@ namespace melon {
                                - (int) header.key_length;
         _buf.pop_front(sizeof(header) + header.extras_length + header.key_length);
         if (value_size < 0) {
-            mutil::string_printf(&_err, "value_size=%d is negative", value_size);
+            _err = turbo::str_format("value_size=%d is negative", value_size);
             return false;
         }
         if (header.status != (uint16_t) STATUS_SUCCESS) {

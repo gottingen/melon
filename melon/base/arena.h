@@ -26,7 +26,7 @@
 #define MUTIL_ARENA_H
 
 #include <stdint.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 namespace mutil {
 

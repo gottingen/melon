@@ -28,7 +28,7 @@
 #endif
 
 #include <melon/utility/synchronization/lock.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include <melon/base/errno.h>
 

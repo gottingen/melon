@@ -22,7 +22,7 @@
 #pragma once
 
 #include <google/protobuf/service.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 
 namespace melon {

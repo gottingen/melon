@@ -24,7 +24,7 @@
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
 #include <gflags/gflags.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
 #include <melon/base/iobuf.h>                         // mutil::IOBuf

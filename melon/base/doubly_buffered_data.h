@@ -29,7 +29,7 @@
 #include <melon/base/scoped_lock.h>
 #include <melon/base/thread_local.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/type_traits.h>
 #include <melon/base/errno.h>
 #include <atomic>
@@ -544,7 +544,7 @@ namespace mutil {
     template<typename T, typename TLS, bool AllowFiberSuspended>
     DoublyBufferedData<T, TLS, AllowFiberSuspended>::DoublyBufferedData()
             : _index(0), _wrapper_key(0) {
-        MELON_CASSERT(!(AllowFiberSuspended && !IsVoid<TLS>::value),
+        static_assert(!(AllowFiberSuspended && !IsVoid<TLS>::value),
                       "Forbidden to allow fiber suspended with non-Void TLS");
 
         _wrappers.reserve(64);

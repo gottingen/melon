@@ -18,7 +18,7 @@
 //
 
 #include <errno.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/string_splitter.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/reloadable_flags.h>

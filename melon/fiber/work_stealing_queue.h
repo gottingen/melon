@@ -21,7 +21,7 @@
 #ifndef MELON_FIBER_WORK_STEALING_QUEUE_H_
 #define MELON_FIBER_WORK_STEALING_QUEUE_H_
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <atomic>
 #include <turbo/log/logging.h>
 

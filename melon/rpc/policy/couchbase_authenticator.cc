@@ -20,7 +20,7 @@
 
 #include <melon/rpc/policy/couchbase_authenticator.h>
 #include <melon/base/iobuf.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <turbo/base/endian.h>
 #include <melon/rpc/policy/memcache_binary_header.h>
 

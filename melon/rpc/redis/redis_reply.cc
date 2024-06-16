@@ -21,12 +21,12 @@
 
 #include <limits>
 #include <turbo/log/logging.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/rpc/redis/redis_reply.h>
 
 namespace melon {
 
-//MELON_CASSERT(sizeof(RedisReply) == 24, size_match);
+//static_assert(sizeof(RedisReply) == 24, "size match");
 const int RedisReply::npos = -1;
 
 const char* RedisReplyTypeToString(RedisReplyType type) {
@@ -455,25 +455,6 @@ void RedisReply::SetStringImpl(const std::string_view& str, RedisReplyType type)
     }
     _type = type;
     _length = size;
-}
-
-void RedisReply::FormatStringImpl(const char* fmt, va_list args, RedisReplyType type) {
-    va_list copied_args;
-    va_copy(copied_args, args);
-    char buf[64];
-    int ret = vsnprintf(buf, sizeof(buf), fmt, copied_args);
-    va_end(copied_args);
-    if (ret < 0) {
-        LOG(FATAL) << "Fail to vsnprintf into buf=" << (void*)buf << " size=" << sizeof(buf);
-        return;
-    } else if (ret < (int)sizeof(buf)) {
-        return SetStringImpl(buf, type);
-    } else {
-        std::string str;
-        str.reserve(ret + 1);
-        mutil::string_vappendf(&str, fmt, args);
-        return SetStringImpl(str, type);
-    }
 }
 
 } // namespace melon

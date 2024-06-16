@@ -33,7 +33,7 @@
 #include <melon/base/build_config.h>             // ARCH_CPU_X86_64
 #include <atomic>
 #include <melon/base/thread_local.h>             // thread_atexit
-#include <melon/utility/macros.h>                   // MELON_CASSERT
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>                  // CHECK, LOG
 #include <melon/base/fd_guard.h>                 // mutil::fd_guard
 #include <melon/base/iobuf.h>
@@ -487,11 +487,11 @@ namespace mutil {
         return iobuf::g_num_hit_tls_threshold.load(std::memory_order_relaxed);
     }
 
-    MELON_CASSERT(sizeof(IOBuf::SmallView) == sizeof(IOBuf::BigView),
-                  sizeof_small_and_big_view_should_equal);
+    static_assert(sizeof(IOBuf::SmallView) == sizeof(IOBuf::BigView),
+                  "sizeof_small_and_big_view_should_equal");
 
-    MELON_CASSERT(IOBuf::DEFAULT_BLOCK_SIZE / 4096 * 4096 == IOBuf::DEFAULT_BLOCK_SIZE,
-                  sizeof_block_should_be_multiply_of_4096);
+    static_assert(IOBuf::DEFAULT_BLOCK_SIZE / 4096 * 4096 == IOBuf::DEFAULT_BLOCK_SIZE,
+                  "sizeof_block_should_be_multiply_of_4096");
 
     const IOBuf::Area IOBuf::INVALID_AREA;
 

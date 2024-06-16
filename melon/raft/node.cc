@@ -73,7 +73,7 @@ namespace melon::raft {
 #ifndef UNIT_TEST
     static melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 #else
-                                                                                                                            // Unit tests should check this value
+// Unit tests should check this value
 melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 #endif
 
@@ -147,7 +147,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
               _fsm_caller(nullptr), _ballot_box(nullptr), _snapshot_executor(nullptr), _stop_transfer_arg(nullptr),
               _vote_triggered(false), _waking_candidate(0), _append_entries_cache(nullptr),
               _append_entries_cache_version(0), _node_readonly(false), _majority_nodes_readonly(false) {
-        mutil::string_printf(&_v_group_id, "%s_%d", _group_id.c_str(), _server_id.idx);
+        _v_group_id = turbo::str_format("%s_%d", _group_id.c_str(), _server_id.idx);
         AddRef();
         g_num_nodes << 1;
     }
@@ -158,7 +158,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
               _fsm_caller(nullptr), _ballot_box(nullptr), _snapshot_executor(nullptr), _stop_transfer_arg(nullptr),
               _vote_triggered(false), _waking_candidate(0), _append_entries_cache(nullptr),
               _append_entries_cache_version(0), _node_readonly(false), _majority_nodes_readonly(false) {
-        mutil::string_printf(&_v_group_id, "%s_%d", _group_id.c_str(), _server_id.idx);
+        _v_group_id = turbo::str_format("%s_%d", _group_id.c_str(), _server_id.idx);
         AddRef();
         g_num_nodes << 1;
     }

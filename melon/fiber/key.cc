@@ -19,7 +19,7 @@
 
 
 #include <pthread.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <atomic>
 #include <melon/var/passive_status.h>
 #include <melon/fiber/errno.h>                       // EAGAIN

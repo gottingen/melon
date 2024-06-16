@@ -155,7 +155,7 @@ namespace fiber {
         inline uint32_t end_ver() const { return last_ver() + 1; }
     };
 
-    MELON_CASSERT(sizeof(Id) % 64 == 0, sizeof_Id_must_align);
+    static_assert(sizeof(Id) % 64 == 0, "sizeof Id must align");
 
     typedef mutil::ResourceId<Id> IdResourceId;
 

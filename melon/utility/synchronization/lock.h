@@ -29,7 +29,7 @@
 #endif
 
 #include <melon/base/base_export.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/compat.h>
 
 namespace mutil {

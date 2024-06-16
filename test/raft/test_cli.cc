@@ -43,8 +43,7 @@ public:
             return -1;
         }
         melon::raft::NodeOptions options;
-        std::string prefix;
-        mutil::string_printf(&prefix, "local://./data/%d", port);
+        std::string prefix = turbo::str_format("local://./data/%d", port);
         options.log_uri = prefix + "/log";
         options.raft_meta_uri = prefix + "/raft_meta";
         options.snapshot_uri = prefix + "/snapshot";

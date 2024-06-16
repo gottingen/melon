@@ -49,6 +49,8 @@ namespace melon {
         // The initial value for a reply is a nil.
         // All needed memory is allocated on `arena'.
         RedisReply(mutil::Arena *arena);
+        RedisReply(const RedisReply &) = delete;
+        RedisReply &operator=(const RedisReply &) = delete;
 
         // Type of the reply.
         RedisReplyType type() const { return _type; }
@@ -73,12 +75,18 @@ namespace melon {
         // Set the reply to a status.
         void SetStatus(const std::string_view &str);
 
-        void FormatStatus(const char *fmt, ...);
+        template<typename ...Args>
+        void FormatStatus(turbo::FormatSpec<Args...> fmt, Args &&...args) {
+            SetStatus(turbo::str_format(fmt, std::forward<Args>(args)...));
+        }
 
         // Set the reply to an error.
         void SetError(const std::string_view &str);
 
-        void FormatError(const char *fmt, ...);
+        template<typename ...Args>
+        void FormatError(turbo::FormatSpec<Args...> fmt, Args &&...args) {
+            SetError(turbo::str_format(fmt, std::forward<Args>(args)...));
+        }
 
         // Set this reply to integer `value'.
         void SetInteger(int64_t value);
@@ -86,7 +94,10 @@ namespace melon {
         // Set this reply to a (bulk) string.
         void SetString(const std::string_view &str);
 
-        void FormatString(const char *fmt, ...);
+        template<typename ...Args>
+        void FormatString(turbo::FormatSpec<Args...> fmt, Args &&...args) {
+            SetString(turbo::str_format(fmt, std::forward<Args>(args)...));
+        }
 
         // Convert the reply into a signed 64-bit integer(according to
         // http://redis.io/topics/protocol). If the reply is not an integer,
@@ -151,11 +162,11 @@ namespace melon {
     private:
         static const int npos;
 
-        // RedisReply does not own the memory of fields, copying must be done
-        // by calling CopyFrom[Different|Same]Arena.
-        DISALLOW_COPY_AND_ASSIGN(RedisReply);
-
-        void FormatStringImpl(const char *fmt, va_list args, RedisReplyType type);
+        template<typename ...Args>
+        void FormatStringImpl(RedisReplyType type, turbo::FormatSpec<Args...> fmt, Args &&...args) {
+            std::string str = turbo::str_format(fmt, std::forward<Args>(args)...);
+            SetStringImpl(str, type);
+        }
 
         void SetStringImpl(const std::string_view &str, RedisReplyType type);
 
@@ -235,22 +246,9 @@ namespace melon {
         return SetStringImpl(str, REDIS_REPLY_STATUS);
     }
 
-    inline void RedisReply::FormatStatus(const char *fmt, ...) {
-        va_list ap;
-        va_start(ap, fmt);
-        FormatStringImpl(fmt, ap, REDIS_REPLY_STATUS);
-        va_end(ap);
-    }
 
     inline void RedisReply::SetError(const std::string_view &str) {
         return SetStringImpl(str, REDIS_REPLY_ERROR);
-    }
-
-    inline void RedisReply::FormatError(const char *fmt, ...) {
-        va_list ap;
-        va_start(ap, fmt);
-        FormatStringImpl(fmt, ap, REDIS_REPLY_ERROR);
-        va_end(ap);
     }
 
     inline void RedisReply::SetInteger(int64_t value) {
@@ -264,13 +262,6 @@ namespace melon {
 
     inline void RedisReply::SetString(const std::string_view &str) {
         return SetStringImpl(str, REDIS_REPLY_STRING);
-    }
-
-    inline void RedisReply::FormatString(const char *fmt, ...) {
-        va_list ap;
-        va_start(ap, fmt);
-        FormatStringImpl(fmt, ap, REDIS_REPLY_STRING);
-        va_end(ap);
     }
 
     inline const char *RedisReply::c_str() const {

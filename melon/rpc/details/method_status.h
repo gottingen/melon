@@ -18,7 +18,7 @@
 //
 #pragma once
 
-#include <melon/utility/macros.h>                  // DISALLOW_COPY_AND_ASSIGN
+#include <melon/base/macros.h>                  // DISALLOW_COPY_AND_ASSIGN
 #include <melon/var/var.h>                    // vars
 #include <melon/rpc/describable.h>
 #include <melon/rpc/concurrency_limiter.h>

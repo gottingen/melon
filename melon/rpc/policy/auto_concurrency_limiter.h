@@ -20,7 +20,7 @@
 #pragma once
 
 #include <melon/var/var.h>
-#include <melon/utility/containers/bounded_queue.h>
+#include <melon/base/bounded_queue.h>
 #include <melon/rpc/concurrency_limiter.h>
 
 namespace melon {

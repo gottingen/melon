@@ -21,7 +21,7 @@
 #pragma once
 
 #include <ostream>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/class_name.h>
 
 namespace melon {

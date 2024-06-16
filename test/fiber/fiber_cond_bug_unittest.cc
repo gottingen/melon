@@ -31,7 +31,7 @@
 #include "melon/fiber/condition_variable.h"
 #include <melon/fiber/mutex.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/var/var.h>
 
 DEFINE_int64(wait_us, 5, "wait us");

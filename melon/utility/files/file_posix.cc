@@ -21,10 +21,10 @@
 
 namespace mutil {
 
-// Make sure our Whence mappings match the system headers.
-COMPILE_ASSERT(File::FROM_BEGIN   == SEEK_SET &&
+    // Make sure our Whence mappings match the system headers.
+    static_assert(File::FROM_BEGIN   == SEEK_SET &&
                File::FROM_CURRENT == SEEK_CUR &&
-               File::FROM_END     == SEEK_END, whence_matches_system);
+               File::FROM_END     == SEEK_END, "whence matches system");
 
 namespace {
 
@@ -216,7 +216,7 @@ void File::InitializeUnsafe(const FilePath& name, uint32_t flags) {
   else if (flags & FLAG_APPEND)
     open_flags |= O_APPEND | O_WRONLY;
 
-  COMPILE_ASSERT(O_RDONLY == 0, O_RDONLY_must_equal_zero);
+        static_assert(O_RDONLY == 0, "O_RDONLY must equal zero");
 
   int mode = S_IRUSR | S_IWUSR;
 #if defined(OS_CHROMEOS)
@@ -279,11 +279,11 @@ int64_t File::Seek(Whence whence, int64_t offset) {
   DCHECK(IsValid());
 
 #if defined(OS_ANDROID)
-  COMPILE_ASSERT(sizeof(int64_t) == sizeof(off64_t), off64_t_64_bit);
+    static_assert(sizeof(int64_t) == sizeof(off64_t), "off64_t 64 bit");
   return lseek64(file_.get(), static_cast<off64_t>(offset),
                  static_cast<int>(whence));
 #else
-  COMPILE_ASSERT(sizeof(int64_t) == sizeof(off_t), off_t_64_bit);
+    static_assert(sizeof(int64_t) == sizeof(off_t), "off_t 64 bit");
   return lseek(file_.get(), static_cast<off_t>(offset),
                static_cast<int>(whence));
 #endif

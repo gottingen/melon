@@ -20,7 +20,7 @@
 
 
 #include <limits>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/details/server_private_accessor.h>
 #include <melon/rpc/details/method_status.h>

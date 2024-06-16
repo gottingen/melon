@@ -20,7 +20,7 @@
 
 #include <cstring>
 #include <strings.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/rpc/adaptive_max_concurrency.h>
@@ -37,7 +37,7 @@ namespace melon {
             _value = UNLIMITED();
             _max_concurrency = 0;
         } else {
-            _value = mutil::string_printf("%d", max_concurrency);
+            _value = turbo::str_format("%d", max_concurrency);
             _max_concurrency = max_concurrency;
         }
     }
@@ -81,7 +81,7 @@ namespace melon {
             _value = UNLIMITED();
             _max_concurrency = 0;
         } else {
-            _value = mutil::string_printf("%d", max_concurrency);
+            _value = turbo::str_format("%d", max_concurrency);
             _max_concurrency = max_concurrency;
         }
     }

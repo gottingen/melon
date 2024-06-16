@@ -26,7 +26,7 @@
 #include <gtest/gtest.h>
 #include <melon/base/compat.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/errno.h>
 #include <melon/fiber/sys_futex.h>
 #include <melon/fiber/butex.h>

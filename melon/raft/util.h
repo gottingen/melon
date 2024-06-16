@@ -35,7 +35,7 @@
 #include <melon/base/iobuf.h>
 #include <memory>
 #include <melon/utility/memory/singleton.h>
-#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/base/doubly_buffered_data.h>
 #include <turbo/crypto/crc32c.h>
 #include <melon/utility/file_util.h>
 #include <melon/fiber/fiber.h>

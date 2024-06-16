@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 
 #include <melon/utility/memory/scoped_ptr.h>
-#include <melon/utility/string_printf.h>
-#include <melon/utility/macros.h>
+#include <turbo/strings/str_format.h>
+#include <melon/base/macros.h>
 
 #include <melon/fiber/countdown_event.h>
 #include "melon/raft/log_manager.h"
@@ -83,8 +83,7 @@ TEST_F(LogManagerTest, get_should_be_ok_when_disk_thread_stucks) {
         StuckClosure* c = new StuckClosure;
         c->_stuck = &stuck;
         c->_expected_next_log_index = &expected_next_log_index;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", i);
+        std::string buf = turbo::str_format("hello_%lu", i);
         entry->data.append(buf);
         entry->AddRef();
         saved_entries[i] = entry;
@@ -96,8 +95,7 @@ TEST_F(LogManagerTest, get_should_be_ok_when_disk_thread_stucks) {
     for (size_t i = 0; i < N; ++i) {
         melon::raft::LogEntry *entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL) << "i=" << i;
-        std::string exptected;
-        mutil::string_printf(&exptected, "hello_%lu", i);
+        std::string exptected = turbo::str_format("hello_%lu", i);
         ASSERT_EQ(exptected, entry->data.to_string());
         entry->Release();
     }
@@ -240,8 +238,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", i);
+        std::string buf = turbo::str_format("hello_%lu", i);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 1);
         entries0.push_back(entry);
@@ -260,8 +257,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", i);
+        std::string buf = turbo::str_format("hello_%lu", i);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 1);
         entries1.push_back(entry);
@@ -284,8 +280,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
+        std::string buf = turbo::str_format("hello_%lu", (i + 1) * 10);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 2);
         entries2.push_back(entry);
@@ -307,8 +302,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
     for (size_t i = 0; i < N; ++i) {
         melon::raft::LogEntry* entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL);
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
+        std::string buf = turbo::str_format("hello_%lu", (i + 1) * 10);
         ASSERT_EQ(buf, entry->data.to_string());
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
         entry->Release();
@@ -325,8 +319,7 @@ TEST_F(LogManagerTest, append_with_the_same_index) {
     for (size_t i = 0; i < N; ++i) {
         melon::raft::LogEntry* entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL);
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", (i + 1) * 10);
+        std::string buf = turbo::str_format("hello_%lu", (i + 1) * 10);
         ASSERT_EQ(buf, entry->data.to_string());
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
         entry->Release();
@@ -357,8 +350,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", 0lu);
+        std::string buf = turbo::str_format("hello_%lu", 0lu);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 1);
         entries0.push_back(entry);
@@ -387,8 +379,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", i + 1);
+        std::string buf = turbo::str_format("hello_%lu", i + 1);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 2);
         entries1.push_back(entry);
@@ -419,8 +410,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lu", i + 1);
+        std::string buf = turbo::str_format("hello_%lu", i + 1);
         entry->data.append(buf);
         entry->id = melon::raft::LogId(i + 1, 2);
         entries2.push_back(entry);
@@ -440,8 +430,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         melon::raft::LogEntry* entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL);
         if (entry->type == melon::raft::ENTRY_TYPE_DATA) {
-            std::string buf;
-            mutil::string_printf(&buf, "hello_%lu", i + 1);
+            std::string buf = turbo::str_format("hello_%lu", i + 1);
             ASSERT_EQ(buf, entry->data.to_string());
         }
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);
@@ -471,8 +460,7 @@ TEST_F(LogManagerTest, pipelined_append) {
         melon::raft::LogEntry* entry = lm->get_entry(i + 1);
         ASSERT_TRUE(entry != NULL);
         if (entry->type == melon::raft::ENTRY_TYPE_DATA) {
-            std::string buf;
-            mutil::string_printf(&buf, "hello_%lu", i + 1);
+            std::string buf = turbo::str_format("hello_%lu", i + 1);
             ASSERT_EQ(buf, entry->data.to_string());
         }
         ASSERT_EQ(melon::raft::LogId(i + 1, 2), entry->id);

@@ -23,7 +23,7 @@
 #ifndef MUTIL_BINARY_PRINTER_H
 #define MUTIL_BINARY_PRINTER_H
 
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 
 namespace mutil {
     class IOBuf;

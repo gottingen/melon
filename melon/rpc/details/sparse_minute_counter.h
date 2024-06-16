@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <melon/utility/containers/bounded_queue.h>
+#include <melon/base/bounded_queue.h>
 
 namespace melon {
 

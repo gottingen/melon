@@ -23,11 +23,11 @@
 #include <string>                       // std::string
 #include <atomic>
 #include <melon/base/type_traits.h>
-#include <melon/utility/string_printf.h>
 #include <melon/utility/synchronization/lock.h>
 #include <melon/var/detail/is_atomical.h>
 #include <melon/var/variable.h>
 #include <melon/var/reducer.h>
+#include <turbo/strings/str_format.h>
 
 namespace melon::var {
     
@@ -164,23 +164,16 @@ namespace melon::var {
     class Status<std::string, void> : public Variable {
     public:
         Status() {}
-        Status(const std::string_view& name, const char* fmt, ...) {
-            if (fmt) {
-                va_list ap;
-                va_start(ap, fmt);
-                mutil::string_vprintf(&_value, fmt, ap);
-                va_end(ap);
-            }
+
+        template<typename ...Args>
+        Status(const std::string_view& name, const turbo::FormatSpec<Args...> &fmt, Args&&... args) {
+            _value = turbo::str_format(fmt, std::forward<Args>(args)...);
             expose(name);
         }
+        template<typename ...Args>
         Status(const std::string_view& prefix,
-               const std::string_view& name, const char* fmt, ...) {
-            if (fmt) {
-                va_list ap;
-                va_start(ap, fmt);
-                mutil::string_vprintf(&_value, fmt, ap);
-                va_end(ap);
-            }
+               const std::string_view& name, const turbo::FormatSpec<Args...> &fmt, Args&&... args) {
+            _value = turbo::str_format(fmt, std::forward<Args>(args)...);
             expose_as(prefix, name);
         }
     
@@ -198,16 +191,11 @@ namespace melon::var {
             mutil::AutoLock guard(_lock);
             return _value;
         }
-    
-        
-        void set_value(const char* fmt, ...) {
-            va_list ap;
-            va_start(ap, fmt);
-            {
-                mutil::AutoLock guard(_lock);
-                mutil::string_vprintf(&_value, fmt, ap);
-            }
-            va_end(ap);
+
+        template<typename ...Args>
+        void set_value(const turbo::FormatSpec<Args...> &fmt, Args&&... args) {
+            mutil::AutoLock guard(_lock);
+            _value = turbo::str_format(fmt, std::forward<Args>(args)...);
         }
     
         void set_value(const std::string& s) {

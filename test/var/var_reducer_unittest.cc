@@ -23,8 +23,8 @@
 #include <melon/var/reducer.h>
 
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
-#include <melon/utility/string_printf.h>
+#include <melon/base/macros.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/base/config.h>
 #include <gtest/gtest.h>
@@ -289,7 +289,7 @@ namespace {
     static void *string_appender(void *arg) {
         melon::var::Adder<std::string> *cater = (melon::var::Adder<std::string> *) arg;
         int count = 0;
-        std::string id = mutil::string_printf("%lld", (long long) pthread_self());
+        std::string id = turbo::str_format("%lld", (long long) pthread_self());
         std::string tmp = "a";
         for (count = 0; !count || !g_stop; ++count) {
             *cater << id << ":";

@@ -506,7 +506,12 @@ namespace melon {
         // If this controller was not SetFailed() before, ErrorCode() will be
         // set to ECLOSE.
         // NOTE: the underlying connection is not closed immediately.
-        void CloseConnection(const char *reason_fmt, ...);
+        void CloseConnection(const std::string &reason);
+
+        template<typename... Args>
+        void CloseConnection(const turbo::FormatSpec<Args...> & fmt, Args... args) {
+            CloseConnection(turbo::str_format(fmt, args...));
+        }
 
         // True if CloseConnection() was called.
         bool IsCloseConnection() const { return has_flag(FLAGS_CLOSE_CONNECTION); }
@@ -562,8 +567,12 @@ namespace melon {
         // (rather than before SetFailed)
         void SetFailed(const std::string &reason) override;
 
-        void SetFailed(int error_code, const char *reason_fmt, ...)
-        __attribute__ ((__format__ (__printf__, 3, 4)));
+        void SetFailed(int error_code, const std::string &reason);
+
+        template<typename... Args>
+        void SetFailed(int error_code, const turbo::FormatSpec<Args...> & fmt, Args... args) {
+            SetFailed(error_code, turbo::str_format(fmt, args...));
+        }
 
         // After a call has finished, returns true if the RPC call failed.
         // The response to Channel is undefined when Failed() is true.

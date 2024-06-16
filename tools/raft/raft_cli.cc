@@ -15,7 +15,7 @@
 
 #include <map>                  // std::map
 #include <gflags/gflags.h>      // google::ParseCommandLineFlags
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/raft/cli.h>          // raft::cli::*
 
 namespace melon::raft {
@@ -213,9 +213,7 @@ int main(int argc , char* argv[]) {
     } else {
         ++proc_name;
     }
-    std::string help_str;
-    mutil::string_printf(&help_str,
-                        "Usage: %s [Command] [OPTIONS...]\n"
+    std::string help_str = turbo::str_format("Usage: %s [Command] [OPTIONS...]\n"
                         "Command:\n"
                         "  add_peer --group=$group_id "
                                     "--peer=$adding_peer --conf=$current_conf\n"

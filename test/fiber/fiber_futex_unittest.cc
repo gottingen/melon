@@ -24,7 +24,7 @@
 #include <signal.h>
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/errno.h>
 #include <limits.h>                            // INT_MAX
 #include <melon/utility/atomicops.h>

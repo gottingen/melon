@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include <melon/fiber/task_group.h>
 #include <melon/fiber/fiber.h>

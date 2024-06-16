@@ -21,7 +21,7 @@
 
 #include <unistd.h>                    // write, _exit
 #include <gflags/gflags.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/reloadable_flags.h>
 
 namespace melon {

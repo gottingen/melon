@@ -29,7 +29,7 @@
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/gperftools_profiler.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
@@ -138,7 +138,7 @@ void CheckFieldInContent(const melon::Controller& cntl,
 void CheckAnnotation(const melon::Controller& cntl, int64_t expect) {
     const std::string& content = cntl.response_attachment().to_string();
     std::string expect_str;
-    mutil::string_printf(&expect_str, "MyAnnotation: %" PRId64, expect);
+    expect_str = turbo::str_format("MyAnnotation: %d", expect);
     std::size_t pos = content.find(expect_str);
     ASSERT_TRUE(pos != std::string::npos) << expect;
 }
@@ -827,7 +827,7 @@ TEST_F(BuiltinServiceTest, ids) {
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
-        mutil::string_printf(&id_string, "%llu", (unsigned long long)id.value);
+        id_string = turbo::str_format("%llu", (unsigned long long)id.value);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
@@ -865,7 +865,7 @@ TEST_F(BuiltinServiceTest, fibers) {
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
-        mutil::string_printf(&id_string, "%llu", (unsigned long long)th);
+        id_string = turbo::str_format("%llu", (unsigned long long)th);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());
@@ -899,7 +899,7 @@ TEST_F(BuiltinServiceTest, sockets) {
         ClosureChecker done;
         melon::Controller cntl;
         std::string id_string;
-        mutil::string_printf(&id_string, "%llu", (unsigned long long)id);
+        id_string = turbo::str_format("%llu", (unsigned long long)id);
         cntl.http_request()._unresolved_path = id_string;
         service.default_method(&cntl, &req, &res, &done);
         EXPECT_FALSE(cntl.Failed());

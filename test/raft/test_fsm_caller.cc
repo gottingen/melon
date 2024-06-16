@@ -3,7 +3,7 @@
 
 
 #include <gtest/gtest.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/utility/memory/scoped_ptr.h>
 #include "melon/raft/fsm_caller.h"
 #include "melon/raft/raft.h"
@@ -30,8 +30,7 @@ public:
     {}
     void on_apply(melon::raft::Iterator& iter) {
         for (; iter.valid(); iter.next()) {
-            std::string expected;
-            mutil::string_printf(&expected, "hello_%" PRIu64, _expected_next++);
+            std::string expected = turbo::str_format("hello_%" PRIu64, _expected_next++);
             ASSERT_EQ(expected, iter.data().to_string());
             if (iter.done()) {
                 ASSERT_TRUE(iter.done()->status().ok()) << "index=" << iter.index();
@@ -129,8 +128,7 @@ TEST_F(FSMCallerTest, sanity) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->AddRef();
         entry->type = melon::raft::ENTRY_TYPE_DATA;
-        std::string buf;
-        mutil::string_printf(&buf, "hello_%lld", (long long)i);
+        std::string buf = turbo::str_format("hello_%lld", (long long)i);
         entry->data.append(buf);
         entry->id.index = i + 1;
         entry->id.term = i;

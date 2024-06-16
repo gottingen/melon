@@ -24,8 +24,8 @@
 #include <deque>                                       // std::deque
 #include <map>                                         // std::map
 #include <melon/utility/containers/flat_map.h>                  // FlatMap
-#include <melon/utility/containers/doubly_buffered_data.h>      // DoublyBufferedData
-#include <melon/utility/containers/bounded_queue.h>             // BoundedQueue
+#include <melon/base/doubly_buffered_data.h>      // DoublyBufferedData
+#include <melon/base/bounded_queue.h>             // BoundedQueue
 #include <melon/rpc/load_balancer.h>
 #include <melon/rpc/controller.h>
 

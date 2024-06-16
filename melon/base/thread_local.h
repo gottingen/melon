@@ -25,7 +25,7 @@
 
 #include <new>                      // std::nothrow
 #include <cstddef>                  // NULL
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 #ifdef _MSC_VER
 #define MELON_THREAD_LOCAL __declspec(thread)

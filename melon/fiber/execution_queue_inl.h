@@ -22,7 +22,7 @@
 #define  MELON_FIBER_EXECUTION_QUEUE_INL_H_
 
 #include <atomic>
-#include <melon/utility/macros.h>                // MELON_CACHELINE_ALIGNMENT
+#include <melon/base/macros.h>                // MELON_CACHELINE_ALIGNMENT
 #include <melon/utility/memory/scoped_ptr.h>     // mutil::scoped_ptr
 #include <turbo/log/logging.h>               // LOG
 #include <melon/utility/time.h>                  // mutil::cpuwide_time_ns
@@ -266,8 +266,8 @@ public:
     typedef TaskIterator<T>                                     iterator;
     typedef int (*execute_func_t)(void*, iterator&);
     typedef TaskAllocator<T>                                    allocator;
-    MELON_CASSERT(sizeof(execute_func_t) == sizeof(void*),
-                  sizeof_function_must_be_equal_to_sizeof_voidptr);
+    static_assert(sizeof(execute_func_t) == sizeof(void*),
+                  "sizeof function must be equal to sizeof voidptr");
 
     static void clear_task_mem(TaskNode* node) {
         T* const task = (T*)allocator::get_allocated_mem(node);

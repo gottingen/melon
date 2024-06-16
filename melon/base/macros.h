@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 #include <melon/base/compiler_specific.h>  // For ALLOW_UNUSED.
-#include <melon/utility/string_printf.h>      // For mutil::string_printf().
+#include <turbo/strings/str_format.h>
 
 // There must be many copy-paste versions of these macros which are same
 // things, undefine them to avoid conflict.
@@ -169,56 +169,6 @@ inline To implicit_cast(From const &f) {
 }
 }
 
-#if defined(MUTIL_CXX11_ENABLED)
-
-// C++11 supports compile-time assertion directly
-#define MELON_CASSERT(expr, msg) static_assert(expr, #msg)
-
-#else
-
-// Assert constant boolean expressions at compile-time
-// Params:
-//   expr     the constant expression to be checked
-//   msg      an error infomation conforming name conventions of C/C++
-//            variables(alphabets/numbers/underscores, no blanks). For
-//            example "cannot_accept_a_number_bigger_than_128" is valid
-//            while "this number is out-of-range" is illegal.
-//
-// when an asssertion like "MELON_CASSERT(false, you_should_not_be_here)"
-// breaks, a compilation error is printed:
-//   
-//   foo.cpp:401: error: enumerator value for `you_should_not_be_here___19' not
-//   integer constant
-//
-// You can call MELON_CASSERT at global scope, inside a class or a function
-// 
-//   MELON_CASSERT(false, you_should_not_be_here);
-//   int main () { ... }
-//
-//   struct Foo {
-//       MELON_CASSERT(1 == 0, Never_equals);
-//   };
-//
-//   int bar(...)
-//   {
-//       MELON_CASSERT (value < 10, invalid_value);
-//   }
-//
-namespace mutil {
-template <bool> struct CAssert { static const int x = 1; };
-template <> struct CAssert<false> { static const char * x; };
-}
-
-#define MELON_CASSERT(expr, msg)                                \
-    enum { MELON_CONCAT(MELON_CONCAT(LINE_, __LINE__), __##msg) \
-           = ::mutil::CAssert<!!(expr)>::x };
-
-#endif  // MUTIL_CXX11_ENABLED
-
-// The impl. of chrome does not work for offsetof(Object, private_filed)
-#undef COMPILE_ASSERT
-#define COMPILE_ASSERT(expr, msg)  MELON_CASSERT(expr, msg)
-
 // bit_cast<Dest,Source> is a template function that implements the
 // equivalent of "*reinterpret_cast<Dest*>(&source)".  We need this in
 // very low-level functions like the protobuf library and fast math
@@ -275,7 +225,7 @@ template <> struct CAssert<false> { static const char * x; };
 namespace mutil {
 template <class Dest, class Source>
 inline Dest bit_cast(const Source& source) {
-  COMPILE_ASSERT(sizeof(Dest) == sizeof(Source), VerifySizesAreEqual);
+    static_assert(sizeof(Dest) == sizeof(Source), "VerifySizesAreEqual");
 
   Dest dest;
   memcpy(&dest, &source, sizeof(dest));
@@ -446,7 +396,7 @@ namespace {  /*anonymous namespace */                           \
 
 #define ASSERT_LOG(fmt, ...)                                            \
     do {                                                                \
-        std::string log = mutil::string_printf(fmt, ## __VA_ARGS__);    \
+        std::string log = turbo::str_format(fmt, ## __VA_ARGS__);    \
         LOG(FATAL) << log;                                              \
     } while (false)
 

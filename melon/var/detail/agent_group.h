@@ -29,7 +29,7 @@
 
 #include <melon/base/errno.h>                     // errno
 #include <melon/base/thread_local.h>              // thread_atexit
-#include <melon/utility/macros.h>                    // MELON_CACHELINE_ALIGNMENT
+#include <melon/base/macros.h>                    // MELON_CACHELINE_ALIGNMENT
 #include <melon/base/scoped_lock.h>
 #include <turbo/log/logging.h>
 

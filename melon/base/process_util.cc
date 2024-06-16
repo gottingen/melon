@@ -32,7 +32,7 @@
 #include <turbo/log/logging.h>
 #include <melon/base/popen.h>                // read_command_output
 #include <melon/base/process_util.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 namespace mutil {
 

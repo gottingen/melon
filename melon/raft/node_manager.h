@@ -19,7 +19,7 @@
 
 #pragma once
 #include <melon/utility/memory/singleton.h>
-#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/base/doubly_buffered_data.h>
 #include <melon/raft/raft.h>
 #include <melon/raft/util.h>
 

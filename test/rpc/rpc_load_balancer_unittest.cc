@@ -27,7 +27,7 @@
 #include <gtest/gtest.h>
 #include <melon/fiber/fiber.h>
 #include <melon/utility/gperftools_profiler.h>
-#include <melon/utility/containers/doubly_buffered_data.h>
+#include <melon/base/doubly_buffered_data.h>
 #include <melon/rpc/describable.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/socket_map.h>

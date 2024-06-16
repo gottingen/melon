@@ -21,7 +21,7 @@
 #include <gflags/gflags.h>
 #include <melon/base/build_config.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #if defined(OS_LINUX)
 // clone is a linux specific syscall
 #include <sched.h>

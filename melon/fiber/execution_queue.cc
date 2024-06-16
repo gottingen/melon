@@ -27,13 +27,10 @@
 
 namespace fiber {
 
-    //May be false on different platforms
-    //MELON_CASSERT(sizeof(TaskNode) == 128, sizeof_TaskNode_must_be_128);
-    //MELON_CASSERT(offsetof(TaskNode, static_task_mem) + sizeof(TaskNode().static_task_mem) == 128, sizeof_TaskNode_must_be_128);
-    MELON_CASSERT(sizeof(ExecutionQueue<int>) == sizeof(ExecutionQueueBase),
-                  sizeof_ExecutionQueue_must_be_the_same_with_ExecutionQueueBase);
-    MELON_CASSERT(sizeof(TaskIterator<int>) == sizeof(TaskIteratorBase),
-                  sizeof_TaskIterator_must_be_the_same_with_TaskIteratorBase);
+    static_assert(sizeof(ExecutionQueue<int>) == sizeof(ExecutionQueueBase),
+                  "sizeof ExecutionQueue must be the same with ExecutionQueueBase");
+    static_assert(sizeof(TaskIterator<int>) == sizeof(TaskIteratorBase),
+                  "sizeof TaskIterator must be the same with TaskIteratorBase");
     namespace /*anonymous*/ {
         typedef mutil::ResourceId<ExecutionQueueBase> slot_id_t;
 

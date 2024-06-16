@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <limits>
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include "melon/utility/numerics/safe_conversions.h"
 #include <melon/base/type_traits.h>
 
@@ -362,8 +362,8 @@ class CheckedNumericState<T, NUMERIC_INTEGER> {
       : value_(value),
         validity_(GetRangeConstraint(validity |
                                      DstRangeRelationToSrcRange<T>(value))) {
-    COMPILE_ASSERT(std::numeric_limits<Src>::is_specialized,
-                   argument_must_be_numeric);
+      static_assert(std::numeric_limits<Src>::is_specialized,
+                   "argument_must_be_numeric");
   }
 
   // Copy constructor.

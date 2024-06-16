@@ -19,7 +19,7 @@
 
 
 
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/fast_rand.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/policy/dynpart_load_balancer.h>

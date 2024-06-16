@@ -27,7 +27,7 @@
 #include <memory>
 #include <melon/utility/files/temp_file.h>      // TempFile
 #include <melon/utility/containers/flat_map.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/utility/time.h>                 // Timer
 #include <melon/base/fd_utility.h>           // make_non_blocking
 #include <melon/base/iobuf.h>

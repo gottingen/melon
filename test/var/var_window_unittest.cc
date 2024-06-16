@@ -25,7 +25,7 @@
 #include <iostream>
 #include <sstream>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
 #include <melon/var/var.h>

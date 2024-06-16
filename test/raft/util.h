@@ -271,11 +271,11 @@ public:
         }
         options.fsm = fsm;
         options.node_owns_fsm = true;
-        mutil::string_printf(&options.log_uri, "local://./data/%s/log",
+        options.log_uri = turbo::str_format("local://./data/%s/log",
                             mutil::endpoint2str(listen_addr).c_str());
-        mutil::string_printf(&options.raft_meta_uri, "local://./data/%s/raft_meta",
+        options.raft_meta_uri = turbo::str_format("local://./data/%s/raft_meta",
                             mutil::endpoint2str(listen_addr).c_str());
-        mutil::string_printf(&options.snapshot_uri, "local://./data/%s/snapshot",
+        options.snapshot_uri = turbo::str_format("local://./data/%s/snapshot",
                             mutil::endpoint2str(listen_addr).c_str());
         
         scoped_refptr<melon::raft::SnapshotThrottle> tst(_throttle);
@@ -330,8 +330,7 @@ public:
     }
 
     void clean(const mutil::EndPoint& listen_addr) {
-        std::string data_path;
-        mutil::string_printf(&data_path, "./data/%s",
+        std::string data_path = turbo::str_format("./data/%s",
                             mutil::endpoint2str(listen_addr).c_str());
 
         if (!mutil::DeleteFile(mutil::FilePath(data_path), true)) {

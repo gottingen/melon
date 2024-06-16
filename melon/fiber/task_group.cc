@@ -22,7 +22,7 @@
 #include <stddef.h>                         // size_t
 #include <gflags/gflags.h>
 #include <melon/base/compat.h>                   // OS_MACOSX
-#include <melon/utility/macros.h>                   // ARRAY_SIZE
+#include <melon/base/macros.h>                   // ARRAY_SIZE
 #include <melon/base/scoped_lock.h>              // MELON_SCOPED_LOCK
 #include <melon/base/fast_rand.h>
 #include <memory>

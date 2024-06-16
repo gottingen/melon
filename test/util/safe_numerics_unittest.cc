@@ -301,7 +301,7 @@ struct TestNumericConversion<Dst, Src, SIGN_PRESERVING_VALUE_PRESERVING> {
     typedef numeric_limits<Src> SrcLimits;
     typedef numeric_limits<Dst> DstLimits;
                    // Integral to floating.
-    COMPILE_ASSERT((DstLimits::is_iec559 && SrcLimits::is_integer) ||
+      static_assert((DstLimits::is_iec559 && SrcLimits::is_integer) ||
                    // Not floating to integral and...
                    (!(DstLimits::is_integer && SrcLimits::is_iec559) &&
                     // Same sign, same numeric, source is narrower or same.
@@ -309,7 +309,7 @@ struct TestNumericConversion<Dst, Src, SIGN_PRESERVING_VALUE_PRESERVING> {
                      sizeof(Dst) >= sizeof(Src)) ||
                     // Or signed destination and source is smaller
                      (DstLimits::is_signed && sizeof(Dst) > sizeof(Src)))),
-                   comparison_must_be_sign_preserving_and_value_preserving);
+                   "comparison_must_be_sign_preserving_and_value_preserving");
 
     const CheckedNumeric<Dst> checked_dst = SrcLimits::max();
     ;
@@ -347,11 +347,11 @@ struct TestNumericConversion<Dst, Src, SIGN_PRESERVING_NARROW> {
   static void Test(const char *dst, const char *src, int line) {
     typedef numeric_limits<Src> SrcLimits;
     typedef numeric_limits<Dst> DstLimits;
-    COMPILE_ASSERT(SrcLimits::is_signed == DstLimits::is_signed,
-                   destination_and_source_sign_must_be_the_same);
-    COMPILE_ASSERT(sizeof(Dst) < sizeof(Src) ||
+      static_assert(SrcLimits::is_signed == DstLimits::is_signed,
+                   "destination_and_source_sign_must_be_the_same");
+      static_assert(sizeof(Dst) < sizeof(Src) ||
                    (DstLimits::is_integer && SrcLimits::is_iec559),
-                   destination_must_be_narrower_than_source);
+                   "destination_must_be_narrower_than_source");
 
     const CheckedNumeric<Dst> checked_dst;
     TEST_EXPECTED_VALIDITY(RANGE_OVERFLOW, checked_dst + SrcLimits::max());
@@ -383,10 +383,10 @@ struct TestNumericConversion<Dst, Src, SIGN_TO_UNSIGN_WIDEN_OR_EQUAL> {
   static void Test(const char *dst, const char *src, int line) {
     typedef numeric_limits<Src> SrcLimits;
     typedef numeric_limits<Dst> DstLimits;
-    COMPILE_ASSERT(sizeof(Dst) >= sizeof(Src),
-                   destination_must_be_equal_or_wider_than_source);
-    COMPILE_ASSERT(SrcLimits::is_signed, source_must_be_signed);
-    COMPILE_ASSERT(!DstLimits::is_signed, destination_must_be_unsigned);
+      static_assert(sizeof(Dst) >= sizeof(Src),
+                   "destination_must_be_equal_or_wider_than_source");
+      static_assert(SrcLimits::is_signed, "source_must_be_signed");
+      static_assert(!DstLimits::is_signed, "destination_must_be_unsigned");
 
     const CheckedNumeric<Dst> checked_dst;
     TEST_EXPECTED_VALUE(SrcLimits::max(), checked_dst + SrcLimits::max());
@@ -405,11 +405,11 @@ struct TestNumericConversion<Dst, Src, SIGN_TO_UNSIGN_NARROW> {
   static void Test(const char *dst, const char *src, int line) {
     typedef numeric_limits<Src> SrcLimits;
     typedef numeric_limits<Dst> DstLimits;
-    COMPILE_ASSERT((DstLimits::is_integer && SrcLimits::is_iec559) ||
+      static_assert((DstLimits::is_integer && SrcLimits::is_iec559) ||
                    (sizeof(Dst) < sizeof(Src)),
-      destination_must_be_narrower_than_source);
-    COMPILE_ASSERT(SrcLimits::is_signed, source_must_be_signed);
-    COMPILE_ASSERT(!DstLimits::is_signed, destination_must_be_unsigned);
+      "destination_must_be_narrower_than_source");
+      static_assert(SrcLimits::is_signed, "source_must_be_signed");
+      static_assert(!DstLimits::is_signed, "destination_must_be_unsigned");
 
     const CheckedNumeric<Dst> checked_dst;
     TEST_EXPECTED_VALUE(1, checked_dst + static_cast<Src>(1));
@@ -437,10 +437,10 @@ struct TestNumericConversion<Dst, Src, UNSIGN_TO_SIGN_NARROW_OR_EQUAL> {
   static void Test(const char *dst, const char *src, int line) {
     typedef numeric_limits<Src> SrcLimits;
     typedef numeric_limits<Dst> DstLimits;
-    COMPILE_ASSERT(sizeof(Dst) <= sizeof(Src),
-                   destination_must_be_narrower_or_equal_to_source);
-    COMPILE_ASSERT(!SrcLimits::is_signed, source_must_be_unsigned);
-    COMPILE_ASSERT(DstLimits::is_signed, destination_must_be_signed);
+      static_assert(sizeof(Dst) <= sizeof(Src),
+                   "destination_must_be_narrower_or_equal_to_source");
+      static_assert(!SrcLimits::is_signed, "source_must_be_unsigned");
+      static_assert(DstLimits::is_signed, "destination_must_be_signed");
 
     const CheckedNumeric<Dst> checked_dst;
     TEST_EXPECTED_VALUE(1, checked_dst + static_cast<Src>(1));

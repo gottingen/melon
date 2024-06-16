@@ -75,7 +75,7 @@ const char kDownCaseHexDigits[] = "0123456789abcdef";
 #if defined(NDEBUG)
 // We would like to define kSSizeMax as std::numeric_limits<ssize_t>::max(),
 // but C++ doesn't allow us to do that for constants. Instead, we have to
-// use careful casting and shifting. We later use a COMPILE_ASSERT to
+// use careful casting and shifting. We later use a static_assert to
 // verify that this worked correctly.
 namespace {
 const size_t kSSizeMax = kSSizeMaxConst;
@@ -120,9 +120,9 @@ class Buffer {
 #if defined(MUTIL_CXX11_ENABLED) \
     && !(defined(__GNUC__) && __GNUC__ * 10000 + __GNUC_MINOR__ * 100 < 40600) \
     && !defined(OS_ANDROID) && !defined(OS_MACOSX) && !defined(OS_IOS)
-    MELON_CASSERT(kSSizeMaxConst == \
+      static_assert(kSSizeMaxConst ==
                    static_cast<size_t>(std::numeric_limits<ssize_t>::max()),
-                   kSSizeMax_is_the_max_value_of_an_ssize_t);
+                   "kSSizeMax is the max value of an ssize_t");
 #endif
     DEBUG_CHECK(size > 0, "");
     DEBUG_CHECK(size <= kSSizeMax, "");

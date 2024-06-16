@@ -12,7 +12,7 @@
 #include <melon/utility/files/file_path.h>
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/utility/files/dir_reader_posix.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
 #include <melon/raft/util.h>
 #include <melon/raft/log.h>
@@ -555,7 +555,7 @@ TEST_F(LogStorageTest, data_lost) {
         int match = sscanf(dir_reader1.name(), "log_inprogress_%020ld", 
                            &first_index);
         std::string path;
-        mutil::string_appendf(&path, "./data/%s", dir_reader1.name());
+        turbo::str_append_format(&path, "./data/%s", dir_reader1.name());
         if (match == 1) {
             ASSERT_EQ(truncate_uninterrupted(path.c_str(), file_size(path.c_str()) - 1), 0);
         }
@@ -580,7 +580,7 @@ TEST_F(LogStorageTest, data_lost) {
         int match = sscanf(dir_reader2.name(), "log_%020ld_%020ld", 
                            &first_index, &last_index);
         std::string path;
-        mutil::string_appendf(&path, "./data/%s", dir_reader2.name());
+        turbo::str_append_format(&path, "./data/%s", dir_reader2.name());
         if (match == 2) {
             ASSERT_EQ(truncate_uninterrupted(path.c_str(), file_size(path.c_str()) - 1), 0);
         }
@@ -640,9 +640,9 @@ TEST_F(LogStorageTest, full_segment_has_garbage) {
             continue;
         }
         if (first_segment.empty()) {
-            mutil::string_appendf(&first_segment, "./data/%s", dir_reader.name());
+            turbo::str_append_format(&first_segment, "./data/%s", dir_reader.name());
         } else {
-            mutil::string_appendf(&second_segment, "./data/%s", dir_reader.name());
+            turbo::str_append_format(&second_segment, "./data/%s", dir_reader.name());
             break;
         }
     }
@@ -882,8 +882,7 @@ void* read_thread_routine(void* arg) {
         int index = mutil::fast_rand_in(a, b);
         melon::raft::LogEntry* entry = storage->get_entry(index);
         if (entry != NULL) {
-            std::string expect;
-            mutil::string_printf(&expect, "hello_%d", index);
+            std::string expect = turbo::str_format("hello_%d", index);
             EXPECT_EQ(expect, entry->data.to_string());
             entry->Release();
         } else {
@@ -930,8 +929,7 @@ void* write_thread_routine(void* arg) {
             melon::raft::LogEntry* entry = new melon::raft::LogEntry;
             entry->type = melon::raft::ENTRY_TYPE_DATA;
             entry->id.index = next_log_index;
-            std::string data;
-            mutil::string_printf(&data, "hello_%d", next_log_index);
+            std::string data = turbo::str_format("hello_%d", next_log_index);
             entry->data.append(data);
             ++next_log_index;
             EXPECT_EQ(0, storage->append_entry(entry));
@@ -957,8 +955,7 @@ TEST_F(LogStorageTest, multi_read_single_modify_thread_safe) {
         melon::raft::LogEntry* entry = new melon::raft::LogEntry;
         entry->type = melon::raft::ENTRY_TYPE_DATA;
         entry->id.index = i;
-        std::string data;
-        mutil::string_printf(&data, "hello_%d", i);
+        std::string data = turbo::str_format("hello_%d", i);
         entry->data.append(data);
         ASSERT_EQ(0, storage->append_entry(entry));
         entry->Release();

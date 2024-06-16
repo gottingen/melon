@@ -46,8 +46,8 @@ DECLARE_bool(enable_rpcz);
 
 namespace policy {
 
-MELON_CASSERT(sizeof(MemcacheRequestHeader) == 24, must_match);
-MELON_CASSERT(sizeof(MemcacheResponseHeader) == 24, must_match);
+    static_assert(sizeof(MemcacheRequestHeader) == 24, "must match");
+    static_assert(sizeof(MemcacheResponseHeader) == 24, "must match");
 
 static uint64_t supported_cmd_map[8];
 static pthread_once_t supported_cmd_map_once = PTHREAD_ONCE_INIT;

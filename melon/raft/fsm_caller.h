@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <melon/utility/macros.h>                        // MELON_CACHELINE_ALIGNMENT
+#include <melon/base/macros.h>                        // MELON_CACHELINE_ALIGNMENT
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/execution_queue.h>
 #include <melon/raft/ballot_box.h>

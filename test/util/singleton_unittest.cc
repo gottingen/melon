@@ -8,7 +8,7 @@
 
 namespace {
 
-COMPILE_ASSERT(DefaultSingletonTraits<int>::kRegisterAtExit == true, a);
+    static_assert(DefaultSingletonTraits<int>::kRegisterAtExit == true, "a");
 
 typedef void (*CallbackFunc)();
 

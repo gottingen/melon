@@ -28,7 +28,7 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <turbo/log/logging.h>
 #include "melon/utility/files/temp_file.h"
 #include <melon/rpc/socket.h>
@@ -791,7 +791,7 @@ protected:
 
         for (size_t i = 0; i < NCHANS; ++i) {
             ::test::EchoRequest* sub_req = req.add_requests();
-            sub_req->set_message(mutil::string_printf("hello_%llu", (long long)i));
+            sub_req->set_message(turbo::str_format("hello_%llu", (long long)i));
             sub_req->set_code(i + 1);
         }
 
@@ -810,7 +810,7 @@ protected:
         ASSERT_GT(cntl.latency_us(), 0);
         ASSERT_EQ((int)NCHANS, res.responses_size());
         for (int i = 0; i < res.responses_size(); ++i) {
-            EXPECT_EQ(mutil::string_printf("received hello_%d", i),
+            EXPECT_EQ(turbo::str_format("received hello_%d", i),
                       res.responses(i).message());
             ASSERT_EQ(1, res.responses(i).code_list_size());
             EXPECT_EQ(i + 1, res.responses(i).code_list(0));

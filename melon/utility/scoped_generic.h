@@ -11,7 +11,7 @@
 
 #include <melon/base/compiler_specific.h>
 #include "melon/utility/move.h"
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 
 namespace mutil {
 

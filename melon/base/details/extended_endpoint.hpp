@@ -32,7 +32,7 @@
 #include <unordered_set>
 #include <melon/base/endpoint.h>
 #include <turbo/log/logging.h>
-#include <melon/utility/strings/string_piece.h>
+#include <string_view>
 #include <melon/base/resource_pool.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #include <turbo/strings/ascii.h>
@@ -46,24 +46,24 @@ namespace mutil {
                       "EndPoint size mismatch with the one in POD-style, may cause ABI problem");
 #endif
 
-// For ipv6/unix socket address.
-//
-// We have to keep mutil::EndPoint ABI compatible because it is used so widely, and the size of mutil::EndPoint is
-// too small to store more information such as ipv6 address.
-// We store enough information about endpoint in such tiny struct by putting real things in another big object
-// holding by ResourcePool. The EndPoint::ip saves ResourceId, while EndPoint::port denotes if the EndPoint object
-// is an old style ipv4 endpoint.
-// Note that since ResourcePool has been implemented in fiber, we copy it into this repo and change its namespace to
-// mutil::details. Those two headers will not be published.
+        // For ipv6/unix socket address.
+        //
+        // We have to keep mutil::EndPoint ABI compatible because it is used so widely, and the size of mutil::EndPoint is
+        // too small to store more information such as ipv6 address.
+        // We store enough information about endpoint in such tiny struct by putting real things in another big object
+        // holding by ResourcePool. The EndPoint::ip saves ResourceId, while EndPoint::port denotes if the EndPoint object
+        // is an old style ipv4 endpoint.
+        // Note that since ResourcePool has been implemented in fiber, we copy it into this repo and change its namespace to
+        // mutil::details. Those two headers will not be published.
 
-// If EndPoint.port equals to this value, we should get the extended endpoint in resource pool.
+        // If EndPoint.port equals to this value, we should get the extended endpoint in resource pool.
         const static int EXTENDED_ENDPOINT_PORT = 123456789;
 
         class ExtendedEndPoint;
 
-// A global unordered set to dedup ExtendedEndPoint
-// ExtendedEndPoints which have same ipv6/unix socket address must have same id,
-// so that user can simply use the value of EndPoint for comparision.
+        // A global unordered set to dedup ExtendedEndPoint
+        // ExtendedEndPoints which have same ipv6/unix socket address must have same id,
+        // so that user can simply use the value of EndPoint for comparision.
         class GlobalEndPointSet {
         public:
             ExtendedEndPoint *insert(ExtendedEndPoint *p);

@@ -13,7 +13,7 @@
 #endif
 
 #ifdef ENABLE_LEAK_TRACKER
-#include <melon/utility/containers/linked_list.h>
+#include <melon/base/linked_list.h>
 #include "melon/utility/debug/stack_trace.h"
 #include <turbo/log/logging.h>
 #endif  // ENABLE_LEAK_TRACKER

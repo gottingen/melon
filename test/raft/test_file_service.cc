@@ -42,20 +42,18 @@ TEST_F(FileServiceTest, sanity) {
     scoped_refptr<melon::raft::LocalDirReader> reader(new melon::raft::LocalDirReader(fs, "a"));
     int64_t reader_id = 0;
     ASSERT_EQ(0, melon::raft::file_service_add(reader.get(), &reader_id));
-    std::string uri;
-    mutil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
+    std::string uri = turbo::str_format("remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
     melon::raft::RemoteFileCopier copier;
     {
-	std::string bad_uri;
-    	mutil::string_printf(&bad_uri, "local://127.0.0.1:%d/123456", g_port);
+	std::string bad_uri = turbo::str_format("local://127.0.0.1:%d/123456", g_port);
     	ASSERT_NE(0, copier.init(bad_uri, fs, NULL));
 
 	bad_uri.clear();
-    	mutil::string_printf(&bad_uri, "remote://127.0.0.1:%d//123456", g_port);
+        bad_uri = turbo::str_format("remote://127.0.0.1:%d//123456", g_port);
     	ASSERT_NE(0, copier.init(bad_uri, fs, NULL));
 
 	bad_uri.clear();
-    	mutil::string_printf(&bad_uri, "remote://127.0.1:%d//123456", g_port);
+        bad_uri = turbo::str_format("remote://127.0.1:%d//123456", g_port);
     	ASSERT_NE(0, copier.init(bad_uri, fs, NULL));
 
     	ASSERT_NE(0, copier.init("remote://127.0.0.1//123456", fs, NULL));
@@ -108,8 +106,7 @@ TEST_F(FileServiceTest, hole_file) {
     ASSERT_EQ(0, melon::raft::file_service_add(reader.get(), &reader_id));
 
     melon::raft::RemoteFileCopier copier;
-    std::string uri;
-    mutil::string_printf(&uri, "remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
+    std::string uri = turbo::str_format("remote://127.0.0.1:%d/%" PRId64, g_port, reader_id);
     // normal init
     melon::raft::FLAGS_raft_file_check_hole = false;
     ASSERT_EQ(0, copier.init(uri, fs, NULL));

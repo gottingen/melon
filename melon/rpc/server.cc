@@ -27,12 +27,12 @@
 #include <google/protobuf/descriptor.h>             // ServiceDescriptor
 #include <melon/proto/idl_options.pb.h>                         // option(idl_support)
 #include <melon/fiber/unstable.h>                       // fiber_keytable_pool_init
-#include <melon/utility/macros.h>                            // ARRAY_SIZE
+#include <melon/base/macros.h>                            // ARRAY_SIZE
 #include <melon/base/fd_guard.h>                          // fd_guard
 #include <turbo/log/logging.h>                           // CHECK
 #include <melon/utility/time.h>
 #include <melon/base/class_name.h>
-#include <melon/utility/string_printf.h>
+#include <turbo/strings/str_format.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/compress.h>
 #include <melon/rpc/global.h>
@@ -89,8 +89,8 @@ inline std::ostream &operator<<(std::ostream &os, const timeval &tm) {
 
 namespace melon {
 
-    MELON_CASSERT(sizeof(int32_t) == sizeof(mutil::subtle::Atomic32),
-                  Atomic32_must_be_int32);
+    static_assert(sizeof(int32_t) == sizeof(mutil::subtle::Atomic32),
+                  "Atomic32 must be int32");
 
     extern const char *const g_server_info_prefix = "rpc_server";
 
@@ -258,7 +258,7 @@ namespace melon {
 
     std::string Server::ServerPrefix() const {
         if (_options.server_info_name.empty()) {
-            return mutil::string_printf("%s_%d", g_server_info_prefix, listen_address().port);
+            return turbo::str_format("%s_%d", g_server_info_prefix, listen_address().port);
         } else {
             return std::string(g_server_info_prefix) + "_" + _options.server_info_name;
         }
@@ -369,8 +369,7 @@ namespace melon {
               _first_service(NULL), _tab_info_list(NULL), _global_restful_map(NULL), _last_start_time(0),
               _derivative_thread(INVALID_FIBER), _keytable_pool(NULL), _eps_var(&_nerror_var), _concurrency(0),
               _concurrency_var(cast_no_barrier_int, &_concurrency), _has_progressive_read_method(false) {
-        MELON_CASSERT(offsetof(Server, _concurrency) % 64 == 0,
-                      Server_concurrency_must_be_aligned_by_cacheline);
+        static_assert(offsetof(Server, _concurrency) % 64 == 0,  "Server concurrency must be aligned by cacheline");
     }
 
     Server::~Server() {
@@ -1779,7 +1778,7 @@ namespace melon {
             MELON_SCOPED_LOCK(g_dummy_server_mutex);
             if (g_dummy_server == NULL) {
                 Server *dummy_server = new Server;
-                dummy_server->set_version(mutil::string_printf(
+                dummy_server->set_version(turbo::str_format(
                         "DummyServerOf(%s)", GetProgramName()));
                 ServerOptions options;
                 options.num_threads = 0;

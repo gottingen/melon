@@ -31,7 +31,7 @@
 #include <melon/utility/time.h>                           // cpuwide_time_us
 #include <melon/base/object_pool.h>                    // get_object
 #include <turbo/log/logging.h>                        // CHECK
-#include <melon/utility/macros.h>
+#include <melon/base/macros.h>
 #include <melon/base/class_name.h>                     // mutil::class_name
 #include <melon/rpc/log.h>
 #include <melon/rpc/reloadable_flags.h>          // MELON_VALIDATE_GFLAG
@@ -870,7 +870,7 @@ namespace melon {
         return 0;
     }
 
-    int Socket::SetFailed(int error_code, const char *error_fmt, ...) {
+    int Socket::SetFailed(int error_code, std::string &&err_msg) {
         if (error_code == 0) {
             CHECK(false) << "error_code is 0";
             error_code = EFAILEDSOCKET;
@@ -888,16 +888,9 @@ namespace melon {
                     std::memory_order_release,
                     std::memory_order_relaxed)) {
                 // Update _error_text
-                std::string error_text;
-                if (error_fmt != NULL) {
-                    va_list ap;
-                    va_start(ap, error_fmt);
-                    mutil::string_vprintf(&error_text, error_fmt, ap);
-                    va_end(ap);
-                }
                 pthread_mutex_lock(&_id_wait_list_mutex);
                 _error_code = error_code;
-                _error_text = error_text;
+                _error_text = std::move(err_msg);
                 pthread_mutex_unlock(&_id_wait_list_mutex);
 
                 // Do health-checking even if we're not connected before, needed
@@ -924,7 +917,7 @@ namespace melon {
 
                 // Wake up all unresponded RPC.
                 CHECK_EQ(0, fiber_session_list_reset2_pthreadsafe(
-                        &_id_wait_list, error_code, error_text,
+                        &_id_wait_list, error_code, _error_text,
                         &_id_wait_list_mutex));
 
                 ResetAllStreams();
@@ -2756,8 +2749,8 @@ namespace melon {
     }
 
     void Socket::GetStat(SocketStat *s) const {
-        MELON_CASSERT(offsetof(Socket, _preferred_index) >= 64, different_cacheline);
-        MELON_CASSERT(sizeof(WriteRequest) == 64, sizeof_write_request_is_64);
+        static_assert(offsetof(Socket, _preferred_index) >= 64, "different cacheline");
+        static_assert(sizeof(WriteRequest) == 64, "sizeof write request is 64");
 
         SharedPart *sp = GetSharedPart();
         if (sp != NULL && sp->extended_stat != NULL) {
@@ -2819,18 +2812,18 @@ namespace melon {
         // NOTE: The output should be consistent with operator<<()
         std::string result;
         result.reserve(64);
-        mutil::string_appendf(&result, "Socket{id=%" PRIu64, id());
+        turbo::str_append_format(&result, "Socket{id=%" PRIu64, id());
         const int saved_fd = fd();
         if (saved_fd >= 0) {
-            mutil::string_appendf(&result, " fd=%d", saved_fd);
+            turbo::str_append_format(&result, " fd=%d", saved_fd);
         }
-        mutil::string_appendf(&result, " addr=%s",
+        turbo::str_append_format(&result, " addr=%s",
                               mutil::endpoint2str(remote_side()).c_str());
         const int local_port = local_side().port;
         if (local_port > 0) {
-            mutil::string_appendf(&result, ":%d", local_port);
+            turbo::str_append_format(&result, ":%d", local_port);
         }
-        mutil::string_appendf(&result, "} (0x%p)", this);
+        turbo::str_append_format(&result, "} (0x%p)", this);
         return result;
     }
 

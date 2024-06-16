@@ -21,8 +21,8 @@
 #include <gtest/gtest.h>
 #include <melon/base/compat.h>
 #include <melon/utility/time.h>
-#include <melon/utility/macros.h>
-#include <melon/utility/string_printf.h>
+#include <melon/base/macros.h>
+#include <turbo/strings/str_format.h>
 #include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>
 #include <melon/fiber/butex.h>
