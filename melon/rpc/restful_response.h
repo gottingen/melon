@@ -63,6 +63,10 @@ namespace melon {
 
         void set_header(const std::string &key, const std::string &value);
 
+        void set_content_type(const std::string &value) {
+            set_header(CONTENT_TYPE, value);
+        }
+
         void append_header(const std::string &key, const std::string &value);
 
         void clear_body();

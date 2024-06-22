@@ -31,8 +31,8 @@ message(STATUS ${PROJECT_NAME}_IS_TOP_PROJECT)
 
 set(PROJECT_DESCRIPTION "melon is a c++ rpc framework, it's a high performance, easy to use, and powerful rpc framework")
 set(PROJECT_VERSION_MAJOR 0)
-set(PROJECT_VERSION_MINOR 5)
-set(PROJECT_VERSION_PATCH 9)
+set(PROJECT_VERSION_MINOR 6)
+set(PROJECT_VERSION_PATCH 0)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 set(${PROJECT_NAME}_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -99,6 +99,7 @@ set(PROTO_FILES
         melon/proto/rpc/trackme.proto
         melon/proto/rpc/streaming_rpc_meta.proto
         melon/proto/rpc/proto_base.proto
+        melon/proto/rpc/webui.proto
         melon/proto/raft/builtin_service.proto
         melon/proto/raft/cli.proto
         melon/proto/raft/enum.proto

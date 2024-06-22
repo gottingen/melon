@@ -25,27 +25,56 @@
 #include <melon/rpc/restful_request.h>
 #include <melon/rpc/restful_response.h>
 #include <turbo/utility/status.h>
+#include <turbo/container/flat_hash_map.h>
 #include <melon/rpc/channel.h>
 #include <memory>
+#include <mutex>
 
 namespace melon {
 
+    struct RestfulProcessor {
+        virtual ~RestfulProcessor() = default;
+        virtual void process(const RestfulRequest *request, RestfulResponse *response) = 0;
+    };
+
     class RestfulService : public melon::restful {
     public:
-        RestfulService() = default;
+        ~RestfulService() override = default;
 
         void impl_method(::google::protobuf::RpcController *controller,
                          const ::melon::NoUseRestfulRequest *request,
                          ::melon::NoUseRestfulResponse *response,
                          ::google::protobuf::Closure *done) override;
 
-        turbo::Status register_server(const std::string &mapping_path, Server *server);
+        turbo::Status register_server(Server *server);
 
-    protected:
-        virtual void process(const RestfulRequest *request, RestfulResponse *response) = 0;
+        RestfulService* set_not_found_processor(std::shared_ptr<RestfulProcessor> processor);
 
+        RestfulService* set_any_path_processor(std::shared_ptr<RestfulProcessor> processor);
+
+        RestfulService* set_root_processor(std::shared_ptr<RestfulProcessor> processor);
+
+        RestfulService* set_processor(const std::string &path, std::shared_ptr<RestfulProcessor> processor, bool overwrite = false);
+
+        RestfulService* set_mapping_path(const std::string &mapping_path);
+
+        static RestfulService *instance() {
+            static RestfulService service;
+            return &service;
+        }
     private:
+        RestfulService() = default;
+    private:
+        std::mutex mutex_;
+        bool registered_{false};
         std::string mapping_path_;
+        // for root path
+        std::shared_ptr<RestfulProcessor> root_processor_;
+        // for any path
+        std::shared_ptr<RestfulProcessor> any_path_processor_;
+        // for not found
+        std::shared_ptr<RestfulProcessor> not_found_processor_;
+        turbo::flat_hash_map<std::string, std::shared_ptr<RestfulProcessor>> processors_;
     };
 
     class RestfulClient {
