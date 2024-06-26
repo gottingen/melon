@@ -23,13 +23,9 @@ package melon;
 
 option cc_generic_services = true;
 
-message GetJsRequest {}
-message GetJsResponse {}
+message NoUseRestfulRequest {};
+message NoUseRestfulResponse {};
 
-service js {
-    rpc sorttable(GetJsRequest) returns (GetJsResponse);
-    rpc jquery_min(GetJsRequest) returns (GetJsResponse);
-    rpc flot_min(GetJsRequest) returns (GetJsResponse);
-    rpc viz_min(GetJsRequest) returns (GetJsResponse);
-    rpc vue(GetJsRequest) returns (GetJsResponse);
-}
+service restful {
+  rpc impl_method(NoUseRestfulRequest) returns (NoUseRestfulResponse);
+};

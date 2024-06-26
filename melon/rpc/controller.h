@@ -90,7 +90,7 @@ namespace melon {
         class SubDone;
     }
 
-// For serializing/parsing from idl services.
+    // For serializing/parsing from idl services.
     struct IdlNames {
         const char *request_name;  // must be string-constant
         const char *response_name; // must be string-constant
@@ -101,10 +101,10 @@ namespace melon {
     extern const IdlNames idl_multi_req_single_res;
     extern const IdlNames idl_multi_req_multi_res;
 
-// The identifier to be associated with a RPC call.
+    // The identifier to be associated with a RPC call.
     typedef fiber_session_t CallId;
 
-// Styles for stopping progressive attachment.
+    // Styles for stopping progressive attachment.
     enum StopStyle {
         FORCE_STOP,
         WAIT_FOR_STOP,
@@ -114,9 +114,9 @@ namespace melon {
 
     typedef mutil::FlatMap<std::string, std::string> UserFieldsMap;
 
-// A Controller mediates a single method call. The primary purpose of
-// the controller is to provide a way to manipulate settings per RPC-call 
-// and to find out about RPC-level errors.
+    // A Controller mediates a single method call. The primary purpose of
+    // the controller is to provide a way to manipulate settings per RPC-call
+    // and to find out about RPC-level errors.
     class Controller : public google::protobuf::RpcController/*non-copyable*/ {
         friend class Channel;
 

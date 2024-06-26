@@ -25,6 +25,7 @@
 #include <melon/builtin/jquery_min_js.h>
 #include <melon/builtin/flot_min_js.h>
 #include <melon/builtin/viz_min_js.h>
+#include <melon/builtin/vue_js.h>
 #include <melon/builtin/get_js_service.h>
 #include <melon/builtin/common.h>
 
@@ -129,6 +130,32 @@ namespace melon {
             cntl->response_attachment().append(viz_min_js_iobuf_gzip());
         } else {
             cntl->response_attachment().append(viz_min_js_iobuf());
+        }
+    }
+
+    void GetJsService::vue(
+            ::google::protobuf::RpcController *controller,
+            const GetJsRequest * /*request*/,
+            GetJsResponse * /*response*/,
+            ::google::protobuf::Closure *done) {
+        ClosureGuard done_guard(done);
+        Controller *cntl = (Controller *) controller;
+        cntl->http_response().set_content_type("application/javascript");
+        SetExpires(&cntl->http_response(), 80000);
+
+        const std::string *ims =
+                cntl->http_request().GetHeader("If-Modified-Since");
+        if (ims != NULL && *ims == g_last_modified) {
+            cntl->http_response().set_status_code(HTTP_STATUS_NOT_MODIFIED);
+            return;
+        }
+        cntl->http_response().SetHeader("Last-Modified", g_last_modified);
+
+        if (SupportGzip(cntl)) {
+            cntl->http_response().SetHeader("Content-Encoding", "gzip");
+            cntl->response_attachment().append(vue_js_iobuf_gzip());
+        } else {
+            cntl->response_attachment().append(vue_js_iobuf());
         }
     }
 

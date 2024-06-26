@@ -252,8 +252,8 @@ namespace melon {
            "</script>\n";
     }
 
-// We need the space before colon so that user does not have to remove
-// trailing colon from $1
+    // We need the space before colon so that user does not have to remove
+    // trailing colon from $1
     static const std::string VAR_SEP = " : ";
 
     class VarsDumper : public melon::var::Dumper {

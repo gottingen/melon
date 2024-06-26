@@ -147,7 +147,7 @@ namespace melon {
         const std::string &name = cntl->http_request().unresolved_path();
         auto fflag = turbo::find_command_line_flag(name);
         if (!fflag) {
-            cntl->SetFailed(ENOMETHOD, "No such gflag");
+            cntl->SetFailed(ENOMETHOD, "No such turbo flag");
             return;
         }
         mutil::IOBufBuilder os;
@@ -218,7 +218,7 @@ namespace melon {
             mutil::IOBufBuilder os;
             os << "Set `" << constraint << "' to " << *value_str;
             if (use_html) {
-                os << "<br><a href='/tflags'>[back to flags]</a>";
+                os << "<br><a href='/tflags'>[back to tflags]</a>";
             }
             os.move_to(cntl->response_attachment());
             return;
@@ -245,7 +245,7 @@ namespace melon {
                << "<script language=\"javascript\" type=\"text/javascript\" src=\"/js/jquery_min\"></script>\n"
                << TabsHead()
                << "</head><body>";
-            cntl->server()->PrintTabsBody(os, "flags");
+            cntl->server()->PrintTabsBody(os, "tflags");
             os << "<table class=\"gridtable\" border=\"1\"><tr><th>Name</th><th>Value</th>"
                   "<th>Description</th><th>Defined At</th></tr>\n";
         } else {
@@ -254,7 +254,7 @@ namespace melon {
         }
 
         if (!constraint.empty() && wildcards.empty()) {
-            // Only exact names. We don't have to iterate all flags in this case.
+            // Only exact names. We don't have to iterate all tflags in this case.
             for (auto it = exact.begin();
                  it != exact.end(); ++it) {
                 auto finfo = turbo::find_command_line_flag(*it);
@@ -265,7 +265,7 @@ namespace melon {
             }
 
         } else {
-            // Iterate all flags and filter.
+            // Iterate all tflags and filter.
             auto flag_list = turbo::get_all_flags();
             for (auto it = flag_list.begin(); it != flag_list.end(); ++it) {
                 if (!constraint.empty() &&
