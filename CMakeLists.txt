@@ -86,6 +86,7 @@ set(PROTO_FILES
         melon/proto/rpc/sns.proto
         melon/proto/rpc/get_favicon.proto
         melon/proto/rpc/span.proto
+        melon/proto/rpc/builtin.proto
         melon/proto/rpc/builtin_service.proto
         melon/proto/rpc/grpc_health_check.proto
         melon/proto/rpc/get_js.proto

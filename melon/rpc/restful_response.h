@@ -27,8 +27,9 @@ namespace melon {
 
     class RestfulResponse {
     public:
-        static constexpr const char *CONTENT_TYPE = "Content-Type";
-        static constexpr const char *AUTHORIZATION = "Authorization";
+        static const std::string CONTENT_TYPE;
+        static const std::string AUTHORIZATION;
+        static const std::string APPLICATION_JSON;
         using HeaderIterator = HttpHeader::HeaderIterator;
     public:
 
@@ -66,6 +67,12 @@ namespace melon {
         void set_content_type(const std::string &value) {
             set_header(CONTENT_TYPE, value);
         }
+
+        void set_content_json() {
+            set_header(CONTENT_TYPE, APPLICATION_JSON);
+        }
+
+        void set_access_control_all_allow();
 
         void append_header(const std::string &key, const std::string &value);
 

@@ -29,12 +29,27 @@
 #include <melon/rpc/channel.h>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace melon {
 
     struct RestfulProcessor {
         virtual ~RestfulProcessor() = default;
         virtual void process(const RestfulRequest *request, RestfulResponse *response) = 0;
+
+        void add_eternal_header(const std::string &key, const std::string &value) {
+            eternal_headers.emplace_back(key, value);
+        }
+
+        void apply_eternal_headers(RestfulResponse *response) {
+            for(const auto &header : eternal_headers) {
+                response->set_header(header.first, header.second);
+            }
+        }
+        void clear_eternal_headers() {
+            eternal_headers.clear();
+        }
+        std::vector<std::pair<std::string, std::string>> eternal_headers;
     };
 
     class RestfulService : public melon::restful {

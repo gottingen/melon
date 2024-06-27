@@ -22,6 +22,8 @@
 #include <melon/rpc/restful_service.h>
 #include <melon/rpc/webui.h>
 #include <melon/rpc/server.h>
+#include <melon/br/registry.h>
+#include <turbo/flags/flag.h>
 
 DEFINE_int32(port, 8018, "TCP Port of this server");
 DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
@@ -30,7 +32,7 @@ DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
 DEFINE_string(certificate, "cert.pem", "Certificate file path to enable SSL");
 DEFINE_string(private_key, "key.pem", "Private key file path to enable SSL");
 DEFINE_string(ciphers, "", "Cipher suite used for SSL connections");
-
+TURBO_FLAG(bool, test_imm, false, "Enable SSL for this server");
 namespace myservice {
 
 class NotFoundProcessor : public melon::RestfulProcessor {
@@ -38,6 +40,11 @@ private:
     void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
         auto path = request->unresolved_path();
         response->set_status_code(404);
+        response->set_header("Access-Control-Allow-Origin", "*");
+        response->set_header("Access-Control-Allow-Method", "*");
+        response->set_header("Access-Control-Allow-Headers", "*");
+        response->set_header("Access-Control-Allow-Credentials", "true");
+        response->set_header("Access-Control-Expose-Headers", "*");
         response->set_header("Content-Type", "text/plain");
         response->set_body("not found\n");
         response->append_body("Request path: ");
@@ -51,6 +58,11 @@ private:
         void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
             auto path = request->unresolved_path();
             response->set_status_code(200);
+            response->set_header("Access-Control-Allow-Origin", "*");
+            response->set_header("Access-Control-Allow-Method", "*");
+            response->set_header("Access-Control-Allow-Headers", "*");
+            response->set_header("Access-Control-Allow-Credentials", "true");
+            response->set_header("Access-Control-Expose-Headers", "*");
             response->set_header("Content-Type", "text/plain");
             response->set_body("I am  root\n");
             response->append_body("\n");
@@ -62,6 +74,11 @@ private:
         void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
             auto path = request->unresolved_path();
             response->set_status_code(200);
+            response->set_header("Access-Control-Allow-Origin", "*");
+            response->set_header("Access-Control-Allow-Method", "*");
+            response->set_header("Access-Control-Allow-Headers", "*");
+            response->set_header("Access-Control-Allow-Credentials", "true");
+            response->set_header("Access-Control-Expose-Headers", "*");
             response->set_header("Content-Type", "text/plain");
             response->set_body("hala restful\n");
             response->append_body("Request path: ");

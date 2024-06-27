@@ -77,6 +77,8 @@
 #include <melon/rpc/details/tcmalloc_extension.h>
 #include <melon/fiber/key.h>
 #include <melon/fiber/config.h>
+#include <melon/br/registry.h>
+#include <melon/rpc/builtin.h>
 
 inline std::ostream &operator<<(std::ostream &os, const timeval &tm) {
     const char old_fill = os.fill();
@@ -518,6 +520,17 @@ namespace melon {
         }
         if (AddBuiltinService(new(std::nothrow) GrpcHealthCheckService)) {
             LOG(ERROR) << "Fail to add GrpcHealthCheckService";
+            return -1;
+        }
+        auto rs = registry_builtin_restful();
+        if (!rs.ok()) {
+            LOG(ERROR) << "register server failed: " << rs;
+            return -1;
+        }
+        auto *ins = BuiltinRestful::instance();
+        rs = ins->register_server(this);
+        if (!rs.ok()) {
+            LOG(ERROR) << "register server failed: " << rs;
             return -1;
         }
         return 0;
