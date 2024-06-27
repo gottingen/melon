@@ -22,6 +22,7 @@
 #include <melon/br/flags.h>
 #include <collie/nlohmann/json.hpp>
 #include <turbo/flags/flag.h>
+#include <turbo/log/logging.h>
 #include <turbo/flags/reflection.h>
 #include <turbo/strings/str_split.h>
 #include <turbo/strings/match.h>
@@ -29,6 +30,13 @@
 TURBO_FLAG(bool, tflags_immable, false, "test immable flag");
 
 namespace melon {
+    struct FlagLoader {
+        FlagLoader() {
+            turbo::load_flags_symbol();
+        }
+    };
+
+    FlagLoader flag_loader;
 
     static std::string trim_path(const std::string &path) {
         std::vector<std::string> parts = turbo::str_split(path, "/", turbo::SkipEmpty());
