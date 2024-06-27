@@ -33,6 +33,26 @@ DEFINE_string(certificate, "cert.pem", "Certificate file path to enable SSL");
 DEFINE_string(private_key, "key.pem", "Private key file path to enable SSL");
 DEFINE_string(ciphers, "", "Cipher suite used for SSL connections");
 TURBO_FLAG(bool, test_imm, false, "Enable SSL for this server");
+TURBO_FLAG(int64_t , test_port, 8876, "TCP Port of this server").on_validate([](std::string_view value, std::string *err) noexcept ->bool {
+    if(value.empty()) {
+        if(err)
+            *err = "server_port is empty";
+        return false;
+    }
+    int port;
+    auto r = turbo::parse_flag(value, &port, nullptr);
+    if(!r) {
+        if(err)
+            *err = "server_port is not a number";
+        return false;
+    }
+    if(port < 1024 || port > 65535) {
+        if(err)
+            *err = "server_port is not in range [1024, 65535]";
+        return false;
+    }
+    return true;
+});
 namespace myservice {
 
 class NotFoundProcessor : public melon::RestfulProcessor {

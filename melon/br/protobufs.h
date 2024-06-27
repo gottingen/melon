@@ -16,27 +16,20 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 //
+// Created by jeff on 24-6-27.
+//
 
 #pragma once
 
-#include <melon/proto/rpc/builtin_service.pb.h>
-#include <melon/builtin/tabbed.h>
-
+#include <melon/rpc/builtin.h>
 
 namespace melon {
 
-    class TurboFlagsService : public tflags, public Tabbed {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::TurboFlagsRequest *request,
-                            ::melon::TurboFlagsResponse *response,
-                            ::google::protobuf::Closure *done);
-
-        void GetTabInfo(TabInfoList *info_list) const;
-
-    private:
-        void set_value_page(Controller *cntl, ::google::protobuf::Closure *done);
-
+    struct ListFlagsProcessor : public melon::BuiltinProcessor {
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
     };
 
-} // namespace melon
+    struct ResetFlagsProcessor : public melon::BuiltinProcessor {
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
+    };
+}  // namespace melon
