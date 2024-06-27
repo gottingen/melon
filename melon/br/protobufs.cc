@@ -19,47 +19,54 @@
 // Created by jeff on 24-6-27.
 //
 
-#include <melon/br/flags.h>
+#include <melon/br/protobufs.h>
 #include <collie/nlohmann/json.hpp>
 #include <turbo/flags/flag.h>
 #include <turbo/flags/reflection.h>
 #include <turbo/strings/str_split.h>
 #include <turbo/strings/match.h>
 
-TURBO_FLAG(bool, tflags_immable, false, "test immable flag");
-
 namespace melon {
 
-    static std::string trim_path(const std::string &path) {
-        std::vector<std::string> parts = turbo::str_split(path, "/", turbo::SkipEmpty());
-        // remove too many prefix path, max depth is 3
-        size_t index = 0;
-        size_t count = 0;
-        if (parts.size() > 3) {
-            index = parts.size() - 3;
-            count = 3;
-        } else {
-            count = parts.size();
-        }
-        if(count >= 2) {
-            if(parts[index] == parts[index + 1]) {
-                index++;
-                count--;
+    turbo::Status ListProtobufProcessor::initialize(Server *server) {
+        _server = server;
+        Server::ServiceMap &services = _server->_fullname_service_map;
+        std::vector<const google::protobuf::Descriptor *> stack;
+        stack.reserve(services.size() * 3);
+        for (Server::ServiceMap::iterator
+                     iter = services.begin(); iter != services.end(); ++iter) {
+            if (!iter->second.is_user_service()) {
+                continue;
+            }
+            const google::protobuf::ServiceDescriptor *d =
+                    iter->second.service->GetDescriptor();
+            _map[d->full_name()] = d->DebugString();
+            const int method_count = d->method_count();
+            for (int j = 0; j < method_count; ++j) {
+                const google::protobuf::MethodDescriptor *md = d->method(j);
+                stack.push_back(md->input_type());
+                stack.push_back(md->output_type());
             }
         }
-        std::string result;
-        bool first = true;
-        for (size_t i = index; i < index + count; i++) {
-            if (!first) {
-                result += "/";
+        while (!stack.empty()) {
+            const google::protobuf::Descriptor *d = stack.back();
+            stack.pop_back();
+            _map[d->full_name()] = d->DebugString();
+            for (int i = 0; i < d->field_count(); ++i) {
+                const google::protobuf::FieldDescriptor *f = d->field(i);
+                if (f->type() == google::protobuf::FieldDescriptor::TYPE_MESSAGE ||
+                    f->type() == google::protobuf::FieldDescriptor::TYPE_GROUP) {
+                    const google::protobuf::Descriptor *sub_d = f->message_type();
+                    if (sub_d != d && _map.find(sub_d->full_name()) == _map.end()) {
+                        stack.push_back(sub_d);
+                    }
+                }
             }
-            result += parts[i];
-            first = false;
         }
-        return result;
+        return turbo::OkStatus();
     }
 
-    void ListFlagsProcessor::process(const melon::RestfulRequest *request, melon::RestfulResponse *response) {
+    void ListProtobufProcessor::process(const melon::RestfulRequest *request, melon::RestfulResponse *response) {
         std::string match_str;
         auto *ptr = request->uri().GetQuery("match");
         if (ptr) {
@@ -72,96 +79,15 @@ namespace melon {
         nlohmann::json j;
         j["code"] = 0;
         j["message"] = "success";
-        for (const auto &flag : flag_list) {
-            if(!match_str.empty() && !turbo::str_contains(flag.second->name(), match_str)) {
+        for (const auto &proto : _map) {
+            if(!match_str.empty() && !turbo::str_contains(proto.first, match_str)) {
                 continue;
             }
             nlohmann::json flag_json;
-            flag_json["name"] = flag.second->name();
-            flag_json["reset_able"] = flag.second->has_user_validator();
-            flag_json["default_value"] = flag.second->default_value();
-            flag_json["current_value"] = flag.second->current_value();
-            flag_json["help"] = flag.second->help();
-            flag_json["file"] = trim_path(flag.second->filename());
-            j["flags"].push_back(flag_json);
+            flag_json["proto"] = proto.first;
+            flag_json["detail"] = proto.second;
+            j["protobufs"].push_back(flag_json);
         }
-        response->set_body(j.dump());
-    }
-
-    void ResetFlagsProcessor::process(const melon::RestfulRequest *request, melon::RestfulResponse *response) {
-        auto flag_list = turbo::get_all_flags();
-        std::string input_str = request->body().to_string();
-        response->set_content_json();
-        response->set_access_control_all_allow();
-        response->set_status_code(200);
-        nlohmann::json input;
-        try {
-            input = nlohmann::json::parse(input_str);
-        } catch (const std::exception &e) {
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kInvalidArgument);
-            j["message"] = "invalid json";
-            response->set_body(j.dump());
-            return;
-        }
-        std::string name;
-        if (input.find("name") != input.end()) {
-            name = input["name"].get<std::string>();
-        } else {
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kInvalidArgument);
-            j["message"] = "name is required";
-            response->set_body(j.dump());
-            return;
-        }
-
-        std::string value;
-        if (input.find("value") != input.end()) {
-            value = input["value"].get<std::string>();
-        } else {
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kInvalidArgument);
-            j["message"] = "value is required";
-            response->set_body(j.dump());
-            return;
-        }
-        auto fflag = turbo::find_command_line_flag(name);
-        if (fflag == nullptr) {
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kNotFound);
-            j["message"] = "flag not found";
-            response->set_body(j.dump());
-            return;
-        }
-        if(!fflag->has_user_validator()){
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kInvalidArgument);
-            j["message"] = "flag is not resetable";
-            response->set_body(j.dump());
-            return;
-        }
-
-        if(turbo::get_flag(FLAGS_tflags_immable)) {
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kInvalidArgument);
-            j["message"] = "global config flags is immable";
-            response->set_body(j.dump());
-            return;
-        }
-        std::string error;
-        auto r = fflag->user_validate(value, &error);
-        if (!r) {
-            nlohmann::json j;
-            j["code"] = static_cast<int>(turbo::StatusCode::kInvalidArgument);
-            j["message"] = error;
-            response->set_body(j.dump());
-            return;
-        }
-
-        fflag->parse_from(value, &error);
-        nlohmann::json j;
-        j["code"] = 0;
-        j["message"] = "ok";
         response->set_body(j.dump());
     }
 }  // namespace melon

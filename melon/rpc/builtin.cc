@@ -146,7 +146,9 @@ namespace melon {
         if(any_path_processor_ == nullptr && processors_.empty()) {
             return turbo::invalid_argument_error("any_path_processor and processors are both empty, you must set one of them");
         }
-
+        for(auto &it : processors_) {
+            STATUS_RETURN_IF_ERROR(it.second->initialize(server));
+        }
         std::string map_str = turbo::str_format("%s/* => impl_method", mapping_path_.c_str());
         auto r = server->AddService(this,
                           melon::SERVER_DOESNT_OWN_SERVICE,

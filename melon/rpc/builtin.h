@@ -37,6 +37,10 @@ namespace melon {
         virtual ~BuiltinProcessor() = default;
         virtual void process(const RestfulRequest *request, RestfulResponse *response) = 0;
 
+        virtual turbo::Status initialize(Server *server) {
+            return turbo::OkStatus();
+        }
+
         void add_eternal_header(const std::string &key, const std::string &value) {
             eternal_headers.emplace_back(key, value);
         }

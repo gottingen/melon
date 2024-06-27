@@ -22,14 +22,19 @@
 #pragma once
 
 #include <melon/rpc/builtin.h>
-
+#include <melon/rpc/server.h>
 namespace melon {
 
-    struct ListFlagsProcessor : public melon::BuiltinProcessor {
+    struct ListProtobufProcessor : public melon::BuiltinProcessor {
+        ListProtobufProcessor() = default;
+        ~ListProtobufProcessor() override = default;
+
+        turbo::Status initialize(Server *server) override;
         void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
+
+        typedef std::map<std::string, std::string> Map;
+        Map _map;
+        Server *_server{nullptr};
     };
 
-    struct ResetFlagsProcessor : public melon::BuiltinProcessor {
-        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
-    };
 }  // namespace melon

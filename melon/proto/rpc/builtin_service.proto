@@ -32,8 +32,6 @@ message IndexRequest {}
 message IndexResponse {} 
 message FlagsRequest {}
 message FlagsResponse {}
-message TurboFlagsRequest {}
-message TurboFlagsResponse {}
 message VersionRequest {}
 message VersionResponse {}
 message HealthRequest {}
@@ -158,10 +156,6 @@ service hotspots {
 
 service flags {
     rpc default_method(FlagsRequest) returns (FlagsResponse);
-}
-
-service tflags {
-    rpc default_method(TurboFlagsRequest) returns (TurboFlagsResponse);
 }
 
 service vars {

@@ -24,6 +24,7 @@
 #include <turbo/flags/flag.h>
 #include <turbo/flags/reflection.h>
 #include <turbo/strings/str_split.h>
+#include <turbo/strings/match.h>
 
 TURBO_FLAG(bool, tflags_immable, false, "test immable flag");
 
@@ -59,6 +60,11 @@ namespace melon {
     }
 
     void ListFlagsProcessor::process(const melon::RestfulRequest *request, melon::RestfulResponse *response) {
+        std::string match_str;
+        auto *ptr = request->uri().GetQuery("match");
+        if (ptr) {
+            match_str = *ptr;
+        }
         auto flag_list = turbo::get_all_flags();
         response->set_content_json();
         response->set_access_control_all_allow();
@@ -67,6 +73,9 @@ namespace melon {
         j["code"] = 0;
         j["message"] = "success";
         for (const auto &flag : flag_list) {
+            if(!match_str.empty() && !turbo::str_contains(flag.second->name(), match_str)) {
+                continue;
+            }
             nlohmann::json flag_json;
             flag_json["name"] = flag.second->name();
             flag_json["reset_able"] = flag.second->has_user_validator();

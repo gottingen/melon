@@ -595,6 +595,8 @@ namespace melon {
 
         friend class ProtobufsService;
 
+        friend class ListProtobufProcessor;
+
         friend class ConnectionsService;
 
         friend class BadMethodService;

@@ -22,6 +22,7 @@
 #include <melon/br/registry.h>
 #include <melon/rpc/builtin.h>
 #include <melon/br/flags.h>
+#include <melon/br/protobufs.h>
 
 namespace melon {
 
@@ -29,6 +30,7 @@ namespace melon {
         auto service = melon::BuiltinRestful::instance();
         service->set_processor("/melon/flags", std::make_shared<melon::ListFlagsProcessor>());
         service->set_processor("/melon/flags/reset", std::make_shared<melon::ResetFlagsProcessor>());
+        service->set_processor("/melon/protobufs", std::make_shared<melon::ListProtobufProcessor>());
         return turbo::OkStatus();
     }
 }  // namespace melon
