@@ -42,19 +42,18 @@ namespace melon {
         std::string index_path;
         std::string not_found_str;
         std::string not_found_path;
-        turbo::flat_hash_map<std::string, std::string> content_types;
 
         turbo::flat_hash_map<std::string, std::string> headers;
 
-        std::string get_content_type(const std::string &ext) const {
-            auto it = content_types.find(ext);
-            if (it != content_types.end()) {
-                return it->second;
-            }
-            return "text/plain";
+        std::string get_content_type(std::string_view path) const;
+
+        void add_content_type(std::string_view suffix, std::string_view type) {
+            content_types[suffix] = type;
         }
 
         static WebuiConfig default_config();
+    private:
+        turbo::flat_hash_map<std::string, std::string> content_types;
     };
 
     class WebuiService : public melon::webui {

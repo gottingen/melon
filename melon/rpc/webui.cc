@@ -27,7 +27,7 @@
 namespace melon {
 
     const std::string not_found =
-R"(<!DOCTYPE html>
+            R"(<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -74,27 +74,23 @@ R"(<!DOCTYPE html>
         return conf;
     }
 
-    static std::string file_extension(const std::string &path) {
-        std::string result;
+    std::string WebuiConfig::get_content_type(std::string_view path) const {
         std::vector<std::string_view> segments = turbo::str_split(path, ".", turbo::SkipEmpty());
-        if(segments.size() <= 1) {
-            return "";
+        if (segments.size() <= 1) {
+            return "text/plain";
         }
-        bool first = true;
-        for (size_t i = 1; i < segments.size(); i++) {
-            if(first) {
-                first = false;
-            } else {
-                result.push_back('.');
-            }
-            result.append(segments[i]);
+        auto it = content_types.find(std::string(segments.back()));
+        if (it == content_types.end()) {
+            return "text/plain";
         }
-        return result;
+        return it->second;
     }
 
-    WebuiService::WebuiService(): file_cache_(1024) {
+
+    WebuiService::WebuiService() : file_cache_(1024) {
 
     }
+
     void WebuiService::impl_method(::google::protobuf::RpcController *controller,
                                    const ::melon::NoUseWebuiRequest *request,
                                    ::melon::NoUseWebuiResponse *response,
@@ -106,22 +102,21 @@ R"(<!DOCTYPE html>
         const RestfulRequest req(ctrl);
         RestfulResponse resp(ctrl);
         auto file_path = get_file_meta(&req);
-        std::string extension = file_extension(file_path.value());
 
-        if(!mutil::PathExists(file_path)) {
+        if (!mutil::PathExists(file_path)) {
             process_not_found(&req, &resp);
         } else {
             auto content = get_content(file_path);
-            if(content) {
+            if (content) {
                 resp.set_status_code(200);
                 resp.set_body(*content);
-                resp.set_content_type(conf_.get_content_type(extension));
+                resp.set_content_type(conf_.get_content_type(file_path.value()));
             } else {
                 process_not_found(&req, &resp);
             }
         }
         // process headers
-        for(auto &it : conf_.headers) {
+        for (auto &it: conf_.headers) {
             resp.set_header(it.first, it.second);
         }
     }
@@ -161,7 +156,7 @@ R"(<!DOCTYPE html>
         {
             std::shared_lock lock(file_cache_mutex_);
             auto it = file_cache_.try_get(fpath);
-            if(it.second) {
+            if (it.second) {
                 content = it.first;
             }
         }
@@ -169,7 +164,7 @@ R"(<!DOCTYPE html>
             return content;
         }
         mutil::ScopedFILE fp(fopen(fpath.c_str(), "r"));
-        if(!fp) {
+        if (!fp) {
             return nullptr;
         }
         fseek(fp.get(), 0, SEEK_END);
@@ -177,7 +172,7 @@ R"(<!DOCTYPE html>
         fseek(fp.get(), 0, SEEK_SET);
         std::string file_content(size, '\0');
         auto r = fread(&file_content[0], 1, size, fp.get());
-        if(r != size) {
+        if (r != size) {
             return nullptr;
         }
         {
@@ -192,13 +187,13 @@ R"(<!DOCTYPE html>
         response->set_content_type("text/html");
         response->set_body(conf_.not_found_str);
 
-        if(conf_.not_found_path.empty()) {
+        if (conf_.not_found_path.empty()) {
             response->set_body(conf_.not_found_str);
             return;
         }
         auto path = mutil::FilePath(turbo::str_cat(conf_.root_path, "/", conf_.not_found_path));
         auto content = get_content(path);
-        if(content) {
+        if (content) {
             response->set_body(*content);
         } else {
             response->set_body(conf_.not_found_str);
