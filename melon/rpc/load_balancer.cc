@@ -19,21 +19,18 @@
 
 
 
-#include <gflags/gflags.h>
-#include <melon/rpc/reloadable_flags.h>
+#include <turbo/flags/flag.h>
 #include <melon/rpc/load_balancer.h>
 
+TURBO_FLAG(bool, show_lb_in_vars, false, "Describe LoadBalancers in vars").on_validate(turbo::AllPassValidator<bool>::validate);
+TURBO_FLAG(int32_t , default_weight_of_wlb, 0, "Default weight value of Weighted LoadBalancer(wlb). "
+"wlb policy degradation is enabled when default_weight_of_wlb > 0 to avoid some "
+"problems when user is using wlb but forgot to set the weights of some of their "
+"downstream instances. Then these instances will be set default_weight_of_wlb as "
+"their weights. wlb policy degradation is not enabled by default.");
 
 namespace melon {
-
-    DEFINE_bool(show_lb_in_vars, false, "Describe LoadBalancers in vars");
-    DEFINE_int32(default_weight_of_wlb, 0, "Default weight value of Weighted LoadBalancer(wlb). "
-                                           "wlb policy degradation is enabled when default_weight_of_wlb > 0 to avoid some "
-                                           "problems when user is using wlb but forgot to set the weights of some of their "
-                                           "downstream instances. Then these instances will be set default_weight_of_wlb as "
-                                           "their weights. wlb policy degradation is not enabled by default.");
-    MELON_VALIDATE_GFLAG(show_lb_in_vars, PassValidate);
-
+    
     // For assigning unique names for lb.
     static mutil::static_atomic<int> g_lb_counter = MUTIL_STATIC_ATOMIC_INIT(0);
 
@@ -58,14 +55,14 @@ namespace melon {
     }
 
     SharedLoadBalancer::SharedLoadBalancer()
-            : _lb(NULL), _weight_sum(0), _exposed(false), _st(DescribeLB, this) {
+            : _lb(nullptr), _weight_sum(0), _exposed(false), _st(DescribeLB, this) {
     }
 
     SharedLoadBalancer::~SharedLoadBalancer() {
         _st.hide();
         if (_lb) {
             _lb->Destroy();
-            _lb = NULL;
+            _lb = nullptr;
         }
     }
 
@@ -77,16 +74,16 @@ namespace melon {
             return -1;
         }
         const LoadBalancer *lb = LoadBalancerExtension()->Find(lb_name.c_str());
-        if (lb == NULL) {
+        if (lb == nullptr) {
             LOG(FATAL) << "Fail to find LoadBalancer by `" << lb_name << "'";
             return -1;
         }
         _lb = lb->New(lb_params);
-        if (_lb == NULL) {
+        if (_lb == nullptr) {
             LOG(FATAL) << "Fail to new LoadBalancer";
             return -1;
         }
-        if (FLAGS_show_lb_in_vars && !_exposed) {
+        if (turbo::get_flag(FLAGS_show_lb_in_vars) && !_exposed) {
             ExposeLB();
         }
         return 0;
@@ -94,8 +91,8 @@ namespace melon {
 
     void SharedLoadBalancer::Describe(std::ostream &os,
                                       const DescribeOptions &options) {
-        if (_lb == NULL) {
-            os << "lb=NULL";
+        if (_lb == nullptr) {
+            os << "lb=nullptr";
         } else {
             _lb->Describe(os, options);
         }

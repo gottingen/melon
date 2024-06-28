@@ -76,7 +76,7 @@ namespace melon {
 
     int MakeProfName(ProfilingType type, char *buf, size_t buf_len) {
         // Add pprof_ prefix to separate from /hotspots
-        int nr = snprintf(buf, buf_len, "%s/pprof_%s/", FLAGS_rpc_profiling_dir.c_str(),
+        int nr = snprintf(buf, buf_len, "%s/pprof_%s/", turbo::get_flag(FLAGS_rpc_profiling_dir).c_str(),
                           GetProgramChecksum());
         if (nr < 0) {
             return -1;

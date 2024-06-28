@@ -20,7 +20,7 @@
 
 
 #include <vector>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/rpc/cluster_recover_policy.h>
 #include <melon/utility/scoped_lock.h>
 #include <melon/utility/synchronization/lock.h>
@@ -30,10 +30,10 @@
 #include <melon/utility/time.h>
 #include <melon/utility/string_splitter.h>
 
+TURBO_FLAG(int64_t, detect_available_server_interval_ms, 10, "The interval "
+                                                             "to detect available server count in DefaultClusterRecoverPolicy");
 namespace melon {
 
-    DEFINE_int64(detect_available_server_interval_ms, 10, "The interval "
-                                                          "to detect available server count in DefaultClusterRecoverPolicy");
 
     DefaultClusterRecoverPolicy::DefaultClusterRecoverPolicy(
             int64_t min_working_instances, int64_t hold_seconds)
@@ -65,7 +65,7 @@ namespace melon {
 
     uint64_t DefaultClusterRecoverPolicy::GetUsableServerCount(
             int64_t now_ms, const std::vector<ServerId> &server_list) {
-        if (now_ms - _usable_cache_time_ms < FLAGS_detect_available_server_interval_ms) {
+        if (now_ms - _usable_cache_time_ms < turbo::get_flag(FLAGS_detect_available_server_interval_ms)) {
             return _usable_cache;
         }
         uint64_t usable = 0;

@@ -17,9 +17,7 @@
 //
 //
 
-
-#ifndef MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_
-#define MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_
+#pragma once
 
 #include <vector>                                      // std::vector
 #include <deque>                                       // std::deque
@@ -29,12 +27,13 @@
 #include <melon/utility/containers/bounded_queue.h>             // BoundedQueue
 #include <melon/rpc/load_balancer.h>
 #include <melon/rpc/controller.h>
+#include <turbo/flags/declare.h>
+#include <turbo/flags/flag.h>
 
+TURBO_DECLARE_FLAG(int64_t, min_weight);
+TURBO_DECLARE_FLAG(double, punish_inflight_ratio);
 
 namespace melon::lb {
-
-    DECLARE_int64(min_weight);
-    DECLARE_double(punish_inflight_ratio);
 
     // Locality-aware is an iterative algorithm to send requests to servers which
     // have lowest expected latencies. Read docs/cn/lalb.md to get a peek at the
@@ -194,13 +193,13 @@ namespace melon::lb {
             const int64_t inflight_delay =
                     now_us - _begin_time_sum / _begin_time_count;
             const int64_t punish_latency =
-                    (int64_t) (_avg_latency * FLAGS_punish_inflight_ratio);
+                    (int64_t) (_avg_latency * turbo::get_flag(FLAGS_punish_inflight_ratio));
             if (inflight_delay >= punish_latency && _avg_latency > 0) {
                 new_weight = new_weight * punish_latency / inflight_delay;
             }
         }
-        if (new_weight < FLAGS_min_weight) {
-            new_weight = FLAGS_min_weight;
+        if (new_weight < turbo::get_flag(FLAGS_min_weight)) {
+            new_weight = turbo::get_flag(FLAGS_min_weight);
         }
         const int64_t old_weight = _weight;
         _weight = new_weight;
@@ -242,6 +241,3 @@ namespace melon::lb {
     }
 
 } // namespace melon::lb
-
-
-#endif  // MELON_LB_POLICY_LOCALITY_AWARE_LOAD_BALANCER_H_

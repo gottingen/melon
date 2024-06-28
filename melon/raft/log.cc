@@ -19,7 +19,7 @@
 
 #include <melon/raft/log.h>
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/files/dir_reader_posix.h>            // mutil::DirReaderPosix
 #include <melon/utility/file_util.h>                         // mutil::CreateDirectory
 #include <melon/utility/string_printf.h>                     // mutil::string_appendf
@@ -42,17 +42,18 @@
 #define BRAFT_SEGMENT_CLOSED_PATTERN "log_%020" PRId64 "_%020" PRId64
 #define BRAFT_SEGMENT_META_FILE  "log_meta"
 
+TURBO_FLAG(int32_t, raft_max_segment_size, 8 * 1024 * 1024 /*8M*/,
+           "Max size of one segment file").on_validate(turbo::GtValidator<int32_t, 0>::validate);
+
+
+TURBO_FLAG(bool, raft_sync_segments, false, "call fsync when a segment is closed").on_validate(
+        turbo::AllPassValidator<bool>::validate);
+
+
 namespace melon::raft {
 
     using ::mutil::RawPacker;
     using ::mutil::RawUnpacker;
-
-    DEFINE_int32(raft_max_segment_size, 8 * 1024 * 1024 /*8M*/,
-                 "Max size of one segment file");
-    MELON_VALIDATE_GFLAG(raft_max_segment_size, melon::PositiveInteger);
-
-    DEFINE_bool(raft_sync_segments, false, "call fsync when a segment is closed");
-    MELON_VALIDATE_GFLAG(raft_sync_segments, ::melon::PassValidate);
 
     static melon::var::LatencyRecorder g_open_segment_latency("raft_open_segment");
     static melon::var::LatencyRecorder g_segment_append_entry_latency("raft_segment_append_entry");
@@ -202,10 +203,10 @@ namespace melon::raft {
                        << ", header=" << tmp << ", path: " << _path;
             return -1;
         }
-        if (head != NULL) {
+        if (head != nullptr) {
             *head = tmp;
         }
-        if (data != NULL) {
+        if (data != nullptr) {
             if (buf.length() < ENTRY_HEADER_SIZE + data_len) {
                 const size_t to_read = ENTRY_HEADER_SIZE + data_len - buf.length();
                 const ssize_t n = file_pread(&buf, _fd, offset + buf.length(), to_read);
@@ -288,7 +289,7 @@ namespace melon::raft {
         int64_t actual_last_index = _first_index - 1;
         for (int64_t i = _first_index; entry_off < file_size; i++) {
             EntryHeader header;
-            const int rc = _load_entry(entry_off, &header, NULL, ENTRY_HEADER_SIZE);
+            const int rc = _load_entry(entry_off, &header, nullptr, ENTRY_HEADER_SIZE);
             if (rc > 0) {
                 // The last log was not completely written, which should be truncated
                 break;
@@ -308,7 +309,7 @@ namespace melon::raft {
                 mutil::IOBuf data;
                 // Header will be parsed again but it's fine as configuration
                 // changing is rare
-                if (_load_entry(entry_off, NULL, &data, skip_len) != 0) {
+                if (_load_entry(entry_off, nullptr, &data, skip_len) != 0) {
                     break;
                 }
                 scoped_refptr<LogEntry> entry = new LogEntry();
@@ -443,11 +444,11 @@ namespace melon::raft {
         }
         //CHECK(_is_open);
         if (will_sync) {
-            if (!FLAGS_raft_sync) {
+            if (!turbo::get_flag(FLAGS_raft_sync)) {
                 return 0;
             }
-            if (FLAGS_raft_sync_policy == RaftSyncPolicy::RAFT_SYNC_BY_BYTES
-                && FLAGS_raft_sync_per_bytes > _unsynced_bytes) {
+            if (turbo::get_flag(FLAGS_raft_sync_policy) == RaftSyncPolicy::RAFT_SYNC_BY_BYTES
+                && turbo::get_flag(FLAGS_raft_sync_per_bytes) > _unsynced_bytes) {
                 return 0;
             }
             _unsynced_bytes = 0;
@@ -460,11 +461,11 @@ namespace melon::raft {
 
         LogMeta meta;
         if (_get_meta(index, &meta) != 0) {
-            return NULL;
+            return nullptr;
         }
 
         bool ok = true;
-        LogEntry *entry = NULL;
+        LogEntry *entry = nullptr;
         do {
             ConfigurationPBMeta configuration_meta;
             EntryHeader header;
@@ -507,9 +508,9 @@ namespace melon::raft {
             entry->type = (EntryType) header.type;
         } while (0);
 
-        if (!ok && entry != NULL) {
+        if (!ok && entry != nullptr) {
             entry->Release();
-            entry = NULL;
+            entry = nullptr;
         }
         return entry;
     }
@@ -535,12 +536,12 @@ namespace melon::raft {
         // TODO: optimize index memory usage by reconstruct vector
         LOG(INFO) << "close a full segment. Current first_index: " << _first_index
                   << " last_index: " << _last_index
-                  << " raft_sync_segments: " << FLAGS_raft_sync_segments
+                  << " raft_sync_segments: " << turbo::get_flag(FLAGS_raft_sync_segments)
                   << " will_sync: " << will_sync
                   << " path: " << new_path;
         int ret = 0;
         if (_last_index > _first_index) {
-            if (FLAGS_raft_sync_segments && will_sync) {
+            if (turbo::get_flag(FLAGS_raft_sync_segments) && will_sync) {
                 ret = raft_fsync(_fd);
             }
         }
@@ -574,7 +575,7 @@ namespace melon::raft {
         BRAFT_VLOG << "unlink " << *file_path << " ret " << ret << " time: " << timer.u_elapsed();
         delete file_path;
 
-        return NULL;
+        return nullptr;
     }
 
     int Segment::unlink() {
@@ -669,15 +670,15 @@ namespace melon::raft {
     }
 
     int SegmentLogStorage::init(ConfigurationManager *configuration_manager) {
-        if (FLAGS_raft_max_segment_size < 0) {
-            LOG(FATAL) << "FLAGS_raft_max_segment_size " << FLAGS_raft_max_segment_size
+        if (turbo::get_flag(FLAGS_raft_max_segment_size) < 0) {
+            LOG(FATAL) << "FLAGS_raft_max_segment_size " << turbo::get_flag(FLAGS_raft_max_segment_size)
                        << " must be greater than or equal to 0 ";
             return -1;
         }
         mutil::FilePath dir_path(_path);
         mutil::File::Error e;
         if (!mutil::CreateDirectoryAndGetError(
-                dir_path, &e, FLAGS_raft_create_parent_directories)) {
+                dir_path, &e, turbo::get_flag(FLAGS_raft_create_parent_directories))) {
             LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             return -1;
         }
@@ -734,7 +735,7 @@ namespace melon::raft {
                        << " path: " << _path;
             return -1;
         }
-        scoped_refptr<Segment> last_segment = NULL;
+        scoped_refptr<Segment> last_segment = nullptr;
         int64_t now = 0;
         int64_t delta_time_us = 0;
         for (size_t i = 0; i < entries.size(); i++) {
@@ -742,19 +743,19 @@ namespace melon::raft {
             LogEntry *entry = entries[i];
 
             scoped_refptr<Segment> segment = open_segment();
-            if (FLAGS_raft_trace_append_entry_latency && metric) {
+            if (turbo::get_flag(FLAGS_raft_trace_append_entry_latency) && metric) {
                 delta_time_us = mutil::cpuwide_time_us() - now;
                 metric->open_segment_time_us += delta_time_us;
                 g_open_segment_latency << delta_time_us;
             }
-            if (NULL == segment) {
+            if (nullptr == segment) {
                 return i;
             }
             int ret = segment->append(entry);
             if (0 != ret) {
                 return i;
             }
-            if (FLAGS_raft_trace_append_entry_latency && metric) {
+            if (turbo::get_flag(FLAGS_raft_trace_append_entry_latency) && metric) {
                 delta_time_us = mutil::cpuwide_time_us() - now;
                 metric->append_entry_time_us += delta_time_us;
                 g_segment_append_entry_latency << delta_time_us;
@@ -764,7 +765,7 @@ namespace melon::raft {
         }
         now = mutil::cpuwide_time_us();
         last_segment->sync(_enable_sync);
-        if (FLAGS_raft_trace_append_entry_latency && metric) {
+        if (turbo::get_flag(FLAGS_raft_trace_append_entry_latency) && metric) {
             delta_time_us = mutil::cpuwide_time_us() - now;
             metric->sync_segment_time_us += delta_time_us;
             g_sync_segment_latency << delta_time_us;
@@ -774,7 +775,7 @@ namespace melon::raft {
 
     int SegmentLogStorage::append_entry(const LogEntry *entry) {
         scoped_refptr<Segment> segment = open_segment();
-        if (NULL == segment) {
+        if (nullptr == segment) {
             return EIO;
         }
         int ret = segment->append(entry);
@@ -792,7 +793,7 @@ namespace melon::raft {
     LogEntry *SegmentLogStorage::get_entry(const int64_t index) {
         scoped_refptr<Segment> ptr;
         if (get_segment(index, &ptr) != 0) {
-            return NULL;
+            return nullptr;
         }
         return ptr->get(index);
     }
@@ -824,7 +825,7 @@ namespace melon::raft {
         if (_open_segment) {
             if (_open_segment->last_index() < first_index_kept) {
                 popped->push_back(_open_segment);
-                _open_segment = NULL;
+                _open_segment = nullptr;
                 // _log_storage is empty
                 _last_log_index.store(first_index_kept - 1);
             } else {
@@ -857,7 +858,7 @@ namespace melon::raft {
         pop_segments(first_index_kept, &popped);
         for (size_t i = 0; i < popped.size(); ++i) {
             popped[i]->unlink();
-            popped[i] = NULL;
+            popped[i] = nullptr;
         }
         return 0;
     }
@@ -868,7 +869,7 @@ namespace melon::raft {
             scoped_refptr<Segment> *last_segment) {
         popped->clear();
         popped->reserve(32);
-        *last_segment = NULL;
+        *last_segment = nullptr;
         MELON_SCOPED_LOCK(_mutex);
         _last_log_index.store(last_index_kept, mutil::memory_order_release);
         if (_open_segment) {
@@ -877,7 +878,7 @@ namespace melon::raft {
                 return;
             }
             popped->push_back(_open_segment);
-            _open_segment = NULL;
+            _open_segment = nullptr;
         }
         for (SegmentMap::reverse_iterator
                      it = _segments.rbegin(); it != _segments.rend(); ++it) {
@@ -920,7 +921,7 @@ namespace melon::raft {
                 _segments.erase(last_segment->first_index());
                 if (_open_segment) {
                     CHECK(_open_segment.get() == last_segment.get());
-                    _open_segment = NULL;
+                    _open_segment = nullptr;
                 }
             }
         }
@@ -932,7 +933,7 @@ namespace melon::raft {
             if (ret != 0) {
                 return ret;
             }
-            popped[i] = NULL;
+            popped[i] = nullptr;
         }
         if (truncate_last_segment) {
             bool closed = !last_segment->is_open();
@@ -964,7 +965,7 @@ namespace melon::raft {
         _segments.clear();
         if (_open_segment) {
             popped.push_back(_open_segment);
-            _open_segment = NULL;
+            _open_segment = nullptr;
         }
         _first_log_index.store(next_log_index, mutil::memory_order_relaxed);
         _last_log_index.store(next_log_index - 1, mutil::memory_order_relaxed);
@@ -976,7 +977,7 @@ namespace melon::raft {
         }
         for (size_t i = 0; i < popped.size(); ++i) {
             popped[i]->unlink();
-            popped[i] = NULL;
+            popped[i] = nullptr;
         }
         return 0;
     }
@@ -1121,7 +1122,7 @@ namespace melon::raft {
                              << " first_index: " << _open_segment->first_index()
                              << " last_index: " << _open_segment->last_index();
                 _open_segment->unlink();
-                _open_segment = NULL;
+                _open_segment = nullptr;
             } else {
                 _last_log_index.store(_open_segment->last_index(),
                                       mutil::memory_order_release);
@@ -1181,11 +1182,11 @@ namespace melon::raft {
             if (!_open_segment) {
                 _open_segment = new Segment(_path, last_log_index() + 1, _checksum_type);
                 if (_open_segment->create() != 0) {
-                    _open_segment = NULL;
-                    return NULL;
+                    _open_segment = nullptr;
+                    return nullptr;
                 }
             }
-            if (_open_segment->bytes() > FLAGS_raft_max_segment_size) {
+            if (_open_segment->bytes() > turbo::get_flag(FLAGS_raft_max_segment_size)) {
                 _segments[_open_segment->first_index()] = _open_segment;
                 prev_open_segment.swap(_open_segment);
             }
@@ -1206,7 +1207,7 @@ namespace melon::raft {
                 MELON_SCOPED_LOCK(_mutex);
                 _segments.erase(prev_open_segment->first_index());
                 _open_segment.swap(prev_open_segment);
-                return NULL;
+                return nullptr;
             }
         } while (0);
         return _open_segment;
@@ -1230,7 +1231,7 @@ namespace melon::raft {
 
         if (_open_segment && index >= _open_segment->first_index()) {
             *ptr = _open_segment;
-            CHECK(ptr->get() != NULL);
+            CHECK(ptr->get() != nullptr);
         } else {
             CHECK(!_segments.empty());
             SegmentMap::iterator it = _segments.upper_bound(index);

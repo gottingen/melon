@@ -30,7 +30,7 @@
 #include <sys/un.h>                            // sockaddr_un
 #include <sys/socket.h>                        // SO_REUSEADDR SO_REUSEPORT
 #include <memory>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/build_config.h>                // OS_MACOSX
 #include <melon/utility/fd_guard.h>                    // fd_guard
 #include <melon/utility/endpoint.h>                    // ip_t
@@ -39,11 +39,11 @@
 #include <melon/utility/strings/string_piece.h>
 
 //supported since Linux 3.9.
-DEFINE_bool(reuse_port, false, "Enable SO_REUSEPORT for all listened sockets");
+TURBO_FLAG(bool,reuse_port, false, "Enable SO_REUSEPORT for all listened sockets");
 
-DEFINE_bool(reuse_addr, true, "Enable SO_REUSEADDR for all listened sockets");
+TURBO_FLAG(bool, reuse_addr, true, "Enable SO_REUSEADDR for all listened sockets");
 
-DEFINE_bool(reuse_uds_path, false, "remove unix domain socket file before listen to it");
+TURBO_FLAG(bool, reuse_uds_path, false, "remove unix domain socket file before listen to it");
 
 __BEGIN_DECLS
 int MELON_WEAK fiber_connect(
@@ -424,7 +424,7 @@ int tcp_listen(EndPoint point) {
         return -1;
     }
 
-    if (FLAGS_reuse_addr) {
+    if (turbo::get_flag(FLAGS_reuse_addr)) {
 #if defined(SO_REUSEADDR)
         const int on = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
@@ -437,7 +437,7 @@ int tcp_listen(EndPoint point) {
 #endif
     }
 
-    if (FLAGS_reuse_port) {
+    if (turbo::get_flag(FLAGS_reuse_port)) {
 #if defined(SO_REUSEPORT)
         const int on = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT,
@@ -450,7 +450,7 @@ int tcp_listen(EndPoint point) {
 #endif
     }
 
-    if (FLAGS_reuse_uds_path && serv_addr.ss_family == AF_UNIX) {
+    if (turbo::get_flag(FLAGS_reuse_uds_path) && serv_addr.ss_family == AF_UNIX) {
         ::unlink(((sockaddr_un*) &serv_addr)->sun_path);
     }
 

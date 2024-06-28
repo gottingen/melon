@@ -21,7 +21,8 @@
 
 #include <google/protobuf/descriptor.h>             // MethodDescriptor
 #include <google/protobuf/text_format.h>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 #include <melon/json2pb/pb_to_json.h>                    // ProtoMessageToJson
 #include <melon/json2pb/json_to_pb.h>                    // JsonToProtoMessage
 #include <string>
@@ -50,47 +51,46 @@
 #include <melon/fiber/key.h>
 #include <cinttypes>
 
+TURBO_DECLARE_FLAG(bool, http_verbose);
+TURBO_DECLARE_FLAG(int32_t, http_verbose_max_body_length);
+TURBO_FLAG(int32_t, http_max_error_length, 2048, "Max printed length of a http error");
 
+TURBO_FLAG(int32_t, http_body_compress_threshold, 512, "Not compress http body when "
+                                                       "it's less than so many bytes.");
+
+TURBO_FLAG(std::string, http_header_of_user_ip, "", "http requests sent by proxies may "
+                                                    "set the client ip in http headers. When this flag is non-empty, "
+                                                    "melon will read ip:port from the specified header for "
+                                                    "authorization and set Controller::remote_side(). Currently, "
+                                                    "support IPv4 address only.");
+
+TURBO_FLAG(bool, pb_enum_as_number, false,
+           "[Not recommended] Convert enums in "
+           "protobuf to json as numbers, affecting both client-side and "
+           "server-side");
+
+TURBO_FLAG(std::string, request_id_header, "x-request-id", "The http header to mark a session");
+
+TURBO_FLAG(bool, use_http_error_code, false, "Whether set the x-bd-error-code header "
+                                             "of http response to melon error code");
 namespace melon {
 
     int is_failed_after_queries(const http_parser *parser);
 
     int is_failed_after_http_version(const http_parser *parser);
 
-    DECLARE_bool(http_verbose);
-    DECLARE_int32(http_verbose_max_body_length);
 
-// Defined in grpc.cpp
+    // Defined in grpc.cpp
     int64_t ConvertGrpcTimeoutToUS(const std::string *grpc_timeout);
 
     namespace policy {
 
-        DEFINE_int32(http_max_error_length, 2048, "Max printed length of a http error");
 
-        DEFINE_int32(http_body_compress_threshold, 512, "Not compress http body when "
-                                                        "it's less than so many bytes.");
-
-        DEFINE_string(http_header_of_user_ip, "", "http requests sent by proxies may "
-                                                  "set the client ip in http headers. When this flag is non-empty, "
-                                                  "melon will read ip:port from the specified header for "
-                                                  "authorization and set Controller::remote_side(). Currently, "
-                                                  "support IPv4 address only.");
-
-        DEFINE_bool(pb_enum_as_number, false,
-                    "[Not recommended] Convert enums in "
-                    "protobuf to json as numbers, affecting both client-side and "
-                    "server-side");
-
-        DEFINE_string(request_id_header, "x-request-id", "The http header to mark a session");
-
-        DEFINE_bool(use_http_error_code, false, "Whether set the x-bd-error-code header "
-                                                "of http response to melon error code");
-
-// Read user address from the header specified by -http_header_of_user_ip
+        // Read user address from the header specified by -http_header_of_user_ip
         static bool GetUserAddressFromHeaderImpl(const HttpHeader &headers,
                                                  mutil::EndPoint *user_addr) {
             const std::string *user_addr_str =
-                    headers.GetHeader(FLAGS_http_header_of_user_ip);
+                    headers.GetHeader(turbo::get_flag(FLAGS_http_header_of_user_ip));
             if (user_addr_str == NULL) {
                 return false;
             }
@@ -112,7 +112,7 @@ namespace melon {
 
         inline bool GetUserAddressFromHeader(const HttpHeader &headers,
                                              mutil::EndPoint *user_addr) {
-            if (FLAGS_http_header_of_user_ip.empty()) {
+            if (turbo::get_flag(FLAGS_http_header_of_user_ip).empty()) {
                 return false;
             }
             return GetUserAddressFromHeaderImpl(headers, user_addr);
@@ -221,7 +221,7 @@ namespace melon {
             if (!has_content) {
                 LOG(INFO) << '\n' << buf2 << buf1;
             } else {
-                LOG(INFO) << '\n' << buf2 << mutil::ToPrintableString(buf1, FLAGS_http_verbose_max_body_length);
+                LOG(INFO) << '\n' << buf2 << mutil::ToPrintableString(buf1, turbo::get_flag(FLAGS_http_verbose_max_body_length));
             }
         }
 
@@ -350,7 +350,7 @@ namespace melon {
                         std::string body_str;
                         res_body.copy_to(
                                 &body_str, std::min((int) res_body.size(),
-                                                    FLAGS_http_max_error_length));
+                                                    turbo::get_flag(FLAGS_http_max_error_length)));
                         cntl->SetFailed(EHTTP, "HTTP/%d.%d %d %s: %.*s",
                                         res_header->major_version(),
                                         res_header->minor_version(),
@@ -381,14 +381,14 @@ namespace melon {
                         err.append(": ");
                         res_body.append_to(
                                 &err, std::min((int) res_body.size(),
-                                               FLAGS_http_max_error_length));
+                                               turbo::get_flag(FLAGS_http_max_error_length)));
                     }
                     // If server return melon error code by x-bd-error-code,
                     // set the returned error code to controller. Otherwise,
                     // set EHTTP to controller uniformly.
                     const std::string *error_code_ptr = res_header->GetHeader(common->ERROR_CODE);
                     int error_code = error_code_ptr ? strtol(error_code_ptr->data(), NULL, 10) : 0;
-                    if (FLAGS_use_http_error_code && error_code != 0) {
+                    if (turbo::get_flag(FLAGS_use_http_error_code) && error_code != 0) {
                         cntl->SetFailed(error_code, "%s", err.c_str());
                     } else {
                         cntl->SetFailed(EHTTP, "%s", err.c_str());
@@ -537,7 +537,7 @@ namespace melon {
                     opt.always_print_primitive_fields = cntl->has_always_print_primitive_fields();
                     opt.single_repeated_to_array = cntl->has_pb_single_repeated_to_array();
 
-                    opt.enum_option = (FLAGS_pb_enum_as_number
+                    opt.enum_option = (turbo::get_flag(FLAGS_pb_enum_as_number)
                                        ? json2pb::OUTPUT_ENUM_BY_NUMBER
                                        : json2pb::OUTPUT_ENUM_BY_NAME);
                     if (!json2pb::ProtoMessageToJson(*pbreq, &wrapper, opt, &err)) {
@@ -566,7 +566,7 @@ namespace melon {
                                            CompressTypeToCStr(cntl->request_compress_type()));
                 }
                 const size_t request_size = cntl->request_attachment().size();
-                if (request_size >= (size_t) FLAGS_http_body_compress_threshold) {
+                if (request_size >= (size_t) turbo::get_flag(FLAGS_http_body_compress_threshold)) {
                     TRACEPRINTF("Compressing request=%lu", (unsigned long) request_size);
                     mutil::IOBuf compressed;
                     if (melon::compress::GzipCompress(cntl->request_attachment(), &compressed, NULL)) {
@@ -589,7 +589,7 @@ namespace melon {
                                mutil::string_printf("%llu", (unsigned long long) cntl->log_id()));
             }
             if (!cntl->request_id().empty()) {
-                hreq.SetHeader(FLAGS_request_id_header, cntl->request_id());
+                hreq.SetHeader(turbo::get_flag(FLAGS_request_id_header), cntl->request_id());
             }
 
             if (!is_http2) {
@@ -673,7 +673,7 @@ namespace melon {
 
             MakeRawHttpRequest(buf, header, cntl->remote_side(),
                                &cntl->request_attachment());
-            if (FLAGS_http_verbose) {
+            if (turbo::get_flag(FLAGS_http_verbose)) {
                 PrintMessage(*buf, true, true);
             }
         }
@@ -801,7 +801,7 @@ namespace melon {
                     opt.jsonify_empty_array = cntl->has_pb_jsonify_empty_array();
                     opt.always_print_primitive_fields = cntl->has_always_print_primitive_fields();
                     opt.single_repeated_to_array = cntl->has_pb_single_repeated_to_array();
-                    opt.enum_option = (FLAGS_pb_enum_as_number
+                    opt.enum_option = (turbo::get_flag(FLAGS_pb_enum_as_number)
                                        ? json2pb::OUTPUT_ENUM_BY_NUMBER
                                        : json2pb::OUTPUT_ENUM_BY_NAME);
                     if (!json2pb::ProtoMessageToJson(*res, &wrapper, opt, &err)) {
@@ -883,7 +883,7 @@ namespace melon {
                 // not set_content to enable chunked mode.
             } else if (cntl->response_compress_type() == COMPRESS_TYPE_GZIP) {
                 const size_t response_size = cntl->response_attachment().size();
-                if (response_size >= (size_t) FLAGS_http_body_compress_threshold
+                if (response_size >= (size_t) turbo::get_flag(FLAGS_http_body_compress_threshold)
                     && (is_http2 || SupportGzip(cntl))) {
                     TRACEPRINTF("Compressing response=%lu", (unsigned long) response_size);
                     mutil::IOBuf tmpbuf;
@@ -923,7 +923,7 @@ namespace melon {
                     errno = EINVAL;
                     rc = -1;
                 } else {
-                    if (FLAGS_http_verbose) {
+                    if (turbo::get_flag(FLAGS_http_verbose)) {
                         LOG(INFO) << '\n' << *h2_response;
                     }
                     if (span) {
@@ -939,7 +939,7 @@ namespace melon {
                 res_header->set_method(req_header->method());
                 mutil::IOBuf res_buf;
                 MakeRawHttpResponse(&res_buf, res_header, content);
-                if (FLAGS_http_verbose) {
+                if (turbo::get_flag(FLAGS_http_verbose)) {
                     PrintMessage(res_buf, false, !!content);
                 }
                 if (span) {
@@ -1340,7 +1340,7 @@ namespace melon {
                 }
             }
 
-            const std::string *request_id = req_header.GetHeader(FLAGS_request_id_header);
+            const std::string *request_id = req_header.GetHeader(turbo::get_flag(FLAGS_request_id_header));
             if (request_id) {
                 cntl->set_request_id(*request_id);
             }
@@ -1455,7 +1455,7 @@ namespace melon {
                                     server->options().max_concurrency);
                     return;
                 }
-                if (FLAGS_usercode_in_pthread && TooManyUserCode()) {
+                if (turbo::get_flag(FLAGS_usercode_in_pthread) && TooManyUserCode()) {
                     cntl->SetFailed(ELIMIT, "Too many user code to run when"
                                             " -usercode_in_pthread is on");
                     return;
@@ -1589,7 +1589,7 @@ namespace melon {
                 span->set_start_callback_us(mutil::cpuwide_time_us());
                 span->AsParent();
             }
-            if (!FLAGS_usercode_in_pthread) {
+            if (!turbo::get_flag(FLAGS_usercode_in_pthread)) {
                 return svc->CallMethod(method, cntl, req, res, done);
             }
             if (BeginRunningUserCode()) {

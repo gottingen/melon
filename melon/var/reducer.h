@@ -170,7 +170,7 @@ protected:
             _series_sampler == NULL &&
             !mutil::is_same<InvOp, detail::VoidOp>::value &&
             !mutil::is_same<T, std::string>::value &&
-            FLAGS_save_series) {
+                turbo::get_flag(FLAGS_save_series)) {
             _series_sampler = new SeriesSampler(this, _combiner.op());
             _series_sampler->schedule();
         }

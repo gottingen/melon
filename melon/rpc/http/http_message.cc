@@ -23,7 +23,8 @@
 
 #include <string>                               // std::string
 #include <iostream>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 #include <melon/utility/macros.h>
 #include <turbo/log/logging.h>                       // LOG
 #include <melon/utility/scoped_lock.h>
@@ -31,16 +32,16 @@
 #include <turbo/strings/escaping.h>
 #include <melon/fiber/fiber.h>                    // fiber_usleep
 #include <melon/rpc/log.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/rpc/http/http_message.h>
 
+TURBO_FLAG(bool, http_verbose, false,
+"[DEBUG] Print EVERY http request/response");
+TURBO_FLAG(int, http_verbose_max_body_length, 512,
+"[DEBUG] Max body length printed when -http_verbose is on");
+TURBO_DECLARE_FLAG(int64_t, socket_max_unwritten_bytes);
 namespace melon {
 
-    DEFINE_bool(http_verbose, false,
-                "[DEBUG] Print EVERY http request/response");
-    DEFINE_int32(http_verbose_max_body_length, 512,
-                 "[DEBUG] Max body length printed when -http_verbose is on");
-    DECLARE_int64(socket_max_unwritten_bytes);
+
 
     // Implement callbacks for http parser
 
@@ -109,7 +110,7 @@ namespace melon {
         if (http_message->_cur_value) {
             http_message->_cur_value->append(at, length);
         }
-        if (FLAGS_http_verbose) {
+        if (turbo::get_flag(FLAGS_http_verbose)) {
             mutil::IOBufBuilder *vs = http_message->_vmsgbuilder.get();
             if (vs == NULL) {
                 vs = new mutil::IOBufBuilder;
@@ -229,8 +230,8 @@ namespace melon {
                 LOG(INFO) << '\n' << _vmsgbuilder->buf();
                 _vmsgbuilder.reset(NULL);
             } else {
-                if (_vbodylen < (size_t) FLAGS_http_verbose_max_body_length) {
-                    int plen = std::min(length, (size_t) FLAGS_http_verbose_max_body_length
+                if (_vbodylen < (size_t) turbo::get_flag(FLAGS_http_verbose_max_body_length)) {
+                    int plen = std::min(length, (size_t) turbo::get_flag(FLAGS_http_verbose_max_body_length)
                                                 - _vbodylen);
                     std::string str = mutil::ToPrintableString(
                             at, plen, std::numeric_limits<size_t>::max());
@@ -259,7 +260,7 @@ namespace melon {
             // which requires a set of complicated "pause" and "unpause"
             // asynchronous API. We just leave the job to fiber right now
             // to make everything work.
-            if ((int64_t) _body.size() <= FLAGS_socket_max_unwritten_bytes) {
+            if ((int64_t) _body.size() <= turbo::get_flag(FLAGS_socket_max_unwritten_bytes)) {
                 _body.append(at, length);
                 return 0;
             }
@@ -286,9 +287,9 @@ namespace melon {
 
     int HttpMessage::OnMessageComplete() {
         if (_vmsgbuilder) {
-            if (_vbodylen > (size_t) FLAGS_http_verbose_max_body_length) {
+            if (_vbodylen > (size_t) turbo::get_flag(FLAGS_http_verbose_max_body_length)) {
                 *_vmsgbuilder << "\n<skipped " << _vbodylen
-                                                  - (size_t) FLAGS_http_verbose_max_body_length << " bytes>";
+                                                  - (size_t) turbo::get_flag(FLAGS_http_verbose_max_body_length) << " bytes>";
             }
             LOG(INFO) << '\n' << _vmsgbuilder->buf();
             _vmsgbuilder.reset(NULL);

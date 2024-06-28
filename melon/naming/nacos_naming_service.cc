@@ -20,7 +20,7 @@
 
 #include <melon/naming/nacos_naming_service.h>
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 
 #include <set>
 
@@ -30,48 +30,48 @@
 #include <turbo/log/logging.h>
 #include <melon/utility/third_party/rapidjson/document.h>
 
-namespace melon::naming {
+TURBO_FLAG(std::string, nacos_address, "",
+              "The query string of request nacos for discovering service.");
+TURBO_FLAG(std::string, nacos_service_discovery_path, "/nacos/v1/ns/instance/list",
+              "The url path for discovering service.");
+TURBO_FLAG(std::string, nacos_service_auth_path, "/nacos/v1/auth/login",
+              "The url path for authentiction.");
+TURBO_FLAG(int , nacos_connect_timeout_ms, 200,
+             "Timeout for creating connections to nacos in milliseconds");
+TURBO_FLAG(std::string, nacos_username, "", "nacos username");
+TURBO_FLAG(std::string, nacos_password, "", "nacos password");
+TURBO_FLAG(std::string, nacos_load_balancer, "rr", "nacos load balancer name");
 
-    DEFINE_string(nacos_address, "",
-                  "The query string of request nacos for discovering service.");
-    DEFINE_string(nacos_service_discovery_path, "/nacos/v1/ns/instance/list",
-                  "The url path for discovering service.");
-    DEFINE_string(nacos_service_auth_path, "/nacos/v1/auth/login",
-                  "The url path for authentiction.");
-    DEFINE_int32(nacos_connect_timeout_ms, 200,
-                 "Timeout for creating connections to nacos in milliseconds");
-    DEFINE_string(nacos_username, "", "nacos username");
-    DEFINE_string(nacos_password, "", "nacos password");
-    DEFINE_string(nacos_load_balancer, "rr", "nacos load balancer name");
+namespace melon::naming {
 
     int NacosNamingService::Connect() {
         ChannelOptions opt;
         opt.protocol = PROTOCOL_HTTP;
-        opt.connect_timeout_ms = FLAGS_nacos_connect_timeout_ms;
-        const int ret = _channel.Init(FLAGS_nacos_address.c_str(),
-                                      FLAGS_nacos_load_balancer.c_str(), &opt);
+        opt.connect_timeout_ms = turbo::get_flag(FLAGS_nacos_connect_timeout_ms);
+        const int ret = _channel.Init(turbo::get_flag(FLAGS_nacos_address).c_str(),
+                                      turbo::get_flag(FLAGS_nacos_load_balancer).c_str(), &opt);
         if (ret != 0) {
             LOG(ERROR) << "Fail to init channel to nacos at "
-                       << FLAGS_nacos_address;
+                       << turbo::get_flag(FLAGS_nacos_address);
         }
         return ret;
     }
 
     int NacosNamingService::RefreshAccessToken(const char *service_name) {
         Controller cntl;
-        cntl.http_request().uri() = FLAGS_nacos_service_auth_path;
+        cntl.http_request().uri() = turbo::get_flag(FLAGS_nacos_service_auth_path);
         cntl.http_request().set_method(melon::HttpMethod::HTTP_METHOD_POST);
         cntl.http_request().set_content_type("application/x-www-form-urlencoded");
 
         auto &buf = cntl.request_attachment();
         buf.append("username=");
-        buf.append(FLAGS_nacos_username);
+        buf.append(turbo::get_flag(FLAGS_nacos_username));
         buf.append("&password=");
-        buf.append(FLAGS_nacos_password);
+        buf.append(turbo::get_flag(FLAGS_nacos_password));
 
         _channel.CallMethod(nullptr, &cntl, nullptr, nullptr, nullptr);
         if (cntl.Failed()) {
-            LOG(ERROR) << "Fail to access " << FLAGS_nacos_service_auth_path << ": "
+            LOG(ERROR) << "Fail to access " << turbo::get_flag(FLAGS_nacos_service_auth_path) << ": "
                        << cntl.ErrorText();
             return -1;
         }
@@ -99,7 +99,7 @@ namespace melon::naming {
 
         auto iter_ttl = doc.FindMember("tokenTtl");
         if (iter_ttl != doc.MemberEnd() && iter_ttl->value.IsInt()) {
-            _token_expire_time = time(NULL) + iter_ttl->value.GetInt() - 10;
+            _token_expire_time = time(nullptr) + iter_ttl->value.GetInt() - 10;
         } else {
             _token_expire_time = 0;
         }
@@ -111,7 +111,7 @@ namespace melon::naming {
                                            bool token_changed,
                                            std::vector<ServerNode> *nodes) {
         if (_nacos_url.empty() || token_changed) {
-            _nacos_url = FLAGS_nacos_service_discovery_path;
+            _nacos_url = turbo::get_flag(FLAGS_nacos_service_discovery_path);
             _nacos_url += "?";
             if (!_access_token.empty()) {
                 _nacos_url += "accessToken=" + _access_token;
@@ -256,7 +256,7 @@ namespace melon::naming {
         }
 
         const bool authentiction_enabled =
-                !FLAGS_nacos_username.empty() && !FLAGS_nacos_password.empty();
+                !turbo::get_flag(FLAGS_nacos_username).empty() && !turbo::get_flag(FLAGS_nacos_password).empty();
         const bool has_invalid_access_token =
                 _access_token.empty() ||
                 (0 < _token_expire_time && _token_expire_time <= time(NULL));

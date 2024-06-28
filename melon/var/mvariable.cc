@@ -18,8 +18,8 @@
 //
 
 
-#include <gflags/gflags.h>
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/declare.h>
+#include <turbo/flags/flag.h>
 #include <turbo/log/logging.h>                       // LOG
 #include <melon/utility/errno.h>                         // berror
 #include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
@@ -28,40 +28,16 @@
 #include <melon/var/variable.h>
 #include <melon/var/mvariable.h>
 
+TURBO_FLAG(int32_t, var_max_multi_dimension_metric_number, 1024, "Max number of multi dimension").on_validate(turbo::GeValidator<int32_t, 1>::validate);
+TURBO_FLAG(int32_t, var_max_dump_multi_dimension_metric_number, 1024,
+           "Max number of multi dimension metric number to dump by prometheus rpc service").on_validate(turbo::GeValidator<int32_t, 1>::validate);
+TURBO_DECLARE_FLAG(bool, var_abort_on_same_name);
 namespace melon::var {
 
     constexpr uint64_t MAX_LABELS_COUNT = 10;
 
-    DECLARE_bool(var_abort_on_same_name);
 
     extern bool s_var_may_abort;
-
-    DEFINE_int32(var_max_multi_dimension_metric_number, 1024, "Max number of multi dimension");
-    DEFINE_int32(var_max_dump_multi_dimension_metric_number, 1024,
-                 "Max number of multi dimension metric number to dump by prometheus rpc service");
-
-    static bool validator_var_max_multi_dimension_metric_number(const char *, int32_t v) {
-        if (v < 1) {
-            LOG(ERROR) << "Invalid var_max_multi_dimension_metric_number=" << v;
-            return false;
-        }
-        return true;
-    }
-
-    static bool validator_var_max_dump_multi_dimension_metric_number(const char *, int32_t v) {
-        if (v < 0) {
-            LOG(ERROR) << "Invalid var_max_dump_multi_dimension_metric_number=" << v;
-            return false;
-        }
-        return true;
-    }
-
-
-    const bool ALLOW_UNUSED dummp_var_max_multi_dimension_metric_number = ::google::RegisterFlagValidator(
-            &FLAGS_var_max_multi_dimension_metric_number, validator_var_max_multi_dimension_metric_number);
-
-    const bool ALLOW_UNUSED dummp_var_max_dump_multi_dimension_metric_number = ::google::RegisterFlagValidator(
-            &FLAGS_var_max_dump_multi_dimension_metric_number, validator_var_max_dump_multi_dimension_metric_number);
 
     class MVarEntry {
     public:
@@ -102,7 +78,8 @@ namespace melon::var {
         size_t n = labels.size();
         if (n > MAX_LABELS_COUNT) {
             LOG(ERROR)
-            << "Too many labels: " << n << " seen, overflow detected, max labels count: " << MAX_LABELS_COUNT;
+                            << "Too many labels: " << n << " seen, overflow detected, max labels count: "
+                            << MAX_LABELS_COUNT;
             _labels.resize(MAX_LABELS_COUNT);
         }
     }
@@ -165,9 +142,9 @@ namespace melon::var {
         }
         to_underscored_name(&_name, name);
 
-        if (count_exposed() > (size_t) FLAGS_var_max_multi_dimension_metric_number) {
+        if (count_exposed() > (size_t) turbo::get_flag(FLAGS_var_max_multi_dimension_metric_number)) {
             LOG(ERROR) << "Too many metric seen, overflow detected, max metric count:"
-                       << FLAGS_var_max_multi_dimension_metric_number;
+                       << turbo::get_flag(FLAGS_var_max_multi_dimension_metric_number);
             return -1;
         }
 
@@ -182,7 +159,7 @@ namespace melon::var {
             }
         }
 
-        RELEASE_ASSERT_VERBOSE(!FLAGS_var_abort_on_same_name,
+        RELEASE_ASSERT_VERBOSE(!turbo::get_flag(FLAGS_var_abort_on_same_name),
                                "Abort due to name conflict");
         if (!s_var_may_abort) {
             // Mark name conflict occurs, If this conflict happens before
@@ -262,10 +239,9 @@ namespace melon::var {
             if (entry) {
                 n += entry->var->dump(dumper, &opt);
             }
-            if (n > static_cast<size_t>(FLAGS_var_max_dump_multi_dimension_metric_number)) {
-                LOG(WARNING) << "truncated because of \
-		            exceed max dump multi dimension label number["
-                             << FLAGS_var_max_dump_multi_dimension_metric_number
+            if (n > static_cast<size_t>(turbo::get_flag(FLAGS_var_max_dump_multi_dimension_metric_number))) {
+                LOG(WARNING) << "truncated because of exceed max dump multi dimension label number["
+                             << turbo::get_flag(FLAGS_var_max_dump_multi_dimension_metric_number)
                              << "]";
                 break;
             }

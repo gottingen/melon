@@ -22,7 +22,7 @@
 #include <set>                                  // std::set
 #include <fstream>                              // std::ifstream
 #include <sstream>                              // std::ostringstream
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/macros.h>                        // MELON_CASSERT
 #include <melon/utility/containers/flat_map.h>           // mutil::FlatMap
 #include <melon/utility/scoped_lock.h>                   // MELON_SCOPE_LOCK
@@ -34,40 +34,93 @@
 #include <melon/var/gflag.h>
 #include <melon/var/variable.h>
 #include <melon/var/mvariable.h>
+#include <turbo/flags/parse.h>
 
 namespace melon::var {
-
-    DEFINE_bool(save_series, true,
-                "Save values of last 60 seconds, last 60 minutes,"
-                " last 24 hours and last 30 days for plotting");
-
-    DEFINE_bool(quote_vector, true,
-                "Quote description of Vector<> to make it valid to noah");
-
-    DEFINE_bool(var_abort_on_same_name, false,
-                "Abort when names of var are same");
-    // Remember abort request before var_abort_on_same_name is initialized.
     bool s_var_may_abort = false;
 
-    static bool validate_var_abort_on_same_name(const char *, bool v) {
-        RELEASE_ASSERT_VERBOSE(!v || !s_var_may_abort, "Abort due to name conflict");
+    static bool validate_var_abort_on_same_name(std::string_view value, std::string *error) noexcept {
+        bool val;
+        if (!turbo::parse_flag(value, &val, error)) {
+            return false;
+        }
+        RELEASE_ASSERT_VERBOSE(!val || !s_var_may_abort, "Abort due to name conflict");
         return true;
     }
 
-    const bool ALLOW_UNUSED dummy_var_abort_on_same_name = ::google::RegisterFlagValidator(
-            &FLAGS_var_abort_on_same_name, validate_var_abort_on_same_name);
+    static void enable_dumping_thread() noexcept;
 
+    static void wakeup_dumping_thread() noexcept;
+    static bool validate_mvar_dump_format(std::string_view value, std::string *err) noexcept;
+}  // namespace melon::var
+TURBO_FLAG(bool, save_series, true,
+           "Save values of last 60 seconds, last 60 minutes,"
+           " last 24 hours and last 30 days for plotting");
 
-    DEFINE_bool(var_log_dumpped, false,
-                "[For debugging] print dumpped info"
-                " into logstream before call Dumpper");
+TURBO_FLAG(bool, quote_vector, true,
+           "Quote description of Vector<> to make it valid to noah");
+
+TURBO_FLAG(bool, var_abort_on_same_name, false,
+           "Abort when names of var are same").on_validate(melon::var::validate_var_abort_on_same_name);
+TURBO_FLAG(bool, var_log_dumpped, false,
+           "[For debugging] print dumpped info"
+           " into logstream before call Dumpper").on_validate(turbo::AllPassValidator<bool>::validate);
+
+TURBO_FLAG(bool, var_dump,
+           false,
+           "Create a background thread dumping all var periodically, "
+           "all var_dump_* flags are not effective when this flag is off").on_validate(
+                turbo::AllPassValidator<bool>::validate)
+        .on_update(melon::var::enable_dumping_thread);
+TURBO_FLAG(int32_t, var_dump_interval,
+           10, "Seconds between consecutive dump");
+TURBO_FLAG(std::string, var_dump_file,
+           "monitor/var.<app>.data", "Dump var into this file")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+TURBO_FLAG(std::string, var_dump_include,
+           "", "Dump var matching these wildcards, "
+               "separated by semicolon(;), empty means including all")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+TURBO_FLAG(std::string, var_dump_exclude,
+           "", "Dump var excluded from these wildcards, "
+               "separated by semicolon(;), empty means no exclusion")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+TURBO_FLAG(std::string, var_dump_prefix,
+           "<app>", "Every dumped name starts with this prefix")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+TURBO_FLAG(std::string, var_dump_tabs,
+           "latency=*_latency*"
+           ";qps=*_qps*"
+           ";error=*_error*"
+           ";system=*process_*,*malloc_*,*kernel_*",
+           "Dump var into different tabs according to the filters (separated by semicolon), "
+           "format: *(tab_name=wildcards;)")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+
+TURBO_FLAG(bool, mvar_dump,
+           false,
+           "Create a background thread dumping(shares the same thread as var_dump) all mvar periodically, "
+           "all mvar_dump_* flags are not effective when this flag is off").on_validate(
+                turbo::AllPassValidator<bool>::validate)
+        .on_update(melon::var::enable_dumping_thread);
+TURBO_FLAG(std::string, mvar_dump_file,
+           "monitor/mvar.<app>.data", "Dump mvar into this file")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+TURBO_FLAG(std::string, mvar_dump_prefix,
+           "<app>", "Every dumped name starts with this prefix")
+.on_validate(turbo::AllPassValidator<bool>::validate).on_update(melon::var::wakeup_dumping_thread);
+TURBO_FLAG(std::string, mvar_dump_format,
+           "common", "Dump mvar write format").on_validate(melon::var::validate_mvar_dump_format).on_update(
+                melon::var::wakeup_dumping_thread);
+namespace melon::var {
+
 
     const size_t SUB_MAP_COUNT = 32;  // must be power of 2
     MELON_CASSERT(!(SUB_MAP_COUNT & (SUB_MAP_COUNT - 1)), must_be_power_of_2);
 
     class VarEntry {
     public:
-        VarEntry() : var(NULL), display_filter(DISPLAY_ON_ALL) {}
+        VarEntry() : var(nullptr), display_filter(DISPLAY_ON_ALL) {}
 
         Variable *var;
         DisplayFilter display_filter;
@@ -91,7 +144,7 @@ namespace melon::var {
 // We have to initialize global map on need because var is possibly used
 // before main().
     static pthread_once_t s_var_maps_once = PTHREAD_ONCE_INIT;
-    static VarMapWithLock *s_var_maps = NULL;
+    static VarMapWithLock *s_var_maps = nullptr;
 
     static void init_var_maps() {
         // It's probably slow to initialize all sub maps, but rpc often expose
@@ -158,14 +211,14 @@ namespace melon::var {
         {
             MELON_SCOPED_LOCK(m.mutex);
             VarEntry *entry = m.seek(_name);
-            if (entry == NULL) {
+            if (entry == nullptr) {
                 entry = &m[_name];
                 entry->var = this;
                 entry->display_filter = display_filter;
                 return 0;
             }
         }
-        RELEASE_ASSERT_VERBOSE(!FLAGS_var_abort_on_same_name,
+        RELEASE_ASSERT_VERBOSE(!turbo::get_flag(FLAGS_var_abort_on_same_name),
                                "Abort due to name conflict");
         if (!s_var_may_abort) {
             // Mark name conflict occurs, If this conflict happens before
@@ -202,7 +255,7 @@ namespace melon::var {
 
     void Variable::list_exposed(std::vector<std::string> *names,
                                 DisplayFilter display_filter) {
-        if (names == NULL) {
+        if (names == nullptr) {
             return;
         }
         names->clear();
@@ -251,7 +304,7 @@ namespace melon::var {
         VarMapWithLock &m = get_var_map(name);
         MELON_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
-        if (p == NULL) {
+        if (p == nullptr) {
             return -1;
         }
         if (!(display_filter & p->display_filter)) {
@@ -284,7 +337,7 @@ namespace melon::var {
         VarMapWithLock &m = get_var_map(name);
         MELON_SCOPED_LOCK(m.mutex);
         VarEntry *p = m.seek(name);
-        if (p == NULL) {
+        if (p == nullptr) {
             return -1;
         }
         return p->var->describe_series(os, options);
@@ -298,7 +351,7 @@ namespace melon::var {
 // creation of std::string which allocates memory internally.
     class CharArrayStreamBuf : public std::streambuf {
     public:
-        explicit CharArrayStreamBuf() : _data(NULL), _size(0) {}
+        explicit CharArrayStreamBuf() : _data(nullptr), _size(0) {}
 
         ~CharArrayStreamBuf();
 
@@ -327,8 +380,8 @@ namespace melon::var {
         }
         size_t new_size = std::max(_size * 3 / 2, (size_t) 64);
         char *new_data = (char *) malloc(new_size);
-        if (MELON_UNLIKELY(new_data == NULL)) {
-            setp(NULL, NULL);
+        if (MELON_UNLIKELY(new_data == nullptr)) {
+            setp(nullptr, nullptr);
             return std::streambuf::traits_type::eof();
         }
         memcpy(new_data, _data, _size);
@@ -355,8 +408,8 @@ namespace melon::var {
 // Written by Jack Handy
 // <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
     inline bool wildcmp(const char *wild, const char *str, char question_mark) {
-        const char *cp = NULL;
-        const char *mp = NULL;
+        const char *cp = nullptr;
+        const char *mp = nullptr;
 
         while (*str && *wild != '*') {
             if (*wild != *str && *wild != question_mark) {
@@ -400,7 +453,7 @@ namespace melon::var {
             std::string name;
             const char wc_pattern[3] = {'*', question_mark, '\0'};
             for (mutil::StringMultiSplitter sp(wildcards.c_str(), ",;");
-                 sp != NULL; ++sp) {
+                 sp != nullptr; ++sp) {
                 name.assign(sp.field(), sp.length());
                 if (name.find_first_of(wc_pattern) != std::string::npos) {
                     if (_wcs.empty()) {
@@ -444,8 +497,8 @@ namespace melon::var {
             : quote_string(true), question_mark('?'), display_filter(DISPLAY_ON_PLAIN_TEXT) {}
 
     int Variable::dump_exposed(Dumper *dumper, const DumpOptions *poptions) {
-        if (NULL == dumper) {
-            LOG(ERROR) << "Parameter[dumper] is NULL";
+        if (nullptr == dumper) {
+            LOG(ERROR) << "Parameter[dumper] is nullptr";
             return -1;
         }
         DumpOptions opt;
@@ -463,7 +516,7 @@ namespace melon::var {
                                       true);
 
         std::ostringstream dumpped_info;
-        const bool log_dummped = FLAGS_var_log_dumpped;
+        const bool log_dummped = turbo::get_flag(FLAGS_var_log_dumpped);
 
         if (white_matcher.wildcards().empty() &&
             !white_matcher.exact_names().empty()) {
@@ -549,7 +602,7 @@ namespace melon::var {
     class FileDumper : public Dumper {
     public:
         FileDumper(const std::string &filename, mutil::StringPiece s/*prefix*/)
-                : _filename(filename), _fp(NULL) {
+                : _filename(filename), _fp(nullptr) {
             // setting prefix.
             // remove trailing spaces.
             const char *p = s.data() + s.size();
@@ -571,13 +624,13 @@ namespace melon::var {
         void close() {
             if (_fp) {
                 fclose(_fp);
-                _fp = NULL;
+                _fp = nullptr;
             }
         }
 
     protected:
         bool dump_impl(const std::string &name, const mutil::StringPiece &desc, const std::string &separator) {
-            if (_fp == NULL) {
+            if (_fp == nullptr) {
                 mutil::File::Error error;
                 mutil::FilePath dir = mutil::FilePath(_filename).DirName();
                 if (!mutil::CreateDirectoryAndGetError(dir, &error)) {
@@ -586,7 +639,7 @@ namespace melon::var {
                     return false;
                 }
                 _fp = fopen(_filename.c_str(), "w");
-                if (NULL == _fp) {
+                if (nullptr == _fp) {
                     LOG(ERROR) << "Fail to open " << _filename;
                     return false;
                 }
@@ -654,7 +707,7 @@ namespace melon::var {
             }
             dumpers.emplace_back(
                     new CommonFileDumper(path.AddExtension("data").value(), s),
-                    (WildcardMatcher *) NULL);
+                    (WildcardMatcher *) nullptr);
         }
 
         ~FileDumperGroup() {
@@ -684,37 +737,14 @@ namespace melon::var {
     static pthread_mutex_t dump_mutex = PTHREAD_MUTEX_INITIALIZER;
     static pthread_cond_t dump_cond = PTHREAD_COND_INITIALIZER;
 
-    DEFINE_bool(var_dump, false,
-                "Create a background thread dumping all var periodically, "
-                "all var_dump_* flags are not effective when this flag is off");
-    DEFINE_int32(var_dump_interval, 10, "Seconds between consecutive dump");
-    DEFINE_string(var_dump_file, "monitor/var.<app>.data", "Dump var into this file");
-    DEFINE_string(var_dump_include, "", "Dump var matching these wildcards, "
-                                         "separated by semicolon(;), empty means including all");
-    DEFINE_string(var_dump_exclude, "", "Dump var excluded from these wildcards, "
-                                         "separated by semicolon(;), empty means no exclusion");
-    DEFINE_string(var_dump_prefix, "<app>", "Every dumped name starts with this prefix");
-    DEFINE_string(var_dump_tabs, "latency=*_latency*"
-                                  ";qps=*_qps*"
-                                  ";error=*_error*"
-                                  ";system=*process_*,*malloc_*,*kernel_*",
-                  "Dump var into different tabs according to the filters (separated by semicolon), "
-                  "format: *(tab_name=wildcards;)");
-
-    DEFINE_bool(mvar_dump, false,
-                "Create a background thread dumping(shares the same thread as var_dump) all mvar periodically, "
-                "all mvar_dump_* flags are not effective when this flag is off");
-    DEFINE_string(mvar_dump_file, "monitor/mvar.<app>.data", "Dump mvar into this file");
-    DEFINE_string(mvar_dump_prefix, "<app>", "Every dumped name starts with this prefix");
-    DEFINE_string(mvar_dump_format, "common", "Dump mvar write format");
 
 #if !defined(UNIT_TEST)
-// Expose var-releated gflags so that they're collected by noah.
-// Maybe useful when debugging process of monitoring.
+    // Expose var-releated gflags so that they're collected by noah.
+    // Maybe useful when debugging process of monitoring.
     static GFlag s_gflag_var_dump_interval("var_dump_interval");
 #endif
 
-// The background thread to export all var periodically.
+    // The background thread to export all var periodically.
     static void *dumping_thread(void *) {
         // NOTE: this variable was declared as static <= r34381, which was
         // destructed when program exits and caused coredumps.
@@ -724,51 +754,17 @@ namespace melon::var {
         std::string mvar_last_filename;
         while (1) {
             // We can't access string flags directly because it's thread-unsafe.
-            std::string filename;
+            std::string filename = turbo::get_flag(FLAGS_var_dump_file);
             DumpOptions options;
-            std::string prefix;
-            std::string tabs;
-            std::string mvar_filename;
-            std::string mvar_prefix;
-            std::string mvar_format;
-            if (!google::GetCommandLineOption("var_dump_file", &filename)) {
-                LOG(ERROR) << "Fail to get gflag var_dump_file";
-                return NULL;
-            }
-            if (!google::GetCommandLineOption("var_dump_include",
-                                                 &options.white_wildcards)) {
-                LOG(ERROR) << "Fail to get gflag var_dump_include";
-                return NULL;
-            }
-            if (!google::GetCommandLineOption("var_dump_exclude",
-                                                 &options.black_wildcards)) {
-                LOG(ERROR) << "Fail to get gflag var_dump_exclude";
-                return NULL;
-            }
-            if (!google::GetCommandLineOption("var_dump_prefix", &prefix)) {
-                LOG(ERROR) << "Fail to get gflag var_dump_prefix";
-                return NULL;
-            }
-            if (!google::GetCommandLineOption("var_dump_tabs", &tabs)) {
-                LOG(ERROR) << "Fail to get gflags var_dump_tabs";
-                return NULL;
-            }
+            std::string prefix = turbo::get_flag(FLAGS_var_dump_prefix);
+            std::string tabs = turbo::get_flag(FLAGS_var_dump_tabs);
+            std::string mvar_filename = turbo::get_flag(FLAGS_mvar_dump_file);
+            std::string mvar_prefix = turbo::get_flag(FLAGS_mvar_dump_prefix);
+            std::string mvar_format = turbo::get_flag(FLAGS_mvar_dump_format);
+            options.white_wildcards = turbo::get_flag(FLAGS_var_dump_include);
+            options.black_wildcards = turbo::get_flag(FLAGS_var_dump_exclude);
 
-            // We can't access string flags directly because it's thread-unsafe.
-            if (!google::GetCommandLineOption("mvar_dump_file", &mvar_filename)) {
-                LOG(ERROR) << "Fail to get gflag mvar_dump_file";
-                return NULL;
-            }
-            if (!google::GetCommandLineOption("mvar_dump_prefix", &mvar_prefix)) {
-                LOG(ERROR) << "Fail to get gflag mvar_dump_prefix";
-                return NULL;
-            }
-            if (!google::GetCommandLineOption("mvar_dump_format", &mvar_format)) {
-                LOG(ERROR) << "Fail to get gflag mvar_dump_format";
-                return NULL;
-            }
-
-            if (FLAGS_var_dump && !filename.empty()) {
+            if (turbo::get_flag(FLAGS_var_dump) && !filename.empty()) {
                 // Replace first <app> in filename with program name. We can't use
                 // pid because a same binary should write the data to the same
                 // place, otherwise restarting of app may confuse noah with a lot
@@ -781,7 +777,7 @@ namespace melon::var {
                 if (last_filename != filename) {
                     last_filename = filename;
                     LOG(INFO) << "Write all var to " << filename << " every "
-                              << FLAGS_var_dump_interval << " seconds.";
+                              << turbo::get_flag(FLAGS_var_dump_interval) << " seconds.";
                 }
                 const size_t pos2 = prefix.find("<app>");
                 if (pos2 != std::string::npos) {
@@ -795,7 +791,7 @@ namespace melon::var {
             }
 
             // Dump multi dimension var
-            if (FLAGS_mvar_dump && !mvar_filename.empty()) {
+            if (turbo::get_flag(FLAGS_mvar_dump) && !mvar_filename.empty()) {
                 // Replace first <app> in filename with program name. We can't use
                 // pid because a same binary should write the data to the same
                 // place, otherwise restarting of app may confuse noah with a lot
@@ -808,14 +804,14 @@ namespace melon::var {
                 if (mvar_last_filename != mvar_filename) {
                     mvar_last_filename = mvar_filename;
                     LOG(INFO) << "Write all mvar to " << mvar_filename << " every "
-                              << FLAGS_var_dump_interval << " seconds.";
+                              << turbo::get_flag(FLAGS_var_dump_interval) << " seconds.";
                 }
                 const size_t pos2 = mvar_prefix.find("<app>");
                 if (pos2 != std::string::npos) {
                     mvar_prefix.replace(pos2, 5/*<app>*/, command_name);
                 }
 
-                Dumper *dumper = NULL;
+                Dumper *dumper = nullptr;
                 if ("common" == mvar_format) {
                     dumper = new CommonFileDumper(mvar_filename, mvar_prefix);
                 } else if ("prometheus" == mvar_format) {
@@ -826,7 +822,7 @@ namespace melon::var {
                     LOG(ERROR) << "Fail to dump mvars into " << filename;
                 }
                 delete dumper;
-                dumper = NULL;
+                dumper = nullptr;
             }
 
             // We need to separate the sleeping into a long interruptible sleep
@@ -834,7 +830,7 @@ namespace melon::var {
             // this thread in gflag validators. If this thread dumps just after
             // waking up from the condition, the gflags may not even be updated.
             const int post_sleep_ms = 50;
-            int cond_sleep_ms = FLAGS_var_dump_interval * 1000 - post_sleep_ms;
+            int cond_sleep_ms = turbo::get_flag(FLAGS_var_dump_interval) * 1000 - post_sleep_ms;
             if (cond_sleep_ms < 0) {
                 LOG(ERROR) << "Bad cond_sleep_ms=" << cond_sleep_ms;
                 cond_sleep_ms = 10000;
@@ -849,7 +845,7 @@ namespace melon::var {
 
     static void launch_dumping_thread() {
         pthread_t thread_id;
-        int rc = pthread_create(&thread_id, NULL, dumping_thread, NULL);
+        int rc = pthread_create(&thread_id, nullptr, dumping_thread, nullptr);
         if (rc != 0) {
             LOG(FATAL) << "Fail to launch dumping thread: " << berror(rc);
             return;
@@ -859,83 +855,28 @@ namespace melon::var {
         created_dumping_thread = true;
     }
 
-// Start dumping_thread for only once.
-    static bool enable_dumping_thread() {
-        pthread_once(&dumping_thread_once, launch_dumping_thread);
-        return created_dumping_thread;
+    // Start dumping_thread for only once.
+    void enable_dumping_thread() noexcept {
+        if (::turbo::get_flag(FLAGS_var_dump) || ::turbo::get_flag(FLAGS_mvar_dump))
+            pthread_once(&dumping_thread_once, launch_dumping_thread);
     }
 
-    static bool validate_var_dump(const char *, bool enabled) {
-        if (enabled) {
-            return enable_dumping_thread();
-        }
-        return true;
+    void wakeup_dumping_thread() noexcept {
+        // We're modifying a flag, wake up dumping_thread to generate
+        // a new file soon.
+        pthread_cond_signal(&dump_cond);
     }
 
-    const bool ALLOW_UNUSED dummy_var_dump = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump, validate_var_dump);
-
-// validators (to make these gflags reloadable in melon)
-    static bool validate_var_dump_interval(const char *, int32_t v) {
-        // FIXME: -var_dump_interval is actually unreloadable but we need to
-        // check validity of it, so we still add this validator. In practice
-        // this is just fine since people rarely have the intention of modifying
-        // this flag at runtime.
-        if (v < 1) {
-            LOG(ERROR) << "Invalid var_dump_interval=" << v;
+    bool validate_mvar_dump_format(std::string_view value, std::string *err) noexcept {
+        if (value != "common"
+            && value != "prometheus") {
+            LOG(ERROR) << "Invalid mvar_dump_format=" << value;
+            if(err)
+                *err = "Invalid mvar_dump_format";
             return false;
         }
         return true;
     }
-
-    const bool ALLOW_UNUSED dummy_var_dump_interval = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump_interval, validate_var_dump_interval);
-
-    static bool validate_var_log_dumpped(const char *, bool) { return true; }
-
-    const bool ALLOW_UNUSED dummy_var_log_dumpped = ::google::RegisterFlagValidator(
-            &FLAGS_var_log_dumpped, validate_var_log_dumpped);
-
-    static bool wakeup_dumping_thread(const char *, const std::string &) {
-        // We're modifying a flag, wake up dumping_thread to generate
-        // a new file soon.
-        pthread_cond_signal(&dump_cond);
-        return true;
-    }
-
-    const bool ALLOW_UNUSED dummy_var_dump_file = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump_file, wakeup_dumping_thread);
-    const bool ALLOW_UNUSED dummy_var_dump_filter = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump_include, wakeup_dumping_thread);
-    const bool ALLOW_UNUSED dummy_var_dump_exclude = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump_exclude, wakeup_dumping_thread);
-    const bool ALLOW_UNUSED dummy_var_dump_prefix = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump_prefix, wakeup_dumping_thread);
-    const bool ALLOW_UNUSED dummy_var_dump_tabs = ::google::RegisterFlagValidator(
-            &FLAGS_var_dump_tabs, wakeup_dumping_thread);
-
-    const bool ALLOW_UNUSED dummy_mvar_dump = ::google::RegisterFlagValidator(
-            &FLAGS_mvar_dump, validate_var_dump);
-    const bool ALLOW_UNUSED dummy_mvar_dump_prefix = ::google::RegisterFlagValidator(
-            &FLAGS_mvar_dump_prefix, wakeup_dumping_thread);
-    const bool ALLOW_UNUSED dump_mvar_dump_file = ::google::RegisterFlagValidator(
-            &FLAGS_mvar_dump_file, wakeup_dumping_thread);
-
-    static bool validate_mvar_dump_format(const char *, const std::string &format) {
-        if (format != "common"
-            && format != "prometheus") {
-            LOG(ERROR) << "Invalid mvar_dump_format=" << format;
-            return false;
-        }
-
-        // We're modifying a flag, wake up dumping_thread to generate
-        // a new file soon.
-        pthread_cond_signal(&dump_cond);
-        return true;
-    }
-
-    const bool ALLOW_UNUSED dummy_mvar_dump_format = ::google::RegisterFlagValidator(
-            &FLAGS_mvar_dump_format, validate_mvar_dump_format);
 
     void to_underscored_name(std::string *name, const mutil::StringPiece &src) {
         name->reserve(name->size() + src.size() + 8/*just guess*/);

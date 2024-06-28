@@ -18,22 +18,21 @@
 //
 
 #include <limits>                                            // numeric_limits
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/time.h>                                       // gettimeofday_us
 #include <melon/utility/fast_rand.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/socket.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/lb/locality_aware_load_balancer.h>
 
-namespace melon::lb {
+TURBO_FLAG(int64_t, min_weight, 1000, "Minimum weight of a node in LALB");
+TURBO_FLAG(double, punish_inflight_ratio, 1.5, "Decrease weight proportionally if "
+                                          "average latency of the inflight requests exeeds average "
+                                          "latency of the node times this ratio");
+TURBO_FLAG(double, punish_error_ratio, 1.2,
+              "Multiply latencies caused by errors with this ratio");
 
-    DEFINE_int64(min_weight, 1000, "Minimum weight of a node in LALB");
-    DEFINE_double(punish_inflight_ratio, 1.5, "Decrease weight proportionally if "
-                                              "average latency of the inflight requests exeeds average "
-                                              "latency of the node times this ratio");
-    DEFINE_double(punish_error_ratio, 1.2,
-                  "Multiply latencies caused by errors with this ratio");
+namespace melon::lb {
 
     static const int64_t DEFAULT_QPS = 1;
     static const size_t INITIAL_WEIGHT_TREE_SIZE = 128;
@@ -421,7 +420,7 @@ namespace melon::lb {
                 nleft = ci.controller->max_retry() - ndone;
             }
             const int64_t err_latency =
-                    (nleft * (int64_t) (latency * FLAGS_punish_error_ratio)
+                    (nleft * (int64_t) (latency * turbo::get_flag(FLAGS_punish_error_ratio))
                      + ndone * ci.controller->timeout_ms() * 1000L) / (ndone + nleft);
 
             if (!_time_q.empty()) {

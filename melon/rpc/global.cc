@@ -20,7 +20,8 @@
 
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 #include <fcntl.h>                               // O_RDONLY
 #include <signal.h>
 
@@ -89,14 +90,13 @@ extern "C" {
 void MELON_WEAK MallocExtension_ReleaseFreeMemory(void);
 }
 
+TURBO_DECLARE_FLAG(bool, usercode_in_pthread);
+
+TURBO_FLAG(int32_t , free_memory_to_system_interval, 0,
+"Try to return free memory to system every so many seconds, "
+"values <= 0 disables this feature").on_validate(turbo::AllPassValidator<int32_t>::validate);
+
 namespace melon {
-
-    DECLARE_bool(usercode_in_pthread);
-
-    DEFINE_int32(free_memory_to_system_interval, 0,
-                 "Try to return free memory to system every so many seconds, "
-                 "values <= 0 disables this feature");
-    MELON_VALIDATE_GFLAG(free_memory_to_system_interval, PassValidate);
 
     namespace policy {
         // Defined in http_rpc_protocol.cpp
@@ -258,7 +258,7 @@ namespace melon {
             }
 
             const int return_mem_interval =
-                    FLAGS_free_memory_to_system_interval/*reloadable*/;
+                    turbo::get_flag(FLAGS_free_memory_to_system_interval)/*reloadable*/;
             if (return_mem_interval > 0 &&
                 last_time_us >= last_return_free_memory_time +
                                 return_mem_interval * 1000000L) {
@@ -503,7 +503,7 @@ namespace melon {
         ConcurrencyLimiterExtension()->RegisterOrDie("constant", &g_ext->constant_cl);
         ConcurrencyLimiterExtension()->RegisterOrDie("timeout", &g_ext->timeout_cl);
 
-        if (FLAGS_usercode_in_pthread) {
+        if (turbo::get_flag(FLAGS_usercode_in_pthread)) {
             // Optional. If channel/server are initialized before main(), this
             // flag may be false at here even if it will be set to true after
             // main(). In which case, the usercode pool will not be initialized

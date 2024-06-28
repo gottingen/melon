@@ -80,10 +80,10 @@ namespace melon::lb {
         }
         uint32_t weight = 0;
         if (!mutil::StringToUint(id.tag, &weight) || weight <= 0) {
-            if (FLAGS_default_weight_of_wlb > 0) {
+            if (turbo::get_flag(FLAGS_default_weight_of_wlb) > 0) {
                 LOG(WARNING) << "Invalid weight is set: " << id.tag
                              << ". Now, 'weight' has been set to 'FLAGS_default_weight_of_wlb' by default.";
-                weight = FLAGS_default_weight_of_wlb;
+                weight = turbo::get_flag(FLAGS_default_weight_of_wlb);
             } else {
                 LOG(ERROR) << "Invalid weight is set: " << id.tag;
                 return false;

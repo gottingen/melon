@@ -20,8 +20,6 @@
 
 
 #include <melon/rpc/stream.h>
-
-#include <gflags/gflags.h>
 #include <melon/utility/time.h>
 #include <melon/utility/object_pool.h>
 #include <melon/utility/unique_ptr.h>
@@ -33,12 +31,12 @@
 #include <melon/rpc/policy/streaming_rpc_protocol.h>
 #include <melon/rpc/policy/melon_rpc_protocol.h>
 #include <melon/rpc/stream_impl.h>
-
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
+TURBO_DECLARE_FLAG(bool,usercode_in_pthread);
+TURBO_DECLARE_FLAG(int64_t, socket_max_streams_unconsumed_bytes);
 
 namespace melon {
-
-DECLARE_bool(usercode_in_pthread);
-DECLARE_int64(socket_max_streams_unconsumed_bytes);
 
 const static mutil::IOBuf *TIMEOUT_TASK = (mutil::IOBuf*)-1L;
 
@@ -83,7 +81,7 @@ int Stream::Create(const StreamOptions &options,
         s->_options.min_buf_size = 0;
         LOG(WARNING) << "options.min_buf_size is larger than options.max_buf_size, it will be set to 0.";
     }
-    if (FLAGS_socket_max_streams_unconsumed_bytes > 0 && s->_options.min_buf_size > 0) {
+    if (turbo::get_flag(FLAGS_socket_max_streams_unconsumed_bytes) > 0 && s->_options.min_buf_size > 0) {
         s->_cur_buf_size = s->_options.min_buf_size;
     }
 
@@ -99,7 +97,7 @@ int Stream::Create(const StreamOptions &options,
     }
     fiber::ExecutionQueueOptions q_opt;
     q_opt.fiber_attr
-        = FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
+        = turbo::get_flag(FLAGS_usercode_in_pthread) ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
     if (fiber::execution_queue_start(&s->_consumer_queue, &q_opt, Consume, s) != 0) {
         LOG(FATAL) << "Fail to create ExecutionQueue";
         delete s;
@@ -304,7 +302,7 @@ int Stream::AppendIfNotFull(const mutil::IOBuf &data,
         _produced -= data_length;
         return -1;
     }
-    if (FLAGS_socket_max_streams_unconsumed_bytes > 0) {
+    if (turbo::get_flag(FLAGS_socket_max_streams_unconsumed_bytes) > 0) {
         _host_socket->_total_streams_unconsumed_size += data_length;
     }
     return 0;
@@ -321,9 +319,9 @@ void Stream::SetRemoteConsumed(size_t new_remote_consumed) {
     }
     const bool was_full = _produced >= _remote_consumed + _cur_buf_size;
 
-    if (FLAGS_socket_max_streams_unconsumed_bytes > 0) {
+    if (turbo::get_flag(FLAGS_socket_max_streams_unconsumed_bytes) > 0) {
         _host_socket->_total_streams_unconsumed_size -= new_remote_consumed - _remote_consumed;
-        if (_host_socket->_total_streams_unconsumed_size > FLAGS_socket_max_streams_unconsumed_bytes) {
+        if (_host_socket->_total_streams_unconsumed_size > turbo::get_flag(FLAGS_socket_max_streams_unconsumed_bytes)) {
             if (_options.min_buf_size > 0) {
                 _cur_buf_size = _options.min_buf_size;
             } else {
@@ -367,7 +365,7 @@ int Stream::TriggerOnWritable(fiber_session_t id, void *data, int error_code) {
     wm->error_code = error_code;
     if (wm->new_thread) {
         const fiber_attr_t* attr =
-            FLAGS_usercode_in_pthread ? &FIBER_ATTR_PTHREAD
+                turbo::get_flag(FLAGS_usercode_in_pthread) ? &FIBER_ATTR_PTHREAD
             : &FIBER_ATTR_NORMAL;
         fiber_t tid;
         if (fiber_start_background(&tid, attr, RunOnWritable, wm) != 0) {
@@ -710,7 +708,7 @@ void StreamWait(StreamId stream_id, const timespec *due_time,
         wm->on_writable = on_writable;
         wm->error_code = EINVAL;
         const fiber_attr_t* attr =
-            FLAGS_usercode_in_pthread ? &FIBER_ATTR_PTHREAD
+                turbo::get_flag(FLAGS_usercode_in_pthread) ? &FIBER_ATTR_PTHREAD
             : &FIBER_ATTR_NORMAL;
         fiber_t tid;
         if (fiber_start_background(&tid, attr, Stream::RunOnWritable, wm) != 0) {

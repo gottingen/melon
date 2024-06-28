@@ -21,7 +21,7 @@
 
 #include <ostream>
 #include <iomanip>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/string_printf.h>
 #include <melon/utility/string_splitter.h>
 #include <melon/utility/macros.h>
@@ -33,18 +33,15 @@
 #include <melon/proto/rpc/errno.pb.h>
 #include <melon/rpc/span.h>
 #include <melon/builtin/rpcz_service.h>
+#include <turbo/flags/reflection.h>
 
+TURBO_FLAG(bool, enable_rpcz, false, "Turn on rpcz").on_validate(turbo::AllPassValidator<bool>::validate);
+
+TURBO_FLAG(bool, rpcz_hex_log_id, false, "Show log_id in hexadecimal").on_validate(turbo::AllPassValidator<bool>::validate);
 
 namespace melon {
 
     bool has_span_db();
-
-    DEFINE_bool(enable_rpcz, false, "Turn on rpcz");
-    MELON_VALIDATE_GFLAG(enable_rpcz, PassValidate);
-
-    DEFINE_bool(rpcz_hex_log_id, false, "Show log_id in hexadecimal");
-    MELON_VALIDATE_GFLAG(rpcz_hex_log_id, PassValidate);
-
     struct Hex {
         explicit Hex(uint64_t val) : _val(val) {}
 
@@ -68,21 +65,15 @@ namespace melon {
         const bool use_html = UseHTML(cntl->http_request());
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
-        if (!google::SetCommandLineOption("enable_rpcz", "true").empty()) {
-            if (use_html) {
-                // Redirect to /rpcz
-                cntl->response_attachment().append(
-                        "<!DOCTYPE html><html><head>"
-                        "<meta http-equiv=\"refresh\" content=\"0; url=/rpcz\" />"
-                        "</head><body>");
-            }
-            cntl->response_attachment().append("rpcz is enabled");
-        } else {
-            if (use_html) {
-                cntl->response_attachment().append("<!DOCTYPE html><html><body>");
-            }
-            cntl->response_attachment().append("Fail to set --enable_rpcz");
+        turbo::set_flag(&FLAGS_enable_rpcz, true);
+        if (use_html) {
+            // Redirect to /rpcz
+            cntl->response_attachment().append(
+                    "<!DOCTYPE html><html><head>"
+                    "<meta http-equiv=\"refresh\" content=\"0; url=/rpcz\" />"
+                    "</head><body>");
         }
+        cntl->response_attachment().append("rpcz is enabled");
         if (use_html) {
             cntl->response_attachment().append("</body></html>");
         }
@@ -97,21 +88,15 @@ namespace melon {
         const bool use_html = UseHTML(cntl->http_request());
         cntl->http_response().set_content_type(
                 use_html ? "text/html" : "text/plain");
-        if (!google::SetCommandLineOption("enable_rpcz", "false").empty()) {
-            if (use_html) {
-                // Redirect to /rpcz
-                cntl->response_attachment().append(
-                        "<!DOCTYPE html><html><head>"
-                        "<meta http-equiv=\"refresh\" content=\"0; url=/rpcz\" />"
-                        "</head><body>");
-            }
-            cntl->response_attachment().append("rpcz is disabled");
-        } else {
-            if (use_html) {
-                cntl->response_attachment().append("<!DOCTYPE html><html><body>");
-            }
-            cntl->response_attachment().append("Fail to set --enable_rpcz");
+        turbo::set_flag(&FLAGS_enable_rpcz, false);\
+        if (use_html) {
+            // Redirect to /rpcz
+            cntl->response_attachment().append(
+                    "<!DOCTYPE html><html><head>"
+                    "<meta http-equiv=\"refresh\" content=\"0; url=/rpcz\" />"
+                    "</head><body>");
         }
+        cntl->response_attachment().append("rpcz is disabled");
         if (use_html) {
             cntl->response_attachment().append("</body></html>");
         }
@@ -124,7 +109,7 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        FLAGS_rpcz_hex_log_id = true;
+        turbo::set_flag(&FLAGS_rpcz_hex_log_id, true);
         cntl->response_attachment().append("log_id is hexadecimal");
     }
 
@@ -135,7 +120,7 @@ namespace melon {
         ClosureGuard done_guard(done);
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
-        FLAGS_rpcz_hex_log_id = false;
+        turbo::set_flag(&FLAGS_rpcz_hex_log_id,  false);
         cntl->response_attachment().append("log_id is decimal");
     }
 
@@ -147,7 +132,7 @@ namespace melon {
         Controller *cntl = static_cast<Controller *>(cntl_base);
         cntl->http_response().set_content_type("text/plain");
 
-        if (!FLAGS_enable_rpcz && !has_span_db()) {
+        if (!turbo::get_flag(FLAGS_enable_rpcz) && !has_span_db()) {
             cntl->response_attachment().append(
                     "rpcz is not enabled yet. You can turn on/off rpcz by accessing "
                     "/rpcz/enable and /rpcz/disable respectively");
@@ -254,7 +239,7 @@ namespace melon {
         }
         os << " Requesting " << WebEscape(span.full_method_name()) << '@' << remote_side
            << ' ' << protocol_name << ' ' << LOG_ID_STR << '=';
-        if (FLAGS_rpcz_hex_log_id) {
+        if (turbo::get_flag(FLAGS_rpcz_hex_log_id)) {
             os << Hex(span.log_id());
         } else {
             os << span.log_id();
@@ -325,7 +310,7 @@ namespace melon {
         const char *protocol_name = (protocol ? protocol->name : "Unknown");
         os << " Received request(" << span.request_size() << ") from "
            << remote_side << ' ' << protocol_name << ' ' << LOG_ID_STR << '=';
-        if (FLAGS_rpcz_hex_log_id) {
+        if (turbo::get_flag(FLAGS_rpcz_hex_log_id)) {
             os << Hex(span.log_id());
         } else {
             os << span.log_id();
@@ -490,7 +475,7 @@ namespace melon {
             cntl->server()->PrintTabsBody(os, "rpcz");
         }
 
-        if (!FLAGS_enable_rpcz && !has_span_db()) {
+        if (!turbo::get_flag(FLAGS_enable_rpcz) && !has_span_db()) {
             if (use_html) {
                 os << "<input type='button' "
                       "onclick='location.href=\"/rpcz/enable\";' value='enable' />"
@@ -627,7 +612,7 @@ namespace melon {
                 return;
             }
             if (use_html) {
-                const char *action = (FLAGS_enable_rpcz ? "disable" : "enable");
+                const char *action = (turbo::get_flag(FLAGS_enable_rpcz) ? "disable" : "enable");
                 os << "<div><input type='button' onclick='location.href=\"/rpcz/"
                    << action << "\";' value='" << action << "' /></div>" "<pre>\n";
             }
@@ -658,7 +643,7 @@ namespace melon {
                     os << "</a>";
                 }
                 os << ' ' << LOG_ID_STR << '=';
-                if (FLAGS_rpcz_hex_log_id) {
+                if (turbo::get_flag(FLAGS_rpcz_hex_log_id)) {
                     os << Hex(span.log_id());
                 } else {
                     os << span.log_id();

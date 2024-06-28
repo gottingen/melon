@@ -19,7 +19,7 @@
 
 
 #include <melon/raft/file_service.h>
-
+#include <turbo/flags/flag.h>
 #include <inttypes.h>
 #include <stack>
 #include <melon/utility/file_util.h>
@@ -29,9 +29,9 @@
 #include <melon/rpc/controller.h>
 #include <melon/raft/util.h>
 
-namespace melon::raft {
+TURBO_FLAG(bool,raft_file_check_hole, false, "file service check hole switch, default disable");
 
-    DEFINE_bool(raft_file_check_hole, false, "file service check hole switch, default disable");
+namespace melon::raft {
 
     void FileServiceImpl::get_file(::google::protobuf::RpcController *controller,
                                    const ::melon::raft::GetFileRequest *request,
@@ -84,7 +84,7 @@ namespace melon::raft {
         }
 
         FileSegData seg_data;
-        if (!FLAGS_raft_file_check_hole) {
+        if (!turbo::get_flag(FLAGS_raft_file_check_hole)) {
             seg_data.append(buf, request->offset());
         } else {
             off_t buf_off = request->offset();

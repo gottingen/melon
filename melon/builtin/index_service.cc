@@ -19,7 +19,7 @@
 
 
 
-#include <gflags/gflags.h>                  // DECLARE_xxx
+#include <turbo/flags/flag.h>
 #include <google/protobuf/descriptor.h>
 #include <melon/utility/time.h>                      // gettimeofday_us
 #include <melon/rpc/server.h>                    // Server
@@ -111,7 +111,7 @@ namespace melon {
                   " (Use $ instead of ? to match single character)" << NL
 
                << Path("/rpcz", html_addr) << " : Recent RPC calls"
-               << (!FLAGS_enable_rpcz ? "(disabled)" : "") << NL
+               << (!turbo::get_flag(FLAGS_enable_rpcz) ? "(disabled)" : "") << NL
                << SP << Path("/rpcz/stats", html_addr) << " : Statistics of rpcz" << NL;
 
             std::ostringstream tmp_oss;
@@ -163,9 +163,9 @@ namespace melon {
            << Path("/protobufs", html_addr) << " : List all protobuf services and messages" << NL
            << Path("/list", html_addr) << " : json signature of methods" << NL
            << Path("/threads", html_addr) << " : Check pstack"
-           << (!FLAGS_enable_threads_service ? " (disabled)" : "") << NL
+           << (!turbo::get_flag(FLAGS_enable_threads_service) ? " (disabled)" : "") << NL
            << Path("/dir", html_addr) << " : Browse directories and files"
-           << (!FLAGS_enable_dir_service ? " (disabled)" : "") << NL
+           << (!turbo::get_flag(FLAGS_enable_dir_service) ? " (disabled)" : "") << NL
            << Path("/memory", html_addr) << " : Get malloc allocator information" << NL;
         if (use_html) {
             os << "</body></html>";

@@ -22,13 +22,12 @@
 
 #include <melon/utility/atomicops.h>
 #include <melon/fiber/fiber.h>
-#include <gflags/gflags_declare.h>
-
+#include <turbo/flags/declare.h>
+#include <turbo/flags/flag.h>
+TURBO_DECLARE_FLAG(bool, usercode_in_pthread);
+TURBO_DECLARE_FLAG(int, usercode_backup_threads);
 
 namespace melon {
-
-DECLARE_bool(usercode_in_pthread);
-DECLARE_int32(usercode_backup_threads);
 
 // "user code backup pool" is a set of pthreads to run user code when #pthread
 // workers of fibers reaches a threshold, avoiding potential deadlock when
@@ -57,7 +56,7 @@ inline bool TooManyUserCode() {
 inline bool BeginRunningUserCode() {
     extern mutil::static_atomic<int> g_usercode_inplace;
     return (g_usercode_inplace.fetch_add(1, mutil::memory_order_relaxed)
-            + FLAGS_usercode_backup_threads) < fiber_getconcurrency();
+            + turbo::get_flag(FLAGS_usercode_backup_threads) < fiber_getconcurrency());
 }
 
 inline void EndRunningUserCodeInPlace() {

@@ -20,7 +20,7 @@
 
 #include <algorithm>                                           // std::set_union
 #include <array>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/containers/flat_map.h>
 #include <melon/utility/errno.h>
 #include <melon/utility/strings/string_number_conversions.h>
@@ -28,16 +28,13 @@
 #include <melon/lb/consistent_hashing_load_balancer.h>
 #include <melon/rpc/policy/hasher.h>
 
+TURBO_FLAG(int, chash_num_replicas, 100, "default number of replicas per server in chash");
+
 namespace melon::policy {
     // Defined in hasher.cpp.
     const char *GetHashName(melon::policy::HashFunc hasher);
 }  // namespace melon::policy
 namespace melon::lb {
-
-    // TODO: or 160?
-    DEFINE_int32(chash_num_replicas, 100,
-                 "default number of replicas per server in chash");
-
 
     class ReplicaPolicy {
     public:
@@ -149,7 +146,7 @@ namespace melon::lb {
 
     ConsistentHashingLoadBalancer::ConsistentHashingLoadBalancer(
             ConsistentHashingLoadBalancerType type)
-            : _num_replicas(FLAGS_chash_num_replicas), _type(type) {
+            : _num_replicas(turbo::get_flag(FLAGS_chash_num_replicas)), _type(type) {
         CHECK(GetReplicaPolicy(_type))
         << "Fail to find replica policy for consistency lb type: '" << _type << '\'';
     }

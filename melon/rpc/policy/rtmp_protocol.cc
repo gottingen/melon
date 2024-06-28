@@ -31,7 +31,8 @@
 #include <melon/rpc/span.h>
 #include <melon/rpc/policy/dh.h>
 #include <melon/rpc/policy/rtmp_protocol.h>
-
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 // For printing logs with useful prefixes.
 #define RTMP_LOG(level, socket, mh)                                     \
     LOG(level) << (socket)->remote_side() << '[' << (mh).stream_id << "] "
@@ -46,22 +47,22 @@ const EVP_MD* __attribute__((weak)) EVP_sha256(void);
 }
 
 
-namespace melon {
+TURBO_DECLARE_FLAG(int64_t, socket_max_unwritten_bytes);
+TURBO_DECLARE_FLAG(bool, use_normal_stack_for_keepwrite);
 
-DECLARE_int64(socket_max_unwritten_bytes);
-DECLARE_bool(use_normal_stack_for_keepwrite);
-
-DEFINE_int32(rtmp_server_chunk_size, 60000,
+TURBO_FLAG(int32_t, rtmp_server_chunk_size, 60000,
              "Value of SetChunkSize sent to client before responding connect.");
-DEFINE_int32(rtmp_server_window_ack_size, 2500000,
+TURBO_FLAG(int32_t, rtmp_server_window_ack_size, 2500000,
              "Value of WindowAckSize sent to client before responding connect.");
 
-DEFINE_bool(rtmp_client_use_simple_handshake, true,
+TURBO_FLAG(bool, rtmp_client_use_simple_handshake, true,
             "Use simple handshaking(the one in RTMP spec) to create client "
             "connections, false to use adobe proprietary handshake which "
             "consumes more CPU");
-DEFINE_string(user_defined_data_message, "", 
-            "extra name that user can specify in Data Message of RTMP, handled by OnMetaData");
+TURBO_FLAG(std::string, user_defined_data_message, "",
+              "extra name that user can specify in Data Message of RTMP, handled by OnMetaData");
+
+namespace melon {
 
 namespace policy {
 
@@ -631,7 +632,7 @@ static int WriteAll(int fd, mutil::IOBuf* buf) {
 int SendC0C1(int fd, bool* is_simple_handshake) {
     bool done_adobe_hs = false;
     mutil::IOBuf tmp;
-    if (!FLAGS_rtmp_client_use_simple_handshake) {
+    if (!turbo::get_flag(FLAGS_rtmp_client_use_simple_handshake)) {
         adobe_hs::C1 c1;
         if (c1.Generate(adobe_hs::SCHEMA1)) {
             char buf[RTMP_HANDSHAKE_SIZE0 + RTMP_HANDSHAKE_SIZE1];
@@ -2211,7 +2212,7 @@ bool RtmpChunkStream::OnDataMessageAMF0(
              << "] DataMessage{timestamp=" << mh.timestamp
              << " name=" << name << '}';
 
-    if (name == RTMP_AMF0_ON_META_DATA || name == FLAGS_user_defined_data_message) {
+    if (name == RTMP_AMF0_ON_META_DATA || name == turbo::get_flag(FLAGS_user_defined_data_message)) {
         if (istream.check_emptiness()) {
             // Ignore empty metadata (seen in pulling streams from quanmin)
             return false;
@@ -2353,14 +2354,14 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
     // TODO(gejun): seems not effective to ffplay.
     char wasbuf[4];
     p = wasbuf;
-    WriteBigEndian4Bytes(&p, FLAGS_rtmp_server_window_ack_size);
+    WriteBigEndian4Bytes(&p, turbo::get_flag(FLAGS_rtmp_server_window_ack_size));
     msgs.push().reset(MakeUnsentControlMessage(
                           RTMP_MESSAGE_WINDOW_ACK_SIZE, wasbuf, sizeof(wasbuf)));
     
     // SetPeerBandwidth
     char spbbuf[5];
     p = spbbuf;
-    WriteBigEndian4Bytes(&p, FLAGS_rtmp_server_window_ack_size);
+    WriteBigEndian4Bytes(&p, turbo::get_flag(FLAGS_rtmp_server_window_ack_size));
     *p++ = RTMP_LIMIT_DYNAMIC;
     msgs.push().reset(MakeUnsentControlMessage(
                           RTMP_MESSAGE_SET_PEER_BANDWIDTH, spbbuf, sizeof(spbbuf)));
@@ -2374,10 +2375,10 @@ bool RtmpChunkStream::OnConnect(const RtmpMessageHeader& mh,
     // and playing http://code.bj.bcebos.com/bbb_1080p.flv at 2k bitrate.
     char csbuf[4];
     p = csbuf;
-    WriteBigEndian4Bytes(&p, FLAGS_rtmp_server_chunk_size);
+    WriteBigEndian4Bytes(&p, turbo::get_flag(FLAGS_rtmp_server_chunk_size));
     RtmpUnsentMessage* scs_msg = MakeUnsentControlMessage(
         RTMP_MESSAGE_SET_CHUNK_SIZE, csbuf, sizeof(csbuf));
-    scs_msg->new_chunk_size = FLAGS_rtmp_server_chunk_size;
+    scs_msg->new_chunk_size = turbo::get_flag(FLAGS_rtmp_server_chunk_size);
     msgs.push().reset(scs_msg);
     
     // _result
@@ -2733,7 +2734,7 @@ void OnPlayContinuation::Run() {
         PLOG(WARNING) << "Fail to send StreamNotFound to "
                       << player_stream->remote_side();
     }
-    if (FLAGS_log_error_text) {
+    if (turbo::get_flag(FLAGS_log_error_text)) {
         LOG(WARNING) << "Error to " << player_stream->remote_side() << '['
                      << player_stream->stream_id() << "]: " << status;
     }
@@ -3029,7 +3030,7 @@ void OnPublishContinuation::Run() {
             PLOG(WARNING) << "Fail to send StreamNotFound to "
                           << publish_stream->remote_side();
         }
-        if (FLAGS_log_error_text) {
+        if (turbo::get_flag(FLAGS_log_error_text)) {
             LOG(WARNING) << "Error to " << publish_stream->remote_side()
                          << '[' << publish_stream->stream_id() << "]: "
                          << status;

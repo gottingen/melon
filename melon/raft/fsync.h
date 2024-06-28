@@ -26,7 +26,7 @@
 namespace melon::raft {
 
     inline int raft_fsync(int fd) {
-        if (FLAGS_raft_use_fsync_rather_than_fdatasync) {
+        if (turbo::get_flag(FLAGS_raft_use_fsync_rather_than_fdatasync)) {
             return fsync(fd);
         } else {
 #ifdef __APPLE__
@@ -38,7 +38,7 @@ namespace melon::raft {
     }
 
     inline bool raft_sync_meta() {
-        return FLAGS_raft_sync || FLAGS_raft_sync_meta;
+        return turbo::get_flag(FLAGS_raft_sync) || turbo::get_flag(FLAGS_raft_sync_meta);
     }
 
 }  //  namespace melon::raft

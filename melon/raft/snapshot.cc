@@ -368,7 +368,7 @@ namespace melon::raft {
             }
             // go through throttle
             size_t new_max_count = max_count;
-            if (_snapshot_throttle && FLAGS_raft_enable_throttle_when_install_snapshot) {
+            if (_snapshot_throttle && turbo::get_flag(FLAGS_raft_enable_throttle_when_install_snapshot)) {
                 int ret = 0;
                 int64_t start = mutil::cpuwide_time_us();
                 int64_t used_count = 0;
@@ -444,7 +444,7 @@ namespace melon::raft {
             _fs = default_file_system();
         }
         if (!_fs->create_directory(
-                _path, &e, FLAGS_raft_create_parent_directories)) {
+                _path, &e, turbo::get_flag(FLAGS_raft_create_parent_directories))) {
             LOG(ERROR) << "Fail to create " << _path << " : " << e;
             return -1;
         }
@@ -945,7 +945,7 @@ namespace melon::raft {
         if (sub_path != sub_path.DirName() && sub_path.DirName().value() != ".") {
             mutil::File::Error e;
             bool rc = false;
-            if (FLAGS_raft_create_parent_directories) {
+            if (turbo::get_flag(FLAGS_raft_create_parent_directories)) {
                 mutil::FilePath sub_dir =
                         mutil::FilePath(_writer->get_path()).Append(sub_path.DirName());
                 rc = _fs->create_directory(sub_dir.value(), &e, true);

@@ -19,13 +19,16 @@
 
 #pragma once
 
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/declare.h>
+#include <turbo/flags/flag.h>
+
+TURBO_DECLARE_FLAG(int32_t ,var_latency_p1);
+TURBO_DECLARE_FLAG(int32_t ,var_latency_p2);
+TURBO_DECLARE_FLAG(int32_t ,var_latency_p3);
 
 namespace melon::var {
 
-    DECLARE_int32(var_latency_p1);
-    DECLARE_int32(var_latency_p2);
-    DECLARE_int32(var_latency_p3);
+
 
     static const std::string ALLOW_UNUSED
     METRIC_TYPE_COUNTER = "counter";
@@ -288,7 +291,7 @@ namespace melon::var {
             }
             // latency_percentiles
             // p1/p2/p3
-            int latency_percentiles[3]{FLAGS_var_latency_p1, FLAGS_var_latency_p2, FLAGS_var_latency_p3};
+            int latency_percentiles[3]{turbo::get_flag(FLAGS_var_latency_p1), turbo::get_flag(FLAGS_var_latency_p2), turbo::get_flag(FLAGS_var_latency_p3)};
             for (auto lp: latency_percentiles) {
                 std::ostringstream oss_lp_key;
                 make_dump_key(oss_lp_key, label_name, "_latency", lp);

@@ -21,21 +21,22 @@
 
 // Access many http servers in parallel, much faster than curl (even called in batch)
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <deque>
 #include <melon/fiber/fiber.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/files/scoped_file.h>
 #include <melon/rpc/channel.h>
+#include <turbo/flags/parse.h>
 
-DEFINE_string(url_file, "", "The file containing urls to fetch. If this flag is"
+TURBO_FLAG(std::string, url_file, "", "The file containing urls to fetch. If this flag is"
               " empty, read urls from stdin");
-DEFINE_int32(timeout_ms, 1000, "RPC timeout in milliseconds");
-DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
-DEFINE_int32(thread_num, 8, "Number of threads to access urls");
-DEFINE_int32(concurrency, 1000, "Max number of http calls in parallel");
-DEFINE_bool(one_line_mode, false, "Output as `URL HTTP-RESPONSE' on true");
-DEFINE_bool(only_show_host, false, "Print host name only");
+TURBO_FLAG(int32_t, timeout_ms, 1000, "RPC timeout in milliseconds");
+TURBO_FLAG(int32_t, max_retry, 3, "Max retries(not including the first RPC)");
+TURBO_FLAG(int32_t, thread_num, 8, "Number of threads to access urls");
+TURBO_FLAG(int32_t, concurrency, 1000, "Max number of http calls in parallel");
+TURBO_FLAG(bool, one_line_mode, false, "Output as `URL HTTP-RESPONSE' on true");
+TURBO_FLAG(bool, only_show_host, false, "Print host name only");
 
 struct AccessThreadArgs {
     const std::deque<std::string>* url_list;
@@ -72,12 +73,12 @@ void* access_thread(void* void_args) {
     AccessThreadArgs* args = (AccessThreadArgs*)void_args;
     melon::ChannelOptions options;
     options.protocol = melon::PROTOCOL_HTTP;
-    options.connect_timeout_ms = FLAGS_timeout_ms / 2;
-    options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
-    options.max_retry = FLAGS_max_retry;
-    const int concurrency_for_this_thread = FLAGS_concurrency / FLAGS_thread_num;
+    options.connect_timeout_ms = turbo::get_flag(FLAGS_timeout_ms) / 2;
+    options.timeout_ms = turbo::get_flag(FLAGS_timeout_ms)/*milliseconds*/;
+    options.max_retry = turbo::get_flag(FLAGS_max_retry);
+    const int concurrency_for_this_thread = turbo::get_flag(FLAGS_concurrency) / turbo::get_flag(FLAGS_thread_num);
 
-    for (size_t i = args->offset; i < args->url_list->size(); i += FLAGS_thread_num) {
+    for (size_t i = args->offset; i < args->url_list->size(); i += turbo::get_flag(FLAGS_thread_num)) {
         std::string const& url = (*args->url_list)[i];
         melon::Channel channel;
         if (channel.Init(url.c_str(), &options) != 0) {
@@ -102,7 +103,7 @@ void* access_thread(void* void_args) {
 
 int main(int argc, char** argv) {
     // Parse gflags. We recommend you to use gflags as well.
-    google::ParseCommandLineFlags(&argc, &argv, true);
+    turbo::parse_command_line(argc, argv);
     
     // if (FLAGS_path.empty() || FLAGS_path[0] != '/') {
     //     FLAGS_path = "/" + FLAGS_path;
@@ -110,10 +111,10 @@ int main(int argc, char** argv) {
 
     mutil::ScopedFILE fp_guard;
     FILE* fp = NULL;
-    if (!FLAGS_url_file.empty()) {
-        fp_guard.reset(fopen(FLAGS_url_file.c_str(), "r"));
+    if (!turbo::get_flag(FLAGS_url_file).empty()) {
+        fp_guard.reset(fopen(turbo::get_flag(FLAGS_url_file).c_str(), "r"));
         if (!fp_guard) {
-            PLOG(ERROR) << "Fail to open `" << FLAGS_url_file << '\'';
+            PLOG(ERROR) << "Fail to open `" << turbo::get_flag(FLAGS_url_file) << '\'';
             return -1;
         }
         fp = fp_guard.get();
@@ -138,21 +139,21 @@ int main(int argc, char** argv) {
     if (url_list.empty()) {
         return 0;
     }
-    AccessThreadArgs* args = new AccessThreadArgs[FLAGS_thread_num];
-    for (int i = 0; i < FLAGS_thread_num; ++i) {
+    AccessThreadArgs* args = new AccessThreadArgs[turbo::get_flag(FLAGS_thread_num)];
+    for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
         args[i].url_list = &url_list;
         args[i].offset = i;
         args[i].current_concurrency.store(0, mutil::memory_order_relaxed);
     }
     std::vector<fiber_t> tids;
-    tids.resize(FLAGS_thread_num);
-    for (int i = 0; i < FLAGS_thread_num; ++i) {
+    tids.resize(turbo::get_flag(FLAGS_thread_num));
+    for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
         CHECK_EQ(0, fiber_start_background(&tids[i], NULL, access_thread, &args[i]));
     }
     std::deque<std::pair<std::string, mutil::IOBuf> > output_queue;
     size_t nprinted = 0;
     while (nprinted != url_list.size()) {
-        for (int i = 0; i < FLAGS_thread_num; ++i) {
+        for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
             {
                 MELON_SCOPED_LOCK(args[i].output_queue_mutex);
                 output_queue.swap(args[i].output_queue);
@@ -169,8 +170,8 @@ int main(int argc, char** argv) {
                 } else {
                     hostname = url;
                 }
-                if (FLAGS_one_line_mode) {
-                    if (FLAGS_only_show_host) {
+                if (turbo::get_flag(FLAGS_one_line_mode)) {
+                    if (turbo::get_flag(FLAGS_only_show_host)) {
                         std::cout << hostname;
                     } else {
                         std::cout << "http://" << url;
@@ -184,7 +185,7 @@ int main(int argc, char** argv) {
                     // The prefix is unlikely be part of a ordinary http body,
                     // thus the line can be easily removed by shell utilities.
                     std::cout << "#### ";
-                    if (FLAGS_only_show_host) {
+                    if (turbo::get_flag(FLAGS_only_show_host)) {
                         std::cout << hostname;
                     } else {
                         std::cout << "http://" << url;
@@ -202,10 +203,10 @@ int main(int argc, char** argv) {
         usleep(10000);
     }
 
-    for (int i = 0; i < FLAGS_thread_num; ++i) {
+    for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
         fiber_join(tids[i], NULL);
     }
-    for (int i = 0; i < FLAGS_thread_num; ++i) {
+    for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
         while (args[i].current_concurrency.load(mutil::memory_order_relaxed) != 0) {
             usleep(10000);
         }

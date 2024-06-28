@@ -25,11 +25,11 @@
 #include <melon/rpc/socket.h>
 #include <melon/proto/rpc/errno.pb.h>
 
-
+// defined in socket.cpp
+TURBO_DECLARE_FLAG(int64_t, socket_max_unwritten_bytes);
 namespace melon {
 
-// defined in socket.cpp
-DECLARE_int64(socket_max_unwritten_bytes);
+
 
 const int ProgressiveAttachment::RPC_RUNNING = 0;
 const int ProgressiveAttachment::RPC_SUCCEED = 1;
@@ -131,7 +131,7 @@ int ProgressiveAttachment::Write(const mutil::IOBuf& data) {
         std::unique_lock<mutil::Mutex> mu(_mutex);
         rpc_state = _rpc_state.load(mutil::memory_order_acquire);
         if (rpc_state == RPC_RUNNING) {
-            if (_saved_buf.size() >= (size_t)FLAGS_socket_max_unwritten_bytes ||
+            if (_saved_buf.size() >= (size_t)turbo::get_flag(FLAGS_socket_max_unwritten_bytes) ||
                 _pause_from_mark_rpc_as_done) {
                 errno = EOVERCROWDED;
                 return -1;
@@ -153,7 +153,7 @@ int ProgressiveAttachment::Write(const mutil::IOBuf& data) {
 }
 
 int ProgressiveAttachment::Write(const void* data, size_t n) {
-    if (data == NULL || n == 0) {
+    if (data == nullptr || n == 0) {
         LOG_EVERY_N_SEC(WARNING, 1)
             << "Write an empty chunk. To suppress this warning, check emptiness"
             " of the chunk before calling ProgressiveAttachment.Write()";
@@ -164,7 +164,7 @@ int ProgressiveAttachment::Write(const void* data, size_t n) {
         std::unique_lock<mutil::Mutex> mu(_mutex);
         rpc_state = _rpc_state.load(mutil::memory_order_relaxed);
         if (rpc_state == RPC_RUNNING) {
-            if (_saved_buf.size() >= (size_t)FLAGS_socket_max_unwritten_bytes ||
+            if (_saved_buf.size() >= (size_t)turbo::get_flag(FLAGS_socket_max_unwritten_bytes) ||
                 _pause_from_mark_rpc_as_done) {
                 errno = EOVERCROWDED;
                 return -1;
@@ -242,15 +242,15 @@ static int RunOnFailed(fiber_session_t id, void* data, int) {
 }
 
 void ProgressiveAttachment::NotifyOnStopped(google::protobuf::Closure* done) {
-    if (done == NULL) {
-        LOG(ERROR) << "Param[done] is NULL";
+    if (done == nullptr) {
+        LOG(ERROR) << "Param[done] is nullptr";
         return;
     }
     if (_notify_id != INVALID_FIBER_ID) {
         LOG(ERROR) << "NotifyOnStopped() can only be called once";
         return done->Run();
     }
-    if (_httpsock == NULL) {
+    if (_httpsock == nullptr) {
         return done->Run();
     }
     const int rc = fiber_session_create(&_notify_id, done, RunOnFailed);

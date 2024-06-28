@@ -18,11 +18,10 @@
 //
 
 
-#ifndef MELON_FIBER_ALLOCATE_STACK_H_
-#define MELON_FIBER_ALLOCATE_STACK_H_
+#pragma once
 
 #include <assert.h>
-#include <gflags/gflags.h>          // DECLARE_int32
+#include <turbo/flags/flag.h>
 #include <melon/fiber/types.h>
 #include <melon/fiber/context.h>        // fiber_fcontext_t
 #include <melon/utility/object_pool.h>
@@ -81,5 +80,3 @@ namespace fiber {
 }  // namespace fiber
 
 #include <melon/fiber/stack_inl.h>
-
-#endif  // MELON_FIBER_ALLOCATE_STACK_H_

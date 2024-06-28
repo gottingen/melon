@@ -125,7 +125,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/containers/case_ignored_flat_map.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/iobuf.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/binary_printer.cpp
-        ${PROJECT_SOURCE_DIR}/melon/utility/recordio.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/popen.cpp
 )
 

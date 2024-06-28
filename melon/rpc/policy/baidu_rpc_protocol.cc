@@ -43,17 +43,18 @@
 #include <melon/rpc/details/server_private_accessor.h>
 #include <melon/fiber/key.h>
 #include <cinttypes>
+#include <turbo/flags/flag.h>
 
+TURBO_FLAG(bool, brpc_protocol_use_fullname, true,
+            "If this flag is true, melon_std puts service.full_name in requests"
+            ", otherwise puts service.name (required by jprotobuf).");
+
+TURBO_FLAG(bool, brpc_std_protocol_deliver_timeout_ms, false,
+            "If this flag is true, melon_std puts timeout_ms in requests.");
 
 namespace melon {
 namespace policy {
 
-DEFINE_bool(brpc_protocol_use_fullname, true,
-            "If this flag is true, melon_std puts service.full_name in requests"
-            ", otherwise puts service.name (required by jprotobuf).");
-
-DEFINE_bool(brpc_std_protocol_deliver_timeout_ms, false,
-            "If this flag is true, melon_std puts timeout_ms in requests.");
 
 // Notes:
 // 1. 12-byte header [PRPC][body_size][meta_size]
@@ -113,7 +114,7 @@ ParseResult ParseBRPCMessage(mutil::IOBuf* source, Socket* socket,
     uint32_t body_size;
     uint32_t meta_size;
     mutil::RawUnpacker(header_buf + 4).unpack32(body_size).unpack32(meta_size);
-    if (body_size > FLAGS_max_body_size) {
+    if (body_size > turbo::get_flag(FLAGS_max_body_size)) {
         // We need this log to report the body_size to give users some clues
         // which is not printed in InputMessenger.
         LOG(ERROR) << "body_size=" << body_size << " from "
@@ -434,7 +435,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
             break;
         }
 
-        if (FLAGS_usercode_in_pthread && TooManyUserCode()) {
+        if (turbo::get_flag(FLAGS_usercode_in_pthread) && TooManyUserCode()) {
             cntl->SetFailed(ELIMIT, "Too many user code to run when"
                             " -usercode_in_pthread is on");
             break;
@@ -535,7 +536,7 @@ void ProcessBRPCRequest(InputMessageBase* msg_base) {
             span->set_start_callback_us(mutil::cpuwide_time_us());
             span->AsParent();
         }
-        if (!FLAGS_usercode_in_pthread) {
+        if (!turbo::get_flag(FLAGS_usercode_in_pthread)) {
             return svc->CallMethod(method, cntl.release(), 
                                    req.release(), res.release(), done);
         }
@@ -685,7 +686,7 @@ void PackBRPCRequest(mutil::IOBuf* req_buf,
     ControllerPrivateAccessor accessor(cntl);
     RpcRequestMeta* request_meta = meta.mutable_request();
     if (method) {
-        request_meta->set_service_name(FLAGS_brpc_protocol_use_fullname ?
+        request_meta->set_service_name(turbo::get_flag(FLAGS_brpc_protocol_use_fullname) ?
                                        method->service()->full_name() :
                                        method->service()->name());
         request_meta->set_method_name(method->name());
@@ -730,7 +731,7 @@ void PackBRPCRequest(mutil::IOBuf* req_buf,
         meta.set_attachment_size(attached_size);
     }
 
-    if (FLAGS_brpc_std_protocol_deliver_timeout_ms) {
+    if (turbo::get_flag(FLAGS_brpc_std_protocol_deliver_timeout_ms)) {
         if (accessor.real_timeout_ms() > 0) {
             request_meta->set_timeout_ms(accessor.real_timeout_ms());
         }

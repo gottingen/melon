@@ -18,7 +18,7 @@
 //
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/utility/time.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
@@ -26,6 +26,9 @@
 #include <melon/var/detail/sampler.h>
 #include <melon/var/passive_status.h>
 #include <melon/var/window.h>
+
+TURBO_FLAG(int32_t, var_sampler_thread_start_delay_us, 10000, "var sampler thread start delay us");
+TURBO_FLAG(bool, var_enable_sampling, true, "is enable var sampling");
 
 namespace melon::var {
     namespace detail {
@@ -46,21 +49,21 @@ namespace melon::var {
             }
         };
 
-// True iff pthread_atfork was called. The callback to atfork works for child
-// of child as well, no need to register in the child again.
+        // True iff pthread_atfork was called. The callback to atfork works for child
+        // of child as well, no need to register in the child again.
         static bool registered_atfork = false;
 
-// Call take_sample() of all scheduled samplers.
-// This can be done with regular timer thread, but it's way too slow(global
-// contention + log(N) heap manipulations). We need it to be super fast so that
-// creation overhead of Window<> is negliable.
-// The trick is to use Reducer<Sampler*, CombineSampler>. Each Sampler is
-// doubly linked, thus we can reduce multiple Samplers into one cicurlarly
-// doubly linked list, and multiple lists into larger lists. We create a
-// dedicated thread to periodically get_value() which is just the combined
-// list of Samplers. Waking through the list and call take_sample().
-// If a Sampler needs to be deleted, we just mark it as unused and the
-// deletion is taken place in the thread as well.
+        // Call take_sample() of all scheduled samplers.
+        // This can be done with regular timer thread, but it's way too slow(global
+        // contention + log(N) heap manipulations). We need it to be super fast so that
+        // creation overhead of Window<> is negliable.
+        // The trick is to use Reducer<Sampler*, CombineSampler>. Each Sampler is
+        // doubly linked, thus we can reduce multiple Samplers into one cicurlarly
+        // doubly linked list, and multiple lists into larger lists. We create a
+        // dedicated thread to periodically get_value() which is just the combined
+        // list of Samplers. Waking through the list and call take_sample().
+        // If a Sampler needs to be deleted, we just mark it as unused and the
+        // deletion is taken place in the thread as well.
         class SamplerCollector : public melon::var::Reducer<Sampler *, CombineSampler> {
         public:
             SamplerCollector()
@@ -130,10 +133,8 @@ namespace melon::var {
         static melon::var::PerSecond<melon::var::PassiveStatus<double> > *s_sampling_thread_usage_var = NULL;
 #endif
 
-        DEFINE_int32(var_sampler_thread_start_delay_us, 10000, "var sampler thread start delay us");
-
         void SamplerCollector::run() {
-            ::usleep(FLAGS_var_sampler_thread_start_delay_us);
+            ::usleep(turbo::get_flag(FLAGS_var_sampler_thread_start_delay_us));
 
 #ifndef UNIT_TEST
             // NOTE:
@@ -200,12 +201,10 @@ namespace melon::var {
 
         Sampler::~Sampler() {}
 
-        DEFINE_bool(var_enable_sampling, true, "is enable var sampling");
-
         void Sampler::schedule() {
             // since the SamplerCollector is initialized before the program starts
             // flags will not take effect if used in the SamplerCollector constructor
-            if (FLAGS_var_enable_sampling) {
+            if (turbo::get_flag(FLAGS_var_enable_sampling)) {
                 *mutil::get_leaky_singleton<SamplerCollector>() << this;
             }
         }

@@ -24,11 +24,27 @@
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/builtin/memory_service.h>
 #include <melon/rpc/details/tcmalloc_extension.h>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(int, max_tc_stats_buf_len, 32 * 1024, "max length of TCMalloc stats").on_validate([](std::string_view value, std::string *err) noexcept ->bool {
+    if(value.empty()) {
+        *err = "max_tc_stats_buf_len must be a positive integer";
+        return false;
+    }
+    int len;
+    auto r = turbo::parse_flag(value, &len, err);
+    if(!r) {
+        return false;
+    }
+    if(len <= 0) {
+        if(err)
+            *err = "max_tc_stats_buf_len must be a positive integer";
+        return false;
+    }
+    return true;
+});
 
 namespace melon {
-
-    DEFINE_int32(max_tc_stats_buf_len, 32 * 1024, "max length of TCMalloc stats");
-    MELON_VALIDATE_GFLAG(max_tc_stats_buf_len, PositiveInteger);
 
     static inline void get_tcmalloc_num_prop(MallocExtension *malloc_ext,
                                              const char *prop_name,
@@ -53,7 +69,7 @@ namespace melon {
         get_tcmalloc_num_prop(malloc_ext, "tcmalloc.pageheap_free_bytes", os);
         get_tcmalloc_num_prop(malloc_ext, "tcmalloc.pageheap_unmapped_bytes", os);
 
-        int32_t len = FLAGS_max_tc_stats_buf_len;
+        int32_t len = turbo::get_flag(FLAGS_max_tc_stats_buf_len);
         std::unique_ptr<char[]> buf(new char[len]);
         malloc_ext->GetStats(buf.get(), len);
         os << buf.get();

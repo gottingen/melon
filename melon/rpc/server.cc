@@ -23,7 +23,7 @@
 #include <arpa/inet.h>                              // inet_aton
 #include <fcntl.h>                                  // O_CREAT
 #include <sys/stat.h>                               // mkdir
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <google/protobuf/descriptor.h>             // ServiceDescriptor
 #include <melon/proto/idl_options.pb.h>                         // option(idl_support)
 #include <melon/fiber/unstable.h>                       // fiber_keytable_pool_init
@@ -78,6 +78,7 @@
 #include <melon/fiber/config.h>
 #include <melon/br/registry.h>
 #include <melon/rpc/builtin.h>
+#include <turbo/flags/declare.h>
 
 inline std::ostream &operator<<(std::ostream &os, const timeval &tm) {
     const char old_fill = os.fill();
@@ -85,6 +86,12 @@ inline std::ostream &operator<<(std::ostream &os, const timeval &tm) {
     os.fill(old_fill);
     return os;
 }
+
+// Following services may have security issues and are disabled by default.
+TURBO_FLAG(bool, enable_dir_service, false, "Enable /dir");
+TURBO_FLAG(bool, enable_threads_service, false, "Enable /threads");
+TURBO_DECLARE_FLAG(int32_t, usercode_backup_threads);
+TURBO_DECLARE_FLAG(bool, usercode_in_pthread);
 
 namespace melon {
 
@@ -109,17 +116,10 @@ namespace melon {
 
     mutil::static_atomic<int> g_running_server_count = MUTIL_STATIC_ATOMIC_INIT(0);
 
-    // Following services may have security issues and are disabled by default.
-    DEFINE_bool(enable_dir_service, false, "Enable /dir");
-    DEFINE_bool(enable_threads_service, false, "Enable /threads");
-
-    DECLARE_int32(usercode_backup_threads);
-    DECLARE_bool(usercode_in_pthread);
-
     const int INITIAL_SERVICE_CAP = 64;
     const int INITIAL_CERT_MAP = 64;
-// NOTE: never make s_ncore extern const whose ctor seq against other
-// compilation units is undefined.
+    // NOTE: never make s_ncore extern const whose ctor seq against other
+    // compilation units is undefined.
     const int s_ncore = sysconf(_SC_NPROCESSORS_ONLN);
 
     ServerOptions::ServerOptions()
@@ -467,7 +467,7 @@ namespace melon {
             LOG(ERROR) << "Fail to add MetricsService";
             return -1;
         }
-        if (FLAGS_enable_threads_service &&
+        if (turbo::get_flag(FLAGS_enable_threads_service) &&
             AddBuiltinService(new(std::nothrow) ThreadsService)) {
             LOG(ERROR) << "Fail to add ThreadsService";
             return -1;
@@ -488,7 +488,7 @@ namespace melon {
             LOG(ERROR) << "Fail to add PProfService";
             return -1;
         }
-        if (FLAGS_enable_dir_service &&
+        if (turbo::get_flag(FLAGS_enable_dir_service) &&
             AddBuiltinService(new(std::nothrow) DirService)) {
             LOG(ERROR) << "Fail to add DirService";
             return -1;
@@ -941,8 +941,8 @@ namespace melon {
         }
 
         if (_options.num_threads > 0) {
-            if (FLAGS_usercode_in_pthread) {
-                _options.num_threads += FLAGS_usercode_backup_threads;
+            if (turbo::get_flag(FLAGS_usercode_in_pthread)) {
+                _options.num_threads += turbo::get_flag(FLAGS_usercode_backup_threads);
             }
             if (_options.num_threads < FIBER_MIN_CONCURRENCY) {
                 _options.num_threads = FIBER_MIN_CONCURRENCY;
@@ -1013,9 +1013,9 @@ namespace melon {
                 }
                 _am->_use_rdma = _options.use_rdma;
                 if (_options.fiber_tag < FIBER_TAG_DEFAULT ||
-                    _options.fiber_tag >= fiber::FLAGS_task_group_ntags) {
+                    _options.fiber_tag >= turbo::get_flag(FLAGS_task_group_ntags)) {
                     LOG(ERROR) << "Fail to set tag " << _options.fiber_tag << ", tag range is ["
-                                << FIBER_TAG_DEFAULT << ":" << fiber::FLAGS_task_group_ntags << ")";
+                                << FIBER_TAG_DEFAULT << ":" << turbo::get_flag(FLAGS_task_group_ntags) << ")";
                     return -1;
                 }
                 _am->_fiber_tag = _options.fiber_tag;

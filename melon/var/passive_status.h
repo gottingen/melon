@@ -165,7 +165,7 @@ namespace melon::var {
             if (ADDITIVE &&
                 rc == 0 &&
                 _series_sampler == NULL &&
-                FLAGS_save_series) {
+                    turbo::get_flag(FLAGS_save_series)) {
                 _series_sampler = new SeriesSampler(this);
                 _series_sampler->schedule();
             }

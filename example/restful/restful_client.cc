@@ -20,25 +20,22 @@
 //
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/restful_service.h>
 
-DEFINE_string(d, "", "POST this data to the http server");
-DEFINE_string(load_balancer, "", "The algorithm for load balancing");
-DEFINE_int32(timeout_ms, 2000, "RPC timeout in milliseconds");
-DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
-DEFINE_string(protocol, "http", "Client-side protocol");
+TURBO_FLAG(std::string, d, "", "POST this data to the http server");
+TURBO_FLAG(std::string, load_balancer, "", "The algorithm for load balancing");
+TURBO_FLAG(int32_t, timeout_ms, 2000, "RPC timeout in milliseconds");
+TURBO_FLAG(int32_t, max_retry, 3, "Max retries(not including the first RPC)");
+TURBO_FLAG(std::string, protocol, "http", "Client-side protocol");
 
+TURBO_DECLARE_FLAG(bool, http_verbose);
 namespace melon {
-    DECLARE_bool(http_verbose);
 }
 
 int main(int argc, char* argv[]) {
-    // Parse gflags. We recommend you to use gflags as well.
-    google::ParseCommandLineFlags(&argc, &argv, true);
-
     if (argc != 2) {
         LOG(ERROR) << "Usage: ./restful_client \"http(s)://www.foo.com\"";
         return -1;
@@ -49,13 +46,13 @@ int main(int argc, char* argv[]) {
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::Channel channel;
     melon::ChannelOptions options;
-    options.protocol = FLAGS_protocol;
-    options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
-    options.max_retry = FLAGS_max_retry;
+    options.protocol = turbo::get_flag(FLAGS_protocol);
+    options.timeout_ms = turbo::get_flag(FLAGS_timeout_ms)/*milliseconds*/;
+    options.max_retry = turbo::get_flag(FLAGS_max_retry);
 
     // Initialize the channel, nullptr means using default options.
     // options, see `melon/rpc/channel.h'.
-    if (channel.Init(url, FLAGS_load_balancer.c_str(), &options) != 0) {
+    if (channel.Init(url, turbo::get_flag(FLAGS_load_balancer).c_str(), &options) != 0) {
         LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
@@ -71,9 +68,9 @@ int main(int argc, char* argv[]) {
     }
     auto req = _rs.value();
     req.set_uri(url);
-    if (!FLAGS_d.empty()) {
+    if (!turbo::get_flag(FLAGS_d).empty()) {
         req.set_method(melon::HTTP_METHOD_POST);
-        req.set_body(FLAGS_d);
+        req.set_body(turbo::get_flag(FLAGS_d));
     } else {
         req.set_method(melon::HTTP_METHOD_GET);
     }
@@ -85,7 +82,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     // If -http_verbose is on, melon already prints the response to stderr.
-    if (!melon::FLAGS_http_verbose) {
+    if (!turbo::get_flag(FLAGS_http_verbose)) {
         std::cout << res.body() << std::endl;
     }
     return 0;

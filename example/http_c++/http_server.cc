@@ -20,20 +20,20 @@
 
 // A server to receive HttpRequest and send back HttpResponse.
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
 #include <melon/json2pb/pb_to_json.h>
 #include "http.pb.h"
 
-DEFINE_int32(port, 8018, "TCP Port of this server");
-DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
+TURBO_FLAG(int32_t, port, 8038, "TCP Port of this server");
+TURBO_FLAG(int32_t, idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
 
-DEFINE_string(certificate, "cert.pem", "Certificate file path to enable SSL");
-DEFINE_string(private_key, "key.pem", "Private key file path to enable SSL");
-DEFINE_string(ciphers, "", "Cipher suite used for SSL connections");
+TURBO_FLAG(std::string, certificate, "cert.pem", "Certificate file path to enable SSL");
+TURBO_FLAG(std::string, private_key, "key.pem", "Private key file path to enable SSL");
+TURBO_FLAG(std::string, ciphers, "", "Cipher suite used for SSL connections");
 
 namespace example {
 
@@ -227,9 +227,6 @@ public:
 }  // namespace example
 
 int main(int argc, char* argv[]) {
-    // Parse gflags. We recommend you to use gflags as well.
-    google::ParseCommandLineFlags(&argc, &argv, true);
-
     // Generally you only need one Server.
     melon::Server server;
 
@@ -269,11 +266,11 @@ int main(int argc, char* argv[]) {
 
     // Start the server.
     melon::ServerOptions options;
-    options.idle_timeout_sec = FLAGS_idle_timeout_s;
-    options.mutable_ssl_options()->default_cert.certificate = FLAGS_certificate;
-    options.mutable_ssl_options()->default_cert.private_key = FLAGS_private_key;
-    options.mutable_ssl_options()->ciphers = FLAGS_ciphers;
-    if (server.Start(FLAGS_port, &options) != 0) {
+    options.idle_timeout_sec = turbo::get_flag(FLAGS_idle_timeout_s);
+    options.mutable_ssl_options()->default_cert.certificate = turbo::get_flag(FLAGS_certificate);
+    options.mutable_ssl_options()->default_cert.private_key = turbo::get_flag(FLAGS_private_key);
+    options.mutable_ssl_options()->ciphers = turbo::get_flag(FLAGS_ciphers);
+    if (server.Start(turbo::get_flag(FLAGS_port), &options) != 0) {
         LOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }

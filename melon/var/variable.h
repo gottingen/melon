@@ -22,17 +22,15 @@
 #include <ostream>                     // std::ostream
 #include <string>                      // std::string
 #include <vector>                      // std::vector
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 #include <melon/utility/macros.h>               // DISALLOW_COPY_AND_ASSIGN
 #include <melon/utility/strings/string_piece.h> // mutil::StringPiece
 
-namespace boost {
-    class any;
-}
+TURBO_DECLARE_FLAG(bool, save_series);
+
 
 namespace melon::var {
-
-    DECLARE_bool(save_series);
 
     // Bitwise masks of displayable targets
     enum DisplayFilter {

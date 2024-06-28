@@ -43,16 +43,17 @@
 #include <melon/rpc/details/server_private_accessor.h>
 #include <melon/fiber/key.h>
 #include <cinttypes>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(bool, melon_protocol_use_fullname, true,
+            "If this flag is true, melon_std puts service.full_name in requests"
+            ", otherwise puts service.name (required by jprotobuf).");
+
+TURBO_FLAG(bool, melon_std_protocol_deliver_timeout_ms, false,
+            "If this flag is true, melon_std puts timeout_ms in requests.");
 
 namespace melon {
     namespace policy {
-
-        DEFINE_bool(melon_protocol_use_fullname, true,
-                    "If this flag is true, melon_std puts service.full_name in requests"
-                    ", otherwise puts service.name (required by jprotobuf).");
-
-        DEFINE_bool(melon_std_protocol_deliver_timeout_ms, false,
-                    "If this flag is true, melon_std puts timeout_ms in requests.");
 
         // Notes:
         // 1. 12-byte header [MRPC][body_size][meta_size]
@@ -112,7 +113,7 @@ namespace melon {
             uint32_t body_size;
             uint32_t meta_size;
             mutil::RawUnpacker(header_buf + 4).unpack32(body_size).unpack32(meta_size);
-            if (body_size > FLAGS_max_body_size) {
+            if (body_size > turbo::get_flag(FLAGS_max_body_size)) {
                 // We need this log to report the body_size to give users some clues
                 // which is not printed in InputMessenger.
                 LOG(ERROR) << "body_size=" << body_size << " from "
@@ -434,7 +435,7 @@ namespace melon {
                     break;
                 }
 
-                if (FLAGS_usercode_in_pthread && TooManyUserCode()) {
+                if (turbo::get_flag(FLAGS_usercode_in_pthread) && TooManyUserCode()) {
                     cntl->SetFailed(ELIMIT, "Too many user code to run when"
                                             " -usercode_in_pthread is on");
                     break;
@@ -535,7 +536,7 @@ namespace melon {
                     span->set_start_callback_us(mutil::cpuwide_time_us());
                     span->AsParent();
                 }
-                if (!FLAGS_usercode_in_pthread) {
+                if (!turbo::get_flag(FLAGS_usercode_in_pthread)) {
                     return svc->CallMethod(method, cntl.release(),
                                            req.release(), res.release(), done);
                 }
@@ -686,7 +687,7 @@ namespace melon {
             ControllerPrivateAccessor accessor(cntl);
             RpcRequestMeta *request_meta = meta.mutable_request();
             if (method) {
-                request_meta->set_service_name(FLAGS_melon_protocol_use_fullname ?
+                request_meta->set_service_name(turbo::get_flag(FLAGS_melon_protocol_use_fullname) ?
                                                method->service()->full_name() :
                                                method->service()->name());
                 request_meta->set_method_name(method->name());
@@ -731,7 +732,7 @@ namespace melon {
                 meta.set_attachment_size(attached_size);
             }
 
-            if (FLAGS_melon_std_protocol_deliver_timeout_ms) {
+            if (turbo::get_flag(FLAGS_melon_std_protocol_deliver_timeout_ms)) {
                 if (accessor.real_timeout_ms() > 0) {
                     request_meta->set_timeout_ms(accessor.real_timeout_ms());
                 }

@@ -19,59 +19,58 @@
 
 #pragma once
 
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/declare.h>
 
-namespace fiber {
 
-    // Number of pthread workers default 8 + FIBER_EPOLL_THREAD_NUM(1)
-    DECLARE_int32(fiber_concurrency);
 
-    // Initial number of pthread workers workers will be
-    // added on-demand. The laziness is disabled when this value is non-positive,
-    // and workers will be created eagerly according to -fiber_concurrency and fiber_setconcurrency()
-    // default 0
-    DECLARE_int32(fiber_min_concurrency);
+// Number of pthread workers default 8 + FIBER_EPOLL_THREAD_NUM(1)
+TURBO_DECLARE_FLAG(int32_t, fiber_concurrency);
 
-    // set fiber concurrency for this tag default 0
-    DECLARE_int32(fiber_current_tag);
+// Initial number of pthread workers workers will be
+// added on-demand. The laziness is disabled when this value is non-positive,
+// and workers will be created eagerly according to -fiber_concurrency and fiber_setconcurrency()
+// default 0
+TURBO_DECLARE_FLAG(int32_t, fiber_min_concurrency);
 
-    // Number of pthread workers of FLAGS_fiber_current_tag default 0
-    DECLARE_int32(fiber_concurrency_by_tag);
+// set fiber concurrency for this tag default 0
+TURBO_DECLARE_FLAG(int32_t, fiber_current_tag);
 
-    // size of small stacks default 32768
-    DECLARE_int32(stack_size_small);
+// Number of pthread workers of FLAGS_fiber_current_tag default 0
+TURBO_DECLARE_FLAG(int32_t, fiber_concurrency_by_tag);
 
-    // size of normal stacks default 1048576
-    DECLARE_int32(stack_size_normal);
+// size of small stacks default 32768
+TURBO_DECLARE_FLAG(int32_t, stack_size_small);
 
-    // size of large stacks default 8388608
-    DECLARE_int32(stack_size_large);
+// size of normal stacks default 1048576
+TURBO_DECLARE_FLAG(int32_t, stack_size_normal);
 
-    // size of guard page, allocate stacks by malloc if it's 0(not recommended) default 4096
-    DECLARE_int32(guard_page_size);
+// size of large stacks default 8388608
+TURBO_DECLARE_FLAG(int32_t, stack_size_large);
 
-    // maximum small stacks cached by each thread default 32
-    DECLARE_int32(tc_stack_small);
+// size of guard page, allocate stacks by malloc if it's 0(not recommended) default 4096
+TURBO_DECLARE_FLAG(int32_t, guard_page_size);
 
-    // maximum normal stacks cached by each thread default 8
-    DECLARE_int32(tc_stack_normal);
+// maximum small stacks cached by each thread default 32
+TURBO_DECLARE_FLAG(int32_t, tc_stack_small);
 
-    // delay deletion of TaskGroup for so many seconds default 1
-    DECLARE_int32(task_group_delete_delay);
+// maximum normal stacks cached by each thread default 8
+TURBO_DECLARE_FLAG(int32_t, tc_stack_normal);
 
-    // capacity of runqueue in each TaskGroup default 4096
-    DECLARE_int32(task_group_runqueue_capacity);
+// delay deletion of TaskGroup for so many seconds default 1
+TURBO_DECLARE_FLAG(int32_t, task_group_delete_delay);
 
-    // TaskGroup yields so many times before idle default 0
-    DECLARE_int32(task_group_yield_before_idle);
+// capacity of runqueue in each TaskGroup default 4096
+TURBO_DECLARE_FLAG(int32_t, task_group_runqueue_capacity);
 
-    // TaskGroup will be grouped by number ntags default 1
-    DECLARE_int32(task_group_ntags);
+// TaskGroup yields so many times before idle default 0
+TURBO_DECLARE_FLAG(int32_t, task_group_yield_before_idle);
 
-    // When this flags is on, The time from fiber creation to first run will be recorded and shown in /vars default false
-    DECLARE_bool(show_fiber_creation_in_vars);
+// TaskGroup will be grouped by number ntags default 1
+TURBO_DECLARE_FLAG(int32_t, task_group_ntags);
 
-    // Show per-worker usage in /vars/fiber_per_worker_usage_<tid> default false
-    DECLARE_bool(show_per_worker_usage_in_vars);
+// When this flags is on, The time from fiber creation to first run will be recorded and shown in /vars default false
+TURBO_DECLARE_FLAG(bool, show_fiber_creation_in_vars);
 
-}  // namespace fiber
+// Show per-worker usage in /vars/fiber_per_worker_usage_<tid> default false
+TURBO_DECLARE_FLAG(bool, show_per_worker_usage_in_vars);
+    

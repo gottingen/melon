@@ -18,7 +18,6 @@
 //
 
 #include <melon/naming/sns_naming_service.h>
-#include <gflags/gflags.h>
 #include <thread>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/channel.h>
@@ -27,18 +26,19 @@
 #include <melon/utility/third_party/rapidjson/memorybuffer.h>
 #include <melon/utility/third_party/rapidjson/writer.h>
 #include <melon/utility/string_splitter.h>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(std::string, sns_server, "", "The address of sns api");
+TURBO_FLAG(int, sns_timeout_ms, 3000, "Timeout for discovery requests");
+TURBO_FLAG(std::string, sns_env, "prod", "Environment of services");
+TURBO_FLAG(std::string, sns_status, "1", "Status of services. 1 for normal, 2 for slow, 3 for full, 4 for dead");
+TURBO_FLAG(std::string, sns_zone, "", "Zone of services");
+TURBO_FLAG(std::string, sns_color, "", "Zone of services");
+TURBO_FLAG(int, sns_renew_interval_s, 30, "The interval between two consecutive renews");
+TURBO_FLAG(int, sns_reregister_threshold, 3, "The renew error threshold beyond"
+                                          " which Register would be called again");
 
 namespace melon::naming {
-
-    DEFINE_string(sns_server, "", "The address of sns api");
-    DEFINE_int32(sns_timeout_ms, 3000, "Timeout for discovery requests");
-    DEFINE_string(sns_env, "prod", "Environment of services");
-    DEFINE_string(sns_status, "1", "Status of services. 1 for normal, 2 for slow, 3 for full, 4 for dead");
-    DEFINE_string(sns_zone, "", "Zone of services");
-    DEFINE_string(sns_color, "", "Zone of services");
-    DEFINE_int32(sns_renew_interval_s, 30, "The interval between two consecutive renews");
-    DEFINE_int32(sns_reregister_threshold, 3, "The renew error threshold beyond"
-                                              " which Register would be called again");
 
     static std::once_flag g_init_sns_channel_once;
     static Channel *g_sns_channel{nullptr};
@@ -58,11 +58,11 @@ namespace melon::naming {
     static void NewSnsChannel() {
         ChannelOptions channel_options;
         channel_options.protocol = PROTOCOL_HTTP;
-        channel_options.timeout_ms = FLAGS_sns_timeout_ms;
-        channel_options.connect_timeout_ms = FLAGS_sns_timeout_ms / 3;
+        channel_options.timeout_ms = turbo::get_flag(FLAGS_sns_timeout_ms);
+        channel_options.connect_timeout_ms = turbo::get_flag(FLAGS_sns_timeout_ms) / 3;
         g_sns_channel = new Channel;
-        if (g_sns_channel->Init(FLAGS_sns_server.c_str(), "rr", &channel_options) != 0) {
-            LOG(ERROR) << "Fail to init channel to " << FLAGS_sns_server;
+        if (g_sns_channel->Init(turbo::get_flag(FLAGS_sns_server).c_str(), "rr", &channel_options) != 0) {
+            LOG(ERROR) << "Fail to init channel to " << turbo::get_flag(FLAGS_sns_server);
             return;
         }
     }
@@ -145,7 +145,7 @@ namespace melon::naming {
         melon::SnsService_Stub stub(chan);
         melon::SnsResponse response;
         auto request = _params;
-        request.set_status(to_peer_status(FLAGS_sns_status));
+        request.set_status(to_peer_status(turbo::get_flag(FLAGS_sns_status)));
         stub.update(&cntl, &request, &response, NULL);
         if (cntl.Failed()) {
             LOG(ERROR) << "Fail to register peer: " << cntl.ErrorText();
@@ -182,8 +182,8 @@ namespace melon::naming {
     void *SnsNamingClient::periodic_renew(void *arg) {
         auto *sns = static_cast<SnsNamingClient *>(arg);
         int consecutive_renew_error = 0;
-        int64_t init_sleep_s = FLAGS_sns_renew_interval_s / 2 +
-                               mutil::fast_rand_less_than(FLAGS_sns_renew_interval_s / 2);
+        int64_t init_sleep_s = turbo::get_flag(FLAGS_sns_renew_interval_s) / 2 +
+                               mutil::fast_rand_less_than(turbo::get_flag(FLAGS_sns_renew_interval_s) / 2);
         if (fiber_usleep(init_sleep_s * 1000000) != 0) {
             if (errno == ESTOP) {
                 return NULL;
@@ -191,14 +191,14 @@ namespace melon::naming {
         }
 
         while (!fiber_stopped(fiber_self())) {
-            if (consecutive_renew_error == FLAGS_sns_reregister_threshold) {
+            if (consecutive_renew_error == turbo::get_flag(FLAGS_sns_reregister_threshold)) {
                 LOG(WARNING) << "Re-register since discovery renew error threshold reached";
                 // Do register until succeed or Cancel is called
                 while (!fiber_stopped(fiber_self())) {
                     if (sns->do_register() == 0) {
                         break;
                     }
-                    fiber_usleep(FLAGS_sns_renew_interval_s * 1000000);
+                    fiber_usleep(turbo::get_flag(FLAGS_sns_renew_interval_s) * 1000000);
                 }
                 consecutive_renew_error = 0;
             }
@@ -207,7 +207,7 @@ namespace melon::naming {
                 continue;
             }
             consecutive_renew_error = 0;
-            fiber_usleep(FLAGS_sns_renew_interval_s * 1000000);
+            fiber_usleep(turbo::get_flag(FLAGS_sns_renew_interval_s) * 1000000);
         }
         return NULL;
     }
@@ -215,10 +215,10 @@ namespace melon::naming {
     int SnsNamingService::GetServers(const char *service_name,
                                      std::vector<ServerNode> *servers) {
         if (service_name == NULL || *service_name == '\0' ||
-            FLAGS_sns_env.empty() ||
-            FLAGS_sns_status.empty() ||
-            FLAGS_sns_zone.empty() ||
-            FLAGS_sns_color.empty()) {
+                turbo::get_flag(FLAGS_sns_env).empty() ||
+                turbo::get_flag(FLAGS_sns_status).empty() ||
+                turbo::get_flag(FLAGS_sns_zone).empty() ||
+                turbo::get_flag(FLAGS_sns_color).empty()) {
             LOG_FIRST_N(ERROR, 1) << "Invalid parameters";
             return -1;
         }
@@ -233,17 +233,17 @@ namespace melon::naming {
         melon::SnsResponse response;
         melon::SnsRequest request;
         request.set_app_name(service_name);
-        auto env_sp = mutil::StringSplitter(FLAGS_sns_env, ',');
+        auto env_sp = mutil::StringSplitter(turbo::get_flag(FLAGS_sns_env), ',');
         while (env_sp) {
             request.add_env(env_sp.field());
             ++env_sp;
         }
-        auto color_sp = mutil::StringSplitter(FLAGS_sns_color, ',');
+        auto color_sp = mutil::StringSplitter(turbo::get_flag(FLAGS_sns_color), ',');
         while (color_sp) {
             request.add_color(color_sp.field());
             ++color_sp;
         }
-        auto zone_sp = mutil::StringSplitter(FLAGS_sns_zone, ',');
+        auto zone_sp = mutil::StringSplitter(turbo::get_flag(FLAGS_sns_zone), ',');
         while (zone_sp) {
             request.add_zones(zone_sp.field());
             ++zone_sp;

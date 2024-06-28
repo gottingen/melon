@@ -22,20 +22,21 @@
 #ifndef MELON_RPC_DUMP_RPC_DUMP_H_
 #define MELON_RPC_DUMP_RPC_DUMP_H_
 
-#include <gflags/gflags_declare.h>
 #include <melon/utility/iobuf.h>                            // IOBuf
 #include <melon/utility/files/file_path.h>                  // FilePath
 #include <melon/var/collector.h>
 #include <melon/proto/rpc/rpc_dump.pb.h>                       // RpcDumpMeta
+#include <turbo/flags/declare.h>
+#include <turbo/flags/flag.h>
 
 namespace mutil {
     class FileEnumerator;
 }
 
+TURBO_DECLARE_FLAG(bool, rpc_dump);
+
 namespace melon {
-
-    DECLARE_bool(rpc_dump);
-
+    
     // Randomly take samples of all requests and write into a file in batch in
     // a background thread.
 
@@ -66,13 +67,13 @@ namespace melon {
         }
     };
 
-    // If this function returns non-NULL, the caller must fill the returned
+    // If this function returns non-nullptr, the caller must fill the returned
     // object and submit it for later dumping by calling SubmitSample(). If
-    // the caller ignores non-NULL return value, the object is leaked.
+    // the caller ignores non-nullptr return value, the object is leaked.
     inline SampledRequest *AskToBeSampled() {
         extern melon::var::CollectorSpeedLimit g_rpc_dump_sl;
-        if (!FLAGS_rpc_dump || !melon::var::is_collectable(&g_rpc_dump_sl)) {
-            return NULL;
+        if (!turbo::get_flag(FLAGS_rpc_dump) || !melon::var::is_collectable(&g_rpc_dump_sl)) {
+            return nullptr;
         }
         return new(std::nothrow) SampledRequest;
     }
@@ -80,7 +81,7 @@ namespace melon {
     // Read samples from dumped files in a directory.
     // Example:
     //   SampleIterator it("./rpc_dump_echo_server");
-    //   for (SampledRequest* req = it->Next(); req != NULL; req = it->Next()) {
+    //   for (SampledRequest* req = it->Next(); req != nullptr; req = it->Next()) {
     //     ...
     //   }
     class SampleIterator {
@@ -91,7 +92,7 @@ namespace melon {
 
         // Read a sample. Order of samples are not guaranteed to be same with
         // the order that they're stored in dumped files.
-        // Returns the sample which should be deleted by caller. NULL means
+        // Returns the sample which should be deleted by caller. nullptr means
         // all dumped files are read.
         SampledRequest *Next();
 

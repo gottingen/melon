@@ -19,7 +19,7 @@
 
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <string>                                       // std::string
 #include <set>                                          // std::set
 #include <melon/utility/string_printf.h>
@@ -33,27 +33,26 @@
 #include <melon/naming/file_naming_service.h>
 #include <melon/naming/consul_naming_service.h>
 
+TURBO_FLAG(std::string, consul_agent_addr, "http://127.0.0.1:8500",
+              "The query string of request consul for discovering service.");
+TURBO_FLAG(std::string,consul_service_discovery_url,
+              "/v1/health/service/",
+              "The url of consul for discovering service.");
+TURBO_FLAG(std::string,consul_url_parameter, "?stale&passing",
+              "The query string of request consul for discovering service.");
+TURBO_FLAG(int, consul_connect_timeout_ms, 200,
+             "Timeout for creating connections to consul in milliseconds");
+TURBO_FLAG(int, consul_blocking_query_wait_secs, 60,
+             "Maximum duration for the blocking request in secs.");
+TURBO_FLAG(bool, consul_enable_degrade_to_file_naming_service, false,
+            "Use local backup file when consul cannot connect");
+TURBO_FLAG(std::string,consul_file_naming_service_dir, "",
+              "When it degraded to file naming service, the file with name of the "
+              "service name will be searched in this dir to use.");
+TURBO_FLAG(int, consul_retry_interval_ms, 500,
+             "Wait so many milliseconds before retry when error happens");
 
 namespace melon::naming {
-
-    DEFINE_string(consul_agent_addr, "http://127.0.0.1:8500",
-                  "The query string of request consul for discovering service.");
-    DEFINE_string(consul_service_discovery_url,
-                  "/v1/health/service/",
-                  "The url of consul for discovering service.");
-    DEFINE_string(consul_url_parameter, "?stale&passing",
-                  "The query string of request consul for discovering service.");
-    DEFINE_int32(consul_connect_timeout_ms, 200,
-                 "Timeout for creating connections to consul in milliseconds");
-    DEFINE_int32(consul_blocking_query_wait_secs, 60,
-                 "Maximum duration for the blocking request in secs.");
-    DEFINE_bool(consul_enable_degrade_to_file_naming_service, false,
-                "Use local backup file when consul cannot connect");
-    DEFINE_string(consul_file_naming_service_dir, "",
-                  "When it degraded to file naming service, the file with name of the "
-                  "service name will be searched in this dir to use.");
-    DEFINE_int32(consul_retry_interval_ms, 500,
-                 "Wait so many milliseconds before retry when error happens");
 
     constexpr char kConsulIndex[] = "X-Consul-Index";
 
@@ -66,9 +65,9 @@ namespace melon::naming {
 
     int ConsulNamingService::DegradeToOtherServiceIfNeeded(const char *service_name,
                                                            std::vector<ServerNode> *servers) {
-        if (FLAGS_consul_enable_degrade_to_file_naming_service && !_backup_file_loaded) {
+        if (turbo::get_flag(FLAGS_consul_enable_degrade_to_file_naming_service) && !_backup_file_loaded) {
             _backup_file_loaded = true;
-            const std::string file(FLAGS_consul_file_naming_service_dir + service_name);
+            const std::string file(turbo::get_flag(FLAGS_consul_file_naming_service_dir) + service_name);
             LOG(INFO) << "Load server list from " << file;
             FileNamingService fns;
             return fns.GetServers(file.c_str(), servers);
@@ -81,26 +80,26 @@ namespace melon::naming {
         if (!_consul_connected) {
             ChannelOptions opt;
             opt.protocol = PROTOCOL_HTTP;
-            opt.connect_timeout_ms = FLAGS_consul_connect_timeout_ms;
-            opt.timeout_ms = (FLAGS_consul_blocking_query_wait_secs + 10) * mutil::Time::kMillisecondsPerSecond;
-            if (_channel.Init(FLAGS_consul_agent_addr.c_str(), "rr", &opt) != 0) {
-                LOG(ERROR) << "Fail to init channel to consul at " << FLAGS_consul_agent_addr;
+            opt.connect_timeout_ms = turbo::get_flag(FLAGS_consul_connect_timeout_ms);
+            opt.timeout_ms = (turbo::get_flag(FLAGS_consul_blocking_query_wait_secs) + 10) * mutil::Time::kMillisecondsPerSecond;
+            if (_channel.Init(turbo::get_flag(FLAGS_consul_agent_addr).c_str(), "rr", &opt) != 0) {
+                LOG(ERROR) << "Fail to init channel to consul at " << turbo::get_flag(FLAGS_consul_agent_addr);
                 return DegradeToOtherServiceIfNeeded(service_name, servers);
             }
             _consul_connected = true;
         }
 
         if (_consul_url.empty()) {
-            _consul_url.append(FLAGS_consul_service_discovery_url);
+            _consul_url.append(turbo::get_flag(FLAGS_consul_service_discovery_url));
             _consul_url.append(service_name);
-            _consul_url.append(FLAGS_consul_url_parameter);
+            _consul_url.append(turbo::get_flag(FLAGS_consul_url_parameter));
         }
 
         servers->clear();
         std::string consul_url(_consul_url);
         if (!_consul_index.empty()) {
             mutil::string_appendf(&consul_url, "&index=%s&wait=%ds", _consul_index.c_str(),
-                                  FLAGS_consul_blocking_query_wait_secs);
+                                  turbo::get_flag(FLAGS_consul_blocking_query_wait_secs));
         }
 
         Controller cntl;
@@ -240,7 +239,7 @@ namespace melon::naming {
                     actions->ResetServers(servers);
                 }
                 if (fiber_usleep(
-                        std::max(FLAGS_consul_retry_interval_ms, 1) * mutil::Time::kMicrosecondsPerMillisecond) < 0) {
+                        std::max(turbo::get_flag(FLAGS_consul_retry_interval_ms), 1) * mutil::Time::kMicrosecondsPerMillisecond) < 0) {
                     if (errno == ESTOP) {
                         RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                         return 0;

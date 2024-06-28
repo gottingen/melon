@@ -21,7 +21,6 @@
 
 #include <vector>                                  // std::vector
 #include <stdint.h>                                // uint64_t
-#include <gflags/gflags_declare.h>                 // DECLARE_xxx
 #include <melon/utility/endpoint.h>                         // mutil::EndPoint
 #include <melon/utility/iobuf.h>
 #include <turbo/log/logging.h>
@@ -30,6 +29,7 @@
 #include <melon/rpc/parse_result.h>                // ParseResult
 #include <melon/rpc/adaptive_connection_type.h>
 #include <melon/rpc/adaptive_protocol_type.h>
+#include <turbo/flags/declare.h>
 
 namespace google {
     namespace protobuf {
@@ -43,6 +43,8 @@ namespace mutil {
     class IOBuf;
 }
 
+TURBO_DECLARE_FLAG(uint64_t ,max_body_size);
+TURBO_DECLARE_FLAG(bool, log_error_text);
 
 namespace melon {
     class Socket;
@@ -55,12 +57,9 @@ namespace melon {
 
     class InputMessageBase;
 
-    DECLARE_uint64(max_body_size);
-    DECLARE_bool(log_error_text);
-
-// Get the serialized byte size of the protobuf message, 
-// different versions of protobuf have different methods
-// use template to avoid include `google/protobuf/message.h`
+    // Get the serialized byte size of the protobuf message,
+    // different versions of protobuf have different methods
+    // use template to avoid include `google/protobuf/message.h`
     template<typename T>
     inline uint32_t GetProtobufByteSize(const T &message) {
 #if GOOGLE_PROTOBUF_VERSION >= 3010000
@@ -70,11 +69,11 @@ namespace melon {
 #endif
     }
 
-// 3 steps to add a new Protocol:
-// Step1: Add a new ProtocolType in src/melon/options.proto
-//        as identifier of the Protocol.
-// Step2: Implement callbacks of struct `Protocol' in policy/ directory.
-// Step3: Register the protocol in global.cpp using `RegisterProtocol'
+    // 3 steps to add a new Protocol:
+    // Step1: Add a new ProtocolType in src/melon/options.proto
+    //        as identifier of the Protocol.
+    // Step2: Implement callbacks of struct `Protocol' in policy/ directory.
+    // Step3: Register the protocol in global.cpp using `RegisterProtocol'
 
     struct Protocol {
         // [Required by both client and server]

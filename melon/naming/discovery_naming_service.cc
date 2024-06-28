@@ -19,7 +19,7 @@
 
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/third_party/rapidjson/document.h>
 #include <melon/utility/third_party/rapidjson/memorybuffer.h>
 #include <melon/utility/third_party/rapidjson/writer.h>
@@ -31,22 +31,22 @@
 #include <melon/rpc/controller.h>
 #include <melon/naming/discovery_naming_service.h>
 
-namespace melon::naming {
-
 #ifdef BILIBILI_INTERNAL
 # define DEFAULT_DISCOVERY_API_ADDR "http://api.bilibili.co/discovery/nodes"
 #else
 # define DEFAULT_DISCOVERY_API_ADDR ""
 #endif
 
-    DEFINE_string(discovery_api_addr, DEFAULT_DISCOVERY_API_ADDR, "The address of discovery api");
-    DEFINE_int32(discovery_timeout_ms, 3000, "Timeout for discovery requests");
-    DEFINE_string(discovery_env, "prod", "Environment of services");
-    DEFINE_string(discovery_status, "1", "Status of services. 1 for ready, 2 for not ready, 3 for all");
-    DEFINE_string(discovery_zone, "", "Zone of services");
-    DEFINE_int32(discovery_renew_interval_s, 30, "The interval between two consecutive renews");
-    DEFINE_int32(discovery_reregister_threshold, 3, "The renew error threshold beyond"
-                                                    " which Register would be called again");
+TURBO_FLAG(std::string, discovery_api_addr, DEFAULT_DISCOVERY_API_ADDR, "The address of discovery api");
+TURBO_FLAG(int, discovery_timeout_ms, 3000, "Timeout for discovery requests");
+TURBO_FLAG(std::string,discovery_env, "prod", "Environment of services");
+TURBO_FLAG(std::string,discovery_status, "1", "Status of services. 1 for ready, 2 for not ready, 3 for all");
+TURBO_FLAG(std::string,discovery_zone, "", "Zone of services");
+TURBO_FLAG(int, discovery_renew_interval_s, 30, "The interval between two consecutive renews");
+TURBO_FLAG(int, discovery_reregister_threshold, 3, "The renew error threshold beyond"
+                                                " which Register would be called again");
+
+namespace melon::naming {
 
     static pthread_once_t s_init_discovery_channel_once = PTHREAD_ONCE_INIT;
     static Channel *s_discovery_channel = NULL;
@@ -55,8 +55,8 @@ namespace melon::naming {
         Channel api_channel;
         ChannelOptions channel_options;
         channel_options.protocol = PROTOCOL_HTTP;
-        channel_options.timeout_ms = FLAGS_discovery_timeout_ms;
-        channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
+        channel_options.timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms);
+        channel_options.connect_timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms) / 3;
         if (api_channel.Init(discovery_api_addr, "", &channel_options) != 0) {
             LOG(FATAL) << "Fail to init channel to " << discovery_api_addr;
             return -1;
@@ -113,14 +113,14 @@ namespace melon::naming {
         // changes. Although we could detect new discovery servers by implmenenting
         // a NamingService, however which is too heavy for solving such a rare case.
         std::string discovery_servers;
-        if (ListDiscoveryNodes(FLAGS_discovery_api_addr.c_str(), &discovery_servers) != 0) {
-            LOG(ERROR) << "Fail to get discovery nodes from " << FLAGS_discovery_api_addr;
+        if (ListDiscoveryNodes(turbo::get_flag(FLAGS_discovery_api_addr).c_str(), &discovery_servers) != 0) {
+            LOG(ERROR) << "Fail to get discovery nodes from " << turbo::get_flag(FLAGS_discovery_api_addr);
             return;
         }
         ChannelOptions channel_options;
         channel_options.protocol = PROTOCOL_HTTP;
-        channel_options.timeout_ms = FLAGS_discovery_timeout_ms;
-        channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
+        channel_options.timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms);
+        channel_options.connect_timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms) / 3;
         s_discovery_channel = new Channel;
         if (s_discovery_channel->Init(discovery_servers.c_str(), "rr", &channel_options) != 0) {
             LOG(ERROR) << "Fail to init channel to " << discovery_servers;
@@ -175,8 +175,8 @@ namespace melon::naming {
         // May create short connections which are OK.
         ChannelOptions channel_options;
         channel_options.protocol = PROTOCOL_HTTP;
-        channel_options.timeout_ms = FLAGS_discovery_timeout_ms;
-        channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
+        channel_options.timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms);
+        channel_options.connect_timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms) / 3;
         Channel chan;
         if (chan.Init(_current_discovery_server, &channel_options) != 0) {
             LOG(FATAL) << "Fail to init channel to " << _current_discovery_server;
@@ -211,8 +211,8 @@ namespace melon::naming {
     void *DiscoveryClient::PeriodicRenew(void *arg) {
         DiscoveryClient *d = static_cast<DiscoveryClient *>(arg);
         int consecutive_renew_error = 0;
-        int64_t init_sleep_s = FLAGS_discovery_renew_interval_s / 2 +
-                               mutil::fast_rand_less_than(FLAGS_discovery_renew_interval_s / 2);
+        int64_t init_sleep_s = turbo::get_flag(FLAGS_discovery_renew_interval_s) / 2 +
+                               mutil::fast_rand_less_than(turbo::get_flag(FLAGS_discovery_renew_interval_s) / 2);
         if (fiber_usleep(init_sleep_s * 1000000) != 0) {
             if (errno == ESTOP) {
                 return NULL;
@@ -220,14 +220,14 @@ namespace melon::naming {
         }
 
         while (!fiber_stopped(fiber_self())) {
-            if (consecutive_renew_error == FLAGS_discovery_reregister_threshold) {
+            if (consecutive_renew_error == turbo::get_flag(FLAGS_discovery_reregister_threshold)) {
                 LOG(WARNING) << "Re-register since discovery renew error threshold reached";
                 // Do register until succeed or Cancel is called
                 while (!fiber_stopped(fiber_self())) {
                     if (d->DoRegister() == 0) {
                         break;
                     }
-                    fiber_usleep(FLAGS_discovery_renew_interval_s * 1000000);
+                    fiber_usleep(turbo::get_flag(FLAGS_discovery_renew_interval_s) * 1000000);
                 }
                 consecutive_renew_error = 0;
             }
@@ -236,7 +236,7 @@ namespace melon::naming {
                 continue;
             }
             consecutive_renew_error = 0;
-            fiber_usleep(FLAGS_discovery_renew_interval_s * 1000000);
+            fiber_usleep(turbo::get_flag(FLAGS_discovery_renew_interval_s) * 1000000);
         }
         return NULL;
     }
@@ -309,8 +309,8 @@ namespace melon::naming {
         // May create short connections which are OK.
         ChannelOptions channel_options;
         channel_options.protocol = PROTOCOL_HTTP;
-        channel_options.timeout_ms = FLAGS_discovery_timeout_ms;
-        channel_options.connect_timeout_ms = FLAGS_discovery_timeout_ms / 3;
+        channel_options.timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms);
+        channel_options.connect_timeout_ms = turbo::get_flag(FLAGS_discovery_timeout_ms) / 3;
         Channel chan;
         if (chan.Init(_current_discovery_server, &channel_options) != 0) {
             LOG(FATAL) << "Fail to init channel to " << _current_discovery_server;
@@ -347,8 +347,8 @@ namespace melon::naming {
     int DiscoveryNamingService::GetServers(const char *service_name,
                                            std::vector<ServerNode> *servers) {
         if (service_name == NULL || *service_name == '\0' ||
-            FLAGS_discovery_env.empty() ||
-            FLAGS_discovery_status.empty()) {
+                turbo::get_flag(FLAGS_discovery_env).empty() ||
+                turbo::get_flag(FLAGS_discovery_status).empty()) {
             LOG_FIRST_N(ERROR, 1) << "Invalid parameters";
             return -1;
         }
@@ -361,10 +361,10 @@ namespace melon::naming {
         Controller cntl;
         std::string uri_str = mutil::string_printf(
                 "/discovery/fetchs?appid=%s&env=%s&status=%s", service_name,
-                FLAGS_discovery_env.c_str(), FLAGS_discovery_status.c_str());
-        if (!FLAGS_discovery_zone.empty()) {
+                turbo::get_flag(FLAGS_discovery_env).c_str(), turbo::get_flag(FLAGS_discovery_status).c_str());
+        if (!turbo::get_flag(FLAGS_discovery_zone).empty()) {
             uri_str.append("&zone=");
-            uri_str.append(FLAGS_discovery_zone);
+            uri_str.append(turbo::get_flag(FLAGS_discovery_zone));
         }
         cntl.http_request().uri() = uri_str;
         chan->CallMethod(NULL, &cntl, NULL, NULL, NULL);

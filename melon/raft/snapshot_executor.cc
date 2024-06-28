@@ -23,13 +23,15 @@
 #include <melon/raft/node.h>
 #include <melon/raft/storage.h>
 #include <melon/raft/snapshot.h>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(int32_t, raft_do_snapshot_min_index_gap, 1,
+           "Will do snapshot only when actual gap between applied_index and"
+           " last_snapshot_index is equal to or larger than this value").on_validate(
+        turbo::GeValidator<int32_t, 1>::validate);
 
 namespace melon::raft {
 
-    DEFINE_int32(raft_do_snapshot_min_index_gap, 1,
-                 "Will do snapshot only when actual gap between applied_index and"
-                 " last_snapshot_index is equal to or larger than this value");
-    MELON_VALIDATE_GFLAG(raft_do_snapshot_min_index_gap, melon::PositiveInteger);
 
     class SaveSnapshotDone : public SaveSnapshotClosure {
     public:
@@ -144,7 +146,7 @@ namespace melon::raft {
         }
         int64_t saved_fsm_applied_index = _fsm_caller->last_applied_index();
         if (saved_fsm_applied_index - _last_snapshot_index <
-            FLAGS_raft_do_snapshot_min_index_gap) {
+            turbo::get_flag(FLAGS_raft_do_snapshot_min_index_gap)) {
             // There might be false positive as the last_applied_index() is being
             // updated. But it's fine since we will do next snapshot saving in a
             // predictable time.
@@ -154,7 +156,7 @@ namespace melon::raft {
             LOG_IF(INFO, _node != NULL) << "node " << _node->node_id()
                                         << " the gap between fsm applied index " << saved_fsm_applied_index
                                         << " and last_snapshot_index " << saved_last_snapshot_index
-                                        << " is less than " << FLAGS_raft_do_snapshot_min_index_gap
+                                        << " is less than " << turbo::get_flag(FLAGS_raft_do_snapshot_min_index_gap)
                                         << ", will clear bufferred logs and return success";
 
             if (done) {

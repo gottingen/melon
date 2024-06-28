@@ -19,7 +19,7 @@
 
 #include <melon/raft/route_table.h>
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/memory/singleton.h>
 #include <melon/utility/containers/doubly_buffered_data.h>
 #include <melon/utility/containers/flat_map.h>
@@ -27,10 +27,9 @@
 #include <melon/rpc/channel.h>
 #include <melon/proto/raft/cli.pb.h>
 
+TURBO_FLAG(int32_t ,initial_route_table_cap, 128, "Initial capacity of RouteTable");
 namespace melon::raft {
     namespace rtb {
-
-        DEFINE_int32(initial_route_table_cap, 128, "Initial capacity of RouteTable");
 
         class RouteTable {
             DISALLOW_COPY_AND_ASSIGN(RouteTable);
@@ -134,7 +133,7 @@ namespace melon::raft {
             }
 
             static size_t init(GroupMap &m) {
-                CHECK_EQ(0, m.init(FLAGS_initial_route_table_cap));
+                CHECK_EQ(0, m.init(turbo::get_flag(FLAGS_initial_route_table_cap)));
                 return 1;
             }
 

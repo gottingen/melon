@@ -19,21 +19,31 @@
 
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <turbo/log/logging.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/log.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/naming/periodic_naming_service.h>
+
+TURBO_FLAG(int, ns_access_interval, 5,
+           "Wait so many seconds before next access to naming service").on_validate(
+        [](std::string_view value, std::string *error) noexcept -> bool {
+            if (value.empty()) {
+                *error = "ns_access_interval must be a positive integer";
+                return false;
+            }
+            int interval = 0;
+            auto r = turbo::parse_flag(value, &interval, error);
+            if (!r) {
+                return false;
+            }
+            return true;
+        });
 
 namespace melon {
 
-    DEFINE_int32(ns_access_interval, 5,
-                 "Wait so many seconds before next access to naming service");
-    MELON_VALIDATE_GFLAG(ns_access_interval, PositiveInteger);
-
     int PeriodicNamingService::GetNamingServiceAccessIntervalMs() const {
-        return std::max(FLAGS_ns_access_interval, 1) * 1000;
+        return std::max(turbo::get_flag(FLAGS_ns_access_interval), 1) * 1000;
     }
 
     int PeriodicNamingService::RunNamingService(

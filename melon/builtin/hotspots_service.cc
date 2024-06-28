@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include <thread>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/files/file_enumerator.h>
 #include <melon/utility/file_util.h>                     // mutil::FilePath
 #include <melon/utility/popen.h>                         // mutil::read_command_output
@@ -29,7 +29,6 @@
 #include <melon/rpc/log.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/server.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/builtin/pprof_perl.h>
 #include <melon/builtin/hotspots_service.h>
 #include <melon/rpc/details/tcmalloc_extension.h>
@@ -38,6 +37,13 @@ extern "C" {
 int __attribute__((weak)) ProfilerStart(const char *fname);
 void __attribute__((weak)) ProfilerStop();
 }
+
+TURBO_FLAG(int32_t ,max_profiling_seconds, 300, "upper limit of running time of profilers").on_validate(turbo::GeValidator<int32_t, 0>::validate);
+
+TURBO_FLAG(int32_t ,max_profiles_kept, 32,
+"max profiles kept for cpu/heap/growth/contention respectively").on_validate(turbo::GtValidator<int32_t, 0>::validate);
+
+TURBO_FLAG(int32_t ,max_flame_graph_width, 1200, "max width of flame graph image").on_validate(turbo::GtValidator<int32_t, 0>::validate);
 
 namespace fiber {
     bool ContentionProfilerStart(const char *filename);
@@ -109,24 +115,14 @@ namespace melon {
 
     static std::string GeneratePerlScriptPath(const std::string &filename) {
         std::string path;
-        path.reserve(FLAGS_rpc_profiling_dir.size() + 1 + filename.size());
-        path += FLAGS_rpc_profiling_dir;
+        path.reserve(turbo::get_flag(FLAGS_rpc_profiling_dir).size() + 1 + filename.size());
+        path += turbo::get_flag(FLAGS_rpc_profiling_dir);
         path.push_back('/');
         path += filename;
         return path;
     }
 
     extern bool cpu_profiler_enabled;
-
-    DEFINE_int32(max_profiling_seconds, 300, "upper limit of running time of profilers");
-    MELON_VALIDATE_GFLAG(max_profiling_seconds, NonNegativeInteger);
-
-    DEFINE_int32(max_profiles_kept, 32,
-                 "max profiles kept for cpu/heap/growth/contention respectively");
-    MELON_VALIDATE_GFLAG(max_profiles_kept, PassValidate);
-
-    DEFINE_int32(max_flame_graph_width, 1200, "max width of flame graph image");
-    MELON_VALIDATE_GFLAG(max_flame_graph_width, PositiveInteger);
 
     static const char *const PPROF_FILENAME = "pprof.pl";
     static int DEFAULT_PROFILING_SECONDS = 10;
@@ -167,10 +163,10 @@ namespace melon {
 
 // Different ProfilingType have different env.
     static ProfilingEnvironment g_env[4] = {
-            {PTHREAD_MUTEX_INITIALIZER, 0, NULL, NULL, NULL},
-            {PTHREAD_MUTEX_INITIALIZER, 0, NULL, NULL, NULL},
-            {PTHREAD_MUTEX_INITIALIZER, 0, NULL, NULL, NULL},
-            {PTHREAD_MUTEX_INITIALIZER, 0, NULL, NULL, NULL}
+            {PTHREAD_MUTEX_INITIALIZER, 0, nullptr, nullptr, nullptr},
+            {PTHREAD_MUTEX_INITIALIZER, 0, nullptr, nullptr, nullptr},
+            {PTHREAD_MUTEX_INITIALIZER, 0, nullptr, nullptr, nullptr},
+            {PTHREAD_MUTEX_INITIALIZER, 0, nullptr, nullptr, nullptr}
     };
 
 // The `content' should be small so that it can be written into file in one
@@ -186,7 +182,7 @@ namespace melon {
             return false;
         }
         FILE *fp = fopen(path.value().c_str(), "w");
-        if (NULL == fp) {
+        if (nullptr == fp) {
             LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
@@ -210,12 +206,12 @@ namespace melon {
             return false;
         }
         FILE *fp = fopen(path.value().c_str(), "w");
-        if (NULL == fp) {
+        if (nullptr == fp) {
             LOG(ERROR) << "Fail to open `" << path.value() << '\'';
             return false;
         }
         mutil::IOBufAsZeroCopyInputStream iter(content);
-        const void *data = NULL;
+        const void *data = nullptr;
         int size = 0;
         while (iter.Next(&data, &size)) {
             if (fwrite(data, size, 1UL, fp) != 1UL) {
@@ -232,8 +228,8 @@ namespace melon {
         int seconds = DEFAULT_PROFILING_SECONDS;
         const std::string *param =
                 cntl->http_request().uri().GetQuery("seconds");
-        if (param != NULL) {
-            char *endptr = NULL;
+        if (param != nullptr) {
+            char *endptr = nullptr;
             const long sec = strtol(param->c_str(), &endptr, 10);
             if (endptr == param->c_str() + param->length()) {
                 seconds = sec;
@@ -241,13 +237,13 @@ namespace melon {
                 return -1;
             }
         }
-        seconds = std::min(seconds, FLAGS_max_profiling_seconds);
+        seconds = std::min(seconds, turbo::get_flag(FLAGS_max_profiling_seconds));
         return seconds;
     }
 
     static const char *GetBaseName(const std::string *full_base_name) {
-        if (full_base_name == NULL) {
-            return NULL;
+        if (full_base_name == nullptr) {
+            return nullptr;
         }
         size_t offset = full_base_name->find_last_of('/');
         if (offset == std::string::npos) {
@@ -274,7 +270,7 @@ namespace melon {
 // system related functions (popen/system/exec ...) to avoid potential
 // injections from URL and other user inputs.
     static bool ValidProfilePath(const mutil::StringPiece &path) {
-        if (!path.starts_with(FLAGS_rpc_profiling_dir)) {
+        if (!path.starts_with(turbo::get_flag(FLAGS_rpc_profiling_dir))) {
             // Must be under the directory.
             return false;
         }
@@ -319,7 +315,7 @@ namespace melon {
     }
 
     static int MakeProfName(ProfilingType type, char *buf, size_t buf_len) {
-        int nr = snprintf(buf, buf_len, "%s/%s/", FLAGS_rpc_profiling_dir.c_str(),
+        int nr = snprintf(buf, buf_len, "%s/%s/", turbo::get_flag(FLAGS_rpc_profiling_dir).c_str(),
                           GetProgramChecksum());
         if (nr < 0) {
             return -1;
@@ -349,10 +345,10 @@ namespace melon {
         ProfilingEnvironment &env = g_env[type];
         if (env.client) {
             MELON_SCOPED_LOCK(env.mutex);
-            if (env.client == NULL) {
+            if (env.client == nullptr) {
                 return;
             }
-            if (env.cached_result == NULL) {
+            if (env.cached_result == nullptr) {
                 env.cached_result = new ProfilingResult;
             }
             env.cached_result->id = env.client->id;
@@ -361,7 +357,7 @@ namespace melon {
             env.cached_result->result = cur_cntl->response_attachment();
 
             delete env.client;
-            env.client = NULL;
+            env.client = nullptr;
             if (env.waiters) {
                 env.waiters->swap(*waiters);
             }
@@ -371,7 +367,7 @@ namespace melon {
 // This function is always called with g_env[type].mutex UNLOCKED.
     static void NotifyWaiters(ProfilingType type, const Controller *cur_cntl,
                               const std::string *view) {
-        if (view != NULL) {
+        if (view != nullptr) {
             return;
         }
         std::vector<ProfilingWaiter> saved_waiters;
@@ -391,7 +387,7 @@ namespace melon {
     static const char* s_pprof_binary_path = nullptr;
     static bool check_GOOGLE_PPROF_BINARY_PATH() {
         char* str = getenv("GOOGLE_PPROF_BINARY_PATH");
-        if (str == NULL) {
+        if (str == nullptr) {
             return false;
         }
         mutil::fd_guard fd(open(str, O_RDONLY));
@@ -441,7 +437,7 @@ namespace melon {
             }
 #endif
         }
-        if (base_name != NULL) {
+        if (base_name != nullptr) {
             if (!ValidProfilePath(*base_name)) {
                 return cntl->SetFailed(EINVAL, "Invalid query `base'");
             }
@@ -458,7 +454,7 @@ namespace melon {
                       display_type, show_ccount);
         // Try to read cache first.
         FILE *fp = fopen(expected_result_name, "r");
-        if (fp != NULL) {
+        if (fp != nullptr) {
             bool succ = false;
             char buffer[1024];
             while (1) {
@@ -511,7 +507,7 @@ namespace melon {
             // For flamegraph, we don't care about pprof error msg,
             // which will cause confusing messages in the final result.
             cmd_builder << " 2>/dev/null  | perl " << flamegraph_tool << " --width "
-                        << (FLAGS_max_flame_graph_width > 0 ? FLAGS_max_flame_graph_width : 1200);
+                        << (turbo::get_flag(FLAGS_max_flame_graph_width) > 0 ? turbo::get_flag(FLAGS_max_flame_graph_width) : 1200);
         }
         cmd_builder << " 2>&1 ";
 #elif defined(OS_MACOSX)
@@ -571,7 +567,7 @@ namespace melon {
             // current profile is.
             mutil::IOBuf before_label;
             mutil::IOBuf tmp;
-            if (cntl->http_request().uri().GetQuery("view") == NULL) {
+            if (cntl->http_request().uri().GetQuery("view") == nullptr) {
                 tmp.append(prof_name);
                 tmp.append("[addToProfEnd]");
             }
@@ -680,8 +676,8 @@ namespace melon {
         int64_t prof_id = 0;
         const std::string *prof_id_str =
                 cntl->http_request().uri().GetQuery("profiling_id");
-        if (prof_id_str != NULL) {
-            char *endptr = NULL;
+        if (prof_id_str != nullptr) {
+            char *endptr = nullptr;
             prof_id = strtoll(prof_id_str->c_str(), &endptr, 10);
             LOG_IF(ERROR, *endptr != '\0') << "Invalid profiling_id=" << prof_id;
         }
@@ -689,7 +685,7 @@ namespace melon {
         {
             MELON_SCOPED_LOCK(g_env[type].mutex);
             if (g_env[type].client) {
-                if (NULL == g_env[type].waiters) {
+                if (nullptr == g_env[type].waiters) {
                     g_env[type].waiters = new std::vector<ProfilingWaiter>;
                 }
                 ProfilingWaiter waiter = {cntl, done_guard.release()};
@@ -697,7 +693,7 @@ namespace melon {
                 RPC_VLOG << "Queue request from " << cntl->remote_side();
                 return;
             }
-            if (g_env[type].cached_result != NULL &&
+            if (g_env[type].cached_result != nullptr &&
                 g_env[type].cached_result->id == prof_id) {
                 cntl->http_response().set_status_code(
                         g_env[type].cached_result->status_code);
@@ -706,7 +702,7 @@ namespace melon {
                 RPC_VLOG << "Hit cached result, id=" << prof_id;
                 return;
             }
-            CHECK(NULL == g_env[type].client);
+            CHECK(nullptr == g_env[type].client);
             g_env[type].client = new ProfilingClient;
             g_env[type].client->end_us = mutil::cpuwide_time_us() + seconds * 1000000L;
             g_env[type].client->seconds = seconds;
@@ -746,7 +742,7 @@ namespace melon {
         }
 #endif
         if (type == PROFILING_CPU) {
-            if ((void *) ProfilerStart == NULL || (void *) ProfilerStop == NULL) {
+            if ((void *) ProfilerStart == nullptr || (void *) ProfilerStop == nullptr) {
                 os << "CPU profiler is not enabled"
                    << (use_html ? "</body></html>" : "\n");
                 os.move_to(resp);
@@ -788,9 +784,9 @@ namespace melon {
             fiber::ContentionProfilerStop();
         } else if (type == PROFILING_HEAP) {
             MallocExtension *malloc_ext = MallocExtension::instance();
-            if (malloc_ext == NULL || !has_TCMALLOC_SAMPLE_PARAMETER()) {
+            if (malloc_ext == nullptr || !has_TCMALLOC_SAMPLE_PARAMETER()) {
                 os << "Heap profiler is not enabled";
-                if (malloc_ext != NULL) {
+                if (malloc_ext != nullptr) {
                     os << " (no TCMALLOC_SAMPLE_PARAMETER in env)";
                 }
                 os << '.' << (use_html ? "</body></html>" : "\n");
@@ -810,7 +806,7 @@ namespace melon {
             }
         } else if (type == PROFILING_GROWTH) {
             MallocExtension *malloc_ext = MallocExtension::instance();
-            if (malloc_ext == NULL) {
+            if (malloc_ext == nullptr) {
                 os << "Growth profiler is not enabled."
                    << (use_html ? "</body></html>" : "\n");
                 os.move_to(resp);
@@ -917,7 +913,7 @@ namespace melon {
         ProfilingClient profiling_client;
         size_t nwaiters = 0;
         ProfilingEnvironment &env = g_env[type];
-        if (view == NULL) {
+        if (view == nullptr) {
             MELON_SCOPED_LOCK(env.mutex);
             if (env.client) {
                 profiling_client = *env.client;
@@ -960,7 +956,7 @@ namespace melon {
               "}\n"
               "$(function() {\n"
               "  function onDataReceived(data) {\n";
-        if (view == NULL) {
+        if (view == nullptr) {
             os <<
                "    var selEnd = data.indexOf('[addToProfEnd]');\n"
                "    if (selEnd != -1) {\n"
@@ -1039,7 +1035,7 @@ namespace melon {
 
         TRACEPRINTF("Begin to enumerate profiles");
         std::vector<std::string> past_profs;
-        mutil::FilePath prof_dir(FLAGS_rpc_profiling_dir);
+        mutil::FilePath prof_dir(turbo::get_flag(FLAGS_rpc_profiling_dir));
         prof_dir = prof_dir.Append(GetProgramChecksum());
         std::string file_pattern;
         file_pattern.reserve(15);
@@ -1060,7 +1056,7 @@ namespace melon {
         if (!past_profs.empty()) {
             TRACEPRINTF("Sort %lu profiles in decending order", past_profs.size());
             std::sort(past_profs.begin(), past_profs.end(), std::greater<std::string>());
-            int max_profiles = FLAGS_max_profiles_kept/*may be reloaded*/;
+            int max_profiles = turbo::get_flag(FLAGS_max_profiles_kept)/*may be reloaded*/;
             if (max_profiles < 0) {
                 max_profiles = 0;
             }
@@ -1085,7 +1081,7 @@ namespace melon {
         os << "<option value=''>&lt;new profile&gt;</option>";
         for (size_t i = 0; i < past_profs.size(); ++i) {
             os << "<option value='" << past_profs[i] << "' ";
-            if (view != NULL && past_profs[i] == *view) {
+            if (view != nullptr && past_profs[i] == *view) {
                 os << "selected";
             }
             os << '>' << GetBaseName(&past_profs[i]);
@@ -1111,14 +1107,14 @@ namespace melon {
               "<option value=''>&lt;none&gt;</option>";
         for (size_t i = 0; i < past_profs.size(); ++i) {
             os << "<option value='" << past_profs[i] << "' ";
-            if (base_name != NULL && past_profs[i] == *base_name) {
+            if (base_name != nullptr && past_profs[i] == *base_name) {
                 os << "selected";
             }
             os << '>' << GetBaseName(&past_profs[i]);
         }
         os << "</select></div>";
 
-        if (!enabled && view == NULL) {
+        if (!enabled && view == nullptr) {
             os << "<p><span style='color:red'>Error:</span> "
                << type_str << " profiler is not enabled." << extra_desc << "</p>"
                                                                            "<p>To enable all profilers, link tcmalloc and define macros MELON_ENABLE_CPU_PROFILER"
@@ -1130,7 +1126,7 @@ namespace melon {
             return;
         }
 
-        if ((type == PROFILING_CPU || type == PROFILING_CONTENTION) && view == NULL) {
+        if ((type == PROFILING_CPU || type == PROFILING_CONTENTION) && view == nullptr) {
             if (seconds < 0) {
                 os << "Invalid seconds</body></html>";
                 os.move_to(cntl->response_attachment());
@@ -1158,7 +1154,7 @@ namespace melon {
                 os << ", showing in about " << wait_seconds << " seconds ...";
             }
         } else {
-            if ((type == PROFILING_CPU || type == PROFILING_CONTENTION) && view == NULL) {
+            if ((type == PROFILING_CPU || type == PROFILING_CONTENTION) && view == nullptr) {
                 os << "Profiling " << ProfilingType2String(type) << " for "
                    << seconds << " seconds ...";
             } else {

@@ -19,22 +19,20 @@
 
 
 #include <map>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
 #include <melon/utility/threading/platform_thread.h>
 #include <melon/var/var.h>
 #include <melon/var/collector.h>
 
+TURBO_FLAG(int32_t, var_collector_max_pending_samples, 1000,
+           "Destroy unprocessed samples when they're too many");
+
+TURBO_FLAG(int32_t, var_collector_expected_per_second, 1000,
+           "Expected number of samples to be collected per second");
+
 namespace melon::var {
-
-    // TODO: Do we need to expose this flag? Dumping thread may dump different
-    // kind of samples, users are unlikely to make good decisions on this value.
-    DEFINE_int32(var_collector_max_pending_samples, 1000,
-                 "Destroy unprocessed samples when they're too many");
-
-    DEFINE_int32(var_collector_expected_per_second, 1000,
-                 "Expected number of samples to be collected per second");
-
+    
     // CAUTION: Don't change this value unless you know exactly what it means.
     static const int64_t COLLECTOR_GRAB_INTERVAL_US = 100000L; // 100ms
 
@@ -44,10 +42,10 @@ namespace melon::var {
     // Combine two circular linked list into one.
     struct CombineCollected {
         void operator()(Collected *&s1, Collected *s2) const {
-            if (s2 == NULL) {
+            if (s2 == nullptr) {
                 return;
             }
-            if (s1 == NULL) {
+            if (s1 == nullptr) {
                 s1 = s2;
                 return;
             }
@@ -81,13 +79,13 @@ namespace melon::var {
         static void *run_grab_thread(void *arg) {
             mutil::PlatformThread::SetName("var_collector_grabber");
             static_cast<Collector *>(arg)->grab_thread();
-            return NULL;
+            return nullptr;
         }
 
         static void *run_dump_thread(void *arg) {
             mutil::PlatformThread::SetName("var_collector_dumper");
             static_cast<Collector *>(arg)->dump_thread();
-            return NULL;
+            return nullptr;
         }
 
         static int64_t get_pending_count(void *arg) {
@@ -117,11 +115,11 @@ namespace melon::var {
     Collector::Collector()
             : _last_active_cpuwide_us(mutil::cpuwide_time_us()), _created(false), _stop(false), _grab_thread(0),
               _dump_thread(0), _ngrab(0), _ndrop(0), _ndump(0) {
-        pthread_mutex_init(&_dump_thread_mutex, NULL);
-        pthread_cond_init(&_dump_thread_cond, NULL);
-        pthread_mutex_init(&_sleep_mutex, NULL);
-        pthread_cond_init(&_sleep_cond, NULL);
-        int rc = pthread_create(&_grab_thread, NULL, run_grab_thread, this);
+        pthread_mutex_init(&_dump_thread_mutex, nullptr);
+        pthread_cond_init(&_dump_thread_cond, nullptr);
+        pthread_mutex_init(&_sleep_mutex, nullptr);
+        pthread_cond_init(&_sleep_cond, nullptr);
+        int rc = pthread_create(&_grab_thread, nullptr, run_grab_thread, this);
         if (rc != 0) {
             LOG(ERROR) << "Fail to create Collector, " << berror(rc);
         } else {
@@ -132,7 +130,7 @@ namespace melon::var {
     Collector::~Collector() {
         if (_created) {
             _stop = true;
-            pthread_join(_grab_thread, NULL);
+            pthread_join(_grab_thread, nullptr);
             _created = false;
         }
         pthread_mutex_destroy(&_dump_thread_mutex);
@@ -146,7 +144,7 @@ namespace melon::var {
         return *(T *) arg;
     }
 
-// for limiting samples returning NULL in speed_limit()
+// for limiting samples returning nullptr in speed_limit()
     static CollectorSpeedLimit g_null_speed_limit = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
 
     void Collector::grab_thread() {
@@ -157,7 +155,7 @@ namespace melon::var {
         // called inside the separate _dump_thread to prevent a slow callback
         // (caused by busy disk generally) from blocking collecting code too long
         // that pending requests may explode memory.
-        CHECK_EQ(0, pthread_create(&_dump_thread, NULL, run_dump_thread, this));
+        CHECK_EQ(0, pthread_create(&_dump_thread, nullptr, run_dump_thread, this));
 
         // vars
         melon::var::PassiveStatus<int64_t> pending_sampled_data(
@@ -195,7 +193,7 @@ namespace melon::var {
             if (head) {
                 mutil::LinkNode<Collected> tmp_root;
                 head->InsertBeforeAsList(&tmp_root);
-                head = NULL;
+                head = nullptr;
 
                 // Group samples by preprocessors.
                 for (mutil::LinkNode<Collected> *p = tmp_root.next(); p != &tmp_root;) {
@@ -214,13 +212,13 @@ namespace melon::var {
                         // don't call preprocessor when there's no samples.
                         continue;
                     }
-                    if (it->first != NULL) {
+                    if (it->first != nullptr) {
                         it->first->process(list);
                     }
                     for (size_t i = 0; i < list.size(); ++i) {
                         Collected *p = list[i];
                         CollectorSpeedLimit *speed_limit = p->speed_limit();
-                        if (speed_limit == NULL) {
+                        if (speed_limit == nullptr) {
                             ++ngrab_map[&g_null_speed_limit];
                         } else {
                             // Add up the samples of certain type.
@@ -230,7 +228,7 @@ namespace melon::var {
                         // FIXME: equal probabilities to drop.
                         ++_ngrab;
                         if (_ngrab >= _ndrop + _ndump +
-                                      FLAGS_var_collector_max_pending_samples) {
+                                      turbo::get_flag(FLAGS_var_collector_max_pending_samples)) {
                             ++_ndrop;
                             p->destroy();
                         } else {
@@ -276,7 +274,7 @@ namespace melon::var {
             _stop = true;
             pthread_cond_signal(&_dump_thread_cond);
         }
-        CHECK_EQ(0, pthread_join(_dump_thread, NULL));
+        CHECK_EQ(0, pthread_join(_dump_thread, nullptr));
     }
 
     void Collector::wakeup_grab_thread() {
@@ -311,11 +309,11 @@ namespace melon::var {
                 // use the default interval which may make the calculated
                 // sampling_range larger.
             }
-            new_sampling_range = FLAGS_var_collector_expected_per_second
+            new_sampling_range = turbo::get_flag(FLAGS_var_collector_expected_per_second)
                                  * interval_us * COLLECTOR_SAMPLING_BASE / (1000000L * round_ngrab);
         } else {
             // NOTE: the multiplications are unlikely to overflow.
-            new_sampling_range = FLAGS_var_collector_expected_per_second
+            new_sampling_range = turbo::get_flag(FLAGS_var_collector_expected_per_second)
                                  * interval_us * old_sampling_range / (1000000L * round_ngrab);
             // Don't grow or shrink too fast.
             if (interval_us < 1000000L) {
@@ -347,14 +345,14 @@ namespace melon::var {
                     1, mutil::memory_order_relaxed);
             if (before_add == 0) {
                 sl->first_sample_real_us = mutil::gettimeofday_us();
-            } else if (before_add >= FLAGS_var_collector_expected_per_second) {
+            } else if (before_add >= turbo::get_flag(FLAGS_var_collector_expected_per_second)) {
                 mutil::get_leaky_singleton<Collector>()->wakeup_grab_thread();
             }
         }
         return sl->sampling_range;
     }
 
-// Call user's callbacks in this thread.
+    // Call user's callbacks in this thread.
     void Collector::dump_thread() {
         int64_t last_ns = mutil::cpuwide_time_ns();
 
@@ -375,7 +373,7 @@ namespace melon::var {
         while (!_stop) {
             ++round;
             // Get new samples set by grab_thread.
-            mutil::LinkNode<Collected> *newhead = NULL;
+            mutil::LinkNode<Collected> *newhead = nullptr;
             {
                 MELON_SCOPED_LOCK(_dump_thread_mutex);
                 while (!_stop && _dump_root.next() == &_dump_root) {

@@ -19,13 +19,10 @@
 
 #pragma once
 
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/declare.h>
 
-namespace melon::var {
-
-    DECLARE_int32(var_latency_p1);
-    DECLARE_int32(var_latency_p2);
-    DECLARE_int32(var_latency_p3);
-    DECLARE_int32(var_max_dump_multi_dimension_metric_number);
-    DECLARE_bool(quote_vector);
-}  // namespace melon::var
+TURBO_DECLARE_FLAG(int32_t, var_latency_p1);
+TURBO_DECLARE_FLAG(int32_t, var_latency_p2);
+TURBO_DECLARE_FLAG(int32_t, var_latency_p3);
+TURBO_DECLARE_FLAG(int32_t, var_max_dump_multi_dimension_metric_number);
+TURBO_DECLARE_FLAG(bool, quote_vector);

@@ -14,23 +14,25 @@
 
 
 #include <map>                  // std::map
-#include <gflags/gflags.h>      // google::ParseCommandLineFlags
+#include <turbo/flags/flag.h>    // TURBO_FLAG
+#include <turbo/flags/parse.h>
+#include <turbo/flags/usage.h>
 #include <melon/utility/string_printf.h>
 #include <melon/raft/cli.h>          // raft::cli::*
 
+TURBO_FLAG(int32_t, timeout_ms, -1, "Timeout (in milliseconds) of the operation");
+TURBO_FLAG(int32_t, max_retry, 3, "Max retry times of each operation");
+TURBO_FLAG(std::string, conf, "", "Current configuration of the raft group");
+TURBO_FLAG(std::string, peer, "", "Id of the operating peer");
+TURBO_FLAG(std::string, new_peers, "", "Peers that the group is going to consists of");
+TURBO_FLAG(std::string, group, "", "Id of the raft group");
+
 namespace melon::raft {
 namespace cli {
-
-DEFINE_int32(timeout_ms, -1, "Timeout (in milliseconds) of the operation");
-DEFINE_int32(max_retry, 3, "Max retry times of each operation");
-DEFINE_string(conf, "", "Current configuration of the raft group");
-DEFINE_string(peer, "", "Id of the operating peer");
-DEFINE_string(new_peers, "", "Peers that the group is going to consists of");
-DEFINE_string(group, "", "Id of the raft group");
-
+    
 #define CHECK_FLAG(flagname)                                            \
     do {                                                                \
-        if ((FLAGS_ ## flagname).empty()) {                             \
+        if ((turbo::get_flag(FLAGS_ ## flagname)).empty()) {                             \
             LOG(ERROR) << __FUNCTION__ << " requires --" # flagname ;   \
             return -1;                                                  \
         }                                                               \
@@ -41,19 +43,19 @@ int add_peer() {
     CHECK_FLAG(peer);
     CHECK_FLAG(group);
     Configuration conf;
-    if (conf.parse_from(FLAGS_conf) != 0) {
-        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
+    if (conf.parse_from(turbo::get_flag(FLAGS_conf)) != 0) {
+        LOG(ERROR) << "Fail to parse --conf=`" << turbo::get_flag(FLAGS_conf) << '\'';
         return -1;
     }
     PeerId new_peer;
-    if (new_peer.parse(FLAGS_peer) != 0) {
-        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+    if (new_peer.parse(turbo::get_flag(FLAGS_peer)) != 0) {
+        LOG(ERROR) << "Fail to parse --peer=`" << turbo::get_flag(FLAGS_peer)<< '\'';
         return -1;
     }
     CliOptions opt;
-    opt.timeout_ms = FLAGS_timeout_ms;
-    opt.max_retry = FLAGS_max_retry;
-    mutil::Status st = add_peer(FLAGS_group, conf, new_peer, opt);
+    opt.timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    opt.max_retry = turbo::get_flag(FLAGS_max_retry);
+    mutil::Status st = add_peer(turbo::get_flag(FLAGS_group), conf, new_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to add_peer : " << st;
         return -1;
@@ -66,19 +68,19 @@ int remove_peer() {
     CHECK_FLAG(peer);
     CHECK_FLAG(group);
     Configuration conf;
-    if (conf.parse_from(FLAGS_conf) != 0) {
-        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
+    if (conf.parse_from(turbo::get_flag(FLAGS_conf)) != 0) {
+        LOG(ERROR) << "Fail to parse --conf=`" << turbo::get_flag(FLAGS_conf) << '\'';
         return -1;
     }
     PeerId removing_peer;
-    if (removing_peer.parse(FLAGS_peer) != 0) {
-        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+    if (removing_peer.parse(turbo::get_flag(FLAGS_peer)) != 0) {
+        LOG(ERROR) << "Fail to parse --peer=`" << turbo::get_flag(FLAGS_peer)<< '\'';
         return -1;
     }
     CliOptions opt;
-    opt.timeout_ms = FLAGS_timeout_ms;
-    opt.max_retry = FLAGS_max_retry;
-    mutil::Status st = remove_peer(FLAGS_group, conf, removing_peer, opt);
+    opt.timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    opt.max_retry = turbo::get_flag(FLAGS_max_retry);
+    mutil::Status st = remove_peer(turbo::get_flag(FLAGS_group), conf, removing_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to remove_peer : " << st;
         return -1;
@@ -91,19 +93,19 @@ int change_peers() {
     CHECK_FLAG(conf);
     CHECK_FLAG(group);
     Configuration new_peers;
-    if (new_peers.parse_from(FLAGS_new_peers) != 0) {
-        LOG(ERROR) << "Fail to parse --new_peers=`" << FLAGS_new_peers << '\'';
+    if (new_peers.parse_from(turbo::get_flag(FLAGS_new_peers)) != 0) {
+        LOG(ERROR) << "Fail to parse --new_peers=`" << turbo::get_flag(FLAGS_new_peers) << '\'';
         return -1;
     }
     Configuration conf;
-    if (conf.parse_from(FLAGS_conf) != 0) {
-        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf<< '\'';
+    if (conf.parse_from(turbo::get_flag(FLAGS_conf)) != 0) {
+        LOG(ERROR) << "Fail to parse --conf=`" << turbo::get_flag(FLAGS_conf)<< '\'';
         return -1;
     }
     CliOptions opt;
-    opt.timeout_ms = FLAGS_timeout_ms;
-    opt.max_retry = FLAGS_max_retry;
-    mutil::Status st = change_peers(FLAGS_group, conf, new_peers, opt);
+    opt.timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    opt.max_retry = turbo::get_flag(FLAGS_max_retry);
+    mutil::Status st = change_peers(turbo::get_flag(FLAGS_group), conf, new_peers, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to change_peers : " << st;
         return -1;
@@ -116,19 +118,19 @@ int reset_peer() {
     CHECK_FLAG(peer);
     CHECK_FLAG(group);
     Configuration new_peers;
-    if (new_peers.parse_from(FLAGS_new_peers) != 0) {
-        LOG(ERROR) << "Fail to parse --new_peers=`" << FLAGS_new_peers << '\'';
+    if (new_peers.parse_from(turbo::get_flag(FLAGS_new_peers)) != 0) {
+        LOG(ERROR) << "Fail to parse --new_peers=`" << turbo::get_flag(FLAGS_new_peers) << '\'';
         return -1;
     }
     PeerId target_peer;
-    if (target_peer.parse(FLAGS_peer) != 0) {
-        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+    if (target_peer.parse(turbo::get_flag(FLAGS_peer)) != 0) {
+        LOG(ERROR) << "Fail to parse --peer=`" << turbo::get_flag(FLAGS_peer)<< '\'';
         return -1;
     }
     CliOptions opt;
-    opt.timeout_ms = FLAGS_timeout_ms;
-    opt.max_retry = FLAGS_max_retry;
-    mutil::Status st = reset_peer(FLAGS_group, target_peer, new_peers, opt);
+    opt.timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    opt.max_retry = turbo::get_flag(FLAGS_max_retry);
+    mutil::Status st = reset_peer(turbo::get_flag(FLAGS_group), target_peer, new_peers, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to reset_peer : " << st;
         return -1;
@@ -140,14 +142,14 @@ int snapshot() {
     CHECK_FLAG(peer);
     CHECK_FLAG(group);
     PeerId target_peer;
-    if (target_peer.parse(FLAGS_peer) != 0) {
-        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+    if (target_peer.parse(turbo::get_flag(FLAGS_peer)) != 0) {
+        LOG(ERROR) << "Fail to parse --peer=`" << turbo::get_flag(FLAGS_peer)<< '\'';
         return -1;
     }
     CliOptions opt;
-    opt.timeout_ms = FLAGS_timeout_ms;
-    opt.max_retry = FLAGS_max_retry;
-    mutil::Status st = snapshot(FLAGS_group, target_peer, opt);
+    opt.timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    opt.max_retry = turbo::get_flag(FLAGS_max_retry);
+    mutil::Status st = snapshot(turbo::get_flag(FLAGS_group), target_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to make snapshot : " << st;
         return -1;
@@ -160,19 +162,19 @@ int transfer_leader() {
     CHECK_FLAG(peer);
     CHECK_FLAG(group);
     Configuration conf;
-    if (conf.parse_from(FLAGS_conf) != 0) {
-        LOG(ERROR) << "Fail to parse --conf=`" << FLAGS_conf << '\'';
+    if (conf.parse_from(turbo::get_flag(FLAGS_conf)) != 0) {
+        LOG(ERROR) << "Fail to parse --conf=`" << turbo::get_flag(FLAGS_conf) << '\'';
         return -1;
     }
     PeerId target_peer;
-    if (target_peer.parse(FLAGS_peer) != 0) {
-        LOG(ERROR) << "Fail to parse --peer=`" << FLAGS_peer<< '\'';
+    if (target_peer.parse(turbo::get_flag(FLAGS_peer)) != 0) {
+        LOG(ERROR) << "Fail to parse --peer=`" << turbo::get_flag(FLAGS_peer)<< '\'';
         return -1;
     }
     CliOptions opt;
-    opt.timeout_ms = FLAGS_timeout_ms;
-    opt.max_retry = FLAGS_max_retry;
-    mutil::Status st = transfer_leader(FLAGS_group, conf, target_peer, opt);
+    opt.timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    opt.max_retry = turbo::get_flag(FLAGS_max_retry);
+    mutil::Status st = transfer_leader(turbo::get_flag(FLAGS_group), conf, target_peer, opt);
     if (!st.ok()) {
         LOG(ERROR) << "Fail to transfer_leader: " << st;
         return -1;
@@ -228,8 +230,8 @@ int main(int argc , char* argv[]) {
                         "  snapshot --group=$group_id --peer=$target_peer\n"
                         "  transfer_leader --group=$group_id --peer=$target_leader --conf=$current_conf\n",
                         proc_name);
-    google::SetUsageMessage(help_str);
-    google::ParseCommandLineFlags(&argc, &argv, true);
+    turbo::set_program_usage_message(help_str);
+    turbo::parse_command_line(argc, argv);
     if (argc != 2) {
         std::cerr << help_str;
         return -1;

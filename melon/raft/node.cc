@@ -35,46 +35,47 @@
 #include <melon/raft/snapshot_executor.h>
 #include <melon/proto/raft/errno.pb.h>
 #include <cinttypes>
+#include <turbo/flags/flag.h>
+
+
+TURBO_FLAG(int32_t, raft_max_election_delay_ms, 1000,
+           "Max election delay time allowed by user").on_validate(turbo::GtValidator<int32_t, 0>::validate);
+
+TURBO_FLAG(bool, raft_step_down_when_vote_timedout, true,
+           "candidate steps down when reaching timeout").on_validate(turbo::AllPassValidator<bool>::validate);
+
+TURBO_FLAG(bool, raft_enable_append_entries_cache, false,
+           "enable cache for out-of-order append entries requests, should used when "
+           "pipeline replication is enabled (raft_max_parallel_append_entries_rpc_num > 1).").on_validate(
+        turbo::AllPassValidator<bool>::validate);
+
+TURBO_FLAG(int32_t, raft_max_append_entries_cache_size, 8,
+           "the max size of out-of-order append entries cache").on_validate(turbo::GtValidator<int32_t, 0>::validate);
+
+TURBO_FLAG(int64_t, raft_append_entry_high_lat_us, 1000 * 1000,
+           "append entry high latency us").on_validate(turbo::GtValidator<int32_t, 0>::validate);
+
+TURBO_FLAG(bool, raft_trace_append_entry_latency, false,
+           "trace append entry latency").on_validate(turbo::AllPassValidator<bool>::validate);
+
+TURBO_FLAG(int32_t, raft_rpc_channel_connect_timeout_ms, 200,
+           "Timeout in milliseconds for establishing connections of RPCs").on_validate(
+        turbo::GtValidator<int32_t, 0>::validate);
+
+TURBO_FLAG(bool, raft_enable_witness_to_leader, false,
+           "enable witness temporarily to become leader when leader down accidently");
+TURBO_FLAG(int32_t, raft_election_heartbeat_factor, 10, "raft election:heartbeat timeout factor");
+TURBO_FLAG(int32_t, raft_apply_batch, 32, "Max number of tasks that can be applied "
+                                          " in a single batch").on_validate(
+        turbo::GtValidator<int32_t, 0>::validate);
 
 namespace melon::raft {
-
-    DEFINE_int32(raft_max_election_delay_ms, 1000,
-                 "Max election delay time allowed by user");
-    MELON_VALIDATE_GFLAG(raft_max_election_delay_ms, melon::PositiveInteger);
-
-    DEFINE_bool(raft_step_down_when_vote_timedout, true,
-                "candidate steps down when reaching timeout");
-    MELON_VALIDATE_GFLAG(raft_step_down_when_vote_timedout, melon::PassValidate);
-
-    DEFINE_bool(raft_enable_append_entries_cache, false,
-                "enable cache for out-of-order append entries requests, should used when "
-                "pipeline replication is enabled (raft_max_parallel_append_entries_rpc_num > 1).");
-    MELON_VALIDATE_GFLAG(raft_enable_append_entries_cache, ::melon::PassValidate);
-
-    DEFINE_int32(raft_max_append_entries_cache_size, 8,
-                 "the max size of out-of-order append entries cache");
-    MELON_VALIDATE_GFLAG(raft_max_append_entries_cache_size, ::melon::PositiveInteger);
-
-    DEFINE_int64(raft_append_entry_high_lat_us, 1000 * 1000,
-                 "append entry high latency us");
-    MELON_VALIDATE_GFLAG(raft_append_entry_high_lat_us, melon::PositiveInteger);
-
-    DEFINE_bool(raft_trace_append_entry_latency, false,
-                "trace append entry latency");
-    MELON_VALIDATE_GFLAG(raft_trace_append_entry_latency, melon::PassValidate);
-
-    DEFINE_int32(raft_rpc_channel_connect_timeout_ms, 200,
-                 "Timeout in milliseconds for establishing connections of RPCs");
-    MELON_VALIDATE_GFLAG(raft_rpc_channel_connect_timeout_ms, melon::PositiveInteger);
-
-    DEFINE_bool(raft_enable_witness_to_leader, false,
-                "enable witness temporarily to become leader when leader down accidently");
 
 #ifndef UNIT_TEST
     static melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 #else
-                                                                                                                            // Unit tests should check this value
-melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
+    // Unit tests should check this value
+   melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 #endif
 
     static melon::var::CounterRecorder g_apply_tasks_batch_counter(
@@ -125,25 +126,25 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
     };
 
     inline int random_timeout(int timeout_ms) {
-        int32_t delta = std::min(timeout_ms, FLAGS_raft_max_election_delay_ms);
+        int32_t delta = std::min(timeout_ms, turbo::get_flag(FLAGS_raft_max_election_delay_ms));
         return mutil::fast_rand_in(timeout_ms, timeout_ms + delta);
     }
 
-    DEFINE_int32(raft_election_heartbeat_factor, 10, "raft election:heartbeat timeout factor");
 
     static inline int heartbeat_timeout(int election_timeout) {
-        if (FLAGS_raft_election_heartbeat_factor <= 0) {
+        if (turbo::get_flag(FLAGS_raft_election_heartbeat_factor) <= 0) {
             LOG(WARNING) << "raft_election_heartbeat_factor flag must be greater than 1"
-                         << ", but get " << FLAGS_raft_election_heartbeat_factor
+                         << ", but get " << turbo::get_flag(FLAGS_raft_election_heartbeat_factor)
                          << ", it will be set to default value 10.";
-            FLAGS_raft_election_heartbeat_factor = 10;
+            turbo::set_flag(&FLAGS_raft_election_heartbeat_factor, 10);
         }
-        return std::max(election_timeout / FLAGS_raft_election_heartbeat_factor, 10);
+        return std::max(election_timeout / turbo::get_flag(FLAGS_raft_election_heartbeat_factor), 10);
     }
 
     NodeImpl::NodeImpl(const GroupId &group_id, const PeerId &peer_id)
             : _state(STATE_UNINITIALIZED), _current_term(0), _group_id(group_id), _server_id(peer_id), _conf_ctx(this),
-              _log_storage(nullptr), _meta_storage(nullptr), _closure_queue(nullptr), _config_manager(nullptr), _log_manager(nullptr),
+              _log_storage(nullptr), _meta_storage(nullptr), _closure_queue(nullptr), _config_manager(nullptr),
+              _log_manager(nullptr),
               _fsm_caller(nullptr), _ballot_box(nullptr), _snapshot_executor(nullptr), _stop_transfer_arg(nullptr),
               _vote_triggered(false), _waking_candidate(0), _append_entries_cache(nullptr),
               _append_entries_cache_version(0), _node_readonly(false), _majority_nodes_readonly(false) {
@@ -154,7 +155,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
 
     NodeImpl::NodeImpl()
             : _state(STATE_UNINITIALIZED), _current_term(0), _group_id(), _server_id(), _conf_ctx(this),
-              _log_storage(nullptr), _meta_storage(nullptr), _closure_queue(nullptr), _config_manager(nullptr), _log_manager(nullptr),
+              _log_storage(nullptr), _meta_storage(nullptr), _closure_queue(nullptr), _config_manager(nullptr),
+              _log_manager(nullptr),
               _fsm_caller(nullptr), _ballot_box(nullptr), _snapshot_executor(nullptr), _stop_transfer_arg(nullptr),
               _vote_triggered(false), _waking_candidate(0), _append_entries_cache(nullptr),
               _append_entries_cache_version(0), _node_readonly(false), _majority_nodes_readonly(false) {
@@ -482,7 +484,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             // When this node is a witness, set the election_timeout to be twice
             // of the normal replica to ensure that the normal replica has a higher
             // priority and is selected as the master
-            if (FLAGS_raft_enable_witness_to_leader) {
+            if (turbo::get_flag(FLAGS_raft_enable_witness_to_leader)) {
                 CHECK_EQ(0, _election_timer.init(this, options.election_timeout_ms * 2));
                 CHECK_EQ(0, _vote_timer.init(this, options.election_timeout_ms * 2 + options.max_clock_drift_ms));
             }
@@ -496,7 +498,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _config_manager = new ConfigurationManager();
 
         if (fiber::execution_queue_start(&_apply_queue_id, nullptr,
-                                           execute_applying_tasks, this) != 0) {
+                                         execute_applying_tasks, this) != 0) {
             LOG(ERROR) << "node " << _group_id << ":" << _server_id
                        << " fail to start execution_queue";
             return -1;
@@ -635,9 +637,6 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         return 0;
     }
 
-    DEFINE_int32(raft_apply_batch, 32, "Max number of tasks that can be applied "
-                                       " in a single batch");
-    MELON_VALIDATE_GFLAG(raft_apply_batch, ::melon::PositiveInteger);
 
     int NodeImpl::execute_applying_tasks(
             void *meta, fiber::TaskIterator<LogEntryAndClosure> &iter) {
@@ -646,7 +645,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         // TODO: the batch size should limited by both task size and the total log
         // size
-        const size_t batch_size = FLAGS_raft_apply_batch;
+        const size_t batch_size = turbo::get_flag(FLAGS_raft_apply_batch);
         DEFINE_SMALL_ARRAY(LogEntryAndClosure, tasks, batch_size, 256);
         size_t cur_size = 0;
         NodeImpl *m = (NodeImpl *) meta;
@@ -1096,7 +1095,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         }
         const mutil::EndPoint remote_side = controller->remote_side();
         const int64_t saved_term = _current_term;
-        if (FLAGS_raft_enable_leader_lease) {
+        if (turbo::get_flag(FLAGS_raft_enable_leader_lease)) {
             // We will disrupt the leader, don't let the old leader
             // step down.
             response->set_term(_current_term);
@@ -1235,8 +1234,8 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                   << " starts to transfer leadership to " << peer_id;
         _stop_transfer_arg = new StopTransferArg(this, _current_term, peer_id);
         if (fiber_timer_add(&_transfer_timer,
-                              mutil::milliseconds_from_now(_options.election_timeout_ms),
-                              on_transfer_timeout, _stop_transfer_arg) != 0) {
+                            mutil::milliseconds_from_now(_options.election_timeout_ms),
+                            on_transfer_timeout, _stop_transfer_arg) != 0) {
             lck.unlock();
             LOG(ERROR) << "Fail to add timer";
             on_transfer_timeout(_stop_transfer_arg);
@@ -1312,7 +1311,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         _replicator_group.reset_heartbeat_interval(
                 heartbeat_timeout(_options.election_timeout_ms));
         _replicator_group.reset_election_timeout_interval(_options.election_timeout_ms);
-        if (_options.witness && FLAGS_raft_enable_witness_to_leader) {
+        if (_options.witness && turbo::get_flag(FLAGS_raft_enable_witness_to_leader)) {
             _election_timer.reset(election_timeout_ms * 2);
             _follower_lease.reset_election_timeout_ms(election_timeout_ms * 2, _options.max_clock_drift_ms);
         } else {
@@ -1350,7 +1349,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
         if (_state != STATE_CANDIDATE) {
             return;
         }
-        if (FLAGS_raft_step_down_when_vote_timedout) {
+        if (turbo::get_flag(FLAGS_raft_step_down_when_vote_timedout)) {
             // step down to follower
             LOG(WARNING) << "node " << node_id()
                          << " term " << _current_term
@@ -1632,7 +1631,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             melon::ChannelOptions options;
             options.connection_type = melon::CONNECTION_TYPE_SINGLE;
             options.max_retry = 0;
-            options.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
+            options.connect_timeout_ms = turbo::get_flag(FLAGS_raft_rpc_channel_connect_timeout_ms);
             melon::Channel channel;
             if (0 != channel.Init(iter->addr, &options)) {
                 LOG(WARNING) << "node " << _group_id << ":" << _server_id
@@ -1737,7 +1736,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             }
             melon::ChannelOptions options;
             options.connection_type = melon::CONNECTION_TYPE_SINGLE;
-            options.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
+            options.connect_timeout_ms = turbo::get_flag(FLAGS_raft_rpc_channel_connect_timeout_ms);
             options.max_retry = 0;
             melon::Channel channel;
             if (0 != channel.Init(iter->addr, &options)) {
@@ -1989,11 +1988,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                         _first_log_index, _first_log_index + _nentries - 1, _node_id.peer_id);
             }
             int64_t now = mutil::cpuwide_time_us();
-            if (FLAGS_raft_trace_append_entry_latency &&
-                now - metric.start_time_us > (int64_t) FLAGS_raft_append_entry_high_lat_us) {
+            if (turbo::get_flag(FLAGS_raft_trace_append_entry_latency) &&
+                now - metric.start_time_us > (int64_t) turbo::get_flag(FLAGS_raft_append_entry_high_lat_us)) {
                 LOG(WARNING) << "leader append entry latency us " << (now - metric.start_time_us)
                              << " greater than "
-                             << FLAGS_raft_append_entry_high_lat_us
+                             << turbo::get_flag(FLAGS_raft_append_entry_high_lat_us)
                              << metric
                              << " node " << _node_id
                              << " log_index [" << _first_log_index
@@ -2346,11 +2345,11 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             //_ballot_box is thread safe and tolerates disorder.
             _node->_ballot_box->set_last_committed_index(committed_index);
             int64_t now = mutil::cpuwide_time_us();
-            if (FLAGS_raft_trace_append_entry_latency && now - metric.start_time_us >
-                                                         (int64_t) FLAGS_raft_append_entry_high_lat_us) {
+            if (turbo::get_flag(FLAGS_raft_trace_append_entry_latency) && now - metric.start_time_us >
+                                                         (int64_t) turbo::get_flag(FLAGS_raft_append_entry_high_lat_us)) {
                 LOG(WARNING) << "follower append entry latency us " << (now - metric.start_time_us)
                              << " greater than "
-                             << FLAGS_raft_append_entry_high_lat_us
+                             << turbo::get_flag(FLAGS_raft_append_entry_high_lat_us)
                              << metric
                              << " node " << _node->node_id()
                              << " log_index [" << _request->prev_log_index() + 1
@@ -2894,7 +2893,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
                                                       AppendEntriesResponse *response,
                                                       google::protobuf::Closure *done,
                                                       int64_t local_last_index) {
-        if (!FLAGS_raft_enable_append_entries_cache ||
+        if (!turbo::get_flag(FLAGS_raft_enable_append_entries_cache) ||
             local_last_index >= request->prev_log_index() ||
             request->entries_size() == 0) {
             return false;
@@ -3044,7 +3043,7 @@ melon::var::Adder<int64_t> g_num_nodes("raft_node_count");
             }
         }
         HandleAppendEntriesFromCacheArg *arg = nullptr;
-        while (_rpc_map.size() > (size_t) FLAGS_raft_max_append_entries_cache_size) {
+        while (_rpc_map.size() > (size_t) turbo::get_flag(FLAGS_raft_max_append_entries_cache_size)) {
             std::map<int64_t, AppendEntriesRpc *>::iterator it = _rpc_map.end();
             --it;
             AppendEntriesRpc *rpc_to_release = it->second;

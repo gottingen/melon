@@ -22,18 +22,18 @@
 #include <melon/utility/time.h>
 #include <turbo/log/logging.h>
 #include <melon/utility/file_util.h>                         // mutil::CreateDirectory
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/rpc/reloadable_flags.h>
 #include <melon/raft/util.h>
 #include <melon/raft/protobuf_file.h>
 #include <melon/proto/raft/local_storage.pb.h>
 #include <melon/raft/raft_meta.h>
 
-namespace melon::raft {
+TURBO_FLAG(int32_t, raft_meta_write_batch, 128,
+           "Max number of tasks that can be written into db in a single batch").on_validate(
+        turbo::GtValidator<int32_t, 0>::validate);
 
-    DEFINE_int32(raft_meta_write_batch, 128,
-                 "Max number of tasks that can be written into db in a single batch");
-    MELON_VALIDATE_GFLAG(raft_meta_write_batch, melon::PositiveInteger);
+namespace melon::raft {
 
     static melon::var::LatencyRecorder g_load_pb_raft_meta("raft_load_pb_raft_meta");
     static melon::var::LatencyRecorder g_save_pb_raft_meta("raft_save_pb_raft_meta");
@@ -443,7 +443,7 @@ namespace melon::raft {
         mutil::FilePath dir_path(_path);
         mutil::File::Error e;
         if (!mutil::CreateDirectoryAndGetError(
-                dir_path, &e, FLAGS_raft_create_parent_directories)) {
+                dir_path, &e, turbo::get_flag(FLAGS_raft_create_parent_directories))) {
             LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             status.set_error(e, "Fail to create dir when init SingleMetaStorage, "
                                 "path: %s", _path.c_str());
@@ -637,7 +637,7 @@ namespace melon::raft {
         mutil::FilePath dir_path(_path);
         mutil::File::Error e;
         if (!mutil::CreateDirectoryAndGetError(
-                dir_path, &e, FLAGS_raft_create_parent_directories)) {
+                dir_path, &e, turbo::get_flag(FLAGS_raft_create_parent_directories))) {
             lck.unlock();
             LOG(ERROR) << "Fail to create " << dir_path.value() << " : " << e;
             status.set_error(e, "Fail to create dir when init MergedMetaStorage, "
@@ -664,9 +664,9 @@ namespace melon::raft {
         execq_opt.fiber_attr = FIBER_ATTR_NORMAL;
         //execq_opt.max_tasks_size = 256;
         if (fiber::execution_queue_start(&_queue_id,
-                                           &execq_opt,
-                                           KVBasedMergedMetaStorageImpl::run,
-                                           this) != 0) {
+                                         &execq_opt,
+                                         KVBasedMergedMetaStorageImpl::run,
+                                         this) != 0) {
             status.set_error(EINVAL, "Fail to start execution_queue, path: %s",
                              _path.c_str());
             return status;
@@ -710,7 +710,7 @@ namespace melon::raft {
         }
 
         KVBasedMergedMetaStorageImpl *mss = (KVBasedMergedMetaStorageImpl *) meta;
-        const size_t batch_size = FLAGS_raft_meta_write_batch;
+        const size_t batch_size = turbo::get_flag(FLAGS_raft_meta_write_batch);
         size_t cur_size = 0;
         leveldb::WriteBatch updates;
         DEFINE_SMALL_ARRAY(Closure*, dones, batch_size, 256);

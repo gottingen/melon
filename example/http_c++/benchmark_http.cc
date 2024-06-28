@@ -20,24 +20,24 @@
 
 // Benchmark http-server by multiple threads.
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/fiber/fiber.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/server.h>
 #include <melon/var/var.h>
 
-DEFINE_string(data, "", "POST this data to the http server");
-DEFINE_int32(thread_num, 50, "Number of threads to send requests");
-DEFINE_bool(use_fiber, false, "Use fiber to send requests");
-DEFINE_string(connection_type, "", "Connection type. Available values: single, pooled, short");
-DEFINE_string(url, "0.0.0.0:8018/HttpService/Echo", "url of server");
-DEFINE_string(load_balancer, "", "The algorithm for load balancing");
-DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
-DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)"); 
-DEFINE_bool(dont_fail, false, "Print fatal when some call failed");
-DEFINE_int32(dummy_port, -1, "Launch dummy server at this port");
-DEFINE_string(protocol, "http", "Client-side protocol");
+TURBO_FLAG(std::string, data, "", "POST this data to the http server");
+TURBO_FLAG(int32_t, thread_num, 50, "Number of threads to send requests");
+TURBO_FLAG(bool, use_fiber, false, "Use fiber to send requests");
+TURBO_FLAG(std::string, connection_type, "", "Connection type. Available values: single, pooled, short");
+TURBO_FLAG(std::string, url, "0.0.0.0:8038/HttpService/Echo", "url of server");
+TURBO_FLAG(std::string, load_balancer, "", "The algorithm for load balancing");
+TURBO_FLAG(int32_t, timeout_ms, 100, "RPC timeout in milliseconds");
+TURBO_FLAG(int32_t, max_retry, 3, "Max retries(not including the first RPC)"); 
+TURBO_FLAG(bool, dont_fail, false, "Print fatal when some call failed");
+TURBO_FLAG(int32_t, dummy_port, -1, "Launch dummy server at this port");
+TURBO_FLAG(std::string, protocol, "http", "Client-side protocol");
 
 melon::var::LatencyRecorder g_latency_recorder("client");
 
@@ -49,12 +49,12 @@ static void* sender(void* arg) {
         // on stack.
         melon::Controller cntl;
 
-        cntl.set_timeout_ms(FLAGS_timeout_ms/*milliseconds*/);
-        cntl.set_max_retry(FLAGS_max_retry);
-        cntl.http_request().uri() = FLAGS_url;
-        if (!FLAGS_data.empty()) {
+        cntl.set_timeout_ms(turbo::get_flag(FLAGS_timeout_ms)/*milliseconds*/);
+        cntl.set_max_retry(turbo::get_flag(FLAGS_max_retry));
+        cntl.http_request().uri() = turbo::get_flag(FLAGS_url);
+        if (!turbo::get_flag(FLAGS_data).empty()) {
             cntl.http_request().set_method(melon::HTTP_METHOD_POST);
-            cntl.request_attachment().append(FLAGS_data);
+            cntl.request_attachment().append(turbo::get_flag(FLAGS_data));
         }
 
         // Because `done'(last parameter) is nullptr, this function waits until
@@ -63,7 +63,7 @@ static void* sender(void* arg) {
         if (!cntl.Failed()) {
             g_latency_recorder << cntl.latency_us();
         } else {
-            CHECK(melon::IsAskedToQuit() || !FLAGS_dont_fail)
+            CHECK(melon::IsAskedToQuit() || !turbo::get_flag(FLAGS_dont_fail))
                 << "error=" << cntl.ErrorText() << " latency=" << cntl.latency_us();
             // We can't connect to the server, sleep a while. Notice that this
             // is a specific sleeping to prevent this thread from spinning too
@@ -76,36 +76,34 @@ static void* sender(void* arg) {
 }
 
 int main(int argc, char* argv[]) {
-    // Parse gflags. We recommend you to use gflags as well.
-    google::ParseCommandLineFlags(&argc, &argv, true);
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
     melon::Channel channel;
     melon::ChannelOptions options;
-    options.protocol = FLAGS_protocol;
-    options.connection_type = FLAGS_connection_type;
+    options.protocol = turbo::get_flag(FLAGS_protocol);
+    options.connection_type = turbo::get_flag(FLAGS_connection_type);
     
     // Initialize the channel, nullptr means using default options. 
     // options, see `melon/rpc/channel.h'.
-    if (channel.Init(FLAGS_url.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
+    if (channel.Init(turbo::get_flag(FLAGS_url).c_str(), turbo::get_flag(FLAGS_load_balancer).c_str(), &options) != 0) {
         LOG(ERROR) << "Fail to initialize channel";
         return -1;
     }
 
     std::vector<fiber_t> bids;
     std::vector<pthread_t> pids;
-    if (!FLAGS_use_fiber) {
-        pids.resize(FLAGS_thread_num);
-        for (int i = 0; i < FLAGS_thread_num; ++i) {
+    if (!turbo::get_flag(FLAGS_use_fiber)) {
+        pids.resize(turbo::get_flag(FLAGS_thread_num));
+        for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
             if (pthread_create(&pids[i], nullptr, sender, &channel) != 0) {
                 LOG(ERROR) << "Fail to create pthread";
                 return -1;
             }
         }
     } else {
-        bids.resize(FLAGS_thread_num);
-        for (int i = 0; i < FLAGS_thread_num; ++i) {
+        bids.resize(turbo::get_flag(FLAGS_thread_num));
+        for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
             if (fiber_start_background(
                     &bids[i], nullptr, sender, &channel) != 0) {
                 LOG(ERROR) << "Fail to create fiber";
@@ -114,20 +112,20 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (FLAGS_dummy_port >= 0) {
-        melon::StartDummyServerAt(FLAGS_dummy_port);
+    if (turbo::get_flag(FLAGS_dummy_port) >= 0) {
+        melon::StartDummyServerAt(turbo::get_flag(FLAGS_dummy_port));
     }
 
     while (!melon::IsAskedToQuit()) {
         sleep(1);
-        LOG(INFO) << "Sending " << FLAGS_protocol << " requests at qps="
+        LOG(INFO) << "Sending " << turbo::get_flag(FLAGS_protocol) << " requests at qps="
                   << g_latency_recorder.qps(1)
                   << " latency=" << g_latency_recorder.latency(1);
     }
 
     LOG(INFO) << "benchmark_http is going to quit";
-    for (int i = 0; i < FLAGS_thread_num; ++i) {
-        if (!FLAGS_use_fiber) {
+    for (int i = 0; i < turbo::get_flag(FLAGS_thread_num); ++i) {
+        if (!turbo::get_flag(FLAGS_use_fiber)) {
             pthread_join(pids[i], nullptr);
         } else {
             fiber_join(bids[i], nullptr);

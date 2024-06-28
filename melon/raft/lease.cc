@@ -18,16 +18,15 @@
 //
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/rpc/reloadable_flags.h>
 #include <melon/raft/lease.h>
 
+TURBO_FLAG(bool, raft_enable_leader_lease, false,
+           "Enable or disable leader lease. only when all peers in a raft group "
+           "set this configuration to true, leader lease check and vote are safe.").on_validate(
+        turbo::AllPassValidator<bool>::validate);
 namespace melon::raft {
-
-    DEFINE_bool(raft_enable_leader_lease, false,
-                "Enable or disable leader lease. only when all peers in a raft group "
-                "set this configuration to true, leader lease check and vote are safe.");
-    MELON_VALIDATE_GFLAG(raft_enable_leader_lease, ::melon::PassValidate);
 
     void LeaderLease::init(int64_t election_timeout_ms) {
         _election_timeout_ms = election_timeout_ms;
@@ -62,7 +61,7 @@ namespace melon::raft {
     void LeaderLease::get_lease_info(LeaseInfo *lease_info) {
         lease_info->term = 0;
         lease_info->lease_epoch = 0;
-        if (!FLAGS_raft_enable_leader_lease) {
+        if (!turbo::get_flag(FLAGS_raft_enable_leader_lease)) {
             lease_info->state = LeaderLease::DISABLED;
             return;
         }
@@ -113,7 +112,7 @@ namespace melon::raft {
     }
 
     int64_t FollowerLease::votable_time_from_now() {
-        if (!FLAGS_raft_enable_leader_lease) {
+        if (!turbo::get_flag(FLAGS_raft_enable_leader_lease)) {
             return 0;
         }
 

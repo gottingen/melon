@@ -20,15 +20,16 @@
 
 
 #include <google/protobuf/reflection_ops.h>     // ReflectionOps::Merge
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/status.h>
 #include <melon/utility/strings/string_util.h>          // StringToLowerASCII
 #include <melon/rpc/redis/redis.h>
 #include <melon/rpc/redis/redis_command.h>
 
+TURBO_FLAG(bool, redis_verbose_crlf2space, false, "[DEBUG] Show \\r\\n as a space");
+
 namespace melon {
 
-    DEFINE_bool(redis_verbose_crlf2space, false, "[DEBUG] Show \\r\\n as a space");
 
     RedisRequest::RedisRequest()
             : ::google::protobuf::Message() {
@@ -229,7 +230,7 @@ namespace melon {
         mutil::IOBuf seg;
         while (cp.cut_until(&seg, "\r\n") == 0) {
             os << seg;
-            if (FLAGS_redis_verbose_crlf2space) {
+            if (turbo::get_flag(FLAGS_redis_verbose_crlf2space)) {
                 os << ' ';
             } else {
                 os << "\\r\\n";

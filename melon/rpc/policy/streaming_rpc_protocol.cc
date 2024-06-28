@@ -23,7 +23,6 @@
 #include <cinttypes>
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
-#include <gflags/gflags.h>
 #include <melon/utility/macros.h>
 #include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
@@ -34,7 +33,7 @@
 #include <melon/proto/rpc/streaming_rpc_meta.pb.h>         // StreamFrameMeta
 #include <melon/rpc/policy/most_common_message.h>
 #include <melon/rpc/stream_impl.h>
-
+#include <turbo/flags/flag.h>                         // FLAGS_max_body_size
 
 namespace melon {
 namespace policy {
@@ -81,7 +80,7 @@ ParseResult ParseStreamingMessage(mutil::IOBuf* source,
     uint32_t body_size;
     uint32_t meta_size;
     mutil::RawUnpacker(header_buf + 4).unpack32(body_size).unpack32(meta_size);
-    if (body_size > FLAGS_max_body_size) {
+    if (body_size > turbo::get_flag(FLAGS_max_body_size)) {
         return MakeParseError(PARSE_ERROR_TOO_BIG_DATA);
     } else if (source->length() < sizeof(header_buf) + body_size) {
         return MakeParseError(PARSE_ERROR_NOT_ENOUGH_DATA);

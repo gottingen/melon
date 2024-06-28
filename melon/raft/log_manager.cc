@@ -29,10 +29,10 @@
 #include <melon/raft/fsm_caller.h>                    // FSMCaller
 #include <cinttypes>
 
+TURBO_FLAG(int32_t ,raft_leader_batch, 256, "max leader io batch").on_validate(turbo::GtValidator<int32_t, 0>::validate);
+TURBO_FLAG(int32_t ,raft_max_append_buffer_size, 256 * 1024,
+"Flush buffer to LogStorage if the buffer size reaches the limit");
 namespace melon::raft {
-
-    DEFINE_int32(raft_leader_batch, 256, "max leader io batch");
-    MELON_VALIDATE_GFLAG(raft_leader_batch, ::melon::PositiveInteger);
 
     static melon::var::Adder<int64_t> g_read_entry_from_storage
             ("raft_read_entry_from_storage_count");
@@ -485,9 +485,6 @@ namespace melon::raft {
         to_append->clear();
     }
 
-    DEFINE_int32(raft_max_append_buffer_size, 256 * 1024,
-                 "Flush buffer to LogStorage if the buffer size reaches the limit");
-
     class AppendBatcher {
     public:
         AppendBatcher(LogManager::StableClosure *storage[], size_t cap, LogId *last_id,
@@ -520,7 +517,7 @@ namespace melon::raft {
 
         void append(LogManager::StableClosure *done) {
             if (_size == _cap ||
-                _buffer_size >= (size_t) FLAGS_raft_max_append_buffer_size) {
+                _buffer_size >= (size_t) turbo::get_flag(FLAGS_raft_max_append_buffer_size)) {
                 flush();
             }
             _storage[_size++] = done;

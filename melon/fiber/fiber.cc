@@ -18,7 +18,7 @@
 //
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/macros.h>                       // MELON_CASSERT
 #include <turbo/log/logging.h>
 #include <melon/fiber/task_group.h>                // TaskGroup
@@ -26,51 +26,47 @@
 #include <melon/fiber/timer_thread.h>
 #include <melon/fiber/list_of_abafree_id.h>
 #include <melon/fiber/fiber.h>
+#include <turbo/strings/str_format.h>
 
 namespace fiber {
-
-    DEFINE_int32(fiber_concurrency, 8 + FIBER_EPOLL_THREAD_NUM,
-                 "Number of pthread workers");
-
-    DEFINE_int32(fiber_min_concurrency, 0,
-                 "Initial number of pthread workers which will be added on-demand."
-                 " The laziness is disabled when this value is non-positive,"
-                 " and workers will be created eagerly according to -fiber_concurrency and fiber_setconcurrency(). ");
-
-    DEFINE_int32(fiber_current_tag, FIBER_TAG_DEFAULT, "Set fiber concurrency for this tag");
-
-    DEFINE_int32(fiber_concurrency_by_tag, 0,
-                 "Number of pthread workers of FLAGS_fiber_current_tag");
-
     static bool never_set_fiber_concurrency = true;
     static bool never_set_fiber_concurrency_by_tag = true;
 
-    static bool validate_fiber_concurrency(const char *, int32_t val) {
+    static bool validate_fiber_concurrency(std::string_view value, std::string *err) noexcept {
         // fiber_setconcurrency sets the flag on success path which should
         // not be strictly in a validator. But it's OK for a int flag.
-        return fiber_setconcurrency(val) == 0;
+        int val;
+        if (!::turbo::parse_flag(value, &val, err)) {
+            return false;
+        }
+        auto r = fiber_setconcurrency(val) == 0;
+        if (!r) {
+            if (err) {
+                *err = turbo::str_format("Invalid concurrency=%s", value);
+            }
+        }
+        return r;
     }
+    static bool validate_fiber_min_concurrency(std::string_view value, std::string *err) noexcept;
+    static bool validate_fiber_current_tag(std::string_view value, std::string *err) noexcept;
+    static bool validate_fiber_concurrency_by_tag(std::string_view value, std::string *err) noexcept;
+}  // namespace fiber
+TURBO_FLAG(int32_t, fiber_concurrency, 8 + FIBER_EPOLL_THREAD_NUM,
+           "Number of pthread workers").on_validate(fiber::validate_fiber_concurrency);
 
-    const int ALLOW_UNUSED register_FLAGS_fiber_concurrency =
-            ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency,
-                                            validate_fiber_concurrency);
+TURBO_FLAG(int32_t, fiber_min_concurrency, 0,
+           "Initial number of pthread workers which will be added on-demand."
+           " The laziness is disabled when this value is non-positive,"
+           " and workers will be created eagerly according to -fiber_concurrency and fiber_setconcurrency(). ")
+           .on_validate(fiber::validate_fiber_min_concurrency);
 
-    static bool validate_fiber_min_concurrency(const char *, int32_t val);
+TURBO_FLAG(int32_t, fiber_current_tag, FIBER_TAG_DEFAULT, "Set fiber concurrency for this tag")
+           .on_validate(fiber::validate_fiber_current_tag);
 
-    const int ALLOW_UNUSED register_FLAGS_fiber_min_concurrency =
-            ::google::RegisterFlagValidator(&FLAGS_fiber_min_concurrency,
-                                            validate_fiber_min_concurrency);
+TURBO_FLAG(int32_t, fiber_concurrency_by_tag, 0,
+           "Number of pthread workers of FLAGS_fiber_current_tag").on_validate(fiber::validate_fiber_concurrency_by_tag);
 
-    static bool validate_fiber_current_tag(const char *, int32_t val);
-
-    const int ALLOW_UNUSED register_FLAGS_fiber_current_tag =
-            ::google::RegisterFlagValidator(&FLAGS_fiber_current_tag, validate_fiber_current_tag);
-
-    static bool validate_fiber_concurrency_by_tag(const char *, int32_t val);
-
-    const int ALLOW_UNUSED register_FLAGS_fiber_concurrency_by_tag =
-            ::google::RegisterFlagValidator(&FLAGS_fiber_concurrency_by_tag,
-                                            validate_fiber_concurrency_by_tag);
+namespace fiber {
 
     MELON_CASSERT(sizeof(TaskControl *) == sizeof(mutil::atomic<TaskControl *>), atomic_size_match);
 
@@ -105,9 +101,9 @@ namespace fiber {
         if (NULL == c) {
             return NULL;
         }
-        int concurrency = FLAGS_fiber_min_concurrency > 0 ?
-                          FLAGS_fiber_min_concurrency :
-                          FLAGS_fiber_concurrency;
+        int concurrency = turbo::get_flag(FLAGS_fiber_min_concurrency) > 0 ?
+                          turbo::get_flag(FLAGS_fiber_min_concurrency) :
+                          turbo::get_flag(FLAGS_fiber_concurrency);
         if (c->init(concurrency) != 0) {
             LOG(ERROR) << "Fail to init g_task_control";
             delete c;
@@ -121,16 +117,23 @@ namespace fiber {
         int added = 0;
         auto c = get_task_control();
         for (auto i = 0; i < num; ++i) {
-            added += c->add_workers(1, i % FLAGS_task_group_ntags);
+            added += c->add_workers(1, i % turbo::get_flag(FLAGS_task_group_ntags));
         }
         return added;
     }
 
-    static bool validate_fiber_min_concurrency(const char *, int32_t val) {
+    static bool validate_fiber_min_concurrency(std::string_view value, std::string *err) noexcept {
+        int val;
+        if (!::turbo::parse_flag(value, &val, err)) {
+            return false;
+        }
         if (val <= 0) {
             return true;
         }
-        if (val < FIBER_MIN_CONCURRENCY || val > FLAGS_fiber_concurrency) {
+        if (val < FIBER_MIN_CONCURRENCY || val > turbo::get_flag(FLAGS_fiber_concurrency)) {
+            if(err) {
+                *err = turbo::str_format("Invalid min_concurrency=%s", value);
+            }
             return false;
         }
         TaskControl *c = get_task_control();
@@ -141,28 +144,47 @@ namespace fiber {
         int concurrency = c->concurrency();
         if (val > concurrency) {
             int added = fiber::add_workers_for_each_tag(val - concurrency);
-            return added == (val - concurrency);
+            auto r = added == (val - concurrency);
+            if (!r&&err) {
+                *err = turbo::str_format("Fail to add workers for min_concurrency=%s", value);
+            }
+            return r;
         } else {
             return true;
         }
     }
 
-    static bool validate_fiber_current_tag(const char *, int32_t val) {
-        if (val < FIBER_TAG_DEFAULT || val >= FLAGS_task_group_ntags) {
+    static bool validate_fiber_current_tag(std::string_view value, std::string *err) noexcept {
+        int val;
+        if (!::turbo::parse_flag(value, &val, err)) {
+            return false;
+        }
+        if (val < FIBER_TAG_DEFAULT || val >= turbo::get_flag(FLAGS_task_group_ntags)) {
+            if(err) {
+                *err = turbo::str_format("Invalid fiber_current_tag=%s", value);
+            }
             return false;
         }
         MELON_SCOPED_LOCK(fiber::g_task_control_mutex);
         auto c = fiber::get_task_control();
         if (c == NULL) {
-            FLAGS_fiber_concurrency_by_tag = 0;
+            turbo::set_flag(&FLAGS_fiber_concurrency_by_tag, 0);
             return true;
         }
-        FLAGS_fiber_concurrency_by_tag = c->concurrency(val);
+        turbo::set_flag(&FLAGS_fiber_concurrency_by_tag, c->concurrency(val));
         return true;
     }
 
-    static bool validate_fiber_concurrency_by_tag(const char *, int32_t val) {
-        return fiber_setconcurrency_by_tag(val, FLAGS_fiber_current_tag) == 0;
+    static bool validate_fiber_concurrency_by_tag(std::string_view value, std::string *err) noexcept {
+        int val;
+        if (!::turbo::parse_flag(value, &val, err)) {
+            return false;
+        }
+        auto r = fiber_setconcurrency_by_tag(val, turbo::get_flag(FLAGS_fiber_current_tag)) == 0;
+        if (!r && err) {
+            *err = turbo::str_format("Invalid concurrency_by_tag=%s", value);
+        }
+        return r;
     }
 
     __thread TaskGroup *tls_task_group_nosignal = NULL;
@@ -327,7 +349,7 @@ int fiber_getattr(fiber_t tid, fiber_attr_t *attr) {
 }
 
 int fiber_getconcurrency(void) {
-    return fiber::FLAGS_fiber_concurrency;
+    return turbo::get_flag(FLAGS_fiber_concurrency);
 }
 
 int fiber_setconcurrency(int num) {
@@ -335,14 +357,14 @@ int fiber_setconcurrency(int num) {
         LOG(ERROR) << "Invalid concurrency=" << num;
         return EINVAL;
     }
-    if (fiber::FLAGS_fiber_min_concurrency > 0) {
-        if (num < fiber::FLAGS_fiber_min_concurrency) {
+    if (turbo::get_flag(FLAGS_fiber_min_concurrency) > 0) {
+        if (num < turbo::get_flag(FLAGS_fiber_min_concurrency)) {
             return EINVAL;
         }
         if (fiber::never_set_fiber_concurrency) {
             fiber::never_set_fiber_concurrency = false;
         }
-        fiber::FLAGS_fiber_concurrency = num;
+        turbo::set_flag(&FLAGS_fiber_concurrency,  num);
         return 0;
     }
     fiber::TaskControl *c = fiber::get_task_control();
@@ -358,24 +380,25 @@ int fiber_setconcurrency(int num) {
     if (c == NULL) {
         if (fiber::never_set_fiber_concurrency) {
             fiber::never_set_fiber_concurrency = false;
-            fiber::FLAGS_fiber_concurrency = num;
-        } else if (num > fiber::FLAGS_fiber_concurrency) {
-            fiber::FLAGS_fiber_concurrency = num;
+            turbo::set_flag(&FLAGS_fiber_concurrency, num);
+        } else if (num > turbo::get_flag(FLAGS_fiber_concurrency)) {
+            turbo::set_flag(&FLAGS_fiber_concurrency , num);
         }
         return 0;
     }
-    if (fiber::FLAGS_fiber_concurrency != c->concurrency()) {
+    if (turbo::get_flag(FLAGS_fiber_concurrency) != c->concurrency()) {
         LOG(ERROR) << "CHECK failed: fiber_concurrency="
-                    << fiber::FLAGS_fiber_concurrency
-                    << " != tc_concurrency=" << c->concurrency();
-        fiber::FLAGS_fiber_concurrency = c->concurrency();
+                   << turbo::get_flag(FLAGS_fiber_concurrency)
+                   << " != tc_concurrency=" << c->concurrency();
+        turbo::set_flag(&FLAGS_fiber_concurrency, c->concurrency());
     }
-    if (num > fiber::FLAGS_fiber_concurrency) {
+    if (num > turbo::get_flag(FLAGS_fiber_concurrency)) {
         // Create more workers if needed.
-        auto added = fiber::add_workers_for_each_tag(num - fiber::FLAGS_fiber_concurrency);
-        fiber::FLAGS_fiber_concurrency += added;
+        auto added = fiber::add_workers_for_each_tag(num - turbo::get_flag(FLAGS_fiber_concurrency));
+        auto nvalue = turbo::get_flag(FLAGS_fiber_concurrency) + added;
+        turbo::set_flag(&FLAGS_fiber_concurrency, nvalue);
     }
-    return (num == fiber::FLAGS_fiber_concurrency ? 0 : EPERM);
+    return (num == turbo::get_flag(FLAGS_fiber_concurrency) ? 0 : EPERM);
 }
 
 int fiber_getconcurrency_by_tag(fiber_tag_t tag) {
@@ -400,9 +423,9 @@ int fiber_setconcurrency_by_tag(int num, fiber_tag_t tag) {
     auto ngroup = c->concurrency();
     auto tag_ngroup = c->concurrency(tag);
     auto add = num - tag_ngroup;
-    if (ngroup + add > fiber::FLAGS_fiber_concurrency) {
+    if (ngroup + add > turbo::get_flag(FLAGS_fiber_concurrency)) {
         LOG(ERROR) << "Fail to set concurrency by tag " << tag
-                    << ", Whole concurrency larger than fiber_concurrency";
+                   << ", Whole concurrency larger than fiber_concurrency";
         return EPERM;
     }
     auto added = 0;

@@ -23,7 +23,6 @@
 
 #include <string>
 #include <vector>
-#include <gflags/gflags.h>
 #include <melon/utility/status.h>
 #include <melon/utility/class_name.h>
 #include <melon/rpc/extension.h>

@@ -21,7 +21,6 @@
 
 #include <set>
 #include <pthread.h>
-#include <gflags/gflags.h>
 #include <melon/fiber/butex.h>
 #include <melon/utility/scoped_lock.h>
 #include <turbo/log/logging.h>

@@ -22,15 +22,17 @@
 
 #include <limits>                                 // std::numeric_limits
 #include <math.h>                                 // round
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 #include <turbo/log/logging.h>                         // LOG
 #include <melon/var/detail/sampler.h>
 #include <melon/var/detail/series.h>
 #include <melon/var/variable.h>
 
+TURBO_DECLARE_FLAG(int32_t, var_dump_interval);
+
 namespace melon::var {
 
-    DECLARE_int32(var_dump_interval);
 
     enum SeriesFrequency {
         SERIES_IN_WINDOW = 0,
@@ -84,7 +86,7 @@ namespace melon::var {
             };
 
             WindowBase(R *var, time_t window_size)
-                    : _var(var), _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
+                    : _var(var), _window_size(window_size > 0 ? window_size : turbo::get_flag(FLAGS_var_dump_interval)),
                       _sampler(var->get_sampler()), _series_sampler(NULL) {
                 CHECK_EQ(0, _sampler->set_window_size(_window_size));
             }
@@ -148,8 +150,7 @@ namespace melon::var {
                             DisplayFilter display_filter) override {
                 const int rc = Variable::expose_impl(prefix, name, display_filter);
                 if (rc == 0 &&
-                    _series_sampler == NULL &&
-                    FLAGS_save_series) {
+                    _series_sampler == NULL && turbo::get_flag(FLAGS_save_series)) {
                     _series_sampler = new SeriesSampler(this, _var);
                     _series_sampler->schedule();
                 }
@@ -288,7 +289,7 @@ namespace melon::var {
             typedef typename WindowType::WindowExVar WindowExVar;
 
             WindowExAdapter(time_t window_size)
-                    : _window_size(window_size > 0 ? window_size : FLAGS_var_dump_interval),
+                    : _window_size(window_size > 0 ? window_size : turbo::get_flag(FLAGS_var_dump_interval)),
                       _window_ex_var(_window_size) {
             }
 

@@ -29,19 +29,19 @@
 #include <melon/fiber/task_group.h>           // TaskGroup
 #include <melon/fiber/task_control.h>
 #include <melon/fiber/timer_thread.h>         // global_timer_thread
-#include <gflags/gflags.h>
 #include <melon/fiber/log.h>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(int32_t, task_group_delete_delay, 1,
+"delay deletion of TaskGroup for so many seconds");
+TURBO_FLAG(int32_t, task_group_runqueue_capacity, 4096,
+"capacity of runqueue in each TaskGroup");
+TURBO_FLAG(int32_t, task_group_yield_before_idle, 0,
+"TaskGroup yields so many times before idle");
+TURBO_FLAG(int32_t, task_group_ntags, 1, "TaskGroup will be grouped by number ntags");
 
 namespace fiber {
-
-    DEFINE_int32(task_group_delete_delay, 1,
-                 "delay deletion of TaskGroup for so many seconds");
-    DEFINE_int32(task_group_runqueue_capacity, 4096,
-                 "capacity of runqueue in each TaskGroup");
-    DEFINE_int32(task_group_yield_before_idle, 0,
-                 "TaskGroup yields so many times before idle");
-    DEFINE_int32(task_group_ntags, 1, "TaskGroup will be grouped by number ntags");
-
+    
     extern pthread_mutex_t g_task_control_mutex;
     extern MELON_THREAD_LOCAL TaskGroup *tls_task_group;
 
@@ -111,7 +111,7 @@ namespace fiber {
             LOG(FATAL) << "Fail to new TaskGroup";
             return NULL;
         }
-        if (g->init(FLAGS_task_group_runqueue_capacity) != 0) {
+        if (g->init(turbo::get_flag(FLAGS_task_group_runqueue_capacity)) != 0) {
             LOG(ERROR) << "Fail to init TaskGroup";
             delete g;
             return NULL;
@@ -156,7 +156,7 @@ namespace fiber {
 
     TaskControl::TaskControl()
     // NOTE: all fileds must be initialized before the vars.
-            : _tagged_ngroup(FLAGS_task_group_ntags), _tagged_groups(FLAGS_task_group_ntags), _init(false),
+            : _tagged_ngroup(turbo::get_flag(FLAGS_task_group_ntags)), _tagged_groups(turbo::get_flag(FLAGS_task_group_ntags)), _init(false),
               _stop(false), _concurrency(0), _next_worker_id(0), _nworkers("fiber_worker_count"), _pending_time(NULL)
             // Delay exposure of following two vars because they rely on TC which
             // is not initialized yet.
@@ -166,7 +166,7 @@ namespace fiber {
               _switch_per_second(&_cumulated_switch_count),
               _cumulated_signal_count(get_cumulated_signal_count_from_this, this),
               _signal_per_second(&_cumulated_signal_count), _status(print_rq_sizes_in_the_tc, this),
-              _nfibers("fiber_count"), _pl(FLAGS_task_group_ntags) {}
+              _nfibers("fiber_count"), _pl(turbo::get_flag(FLAGS_task_group_ntags)) {}
 
     int TaskControl::init(int concurrency) {
         if (_concurrency != 0) {
@@ -180,7 +180,7 @@ namespace fiber {
         _concurrency = concurrency;
 
         // task group group by tags
-        for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
+        for (int i = 0; i < turbo::get_flag(FLAGS_task_group_ntags); ++i) {
             _tagged_ngroup[i].store(0, std::memory_order_relaxed);
             auto tag_str = std::to_string(i);
             _tagged_nworkers.push_back(new melon::var::Adder<int64_t>("fiber_worker_count", tag_str));
@@ -199,7 +199,7 @@ namespace fiber {
 
         _workers.resize(_concurrency);
         for (int i = 0; i < _concurrency; ++i) {
-            auto arg = new WorkerThreadArgs(this, i % FLAGS_task_group_ntags);
+            auto arg = new WorkerThreadArgs(this, i % turbo::get_flag(FLAGS_task_group_ntags));
             const int rc = pthread_create(&_workers[i], NULL, worker_thread, arg);
             if (rc) {
                 delete arg;
@@ -215,7 +215,7 @@ namespace fiber {
         // Wait for at least one group is added so that choose_one_group()
         // never returns NULL.
         // TODO: Handle the case that worker quits before add_group
-        for (int i = 0; i < FLAGS_task_group_ntags;) {
+        for (int i = 0; i < turbo::get_flag(FLAGS_task_group_ntags);) {
             if (_tagged_ngroup[i].load(std::memory_order_acquire) == 0) {
                 usleep(100);  // TODO: Elaborate
                 continue;
@@ -259,7 +259,7 @@ namespace fiber {
     }
 
     TaskGroup *TaskControl::choose_one_group(fiber_tag_t tag) {
-        CHECK(tag >= FIBER_TAG_DEFAULT && tag < FLAGS_task_group_ntags);
+        CHECK(tag >= FIBER_TAG_DEFAULT && tag < turbo::get_flag(FLAGS_task_group_ntags));
         auto &groups = tag_group(tag);
         const auto ngroup = tag_ngroup(tag).load(mutil::memory_order_acquire);
         if (ngroup != 0) {
@@ -284,7 +284,7 @@ namespace fiber {
                     _tagged_ngroup.begin(), _tagged_ngroup.end(),
                     [](mutil::atomic<size_t> &index) { index.store(0, mutil::memory_order_relaxed); });
         }
-        for (int i = 0; i < FLAGS_task_group_ntags; ++i) {
+        for (int i = 0; i < turbo::get_flag(FLAGS_task_group_ntags); ++i) {
             for (auto &pl: _pl[i]) {
                 pl.stop();
             }
@@ -382,7 +382,7 @@ namespace fiber {
         if (erased) {
             get_global_timer_thread()->schedule(
                     delete_task_group, g,
-                    mutil::microseconds_from_now(FLAGS_task_group_delete_delay * 1000000L));
+                    mutil::microseconds_from_now(turbo::get_flag(FLAGS_task_group_delete_delay) * 1000000L));
         }
         return 0;
     }
@@ -441,11 +441,11 @@ namespace fiber {
             }
         }
         if (num_task > 0 &&
-            FLAGS_fiber_min_concurrency > 0 &&    // test min_concurrency for performance
-            _concurrency.load(mutil::memory_order_relaxed) < FLAGS_fiber_concurrency) {
+                turbo::get_flag(FLAGS_fiber_min_concurrency) > 0 &&    // test min_concurrency for performance
+            _concurrency.load(mutil::memory_order_relaxed) < turbo::get_flag(FLAGS_fiber_concurrency)) {
             // TODO: Reduce this lock
             MELON_SCOPED_LOCK(g_task_control_mutex);
-            if (_concurrency.load(mutil::memory_order_acquire) < FLAGS_fiber_concurrency) {
+            if (_concurrency.load(mutil::memory_order_acquire) < turbo::get_flag(FLAGS_fiber_concurrency)) {
                 add_workers(1, tag);
             }
         }

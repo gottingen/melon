@@ -29,15 +29,17 @@
 #include <cinttypes>
 #include <melon/raft/fsm_caller.h>
 #include <melon/fiber/unstable.h>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(int32_t ,raft_fsm_caller_commit_batch, 512,
+"Max numbers of logs for the state machine to commit in a single batch").on_validate(turbo::GtValidator<int32_t ,0>::validate);
 
 namespace melon::raft {
 
     static melon::var::CounterRecorder g_commit_tasks_batch_counter(
             "raft_commit_tasks_batch_counter");
 
-    DEFINE_int32(raft_fsm_caller_commit_batch, 512,
-                 "Max numbers of logs for the state machine to commit in a single batch");
-    MELON_VALIDATE_GFLAG(raft_fsm_caller_commit_batch, melon::PositiveInteger);
+
 
     FSMCaller::FSMCaller()
             : _log_manager(nullptr), _fsm(nullptr), _closure_queue(nullptr), _last_applied_index(0), _last_applied_term(0),
@@ -56,7 +58,7 @@ namespace melon::raft {
         }
         int64_t max_committed_index = -1;
         int64_t counter = 0;
-        size_t batch_size = FLAGS_raft_fsm_caller_commit_batch;
+        size_t batch_size = turbo::get_flag(FLAGS_raft_fsm_caller_commit_batch);
         for (; iter; ++iter) {
             if (iter->type == COMMITTED && counter < batch_size) {
                 if (iter->committed_index > max_committed_index) {
@@ -70,7 +72,7 @@ namespace melon::raft {
                     max_committed_index = -1;
                     g_commit_tasks_batch_counter << counter;
                     counter = 0;
-                    batch_size = FLAGS_raft_fsm_caller_commit_batch;
+                    batch_size = turbo::get_flag(FLAGS_raft_fsm_caller_commit_batch);
                 }
                 switch (iter->type) {
                     case COMMITTED:

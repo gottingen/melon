@@ -21,7 +21,6 @@
 #pragma once
 
 #include <functional>                          // std::function
-#include <gflags/gflags.h>                     // Users often need gflags
 #include <string>
 #include <melon/utility/intrusive_ptr.hpp>             // mutil::intrusive_ptr
 #include <melon/fiber/errno.h>                     // Redefine errno
@@ -37,7 +36,6 @@
 #include <melon/rpc/stream_creator.h>               // StreamCreator
 #include <melon/rpc/protocol.h>                     // Protocol
 #include <melon/rpc/traceprintf.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/rpc/closure_guard.h>                // User often needs this
 #include <melon/rpc/callback.h>
 #include <melon/rpc/progressive_attachment.h>       // ProgressiveAttachment

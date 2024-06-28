@@ -18,7 +18,7 @@
 //
 
 
-#include <gflags/gflags.h>                       // DEFINE_int32
+#include <turbo/flags/flag.h>
 #include <melon/utility/unique_ptr.h>                    // std::unique_ptr
 #include <melon/utility/time.h>                          // mutil::gettimeofday_us
 #include <melon/rpc/controller.h>                     // melon::Controller
@@ -30,26 +30,19 @@
 #include <melon/raft/snapshot_throttle.h>             // SnapshotThrottle
 #include <melon/raft/config.h>
 
+TURBO_FLAG(int32_t ,raft_max_entries_size, 1024,
+"The max number of entries in AppendEntriesRequest").on_validate(turbo::GtValidator<int32_t ,0>::validate);
+
+TURBO_FLAG(int32_t ,raft_max_parallel_append_entries_rpc_num, 1,
+"The max number of parallel AppendEntries requests").on_validate(turbo::GtValidator<int32_t ,0>::validate);
+TURBO_FLAG(int32_t ,raft_max_body_size, 512 * 1024,
+"The max byte size of AppendEntriesRequest").on_validate(turbo::GtValidator<int32_t ,0>::validate);
+
+TURBO_FLAG(int32_t ,raft_retry_replicate_interval_ms, 1000,
+"Interval of retry to append entries or install snapshot").on_validate(turbo::GtValidator<int32_t ,0>::validate);
+
 namespace melon::raft {
-
-    DEFINE_int32(raft_max_entries_size, 1024,
-                 "The max number of entries in AppendEntriesRequest");
-    MELON_VALIDATE_GFLAG(raft_max_entries_size, ::melon::PositiveInteger);
-
-    DEFINE_int32(raft_max_parallel_append_entries_rpc_num, 1,
-                 "The max number of parallel AppendEntries requests");
-    MELON_VALIDATE_GFLAG(raft_max_parallel_append_entries_rpc_num,
-                        ::melon::PositiveInteger);
-
-    DEFINE_int32(raft_max_body_size, 512 * 1024,
-                 "The max byte size of AppendEntriesRequest");
-    MELON_VALIDATE_GFLAG(raft_max_body_size, ::melon::PositiveInteger);
-
-    DEFINE_int32(raft_retry_replicate_interval_ms, 1000,
-                 "Interval of retry to append entries or install snapshot");
-    MELON_VALIDATE_GFLAG(raft_retry_replicate_interval_ms,
-                        melon::PositiveInteger);
-
+    
     static melon::var::LatencyRecorder g_send_entries_latency("raft_send_entries");
     static melon::var::LatencyRecorder g_normalized_send_entries_latency(
             "raft_send_entries_normalized");
@@ -94,7 +87,7 @@ namespace melon::raft {
         }
         Replicator *r = new Replicator();
         melon::ChannelOptions channel_opt;
-        channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
+        channel_opt.connect_timeout_ms = turbo::get_flag(FLAGS_raft_rpc_channel_connect_timeout_ms);
         channel_opt.timeout_ms = -1; // We don't need RPC timeout
         if (r->_sending_channel.Init(options.peer_id.addr, &channel_opt) != 0) {
             LOG(ERROR) << "Fail to init sending channel"
@@ -234,7 +227,7 @@ namespace melon::raft {
         // fine now.
         int blocking_time = 0;
         if (error_code == EBUSY || error_code == EINTR) {
-            blocking_time = FLAGS_raft_retry_replicate_interval_ms;
+            blocking_time = turbo::get_flag(FLAGS_raft_retry_replicate_interval_ms);
         } else {
             blocking_time = *_options.dynamic_heartbeat_timeout_ms;
         }
@@ -472,11 +465,11 @@ namespace melon::raft {
                     min_flying_index, rpc_last_log_index,
                     r->_options.peer_id);
             int64_t rpc_latency_us = cntl->latency_us();
-            if (FLAGS_raft_trace_append_entry_latency &&
-                rpc_latency_us > FLAGS_raft_append_entry_high_lat_us) {
+            if (turbo::get_flag(FLAGS_raft_trace_append_entry_latency) &&
+                rpc_latency_us > turbo::get_flag(FLAGS_raft_append_entry_high_lat_us)) {
                 LOG(WARNING) << "append entry rpc latency us " << rpc_latency_us
                              << " greater than "
-                             << FLAGS_raft_append_entry_high_lat_us
+                             << turbo::get_flag(FLAGS_raft_append_entry_high_lat_us)
                              << " Group " << r->_options.group_id
                              << " to peer  " << r->_options.peer_id
                              << " request entry size " << entries_size
@@ -578,7 +571,7 @@ namespace melon::raft {
     }
 
     int Replicator::_prepare_entry(int offset, EntryMeta *em, mutil::IOBuf *data) {
-        if (data->length() >= (size_t) FLAGS_raft_max_body_size) {
+        if (data->length() >= (size_t) turbo::get_flag(FLAGS_raft_max_body_size)) {
             return ERANGE;
         }
         const int64_t log_index = _next_index + offset;
@@ -611,7 +604,7 @@ namespace melon::raft {
         } else {
             CHECK(entry->type != ENTRY_TYPE_CONFIGURATION) << "log_index=" << log_index;
         }
-        if (!is_witness() || FLAGS_raft_enable_witness_to_leader) {
+        if (!is_witness() || turbo::get_flag(FLAGS_raft_enable_witness_to_leader)) {
             em->set_data_len(entry->data.length());
             data->append(entry->data);
         }
@@ -620,8 +613,8 @@ namespace melon::raft {
     }
 
     void Replicator::_send_entries() {
-        if (_flying_append_entries_size >= FLAGS_raft_max_entries_size ||
-            _append_entries_in_fly.size() >= (size_t) FLAGS_raft_max_parallel_append_entries_rpc_num ||
+        if (_flying_append_entries_size >= turbo::get_flag(FLAGS_raft_max_entries_size) ||
+            _append_entries_in_fly.size() >= (size_t) turbo::get_flag(FLAGS_raft_max_parallel_append_entries_rpc_num) ||
             _st.st == BLOCKING) {
             BRAFT_VLOG << "node " << _options.group_id << ":" << _options.server_id
                        << " skip sending AppendEntriesRequest to " << _options.peer_id
@@ -639,7 +632,7 @@ namespace melon::raft {
             return _install_snapshot();
         }
         EntryMeta em;
-        const int max_entries_size = FLAGS_raft_max_entries_size - _flying_append_entries_size;
+        const int max_entries_size = turbo::get_flag(FLAGS_raft_max_entries_size) - _flying_append_entries_size;
         int prepare_entry_rc = 0;
         CHECK_GT(max_entries_size, 0);
         for (int i = 0; i < max_entries_size; ++i) {
@@ -736,8 +729,8 @@ namespace melon::raft {
     }
 
     void Replicator::_wait_more_entries() {
-        if (_wait_id == 0 && FLAGS_raft_max_entries_size > _flying_append_entries_size &&
-            (size_t) FLAGS_raft_max_parallel_append_entries_rpc_num > _append_entries_in_fly.size()) {
+        if (_wait_id == 0 && turbo::get_flag(FLAGS_raft_max_entries_size) > _flying_append_entries_size &&
+            (size_t) turbo::get_flag(FLAGS_raft_max_parallel_append_entries_rpc_num) > _append_entries_in_fly.size()) {
             _wait_id = _options.log_manager->wait(
                     _next_index - 1, _continue_sending, (void *) _id.value);
             _is_waiter_canceled = false;

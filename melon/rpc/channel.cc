@@ -21,7 +21,6 @@
 
 #include <inttypes.h>
 #include <google/protobuf/descriptor.h>
-#include <gflags/gflags.h>
 #include <memory>
 #include <melon/utility/time.h>                              // milliseconds_from_now
 #include <turbo/log/logging.h>
@@ -36,11 +35,10 @@
 #include <melon/rpc/controller.h>
 #include <melon/rpc/channel.h>
 #include <melon/rpc/details/usercode_backup_pool.h>       // TooManyUserCode
-
+#include <turbo/flags/declare.h>
+TURBO_DECLARE_FLAG(bool, enable_rpcz);
+TURBO_DECLARE_FLAG(bool, usercode_in_pthread);
 namespace melon {
-
-DECLARE_bool(enable_rpcz);
-DECLARE_bool(usercode_in_pthread);
 
 ChannelOptions::ChannelOptions()
     : connect_timeout_ms(200)
@@ -495,7 +493,7 @@ void Channel::CallMethod(const google::protobuf::MethodDescriptor* method,
         // should be excluded from the retry_policy.
         return cntl->HandleSendFailed();
     }
-    if (FLAGS_usercode_in_pthread &&
+    if (turbo::get_flag(FLAGS_usercode_in_pthread) &&
         done != nullptr &&
         TooManyUserCode()) {
         cntl->SetFailed(ELIMIT, "Too many user code to run when "

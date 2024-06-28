@@ -25,43 +25,67 @@
 #include <turbo/strings/escaping.h>
 #include <melon/rpc/log.h>
 #include <cinttypes>
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
+
+TURBO_FLAG(int, h2_client_header_table_size,
+        melon::H2Settings::DEFAULT_HEADER_TABLE_SIZE,
+"maximum size of compression tables for decoding headers");
+TURBO_FLAG(int, h2_client_stream_window_size, 256 * 1024,
+"Initial window size for stream-level flow control").on_validate([](std::string_view value, std::string *error) noexcept -> bool{
+    if(value.empty()){
+        *error = "stream window size must be set";
+        return false;
+    }
+    int val;
+    auto r = turbo::parse_flag(value, &val, error);
+    if(!r){
+        return false;
+    }
+    if(val < 0){
+        if(error)
+            *error = "stream window size must be non-negative";
+        return false;
+    }
+    return true;
+
+});
+TURBO_FLAG(int, h2_client_connection_window_size, 1024 * 1024,
+"Initial window size for connection-level flow control").on_validate([](std::string_view value, std::string *error) noexcept -> bool{
+    if(value.empty()){
+        *error = "stream window size must be set";
+        return false;
+    }
+    int val;
+    auto r = turbo::parse_flag(value, &val, error);
+    if(!r){
+        return false;
+    }
+    if(val <  (int32_t) melon::H2Settings::DEFAULT_INITIAL_WINDOW_SIZE){
+        if(error)
+            *error = "stream window size must be non-negative";
+        return false;
+    }
+    return true;
+
+});
+TURBO_FLAG(int, h2_client_max_frame_size,
+        melon::H2Settings::DEFAULT_MAX_FRAME_SIZE,
+"Size of the largest frame payload that client is willing to receive");
+
+TURBO_FLAG(bool, h2_hpack_encode_name, false,
+"Encode name in HTTP2 headers with huffman encoding");
+TURBO_FLAG(bool, h2_hpack_encode_value, false,
+"Encode value in HTTP2 headers with huffman encoding");
+
+TURBO_DECLARE_FLAG(bool, http_verbose);
+TURBO_DECLARE_FLAG(int32_t, http_verbose_max_body_length);
+TURBO_DECLARE_FLAG(int32_t, health_check_interval);
+TURBO_DECLARE_FLAG(bool, usercode_in_pthread);
 
 namespace melon {
 
-    DECLARE_bool(http_verbose);
-    DECLARE_int32(http_verbose_max_body_length);
-    DECLARE_int32(health_check_interval);
-    DECLARE_bool(usercode_in_pthread);
-
     namespace policy {
-
-        DEFINE_int32(h2_client_header_table_size,
-                     H2Settings::DEFAULT_HEADER_TABLE_SIZE,
-                     "maximum size of compression tables for decoding headers");
-        DEFINE_int32(h2_client_stream_window_size, 256 * 1024,
-                     "Initial window size for stream-level flow control");
-        DEFINE_int32(h2_client_connection_window_size, 1024 * 1024,
-                     "Initial window size for connection-level flow control");
-        DEFINE_int32(h2_client_max_frame_size,
-                     H2Settings::DEFAULT_MAX_FRAME_SIZE,
-                     "Size of the largest frame payload that client is willing to receive");
-
-        DEFINE_bool(h2_hpack_encode_name, false,
-                    "Encode name in HTTP2 headers with huffman encoding");
-        DEFINE_bool(h2_hpack_encode_value, false,
-                    "Encode value in HTTP2 headers with huffman encoding");
-
-        static bool CheckStreamWindowSize(const char *, int32_t val) {
-            return val >= 0;
-        }
-
-        MELON_VALIDATE_GFLAG(h2_client_stream_window_size, CheckStreamWindowSize);
-
-        static bool CheckConnWindowSize(const char *, int32_t val) {
-            return val >= (int32_t) H2Settings::DEFAULT_INITIAL_WINDOW_SIZE;
-        }
-
-        MELON_VALIDATE_GFLAG(h2_client_connection_window_size, CheckConnWindowSize);
 
         const char *H2StreamState2Str(H2StreamState s) {
             switch (s) {
@@ -236,11 +260,11 @@ namespace melon {
             return true;
         }
 
-// Maximum value that may be returned by SerializeH2Settings
+        // Maximum value that may be returned by SerializeH2Settings
         static const size_t H2_SETTINGS_MAX_BYTE_SIZE = 36;
 
-// Serialize to `out' which is at least ByteSize() bytes long.
-// Returns bytes written.
+        // Serialize to `out' which is at least ByteSize() bytes long.
+        // Returns bytes written.
         size_t SerializeH2Settings(const H2Settings &in, void *out) {
             uint8_t *p = (uint8_t *) out;
             if (in.header_table_size != H2Settings::DEFAULT_HEADER_TABLE_SIZE) {
@@ -364,10 +388,10 @@ namespace melon {
             if (server) {
                 _unack_local_settings = server->options().h2_settings;
             } else {
-                _unack_local_settings.header_table_size = FLAGS_h2_client_header_table_size;
-                _unack_local_settings.stream_window_size = FLAGS_h2_client_stream_window_size;
-                _unack_local_settings.max_frame_size = FLAGS_h2_client_max_frame_size;
-                _unack_local_settings.connection_window_size = FLAGS_h2_client_connection_window_size;
+                _unack_local_settings.header_table_size = turbo::get_flag(FLAGS_h2_client_header_table_size);
+                _unack_local_settings.stream_window_size = turbo::get_flag(FLAGS_h2_client_stream_window_size);
+                _unack_local_settings.max_frame_size = turbo::get_flag(FLAGS_h2_client_max_frame_size);
+                _unack_local_settings.connection_window_size = turbo::get_flag(FLAGS_h2_client_connection_window_size);
             }
 #if defined(UNIT_TEST)
             // In ut, we hope _last_sent_stream_id run out quickly to test the correctness
@@ -1013,7 +1037,7 @@ namespace melon {
                 }
                 for (size_t i = 1; i < goaway_streams.size(); ++i) {
                     fiber_t th;
-                    fiber_attr_t tmp = (FLAGS_usercode_in_pthread ?
+                    fiber_attr_t tmp = (turbo::get_flag(FLAGS_usercode_in_pthread) ?
                                         FIBER_ATTR_PTHREAD :
                                         FIBER_ATTR_NORMAL);
                     tmp.keytable_pool = _socket->keytable_pool();
@@ -1306,7 +1330,7 @@ namespace melon {
                     h.AppendHeader(pair.name, pair.value);
                 }
 
-                if (FLAGS_http_verbose) {
+                if (turbo::get_flag(FLAGS_http_verbose)) {
                     mutil::IOBufBuilder *vs = this->_vmsgbuilder.get();
                     if (vs == NULL) {
                         vs = new mutil::IOBufBuilder;
@@ -1591,8 +1615,8 @@ namespace melon {
             HPacker &hpacker = ctx->hpacker();
             mutil::IOBufAppender appender;
             HPackOptions options;
-            options.encode_name = FLAGS_h2_hpack_encode_name;
-            options.encode_value = FLAGS_h2_hpack_encode_value;
+            options.encode_name = turbo::get_flag(FLAGS_h2_hpack_encode_name);
+            options.encode_value = turbo::get_flag(FLAGS_h2_hpack_encode_value);
             if (ctx->remote_settings().header_table_size == 0) {
                 options.index_policy = HPACK_NEVER_INDEX_HEADER;
             }
@@ -1655,7 +1679,7 @@ namespace melon {
             if (!body->empty()) {
                 os << "> \n";
             }
-            os << mutil::ToPrintable(*body, FLAGS_http_verbose_max_body_length);
+            os << mutil::ToPrintable(*body, turbo::get_flag(FLAGS_http_verbose_max_body_length));
 
         }
 
@@ -1733,8 +1757,8 @@ namespace melon {
             HPacker &hpacker = ctx->hpacker();
             mutil::IOBufAppender appender;
             HPackOptions options;
-            options.encode_name = FLAGS_h2_hpack_encode_name;
-            options.encode_value = FLAGS_h2_hpack_encode_value;
+            options.encode_name = turbo::get_flag(FLAGS_h2_hpack_encode_name);
+            options.encode_value = turbo::get_flag(FLAGS_h2_hpack_encode_value);
             if (ctx->remote_settings().header_table_size == 0) {
                 options.index_policy = HPACK_NEVER_INDEX_HEADER;
             }
@@ -1797,7 +1821,7 @@ namespace melon {
             if (!_data.empty()) {
                 os << "> \n";
             }
-            os << mutil::ToPrintable(_data, FLAGS_http_verbose_max_body_length);
+            os << mutil::ToPrintable(_data, turbo::get_flag(FLAGS_http_verbose_max_body_length));
         }
 
         void PackH2Request(mutil::IOBuf *,
@@ -1824,7 +1848,7 @@ namespace melon {
             h2_req->_sctx->set_correlation_id(correlation_id);
             *user_message = h2_req;
 
-            if (FLAGS_http_verbose) {
+            if (turbo::get_flag(FLAGS_http_verbose)) {
                 LOG(INFO) << '\n' << *h2_req;
             }
         }

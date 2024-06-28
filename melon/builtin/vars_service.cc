@@ -222,7 +222,7 @@ namespace melon {
            "        $(\"#value-\" + var_name).html(series.data[series.data.length - 1][1]);\n"
            "      } else {\n"
            "        lastPlot[var_name] = $.plot(\"#\" + var_name, series, trendOptions);\n"
-           << (melon::var::FLAGS_quote_vector ?
+           << (turbo::get_flag(FLAGS_quote_vector) ?
                "        var newValue = '\"[';\n" :
                "        var newValue = '[';\n") <<
            "        var i;\n"
@@ -231,7 +231,7 @@ namespace melon {
            "            var data = series[i].data;\n"
            "            newValue += data[data.length - 1][1];\n"
            "        }\n"
-           << (melon::var::FLAGS_quote_vector ?
+           << (turbo::get_flag(FLAGS_quote_vector) ?
                "        newValue += ']\"';\n" :
                "        newValue += ']';\n") <<
            "        $(\"#value-\" + var_name).html(newValue);\n"

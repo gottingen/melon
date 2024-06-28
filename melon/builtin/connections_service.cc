@@ -22,7 +22,6 @@
 #include <ostream>
 #include <iomanip>
 #include <netinet/tcp.h>
-#include <gflags/gflags.h>
 #include <melon/rpc/closure_guard.h>        // ClosureGuard
 #include <melon/rpc/controller.h>           // Controller
 #include <melon/rpc/socket_map.h>           // SocketMapList
@@ -31,18 +30,18 @@
 #include <melon/builtin/common.h>
 #include <melon/builtin/connections_service.h>
 #include <melon/utility/class_name.h>
+#include <turbo/flags/flag.h>
 
+TURBO_FLAG(bool, show_hostname_instead_of_ip, false,
+           "/connections shows hostname instead of ip").on_validate(turbo::AllPassValidator<bool>::validate);
+
+
+TURBO_FLAG(int32_t, max_shown_connections, 1024,
+           "Print stats of at most so many connections (soft limit)");
 
 namespace melon {
 
     int64_t GetChannelConnectionCount();
-
-    DEFINE_bool(show_hostname_instead_of_ip, false,
-                "/connections shows hostname instead of ip");
-    MELON_VALIDATE_GFLAG(show_hostname_instead_of_ip, PassValidate);
-
-    DEFINE_int32(max_shown_connections, 1024,
-                 "Print stats of at most so many connections (soft limit)");
 
     // NOTE: The returned string must be 3-char wide in text mode.
     inline const char *SSLStateToYesNo(SSLState s, bool use_html) {
@@ -66,7 +65,7 @@ namespace melon {
 
     std::ostream &operator<<(std::ostream &os, const NameOfPoint &nop) {
         char buf[128];
-        if (FLAGS_show_hostname_instead_of_ip &&
+        if (turbo::get_flag(FLAGS_show_hostname_instead_of_ip) &&
             mutil::endpoint2hostname(nop.pt, buf, sizeof(buf)) == 0) {
             return os << buf;
         } else {
@@ -345,7 +344,7 @@ namespace melon {
             server->PrintTabsBody(os, "connections");
         }
 
-        size_t max_shown = (size_t) FLAGS_max_shown_connections;
+        size_t max_shown = (size_t)turbo::get_flag( FLAGS_max_shown_connections);
         if (cntl->http_request().uri().GetQuery("givemeall")) {
             max_shown = std::numeric_limits<size_t>::max();
         }

@@ -22,7 +22,6 @@
 #include <signal.h>
 #include <openssl/md5.h>
 #include <google/protobuf/descriptor.h>
-#include <gflags/gflags.h>
 #include <melon/fiber/fiber.h>
 #include <melon/utility/build_config.h>    // OS_MACOSX
 #include <melon/utility/string_printf.h>
@@ -49,7 +48,8 @@
 #include <melon/rpc/details/usercode_backup_pool.h>  // RunUserCode
 #include <melon/rpc/mongo/mongo_service_adaptor.h>
 #include <cinttypes>
-
+#include <turbo/flags/flag.h>
+#include <turbo/flags/declare.h>
 // Force linking the .o in UT (which analysis deps by inclusions)
 #include <melon/rpc/parallel_channel.h>
 #include <melon/rpc/selective_channel.h>
@@ -86,13 +86,16 @@ MELON_REGISTER_ERRNO(melon::ELIMIT, "Reached server's max_concurrency");
 MELON_REGISTER_ERRNO(melon::ECLOSE, "Close socket initiatively");
 MELON_REGISTER_ERRNO(melon::EITP, "Bad Itp response");
 
+TURBO_FLAG(bool, graceful_quit_on_sigterm, false,
+            "Register SIGTERM handle func to quit graceful");
+TURBO_FLAG(bool, graceful_quit_on_sighup, false,
+            "Register SIGHUP handle func to quit graceful");
+TURBO_DECLARE_FLAG(bool, usercode_in_pthread);
+TURBO_DECLARE_FLAG(bool,usercode_in_coroutine);
 
 namespace melon {
 
-    DEFINE_bool(graceful_quit_on_sigterm, false,
-                "Register SIGTERM handle func to quit graceful");
-    DEFINE_bool(graceful_quit_on_sighup, false,
-                "Register SIGHUP handle func to quit graceful");
+
 
     const IdlNames idl_single_req_single_res = {"req", "res"};
     const IdlNames idl_single_req_multi_res = {"req", ""};
@@ -125,9 +128,6 @@ namespace melon {
 
     const Controller *GetSubControllerOfSelectiveChannel(
             const RPCSender *sender, int index);
-
-    DECLARE_bool(usercode_in_pthread);
-    DECLARE_bool(usercode_in_coroutine);
     static const int MAX_RETRY_COUNT = 1000;
     static melon::var::Adder<int64_t> *g_ncontroller = NULL;
 
@@ -686,7 +686,7 @@ namespace melon {
         }
 
         END_OF_RPC:
-        if (new_fiber && !FLAGS_usercode_in_coroutine) {
+        if (new_fiber && !turbo::get_flag(FLAGS_usercode_in_coroutine)) {
             // [ Essential for -usercode_in_pthread=true ]
             // When -usercode_in_pthread is on, the reserved threads (set by
             // -usercode_backup_threads) may all block on fiber_session_lock in
@@ -711,14 +711,14 @@ namespace melon {
             // FLAGS_DESTROY_CID_IN_DONE to true must be aware of
             // -usercode_in_pthread and avoid deadlock by their own (TBR)
 
-            if ((FLAGS_usercode_in_pthread || _done != NULL/*Note[_done]*/) &&
+            if ((turbo::get_flag(FLAGS_usercode_in_pthread) || _done != NULL/*Note[_done]*/) &&
                 !has_flag(FLAGS_DESTROY_CID_IN_DONE)/*Note[cid]*/) {
                 fiber_session_about_to_destroy(info.id);
             }
             // No need to join this fiber since RPC caller won't wake up
             // (or user's done won't be called) until this fiber finishes
             fiber_t bt;
-            fiber_attr_t attr = (FLAGS_usercode_in_pthread ?
+            fiber_attr_t attr = (turbo::get_flag(FLAGS_usercode_in_pthread) ?
                                  FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL);
             _tmp_completion_info = info;
             if (fiber_start_background(&bt, &attr, RunEndRPC, this) != 0) {
@@ -933,7 +933,7 @@ namespace melon {
         // No need to retry or can't retry, just call user's `done'.
         const CallId saved_cid = _correlation_id;
         if (_done) {
-            if (!FLAGS_usercode_in_pthread || _done == DoNothing()/*Note*/) {
+            if (!turbo::get_flag(FLAGS_usercode_in_pthread) || _done == DoNothing()/*Note*/) {
                 // Note: no need to run DoNothing in backup thread when pthread
                 // mode is on. Otherwise there's a tricky deadlock:
                 // void SomeService::CallMethod(...) { // -usercode_in_pthread=true
@@ -1565,7 +1565,7 @@ namespace melon {
             LOG(WARNING) << "SIGINT was installed with " << prev;
         }
 
-        if (FLAGS_graceful_quit_on_sigterm) {
+        if (turbo::get_flag(FLAGS_graceful_quit_on_sigterm)) {
             prev = signal(SIGTERM, quit_handler);
             if (prev != SIG_DFL &&
                 prev != SIG_IGN) { // shell may install SIGTERM of background jobs with SIG_IGN
@@ -1576,7 +1576,7 @@ namespace melon {
             }
         }
 
-        if (FLAGS_graceful_quit_on_sighup) {
+        if (turbo::get_flag(FLAGS_graceful_quit_on_sighup)) {
             prev = signal(SIGHUP, quit_handler);
             if (prev != SIG_DFL &&
                 prev != SIG_IGN) { // shell may install SIGHUP of background jobs with SIG_IGN

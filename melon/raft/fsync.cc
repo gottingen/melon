@@ -19,15 +19,8 @@
 
 
 #include <melon/raft/fsync.h>
-#include <melon/rpc/reloadable_flags.h>  //MELON_VALIDATE_GFLAG
+#include <turbo/flags/flag.h>
 
-namespace melon::raft {
-
-    DEFINE_bool(raft_use_fsync_rather_than_fdatasync,
-                true,
-                "Use fsync rather than fdatasync to flush page cache");
-
-    MELON_VALIDATE_GFLAG(raft_use_fsync_rather_than_fdatasync,
-                        melon::PassValidate);
-
-}  //  namespace melon::raft
+TURBO_FLAG(bool, raft_use_fsync_rather_than_fdatasync,
+           true,
+           "Use fsync rather than fdatasync to flush page cache").on_validate(turbo::AllPassValidator<bool>::validate);

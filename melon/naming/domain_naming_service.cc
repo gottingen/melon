@@ -18,7 +18,6 @@
 //
 
 
-#include <gflags/gflags.h>
 #include <melon/utility/build_config.h>                       // OS_MACOSX
 #include <netdb.h>                                    // gethostbyname_r
 #include <cstdlib>                                   // strtol
@@ -26,8 +25,9 @@
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/log.h>
 #include <melon/naming/domain_naming_service.h>
+#include <turbo/flags/flag.h>
 
-DEFINE_bool(dns_support_ipv6, false, "Resolve DNS by IPV6 address first");
+TURBO_FLAG(bool, dns_support_ipv6, false, "Resolve DNS by IPV6 address first");
 
 namespace melon::naming {
 
@@ -80,7 +80,7 @@ namespace melon::naming {
             return -1;
         }
 
-        if (FLAGS_dns_support_ipv6) {
+        if (turbo::get_flag(FLAGS_dns_support_ipv6)) {
             struct addrinfo hints;
             struct addrinfo *addrResult;
             memset(&hints, 0, sizeof(hints));

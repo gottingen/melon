@@ -26,7 +26,6 @@
 #include <gflags/gflags.h>
 #include <melon/rpc/socket.h>
 #include <melon/rpc/socket_map.h>
-#include <melon/rpc/reloadable_flags.h>
 
 namespace melon {
 DECLARE_int32(idle_timeout_second);

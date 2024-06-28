@@ -27,6 +27,8 @@
 #include <melon/rpc/server_id.h>                       // ServerId
 #include <melon/rpc/extension.h>                       // Extension<T>
 
+TURBO_DECLARE_FLAG(bool, show_lb_in_vars);
+TURBO_DECLARE_FLAG(int32_t ,default_weight_of_wlb);
 namespace melon {
 
     class Controller;
@@ -108,8 +110,6 @@ namespace melon {
         virtual ~LoadBalancer() {}
     };
 
-    DECLARE_bool(show_lb_in_vars);
-    DECLARE_int32(default_weight_of_wlb);
 
     // A intrusively shareable load balancer created from name.
     class SharedLoadBalancer : public SharedObject, public NonConstDescribable {
@@ -122,7 +122,7 @@ namespace melon {
 
         int SelectServer(const LoadBalancer::SelectIn &in,
                          LoadBalancer::SelectOut *out) {
-            if (FLAGS_show_lb_in_vars && !_exposed) {
+            if (turbo::get_flag(FLAGS_show_lb_in_vars) && !_exposed) {
                 ExposeLB();
             }
             return _lb->SelectServer(in, out);

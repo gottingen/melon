@@ -18,7 +18,7 @@
 //
 
 #include <melon/raft/remote_file_copier.h>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/utility/strings/string_piece.h>
 #include <melon/utility/strings/string_number_conversions.h>
 #include <melon/utility/files/file_path.h>
@@ -29,22 +29,18 @@
 #include <melon/raft/snapshot.h>
 #include <melon/raft/config.h>
 
+TURBO_FLAG(int32_t, raft_max_byte_count_per_rpc, 1024 * 128 /*128K*/,
+           "Maximum of block size per RPC").on_validate(turbo::GtValidator<int32_t, 1>::validate);
+TURBO_FLAG(bool, raft_allow_read_partly_when_install_snapshot, true,
+           "Whether allowing read snapshot data partly").on_validate(turbo::AllPassValidator<bool>::validate);
+TURBO_FLAG(bool, raft_enable_throttle_when_install_snapshot, true,
+           "enable throttle when install snapshot, for both leader and follower").on_validate(
+        turbo::AllPassValidator<bool>::validate);
+
 namespace melon::raft {
 
-    DEFINE_int32(raft_max_byte_count_per_rpc, 1024 * 128 /*128K*/,
-                 "Maximum of block size per RPC");
-    MELON_VALIDATE_GFLAG(raft_max_byte_count_per_rpc, melon::PositiveInteger);
-    DEFINE_bool(raft_allow_read_partly_when_install_snapshot, true,
-                "Whether allowing read snapshot data partly");
-    MELON_VALIDATE_GFLAG(raft_allow_read_partly_when_install_snapshot,
-                        ::melon::PassValidate);
-    DEFINE_bool(raft_enable_throttle_when_install_snapshot, true,
-                "enable throttle when install snapshot, for both leader and follower");
-    MELON_VALIDATE_GFLAG(raft_enable_throttle_when_install_snapshot,
-                        ::melon::PassValidate);
-
     RemoteFileCopier::RemoteFileCopier()
-            : _reader_id(0), _throttle(NULL) {}
+            : _reader_id(0), _throttle(nullptr) {}
 
     int RemoteFileCopier::init(const std::string &uri, FileSystemAdaptor *fs,
                                SnapshotThrottle *throttle) {
@@ -65,7 +61,7 @@ namespace melon::raft {
             return -1;
         }
         melon::ChannelOptions channel_opt;
-        channel_opt.connect_timeout_ms = FLAGS_raft_rpc_channel_connect_timeout_ms;
+        channel_opt.connect_timeout_ms = turbo::get_flag(FLAGS_raft_rpc_channel_connect_timeout_ms);
         if (_channel.Init(ip_and_port.as_string().c_str(), &channel_opt) != 0) {
             LOG(ERROR) << "Fail to init Channel to " << ip_and_port;
             return -1;
@@ -91,7 +87,7 @@ namespace melon::raft {
         GetFileResponse response;
         FileService_Stub stub(&_channel);
         cntl.set_timeout_ms(timeout_ms);
-        stub.get_file(&cntl, &request, &response, NULL);
+        stub.get_file(&cntl, &request, &response, nullptr);
         if (cntl.Failed()) {
             LOG(WARNING) << "Fail to issue RPC, " << cntl.ErrorText();
             return cntl.ErrorCode();
@@ -106,7 +102,7 @@ namespace melon::raft {
                                        const CopyOptions *options) {
         scoped_refptr<Session> session = start_to_copy_to_file(
                 source, dest_path, options);
-        if (session == NULL) {
+        if (session == nullptr) {
             return -1;
         }
         session->join();
@@ -118,7 +114,7 @@ namespace melon::raft {
                                         const CopyOptions *options) {
         scoped_refptr<Session> session = start_to_copy_to_iobuf(
                 source, dest_buf, options);
-        if (session == NULL) {
+        if (session == nullptr) {
             return -1;
         }
         session->join();
@@ -131,12 +127,12 @@ namespace melon::raft {
             const std::string &dest_path,
             const CopyOptions *options) {
         mutil::File::Error e;
-        FileAdaptor *file = _fs->open(dest_path, O_TRUNC | O_WRONLY | O_CREAT | O_CLOEXEC, NULL, &e);
+        FileAdaptor *file = _fs->open(dest_path, O_TRUNC | O_WRONLY | O_CREAT | O_CLOEXEC, nullptr, &e);
 
         if (!file) {
             LOG(ERROR) << "Fail to open " << dest_path
                        << ", " << mutil::File::ErrorToString(e);
-            return NULL;
+            return nullptr;
         }
 
         scoped_refptr<Session> session(new Session());
@@ -163,7 +159,7 @@ namespace melon::raft {
             const CopyOptions *options) {
         dest_buf->clear();
         scoped_refptr<Session> session(new Session());
-        session->_file = NULL;
+        session->_file = nullptr;
         session->_buf = dest_buf;
         session->_request.set_filename(source);
         session->_request.set_reader_id(_reader_id);
@@ -176,7 +172,7 @@ namespace melon::raft {
     }
 
     RemoteFileCopier::Session::Session()
-            : _channel(NULL), _file(NULL), _retry_times(0), _finished(false), _buf(NULL), _timer(), _throttle(NULL),
+            : _channel(nullptr), _file(nullptr), _retry_times(0), _finished(false), _buf(nullptr), _timer(), _throttle(nullptr),
               _throttle_token_acquire_time_us(1) {
         _done.owner = this;
     }
@@ -185,7 +181,7 @@ namespace melon::raft {
         if (_file) {
             _file->close();
             delete _file;
-            _file = NULL;
+            _file = nullptr;
         }
     }
 
@@ -195,18 +191,18 @@ namespace melon::raft {
         // Not clear request as we need some fields of the previous RPC
         off_t offset = _request.offset() + _request.count();
         const size_t max_count =
-                (!_buf) ? FLAGS_raft_max_byte_count_per_rpc : UINT_MAX;
+                (!_buf) ? turbo::get_flag(FLAGS_raft_max_byte_count_per_rpc) : UINT_MAX;
         _cntl.set_timeout_ms(_options.timeout_ms);
         _request.set_offset(offset);
         // Read partly when throttled
-        _request.set_read_partly(FLAGS_raft_allow_read_partly_when_install_snapshot);
+        _request.set_read_partly(turbo::get_flag(FLAGS_raft_allow_read_partly_when_install_snapshot));
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_finished) {
             return;
         }
         // throttle
         size_t new_max_count = max_count;
-        if (_throttle && FLAGS_raft_enable_throttle_when_install_snapshot) {
+        if (_throttle && turbo::get_flag(FLAGS_raft_enable_throttle_when_install_snapshot)) {
             _throttle_token_acquire_time_us = mutil::cpuwide_time_us();
             new_max_count = _throttle->throttled_by_throughput(max_count);
             if (new_max_count == 0) {
@@ -264,7 +260,7 @@ namespace melon::raft {
             if (_cntl.ErrorCode() == EAGAIN && _throttle) {
                 retry_interval_ms = _throttle->get_retry_interval_ms();
                 // No token consumed, just return back, other nodes maybe able to use them
-                if (FLAGS_raft_enable_throttle_when_install_snapshot) {
+                if (turbo::get_flag(FLAGS_raft_enable_throttle_when_install_snapshot)) {
                     _throttle->return_unused_throughput(
                             request_count, 0,
                             mutil::cpuwide_time_us() - _throttle_token_acquire_time_us);
@@ -281,7 +277,7 @@ namespace melon::raft {
             }
             return;
         }
-        if (_throttle && FLAGS_raft_enable_throttle_when_install_snapshot &&
+        if (_throttle && turbo::get_flag(FLAGS_raft_enable_throttle_when_install_snapshot) &&
             _request.count() > (int64_t) _cntl.response_attachment().size()) {
             _throttle->return_unused_throughput(
                     _request.count(), _cntl.response_attachment().size(),
@@ -290,7 +286,7 @@ namespace melon::raft {
         _retry_times = 0;
         // Reset count to |real_read_size| to make next rpc get the right offset
         if (_response.has_read_size() && (_response.read_size() != 0)
-            && FLAGS_raft_allow_read_partly_when_install_snapshot) {
+            && turbo::get_flag(FLAGS_raft_allow_read_partly_when_install_snapshot)) {
             _request.set_count(_response.read_size());
         }
         if (_file) {
@@ -328,13 +324,13 @@ namespace melon::raft {
         Session *m = (Session *) arg;
         m->send_next_rpc();
         m->Release();
-        return NULL;
+        return nullptr;
     }
 
     void RemoteFileCopier::Session::on_timer(void *arg) {
         fiber_t tid;
         if (fiber_start_background(
-                &tid, NULL, send_next_rpc_on_timedout, arg) != 0) {
+                &tid, nullptr, send_next_rpc_on_timedout, arg) != 0) {
             PLOG(ERROR) << "Fail to start fiber";
             send_next_rpc_on_timedout(arg);
         }
@@ -347,7 +343,7 @@ namespace melon::raft {
                     _st.set_error(EIO, "%s", berror(EIO));
                 }
                 delete _file;
-                _file = NULL;
+                _file = nullptr;
             }
             _finished = true;
             _finish_event.signal();

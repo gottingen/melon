@@ -21,10 +21,11 @@
 #pragma once
 
 #include <vector>                           // std::vector
-#include <gflags/gflags_declare.h>
 #include <melon/utility/endpoint.h>
 #include <melon/rpc/http/http_header.h>
+#include <turbo/flags/declare.h>
 
+TURBO_DECLARE_FLAG(std::string, rpc_profiling_dir);
 
 namespace melon {
 
@@ -54,8 +55,6 @@ namespace melon {
         PROFILING_GROWTH = 2,
         PROFILING_CONTENTION = 3,
     };
-
-    DECLARE_string(rpc_profiling_dir);
 
     bool UseHTML(const HttpHeader &header);
 

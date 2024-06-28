@@ -33,10 +33,11 @@
 #include <melon/proto/rpc/trackme.pb.h>
 #include <melon/rpc/policy/hasher.h>
 #include <melon/utility/files/scoped_file.h>
+#include <turbo/flags/flag.h>
+
+TURBO_FLAG(std::string, trackme_server, "", "Where the TrackMe requests are sent to");
 
 namespace melon {
-
-    DEFINE_string(trackme_server, "", "Where the TrackMe requests are sent to");
 
     static const int32_t TRACKME_MIN_INTERVAL = 30;
     static const int32_t TRACKME_MAX_INTERVAL = 600;
@@ -133,7 +134,7 @@ namespace melon {
 
     static void HandleTrackMeResponse(Controller *cntl, TrackMeResponse *res) {
         if (cntl->Failed()) {
-            RPC_VLOG << "Fail to access " << FLAGS_trackme_server << ", " << cntl->ErrorText();
+            RPC_VLOG << "Fail to access " << turbo::get_flag(FLAGS_trackme_server) << ", " << cntl->ErrorText();
         } else {
             BugInfo cur_info;
             cur_info.severity = res->severity();
@@ -200,8 +201,8 @@ namespace melon {
             ChannelOptions opt;
             // keep #connections on server-side low
             opt.connection_type = CONNECTION_TYPE_SHORT;
-            if (chan->Init(FLAGS_trackme_server.c_str(), "c_murmurhash", &opt) != 0) {
-                LOG(WARNING) << "Fail to connect to " << FLAGS_trackme_server;
+            if (chan->Init(turbo::get_flag(FLAGS_trackme_server).c_str(), "c_murmurhash", &opt) != 0) {
+                LOG(WARNING) << "Fail to connect to " << turbo::get_flag(FLAGS_trackme_server);
                 delete chan;
                 return;
             }
@@ -223,7 +224,7 @@ namespace melon {
 // Called in global.cpp
 // [Thread-safe] supposed to be called in low frequency.
     void TrackMe() {
-        if (FLAGS_trackme_server.empty()) {
+        if (turbo::get_flag(FLAGS_trackme_server).empty()) {
             return;
         }
         int64_t now = mutil::gettimeofday_us();

@@ -192,7 +192,7 @@ namespace melon {
             uint32_t body_size;
             HuluRawUnpacker ru(header_buf + 4);
             ru.unpack32(body_size);
-            if (body_size > FLAGS_max_body_size) {
+            if (body_size > turbo::get_flag(FLAGS_max_body_size)) {
                 // We need this log to report the body_size to give users some clues
                 // which is not printed in InputMessenger.
                 LOG(ERROR) << "body_size=" << body_size << " from "
@@ -433,7 +433,7 @@ namespace melon {
                                     server->options().max_concurrency);
                     break;
                 }
-                if (FLAGS_usercode_in_pthread && TooManyUserCode()) {
+                if (turbo::get_flag(FLAGS_usercode_in_pthread) && TooManyUserCode()) {
                     cntl->SetFailed(ELIMIT, "Too many user code to run when"
                                             " -usercode_in_pthread is on");
                     break;
@@ -512,7 +512,7 @@ namespace melon {
                     span->set_start_callback_us(mutil::cpuwide_time_us());
                     span->AsParent();
                 }
-                if (!FLAGS_usercode_in_pthread) {
+                if (!turbo::get_flag(FLAGS_usercode_in_pthread)) {
                     return svc->CallMethod(method, cntl.release(),
                                            req.release(), res.release(), done);
                 }

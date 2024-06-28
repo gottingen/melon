@@ -35,7 +35,6 @@
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/rpc/span.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/builtin/version_service.h>
 #include <melon/builtin/health_service.h>
 #include <melon/builtin/list_service.h>

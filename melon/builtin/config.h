@@ -19,33 +19,26 @@
 
 #pragma once
 
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/declare.h>
+TURBO_DECLARE_FLAG(std::string, rpc_profiling_dir);
+TURBO_DECLARE_FLAG(bool, show_hostname_instead_of_ip);
 
-namespace melon {
+// Print stats of at most so many connections default 1024
+TURBO_DECLARE_FLAG(int32_t, max_shown_connections);
 
-    /// builtin flags
-    // For storing profiling results
-    DECLARE_string(rpc_profiling_dir);
+// gflags on /flags page can't be modified default false
+TURBO_DECLARE_FLAG(bool, immutable_flags);
 
-    // shows hostname instead of ip default false
-    DECLARE_bool(show_hostname_instead_of_ip);
+// max length of TCMalloc stats default 32 * 1024
+TURBO_DECLARE_FLAG(int32_t ,max_tc_stats_buf_len);
 
-    // Print stats of at most so many connections default 1024
-    DECLARE_int32(max_shown_connections);
+// turn on/off rpcz default false
+TURBO_DECLARE_FLAG(bool, enable_rpcz);
 
-    // gflags on /flags page can't be modified default false
-    DECLARE_bool(immutable_flags);
+// show log_id in hexadecimal default false
+TURBO_DECLARE_FLAG(bool, rpcz_hex_log_id);
 
-    // max length of TCMalloc stats default 32 * 1024
-    DECLARE_int32(max_tc_stats_buf_len);
+TURBO_DECLARE_FLAG(bool ,enable_dir_service);
+TURBO_DECLARE_FLAG(bool ,enable_threads_service);
+TURBO_DECLARE_FLAG(bool ,quote_vector);
 
-    // turn on/off rpcz default false
-    DECLARE_bool(enable_rpcz);
-
-    // show log_id in hexadecimal default false
-    DECLARE_bool(rpcz_hex_log_id);
-
-    DECLARE_bool(enable_dir_service);
-    DECLARE_bool(enable_threads_service);
-    DECLARE_bool(quote_vector);
-}  // namespace melon

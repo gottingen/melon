@@ -19,45 +19,44 @@
 
 
 
-#include <gflags/gflags.h>                            // DEFINE_int32
+#include <turbo/flags/flag.h>
 #include <melon/utility/compat.h>
 #include <melon/utility/fd_utility.h>                         // make_close_on_exec
 #include <turbo/log/logging.h>                            // LOG
 #include <melon/utility/third_party/murmurhash3/murmurhash3.h>// fmix32
 #include <melon/fiber/fiber.h>                          // fiber_start_background
 #include <melon/rpc/event_dispatcher.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/fiber/config.h>                        // FLAGS_task_group_ntags
 
+TURBO_FLAG(int32_t, event_dispatcher_num, 1, "Number of event dispatcher");
+
+TURBO_FLAG(bool, usercode_in_pthread, false,
+           "Call user's callback in pthreads, use fibers otherwise");
+TURBO_FLAG(bool, usercode_in_coroutine, false,
+           "User's callback are run in coroutine, no fiber or pthread blocking call");
+
 namespace melon {
-
-    DEFINE_int32(event_dispatcher_num, 1, "Number of event dispatcher");
-
-    DEFINE_bool(usercode_in_pthread, false,
-                "Call user's callback in pthreads, use fibers otherwise");
-    DEFINE_bool(usercode_in_coroutine, false,
-                "User's callback are run in coroutine, no fiber or pthread blocking call");
 
     static EventDispatcher *g_edisp = NULL;
     static pthread_once_t g_edisp_once = PTHREAD_ONCE_INIT;
 
     static void StopAndJoinGlobalDispatchers() {
-        for (int i = 0; i < fiber::FLAGS_task_group_ntags; ++i) {
-            for (int j = 0; j < FLAGS_event_dispatcher_num; ++j) {
-                g_edisp[i * FLAGS_event_dispatcher_num + j].Stop();
-                g_edisp[i * FLAGS_event_dispatcher_num + j].Join();
+        for (int i = 0; i < turbo::get_flag(FLAGS_task_group_ntags); ++i) {
+            for (int j = 0; j < turbo::get_flag(FLAGS_event_dispatcher_num); ++j) {
+                g_edisp[i * turbo::get_flag(FLAGS_event_dispatcher_num) + j].Stop();
+                g_edisp[i * turbo::get_flag(FLAGS_event_dispatcher_num) + j].Join();
             }
         }
     }
 
     void InitializeGlobalDispatchers() {
-        g_edisp = new EventDispatcher[fiber::FLAGS_task_group_ntags * FLAGS_event_dispatcher_num];
-        for (int i = 0; i < fiber::FLAGS_task_group_ntags; ++i) {
-            for (int j = 0; j < FLAGS_event_dispatcher_num; ++j) {
+        g_edisp = new EventDispatcher[turbo::get_flag(FLAGS_task_group_ntags) * turbo::get_flag(FLAGS_event_dispatcher_num)];
+        for (int i = 0; i < turbo::get_flag(FLAGS_task_group_ntags); ++i) {
+            for (int j = 0; j < turbo::get_flag(FLAGS_event_dispatcher_num); ++j) {
                 fiber_attr_t attr =
-                        FLAGS_usercode_in_pthread ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
-                attr.tag = (FIBER_TAG_DEFAULT + i) % fiber::FLAGS_task_group_ntags;
-                CHECK_EQ(0, g_edisp[i * FLAGS_event_dispatcher_num + j].Start(&attr));
+                        turbo::get_flag(FLAGS_usercode_in_pthread) ? FIBER_ATTR_PTHREAD : FIBER_ATTR_NORMAL;
+                attr.tag = (FIBER_TAG_DEFAULT + i) % turbo::get_flag(FLAGS_task_group_ntags);
+                CHECK_EQ(0, g_edisp[i * turbo::get_flag(FLAGS_event_dispatcher_num) + j].Start(&attr));
             }
         }
         // This atexit is will be run before g_task_control.stop() because above
@@ -67,11 +66,11 @@ namespace melon {
 
     EventDispatcher &GetGlobalEventDispatcher(int fd, fiber_tag_t tag) {
         pthread_once(&g_edisp_once, InitializeGlobalDispatchers);
-        if (fiber::FLAGS_task_group_ntags == 1 && FLAGS_event_dispatcher_num == 1) {
+        if (turbo::get_flag(FLAGS_task_group_ntags) == 1 && turbo::get_flag(FLAGS_event_dispatcher_num) == 1) {
             return g_edisp[0];
         }
-        int index = mutil::fmix32(fd) % FLAGS_event_dispatcher_num;
-        return g_edisp[tag * FLAGS_event_dispatcher_num + index];
+        int index = mutil::fmix32(fd) % turbo::get_flag(FLAGS_event_dispatcher_num);
+        return g_edisp[tag * turbo::get_flag(FLAGS_event_dispatcher_num) + index];
     }
 
 } // namespace melon

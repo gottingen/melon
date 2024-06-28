@@ -35,6 +35,10 @@
 #include <melon/fiber/task_meta.h>
 #include <melon/proto/rpc/options.pb.h>                 // ProtocolType
 #include <melon/proto/rpc/span.pb.h>
+#include <turbo/flags/declare.h>
+#include <turbo/flags/flag.h>
+
+TURBO_DECLARE_FLAG(bool, enable_rpcz);
 
 namespace fiber {
 extern __thread fiber::LocalStorage tls_bls;
@@ -42,8 +46,6 @@ extern __thread fiber::LocalStorage tls_bls;
 
 
 namespace melon {
-
-DECLARE_bool(enable_rpcz);
 
 // Collect information required by /rpcz and tracing system whose idea is
 // described in http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/36356.pdf
@@ -233,7 +235,7 @@ void ListSpans(SpanDB* db, int64_t before_this_time, size_t max_scan,
 inline bool IsTraceable(bool is_upstream_traced) {
     extern melon::var::CollectorSpeedLimit g_span_sl;
     return is_upstream_traced ||
-        (FLAGS_enable_rpcz && melon::var::is_collectable(&g_span_sl));
+        (turbo::get_flag(FLAGS_enable_rpcz) && melon::var::is_collectable(&g_span_sl));
 }
 
 } // namespace melon

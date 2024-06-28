@@ -25,34 +25,15 @@
 #include <melon/br/registry.h>
 #include <turbo/flags/flag.h>
 
-DEFINE_int32(port, 8018, "TCP Port of this server");
-DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
+TURBO_FLAG(int32_t, port, 8068, "TCP Port of this server");
+TURBO_FLAG(int32_t, idle_timeout_s, -1, "Connection will be closed if there is no "
                                  "read/write operations during the last `idle_timeout_s'");
 
-DEFINE_string(certificate, "cert.pem", "Certificate file path to enable SSL");
-DEFINE_string(private_key, "key.pem", "Private key file path to enable SSL");
-DEFINE_string(ciphers, "", "Cipher suite used for SSL connections");
+TURBO_FLAG(std::string, certificate, "cert.pem", "Certificate file path to enable SSL");
+TURBO_FLAG(std::string, private_key, "key.pem", "Private key file path to enable SSL");
+TURBO_FLAG(std::string, ciphers, "", "Cipher suite used for SSL connections");
 TURBO_FLAG(bool, test_imm, false, "Enable SSL for this server");
-TURBO_FLAG(int64_t , test_port, 8876, "TCP Port of this server").on_validate([](std::string_view value, std::string *err) noexcept ->bool {
-    if(value.empty()) {
-        if(err)
-            *err = "server_port is empty";
-        return false;
-    }
-    int port;
-    auto r = turbo::parse_flag(value, &port, nullptr);
-    if(!r) {
-        if(err)
-            *err = "server_port is not a number";
-        return false;
-    }
-    if(port < 1024 || port > 65535) {
-        if(err)
-            *err = "server_port is not in range [1024, 65535]";
-        return false;
-    }
-    return true;
-});
+TURBO_FLAG(int64_t , test_port, 8876, "TCP Port of this server").on_validate(turbo::OpenOpenInRangeValidator<int64_t ,1024, 65536>::validate);
 namespace myservice {
 
 class NotFoundProcessor : public melon::RestfulProcessor {
@@ -110,7 +91,6 @@ private:
 }  // namespace myservice
 
 int main(int argc, char* argv[]) {
-    google::ParseCommandLineFlags(&argc, &argv, true);
     turbo::setup_color_stderr_sink();
     // Generally you only need one Server.
     melon::Server server;
@@ -136,11 +116,11 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     melon::ServerOptions options;
-    options.idle_timeout_sec = FLAGS_idle_timeout_s;
-    options.mutable_ssl_options()->default_cert.certificate = FLAGS_certificate;
-    options.mutable_ssl_options()->default_cert.private_key = FLAGS_private_key;
-    options.mutable_ssl_options()->ciphers = FLAGS_ciphers;
-    if (server.Start(FLAGS_port, &options) != 0) {
+    options.idle_timeout_sec = turbo::get_flag(FLAGS_idle_timeout_s);
+    options.mutable_ssl_options()->default_cert.certificate = turbo::get_flag(FLAGS_certificate);
+    options.mutable_ssl_options()->default_cert.private_key = turbo::get_flag(FLAGS_private_key);
+    options.mutable_ssl_options()->ciphers = turbo::get_flag(FLAGS_ciphers);
+    if (server.Start(turbo::get_flag(FLAGS_port), &options) != 0) {
         LOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }

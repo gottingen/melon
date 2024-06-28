@@ -21,7 +21,7 @@
 
 #include <google/protobuf/descriptor.h>         // MethodDescriptor
 #include <google/protobuf/message.h>            // Message
-#include <gflags/gflags.h>
+#include <turbo/flags/declare.h>                   // FLAGS
 #include <turbo/log/logging.h>                       // LOG()
 #include <melon/utility/time.h>
 #include <melon/utility/iobuf.h>                         // mutil::IOBuf
@@ -39,10 +39,9 @@
 #include <melon/rpc/policy/most_common_message.h>
 #include <melon/utility/containers/flat_map.h>
 
+TURBO_DECLARE_FLAG(bool, enable_rpcz);
 
 namespace melon {
-
-DECLARE_bool(enable_rpcz);
 
 namespace policy {
 

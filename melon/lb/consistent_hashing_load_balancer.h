@@ -18,8 +18,7 @@
 //
 
 
-#ifndef  MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_
-#define  MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_
+#pragma once
 
 #include <stdint.h>                                     // uint32_t
 #include <functional>
@@ -97,6 +96,3 @@ namespace melon::lb {
     };
 
 } // namespace melon::lb
-
-
-#endif  // MELON_LB_CONSISTENT_HASHING_LOAD_BALANCER_H_

@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 SET(TEST_UTILITY_SOURCES
-        recordio_unittest
         popen_unittest
         bounded_queue_unittest
         at_exit_unittest

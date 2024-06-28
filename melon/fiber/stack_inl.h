@@ -18,8 +18,7 @@
 //
 
 
-#ifndef MELON_FIBER_ALLOCATE_STACK_INL_H_
-#define MELON_FIBER_ALLOCATE_STACK_INL_H_
+#pragma once
 
 #include <melon/fiber/config.h>
 
@@ -29,18 +28,18 @@ namespace fiber {
     };
 
     struct SmallStackClass {
-        static int *stack_size_flag;
+        static int stack_size_flag();
         // Older gcc does not allow static const enum, use int instead.
         static const int stacktype = (int) STACK_TYPE_SMALL;
     };
 
     struct NormalStackClass {
-        static int *stack_size_flag;
+        static int stack_size_flag();
         static const int stacktype = (int) STACK_TYPE_NORMAL;
     };
 
     struct LargeStackClass {
-        static int *stack_size_flag;
+        static int stack_size_flag();
         static const int stacktype = (int) STACK_TYPE_LARGE;
     };
 
@@ -48,8 +47,8 @@ namespace fiber {
     struct StackFactory {
         struct Wrapper : public ContextualStack {
             explicit Wrapper(void (*entry)(intptr_t)) {
-                if (allocate_stack_storage(&storage, *StackClass::stack_size_flag,
-                                           FLAGS_guard_page_size) != 0) {
+                if (allocate_stack_storage(&storage, StackClass::stack_size_flag(),
+                                           turbo::get_flag(FLAGS_guard_page_size)) != 0) {
                     storage.zeroize();
                     context = NULL;
                     return;
@@ -158,7 +157,7 @@ namespace mutil {
     struct ObjectPoolFreeChunkMaxItem<
             fiber::StackFactory<fiber::SmallStackClass>::Wrapper> {
         inline static size_t value() {
-            return (fiber::FLAGS_tc_stack_small <= 0 ? 0 : fiber::FLAGS_tc_stack_small);
+            return (turbo::get_flag(FLAGS_tc_stack_small) <= 0 ? 0 : turbo::get_flag(FLAGS_tc_stack_small));
         }
     };
 
@@ -166,7 +165,7 @@ namespace mutil {
     struct ObjectPoolFreeChunkMaxItem<
             fiber::StackFactory<fiber::NormalStackClass>::Wrapper> {
         inline static size_t value() {
-            return (fiber::FLAGS_tc_stack_normal <= 0 ? 0 : fiber::FLAGS_tc_stack_normal);
+            return (turbo::get_flag(FLAGS_tc_stack_normal) <= 0 ? 0 : turbo::get_flag(FLAGS_tc_stack_normal));
         }
     };
 
@@ -204,5 +203,3 @@ namespace mutil {
     };
 
 }  // namespace mutil
-
-#endif  // MELON_FIBER_ALLOCATE_STACK_INL_H_

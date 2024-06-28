@@ -19,7 +19,7 @@
 
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <cstdio>                                      // getline
 #include <string>                                       // std::string
 #include <set>                                          // std::set
@@ -29,14 +29,13 @@
 #include <melon/rpc/channel.h>
 #include <melon/naming/remote_file_naming_service.h>
 
+TURBO_FLAG(int, remote_file_connect_timeout_ms, -1,
+           "Timeout for creating connections to fetch remote server lists,"
+           " set to remote_file_timeout_ms/3 by default (-1)");
+TURBO_FLAG(int, remote_file_timeout_ms, 1000,
+           "Timeout for fetching remote server lists");
 
 namespace melon::naming {
-
-    DEFINE_int32(remote_file_connect_timeout_ms, -1,
-                 "Timeout for creating connections to fetch remote server lists,"
-                 " set to remote_file_timeout_ms/3 by default (-1)");
-    DEFINE_int32(remote_file_timeout_ms, 1000,
-                 "Timeout for fetching remote server lists");
 
     // Defined in file_naming_service.cpp
     bool SplitIntoServerAndTag(const mutil::StringPiece &line,
@@ -94,9 +93,10 @@ namespace melon::naming {
             _server_addr.append(server_addr_piece.data(), server_addr_piece.size());
             ChannelOptions opt;
             opt.protocol = PROTOCOL_HTTP;
-            opt.connect_timeout_ms = FLAGS_remote_file_connect_timeout_ms > 0 ?
-                                     FLAGS_remote_file_connect_timeout_ms : FLAGS_remote_file_timeout_ms / 3;
-            opt.timeout_ms = FLAGS_remote_file_timeout_ms;
+            opt.connect_timeout_ms = turbo::get_flag(FLAGS_remote_file_connect_timeout_ms) > 0 ?
+                                     turbo::get_flag(FLAGS_remote_file_connect_timeout_ms) :
+                                     turbo::get_flag(FLAGS_remote_file_timeout_ms) / 3;
+            opt.timeout_ms = turbo::get_flag(FLAGS_remote_file_timeout_ms);
             std::unique_ptr<Channel> chan(new Channel);
             if (chan->Init(_server_addr.c_str(), "rr", &opt) != 0) {
                 LOG(ERROR) << "Fail to init channel to " << _server_addr;

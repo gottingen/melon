@@ -21,11 +21,13 @@
 #pragma once
 
 #include <ostream>
-#include <gflags/gflags_declare.h>
+#include <turbo/flags/declare.h>
+#include <turbo/flags/declare.h>
+
+TURBO_DECLARE_FLAG(bool, quote_vector);
 
 namespace melon::var {
 
-    DECLARE_bool(quote_vector);
 
     // Data inside a Vector will be plotted in a same graph.
     template<typename T, size_t N>
@@ -94,7 +96,7 @@ namespace melon::var {
 
     template<typename T, size_t N>
     std::ostream &operator<<(std::ostream &os, const Vector<T, N> &vec) {
-        if (FLAGS_quote_vector) {
+        if (turbo::get_flag(FLAGS_quote_vector)) {
             os << '"';
         }
         os << '[';
@@ -105,7 +107,7 @@ namespace melon::var {
             }
         }
         os << ']';
-        if (FLAGS_quote_vector) {
+        if (turbo::get_flag(FLAGS_quote_vector)) {
             os << '"';
         }
         return os;

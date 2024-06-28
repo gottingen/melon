@@ -19,24 +19,24 @@
 
 
 #include <melon/utility/time.h>
-#include <gflags/gflags.h>
+#include <turbo/flags/flag.h>
 #include <melon/rpc/reloadable_flags.h>
 #include <melon/raft/snapshot_throttle.h>
 #include <melon/raft/util.h>
 
+// used to increase throttle threshold dynamically when user-defined
+// threshold is too small in extreme cases.
+// notice that this flag does not distinguish disk types(sata or ssd, and so on)
+TURBO_FLAG(int64_t, raft_minimal_throttle_threshold_mb, 0,
+           "minimal throttle throughput threshold per second").on_validate(
+        turbo::GeValidator<int64_t, 0>::validate);
+
+TURBO_FLAG(int32_t, raft_max_install_snapshot_tasks_num, 1000,
+           "Max num of install_snapshot tasks per disk at the same time").on_validate(
+        turbo::GtValidator<int32_t, 0>::validate);
+
 namespace melon::raft {
 
-    // used to increase throttle threshold dynamically when user-defined
-    // threshold is too small in extreme cases.
-    // notice that this flag does not distinguish disk types(sata or ssd, and so on)
-    DEFINE_int64(raft_minimal_throttle_threshold_mb, 0,
-                 "minimal throttle throughput threshold per second");
-    MELON_VALIDATE_GFLAG(raft_minimal_throttle_threshold_mb,
-                        melon::NonNegativeInteger);
-    DEFINE_int32(raft_max_install_snapshot_tasks_num, 1000,
-                 "Max num of install_snapshot tasks per disk at the same time");
-    MELON_VALIDATE_GFLAG(raft_max_install_snapshot_tasks_num,
-                        melon::PositiveInteger);
 
     ThroughputSnapshotThrottle::ThroughputSnapshotThrottle(
             int64_t throttle_throughput_bytes, int64_t check_cycle)
@@ -50,7 +50,8 @@ namespace melon::raft {
         size_t available_size = bytes;
         int64_t now = mutil::cpuwide_time_us();
         int64_t limit_throughput_bytes_s = std::max(_throttle_throughput_bytes,
-                                                    FLAGS_raft_minimal_throttle_threshold_mb * 1024 * 1024);
+                                                    turbo::get_flag(FLAGS_raft_minimal_throttle_threshold_mb) * 1024 *
+                                                    1024);
         int64_t limit_per_cycle = limit_throughput_bytes_s / _check_cycle;
         std::unique_lock<raft_mutex_t> lck(_mutex);
         if (_cur_throughput_bytes + bytes > limit_per_cycle) {
@@ -83,7 +84,7 @@ namespace melon::raft {
         if (is_leader) {
             return true;
         }
-        int task_num_threshold = FLAGS_raft_max_install_snapshot_tasks_num;
+        int task_num_threshold = turbo::get_flag(FLAGS_raft_max_install_snapshot_tasks_num);
         std::unique_lock<raft_mutex_t> lck(_mutex);
         int saved_task_num = _snapshot_task_num;
         if (_snapshot_task_num >= task_num_threshold) {
