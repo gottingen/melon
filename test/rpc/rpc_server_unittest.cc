@@ -40,7 +40,6 @@
 #include <melon/builtin/vlog_service.h>
 #include <melon/builtin/index_service.h>        // IndexService
 #include <melon/builtin/connections_service.h>  // ConnectionsService
-#include <melon/builtin/flags_service.h>        // FlagsService
 #include <melon/builtin/vars_service.h>         // VarsService
 #include <melon/builtin/rpcz_service.h>         // RpczService
 #include <melon/builtin/dir_service.h>          // DirService
@@ -1443,7 +1442,6 @@ TEST_F(ServerTest, add_builtin_service) {
 #if !MELON_WITH_GLOG
     TestAddBuiltinService(melon::VLogService::descriptor());
 #endif
-    TestAddBuiltinService(melon::FlagsService::descriptor());
     TestAddBuiltinService(melon::VarsService::descriptor());
     TestAddBuiltinService(melon::RpczService::descriptor());
     TestAddBuiltinService(melon::PProfService::descriptor());

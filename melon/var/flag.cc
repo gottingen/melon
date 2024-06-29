@@ -19,51 +19,57 @@
 
 
 #include <cstdlib>
-#include <gflags/gflags.h>
-#include <melon/var/gflag.h>
+#include <turbo/flags/reflection.h>
+#include <melon/var/flag.h>
 
 namespace melon::var {
 
-    GFlag::GFlag(const mutil::StringPiece &gflag_name) {
+    Flag::Flag(const mutil::StringPiece &gflag_name) {
         expose(gflag_name);
     }
 
-    GFlag::GFlag(const mutil::StringPiece &prefix,
+    Flag::Flag(const mutil::StringPiece &prefix,
                  const mutil::StringPiece &gflag_name)
-            : _gflag_name(gflag_name.data(), gflag_name.size()) {
+            : _flag_name(gflag_name.data(), gflag_name.size()) {
         expose_as(prefix, gflag_name);
     }
 
-    void GFlag::describe(std::ostream &os, bool quote_string) const {
-        google::CommandLineFlagInfo info;
-        if (!google::GetCommandLineFlagInfo(gflag_name().c_str(), &info)) {
+    void Flag::describe(std::ostream &os, bool quote_string) const {
+        auto flag_info = turbo::find_command_line_flag(flag_name());
+        if (!flag_info) {
             if (quote_string) {
                 os << '"';
             }
-            os << "Unknown gflag=" << gflag_name();
+            os << "Unknown flag=" << flag_name();
             if (quote_string) {
                 os << '"';
             }
         } else {
-            if (quote_string && info.type == "string") {
-                os << '"' << info.current_value << '"';
+            if (quote_string && flag_info->is_of_type<std::string>()) {
+                os << '"' << flag_info->current_value() << '"';
             } else {
-                os << info.current_value;
+                os << flag_info->current_value();
             }
         }
     }
 
 
-    std::string GFlag::get_value() const {
+    std::string Flag::get_value() const {
         std::string str;
-        if (!google::GetCommandLineOption(gflag_name().c_str(), &str)) {
-            return "Unknown gflag=" + gflag_name();
+        auto flag_info = turbo::find_command_line_flag(flag_name());
+        if (!flag_info) {
+            return "Unknown flag=" + flag_name();
         }
-        return str;
+        return flag_info->current_value();
     }
 
-    bool GFlag::set_value(const char *value) {
-        return !google::SetCommandLineOption(gflag_name().c_str(), value).empty();
+    bool Flag::set_value(const char *value) {
+        auto flag_info = turbo::find_command_line_flag(flag_name());
+        if (!flag_info) {
+            return false;
+        }
+        std::string err;
+        return flag_info->parse_from(value, &err);
     }
 
 }  // namespace melon::var

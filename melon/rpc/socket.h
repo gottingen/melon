@@ -622,6 +622,8 @@ namespace melon {
                     _last_writetime_us.load(mutil::memory_order_relaxed));
         }
 
+        int64_t reset_fd_real_us() const { return _reset_fd_real_us; }
+
         // A brief description of this socket, consistent with os << *this
         std::string description() const;
 

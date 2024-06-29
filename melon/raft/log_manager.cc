@@ -24,7 +24,6 @@
 #include <melon/utility/object_pool.h>                   // mutil::get_object
 #include <melon/fiber/unstable.h>                   // fiber_flush
 #include <melon/fiber/countdown_event.h>            // fiber::CountdownEvent
-#include <melon/rpc/reloadable_flags.h>         // MELON_VALIDATE_GFLAG
 #include <melon/raft/storage.h>                       // LogStorage
 #include <melon/raft/fsm_caller.h>                    // FSMCaller
 #include <cinttypes>

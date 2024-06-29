@@ -24,7 +24,7 @@
 #include <melon/var/status.h>
 #include <melon/var/passive_status.h>
 #include <melon/var/latency_recorder.h>
-#include <melon/var/gflag.h>
+#include <melon/var/flag.h>
 #include <melon/var/scoped_timer.h>
 #include <melon/var/mvariable.h>
 

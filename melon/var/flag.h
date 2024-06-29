@@ -23,16 +23,16 @@
 
 namespace melon::var {
 
-// Expose important gflags as var so that they're monitored.
-    class GFlag : public Variable {
+    // Expose important gflags as var so that they're monitored.
+    class Flag : public Variable {
     public:
-        GFlag(const mutil::StringPiece &gflag_name);
+        Flag(const mutil::StringPiece &gflag_name);
 
-        GFlag(const mutil::StringPiece &prefix,
+        Flag(const mutil::StringPiece &prefix,
               const mutil::StringPiece &gflag_name);
 
         // Calling hide() in dtor manually is a MUST required by Variable.
-        ~GFlag() { hide(); }
+        ~Flag() { hide(); }
 
         void describe(std::ostream &os, bool quote_string) const override;
 
@@ -46,12 +46,12 @@ namespace melon::var {
         bool set_value(const char *value);
 
         // name of the gflag.
-        const std::string &gflag_name() const {
-            return _gflag_name.empty() ? name() : _gflag_name;
+        const std::string &flag_name() const {
+            return _flag_name.empty() ? name() : _flag_name;
         }
 
     private:
-        std::string _gflag_name;
+        std::string _flag_name;
     };
 
 }  // namespace melon::var

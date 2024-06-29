@@ -337,8 +337,8 @@ namespace melon {
         }
     };
 
-// Server dispatches requests from clients to registered services and
-// sends responses back to clients.
+    // Server dispatches requests from clients to registered services and
+    // sends responses back to clients.
     class Server {
     public:
         enum Status {
@@ -598,6 +598,8 @@ namespace melon {
         friend class ListProtobufProcessor;
 
         friend class ConnectionsService;
+
+        friend class ListConnectionProcessor;
 
         friend class BadMethodService;
 

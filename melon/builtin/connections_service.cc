@@ -32,12 +32,9 @@
 #include <melon/utility/class_name.h>
 #include <turbo/flags/flag.h>
 
-TURBO_FLAG(bool, show_hostname_instead_of_ip, false,
-           "/connections shows hostname instead of ip").on_validate(turbo::AllPassValidator<bool>::validate);
+TURBO_DECLARE_FLAG(bool, show_hostname_instead_of_ip);
 
-
-TURBO_FLAG(int32_t, max_shown_connections, 1024,
-           "Print stats of at most so many connections (soft limit)");
+TURBO_DECLARE_FLAG(int32_t, max_shown_connections);
 
 namespace melon {
 

@@ -16,27 +16,30 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 //
+// Created by jeff on 24-6-27.
+//
 
 #pragma once
 
-#include <melon/proto/rpc/builtin_service.pb.h>
-#include <melon/builtin/tabbed.h>
-
+#include <melon/rpc/builtin.h>
+#include <collie/nlohmann/json.hpp>
 
 namespace melon {
 
-    class FlagsService : public flags, public Tabbed {
-    public:
-        void default_method(::google::protobuf::RpcController *cntl_base,
-                            const ::melon::FlagsRequest *request,
-                            ::melon::FlagsResponse *response,
-                            ::google::protobuf::Closure *done);
+    struct ListConnectionProcessor : public melon::BuiltinProcessor {
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
 
-        void GetTabInfo(TabInfoList *info_list) const;
+        turbo::Status initialize(Server *server) override {
+            _server = server;
+            return turbo::OkStatus();
+        }
 
     private:
-        void set_value_page(Controller *cntl, ::google::protobuf::Closure *done);
-
+        void print_connections(nlohmann::json &result, const std::vector<SocketId> &conns,bool is_channel_conn);
+        Server *_server{nullptr};
     };
 
-} // namespace melon
+    struct SocketInfoProcessor : public melon::BuiltinProcessor {
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
+    };
+}  // namespace melon

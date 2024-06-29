@@ -53,7 +53,6 @@
 #include <melon/builtin/vlog_service.h>
 #include <melon/builtin/index_service.h>        // IndexService
 #include <melon/builtin/connections_service.h>  // ConnectionsService
-#include <melon/builtin/flags_service.h>        // FlagsService
 #include <melon/builtin/vars_service.h>         // VarsService
 #include <melon/builtin/rpcz_service.h>         // RpczService
 #include <melon/builtin/dir_service.h>          // DirService
@@ -423,10 +422,6 @@ namespace melon {
         }
         if (AddBuiltinService(new(std::nothrow) ConnectionsService)) {
             LOG(ERROR) << "Fail to add ConnectionsService";
-            return -1;
-        }
-        if (AddBuiltinService(new(std::nothrow) FlagsService)) {
-            LOG(ERROR) << "Fail to add FlagsService";
             return -1;
         }
         if (AddBuiltinService(new(std::nothrow) RpczService)) {

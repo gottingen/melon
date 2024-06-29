@@ -23,7 +23,6 @@
 #include <turbo/log/logging.h>
 #include <melon/utility/file_util.h>                         // mutil::CreateDirectory
 #include <turbo/flags/flag.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/raft/util.h>
 #include <melon/raft/protobuf_file.h>
 #include <melon/proto/raft/local_storage.pb.h>

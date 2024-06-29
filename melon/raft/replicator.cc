@@ -22,7 +22,6 @@
 #include <melon/utility/unique_ptr.h>                    // std::unique_ptr
 #include <melon/utility/time.h>                          // mutil::gettimeofday_us
 #include <melon/rpc/controller.h>                     // melon::Controller
-#include <melon/rpc/reloadable_flags.h>               // MELON_VALIDATE_GFLAG
 #include <melon/raft/replicator.h>
 #include <melon/raft/node.h>                          // NodeImpl
 #include <melon/raft/ballot_box.h>                    // BallotBox

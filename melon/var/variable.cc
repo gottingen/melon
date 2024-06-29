@@ -31,7 +31,7 @@
 #include <melon/utility/time.h>                          // milliseconds_from_now
 #include <melon/utility/file_util.h>                     // mutil::FilePath
 #include <melon/utility/threading/platform_thread.h>
-#include <melon/var/gflag.h>
+#include <melon/var/flag.h>
 #include <melon/var/variable.h>
 #include <melon/var/mvariable.h>
 #include <turbo/flags/parse.h>
@@ -739,9 +739,9 @@ namespace melon::var {
 
 
 #if !defined(UNIT_TEST)
-    // Expose var-releated gflags so that they're collected by noah.
+    // Expose var-releated flags so that they're collected by noah.
     // Maybe useful when debugging process of monitoring.
-    static GFlag s_gflag_var_dump_interval("var_dump_interval");
+    static Flag s_flag_var_dump_interval("var_dump_interval");
 #endif
 
     // The background thread to export all var periodically.

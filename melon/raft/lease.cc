@@ -19,7 +19,6 @@
 
 
 #include <turbo/flags/flag.h>
-#include <melon/rpc/reloadable_flags.h>
 #include <melon/raft/lease.h>
 
 TURBO_FLAG(bool, raft_enable_leader_lease, false,

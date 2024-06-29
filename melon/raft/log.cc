@@ -26,7 +26,6 @@
 #include <melon/utility/time.h>
 #include <melon/utility/raw_pack.h>                          // mutil::RawPacker
 #include <melon/utility/fd_utility.h>                        // mutil::make_close_on_exec
-#include <melon/rpc/reloadable_flags.h>             //
 
 #include <melon/proto/raft/local_storage.pb.h>
 #include <melon/raft/log_entry.h>

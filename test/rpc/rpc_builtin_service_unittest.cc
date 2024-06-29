@@ -43,7 +43,6 @@
 #include <melon/builtin/vlog_service.h>
 #include <melon/builtin/index_service.h>        // IndexService
 #include <melon/builtin/connections_service.h>  // ConnectionsService
-#include <melon/builtin/flags_service.h>        // FlagsService
 #include <melon/builtin/vars_service.h>         // VarsService
 #include <melon/builtin/rpcz_service.h>         // RpczService
 #include <melon/builtin/dir_service.h>          // DirService
@@ -261,53 +260,6 @@ protected:
             EXPECT_EQ(melon::ENOMETHOD, cntl.ErrorCode());
             EXPECT_EQ(expect_type, cntl.http_response().content_type());
             CheckErrorText(cntl, "growth");
-        }
-    }
-
-    void TestFlags(bool use_html) {
-        std::string expect_type = (use_html ? "text/html" : "text/plain");
-        melon::FlagsService service;
-        melon::FlagsRequest req;
-        melon::FlagsResponse res;
-        {
-            ClosureChecker done;
-            melon::Controller cntl;
-            SetUpController(&cntl, use_html);
-            service.default_method(&cntl, &req, &res, &done);
-            EXPECT_FALSE(cntl.Failed());
-            EXPECT_EQ(expect_type, cntl.http_response().content_type());
-            CheckContent(cntl, "fiber_concurrency");
-        }
-        {
-            ClosureChecker done;
-            melon::Controller cntl;
-            SetUpController(&cntl, use_html);
-            cntl.http_request()._unresolved_path = "foo";
-            service.default_method(&cntl, &req, &res, &done);
-            EXPECT_FALSE(cntl.Failed());
-            EXPECT_EQ(expect_type, cntl.http_response().content_type());
-            CheckContent(cntl, "false");
-        }
-        {
-            ClosureChecker done;
-            melon::Controller cntl;
-            SetUpController(&cntl, use_html);
-            cntl.http_request()._unresolved_path = "foo";
-            cntl.http_request().uri()
-                    .SetQuery(melon::SETVALUE_STR, "true");
-            service.default_method(&cntl, &req, &res, &done);
-            EXPECT_FALSE(cntl.Failed());
-            EXPECT_EQ(expect_type, cntl.http_response().content_type());
-        }
-        {
-            ClosureChecker done;
-            melon::Controller cntl;
-            SetUpController(&cntl, use_html);
-            cntl.http_request()._unresolved_path = "foo";
-            service.default_method(&cntl, &req, &res, &done);
-            EXPECT_FALSE(cntl.Failed());
-            EXPECT_EQ(expect_type, cntl.http_response().content_type());
-            CheckContent(cntl, "true");
         }
     }
 
@@ -671,11 +623,6 @@ TEST_F(BuiltinServiceTest, vlog) {
 TEST_F(BuiltinServiceTest, connections) {
     TestConnections(false);
     TestConnections(true);
-}
-
-TEST_F(BuiltinServiceTest, flags) {
-    TestFlags(false);
-    TestFlags(true);
 }
 
 TEST_F(BuiltinServiceTest, bad_method) {

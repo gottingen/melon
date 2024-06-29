@@ -23,6 +23,7 @@
 #include <melon/rpc/builtin.h>
 #include <melon/br/flags.h>
 #include <melon/br/protobufs.h>
+#include <melon/br/connections.h>
 
 namespace melon {
 
@@ -31,6 +32,8 @@ namespace melon {
         service->set_processor("/melon/flags", std::make_shared<melon::ListFlagsProcessor>());
         service->set_processor("/melon/flags/reset", std::make_shared<melon::ResetFlagsProcessor>());
         service->set_processor("/melon/protobufs", std::make_shared<melon::ListProtobufProcessor>());
+        service->set_processor("/melon/connections", std::make_shared<melon::ListConnectionProcessor>());
+        service->set_processor("/melon/sockets", std::make_shared<melon::SocketInfoProcessor>());
         return turbo::OkStatus();
     }
 }  // namespace melon
