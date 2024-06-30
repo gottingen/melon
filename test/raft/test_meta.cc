@@ -1,4 +1,4 @@
-#include <gflags/gflags.h>
+
 #include <gtest/gtest.h>
 #include <melon/utility/status.h>
 #include "melon/raft/raft.h"

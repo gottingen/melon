@@ -17,11 +17,7 @@
 //
 //
 
-
-
-// Access many http servers in parallel, much faster than curl (even called in batch)
-
-#include <turbo/flags/flag.h>
+#include <turbo/flags/servlet.h>
 #include <deque>
 #include <melon/fiber/fiber.h>
 #include <turbo/log/logging.h>
@@ -102,8 +98,7 @@ void* access_thread(void* void_args) {
 }
 
 int main(int argc, char** argv) {
-    // Parse gflags. We recommend you to use gflags as well.
-    turbo::parse_command_line(argc, argv);
+   TURBO_SERVLET_PARSE(argc, argv);
     
     // if (FLAGS_path.empty() || FLAGS_path[0] != '/') {
     //     FLAGS_path = "/" + FLAGS_path;

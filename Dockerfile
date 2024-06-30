@@ -14,29 +14,8 @@
 # limitations under the License.
 #
 # A image for building/testing melon
-FROM ubuntu:20.04
-
-# prepare env
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        curl \
-        apt-utils \
-        openssl \
-        ca-certificates
-
-# install deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        git \
-        g++ \
-        make \
-        libssl-dev \
-        libgflags-dev \
-        libprotobuf-dev \
-        libprotoc-dev \
-        protobuf-compiler \
-        libleveldb-dev \
-        libsnappy-dev && \
-        apt-get clean -y
+FROM lijippy/ea_inf:c7_base_v1
 
 RUN git clone https://github.com/gottinen/melon.git
-RUN cd melon && sh config_melon.sh --headers=/usr/include --libs=/usr/lib && \
+RUN cd melon && sh carbin install && \
     make -j "$(nproc)"

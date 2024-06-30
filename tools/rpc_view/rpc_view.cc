@@ -19,15 +19,15 @@
 
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/servlet.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/channel.h>
 #include "view.pb.h"
 
-DEFINE_int32(port, 8888, "TCP Port of this server");
-DEFINE_string(target, "", "The server to view");
-DEFINE_int32(timeout_ms, 5000, "Timeout for calling the server to view");
+TURBO_FLAG(int32_t ,port, 8888, "TCP Port of this server");
+TURBO_FLAG(std::string ,target, "", "The server to view");
+TURBO_FLAG(int32_t ,timeout_ms, 5000, "Timeout for calling the server to view");
 
 // handle HTTP response of accessing builtin services of the target server.
 static void handle_response(melon::Controller* client_cntl,
@@ -85,16 +85,10 @@ public:
         const std::string* newtarget =
             server_cntl->http_request().uri().GetQuery("changetarget");
         if (newtarget) {
-            if (google::SetCommandLineOption("target", newtarget->c_str()).empty()) {
-                server_cntl->SetFailed("Fail to change value of -target");
-                return;
-            }
+            turbo::set_flag(&FLAGS_target,newtarget->c_str());
             target = *newtarget;
         } else {
-            if (!google::GetCommandLineOption("target", &target)) {
-                server_cntl->SetFailed("Fail to get value of -target");
-                return;
-            }
+            target = turbo::get_flag(FLAGS_target);
         }
 
         // Create the http channel on-the-fly. Notice that we've set 
@@ -139,7 +133,7 @@ public:
         // query "seconds", we set the timeout to be longer than "seconds".
         const std::string* seconds =
             server_cntl->http_request().uri().GetQuery("seconds");
-        int64_t timeout_ms = FLAGS_timeout_ms;
+        int64_t timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
         if (seconds) {
             timeout_ms += atoll(seconds->c_str()) * 1000;
         }
@@ -156,21 +150,16 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-    google::ParseCommandLineFlags(&argc, &argv, true);
-    if (FLAGS_target.empty() &&
-        (argc != 2 || 
-         google::SetCommandLineOption("target", argv[1]).empty())) {
-        LOG(ERROR) << "Usage: ./rpc_view <ip>:<port>";
-        return -1;
-    }
-    // This keeps ad-hoc creation of channels reuse previous connections.
-    google::SetCommandLineOption("defer_close_second", "10");
+
+    auto app = turbo::Servlet::instance().run_app();
+    app->add_option("target", FLAGS_target, FLAGS_target.help())->required(true);
+    TURBO_SERVLET_PARSE(argc, argv);
 
     melon::Server server;
     server.set_version("rpc_view_server");
     melon::ServerOptions server_opt;
     server_opt.http_master_service = new ViewServiceImpl;
-    if (server.Start(FLAGS_port, &server_opt) != 0) {
+    if (server.Start(turbo::get_flag(FLAGS_port), &server_opt) != 0) {
         LOG(ERROR) << "Fail to start ViewServer";
         return -1;
     }

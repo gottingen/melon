@@ -18,7 +18,7 @@
 //
 
 
-#include <gflags/gflags.h>
+#include <turbo/flags/servlet.h>
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/compiler/importer.h>
 #include <melon/rpc/server.h>
@@ -27,44 +27,44 @@
 #include <string.h>
 #include "rpc_press_impl.h"
 
-DEFINE_int32(dummy_port, 8888, "Port of dummy server"); 
-DEFINE_string(proto, "", " user's proto files with path");
-DEFINE_string(inc, "", "Include paths for proto, separated by semicolon(;)");
-DEFINE_string(method, "example.EchoService.Echo", "The full method name");
-DEFINE_string(server, "0.0.0.0:8002", "ip:port of the server when -load_balancer is empty, the naming service otherwise");
-DEFINE_string(input, "", "The file containing requests in json format");
-DEFINE_string(output, "", "The file containing responses in json format");
-DEFINE_string(lb_policy, "", "The load balancer algorithm: rr, random, la, c_murmurhash, c_md5");
-DEFINE_int32(thread_num, 0, "Number of threads to send requests. 0: automatically chosen according to -qps");
-DEFINE_string(protocol, "melon_std", "melon_std hulu_pbrpc http public_pbrpc...");
-DEFINE_string(connection_type, "", "Type of connections: single, pooled, short");
-DEFINE_int32(timeout_ms, 1000, "RPC timeout in milliseconds");
-DEFINE_int32(connection_timeout_ms, 500, " connection timeout in milliseconds");
-DEFINE_int32(max_retry, 3, "Maximum retry times by RPC framework");
-DEFINE_int32(request_compress_type, 0, "Snappy:1 Gzip:2 Zlib:3 LZ4:4 None:0");
-DEFINE_int32(response_compress_type, 0, "Snappy:1 Gzip:2 Zlib:3 LZ4:4 None:0");
-DEFINE_int32(attachment_size, 0, "Carry so many byte attachment along with requests"); 
-DEFINE_int32(duration, 0, "how many seconds the press keep");
-DEFINE_int32(qps, 100 , "how many calls  per seconds");
-DEFINE_bool(pretty, true, "output pretty jsons");
+TURBO_FLAG(int32_t ,dummy_port, 8888, "Port of dummy server"); 
+TURBO_FLAG(std::string ,proto, "", " user's proto files with path");
+TURBO_FLAG(std::string ,inc, "", "Include paths for proto, separated by semicolon(;)");
+TURBO_FLAG(std::string ,method, "example.EchoService.Echo", "The full method name");
+TURBO_FLAG(std::string ,server, "0.0.0.0:8002", "ip:port of the server when -load_balancer is empty, the naming service otherwise");
+TURBO_FLAG(std::string ,input, "", "The file containing requests in json format");
+TURBO_FLAG(std::string ,output, "", "The file containing responses in json format");
+TURBO_FLAG(std::string ,lb_policy, "", "The load balancer algorithm: rr, random, la, c_murmurhash, c_md5");
+TURBO_FLAG(int32_t ,thread_num, 0, "Number of threads to send requests. 0: automatically chosen according to -qps");
+TURBO_FLAG(std::string ,protocol, "melon_std", "melon_std hulu_pbrpc http public_pbrpc...");
+TURBO_FLAG(std::string ,connection_type, "", "Type of connections: single, pooled, short");
+TURBO_FLAG(int32_t ,timeout_ms, 1000, "RPC timeout in milliseconds");
+TURBO_FLAG(int32_t ,connection_timeout_ms, 500, " connection timeout in milliseconds");
+TURBO_FLAG(int32_t ,max_retry, 3, "Maximum retry times by RPC framework");
+TURBO_FLAG(int32_t ,request_compress_type, 0, "Snappy:1 Gzip:2 Zlib:3 LZ4:4 None:0");
+TURBO_FLAG(int32_t ,response_compress_type, 0, "Snappy:1 Gzip:2 Zlib:3 LZ4:4 None:0");
+TURBO_FLAG(int32_t ,attachment_size, 0, "Carry so many byte attachment along with requests"); 
+TURBO_FLAG(int32_t ,duration, 0, "how many seconds the press keep");
+TURBO_FLAG(int32_t ,qps, 100 , "how many calls  per seconds");
+TURBO_FLAG(bool, pretty, true, "output pretty jsons");
 
 bool set_press_options(pbrpcframework::PressOptions* options){
-    size_t dot_pos = FLAGS_method.find_last_of('.');
+    size_t dot_pos = turbo::get_flag(FLAGS_method).find_last_of('.');
     if (dot_pos == std::string::npos) {
         LOG(ERROR) << "-method must be in form of: package.service.method";
         return false;
     }
-    options->service = FLAGS_method.substr(0, dot_pos);
-    options->method = FLAGS_method.substr(dot_pos + 1);
-    options->lb_policy = FLAGS_lb_policy;
-    options->test_req_rate = FLAGS_qps;
-    if (FLAGS_thread_num > 0) {
-        options->test_thread_num = FLAGS_thread_num;
+    options->service = turbo::get_flag(FLAGS_method).substr(0, dot_pos);
+    options->method = turbo::get_flag(FLAGS_method).substr(dot_pos + 1);
+    options->lb_policy = turbo::get_flag(FLAGS_lb_policy);
+    options->test_req_rate = turbo::get_flag(FLAGS_qps);
+    if (turbo::get_flag(FLAGS_thread_num) > 0) {
+        options->test_thread_num = turbo::get_flag(FLAGS_thread_num);
     } else {
-        if (FLAGS_qps <= 0) { // unlimited qps
+        if (turbo::get_flag(FLAGS_qps) <= 0) { // unlimited qps
             options->test_thread_num = 50;
         } else {
-            options->test_thread_num = FLAGS_qps / 10000;
+            options->test_thread_num = turbo::get_flag(FLAGS_qps) / 10000;
             if (options->test_thread_num < 1) {
                 options->test_thread_num = 1;
             }
@@ -82,29 +82,28 @@ bool set_press_options(pbrpcframework::PressOptions* options){
         return false;  
     }
 
-    options->input = FLAGS_input;
-    options->output = FLAGS_output;
-    options->connection_type = FLAGS_connection_type;
-    options->connect_timeout_ms = FLAGS_connection_timeout_ms;
-    options->timeout_ms = FLAGS_timeout_ms;
-    options->max_retry = FLAGS_max_retry;
-    options->protocol = FLAGS_protocol;
-    options->request_compress_type = FLAGS_request_compress_type;
-    options->response_compress_type = FLAGS_response_compress_type;
-    options->attachment_size = FLAGS_attachment_size;
-    options->host = FLAGS_server;
-    options->proto_file = FLAGS_proto;
-    options->proto_includes = FLAGS_inc;
+    options->input = turbo::get_flag(FLAGS_input);
+    options->output = turbo::get_flag(FLAGS_output);
+    options->connection_type = turbo::get_flag(FLAGS_connection_type);
+    options->connect_timeout_ms = turbo::get_flag(FLAGS_connection_timeout_ms);
+    options->timeout_ms = turbo::get_flag(FLAGS_timeout_ms);
+    options->max_retry = turbo::get_flag(FLAGS_max_retry);
+    options->protocol = turbo::get_flag(FLAGS_protocol);
+    options->request_compress_type = turbo::get_flag(FLAGS_request_compress_type);
+    options->response_compress_type = turbo::get_flag(FLAGS_response_compress_type);
+    options->attachment_size = turbo::get_flag(FLAGS_attachment_size);
+    options->host = turbo::get_flag(FLAGS_server);
+    options->proto_file = turbo::get_flag(FLAGS_proto);
+    options->proto_includes = turbo::get_flag(FLAGS_inc);
     return true;
 }
 
 int main(int argc, char* argv[]) {
-    // Parse gflags. We recommend you to use gflags as well
-    google::ParseCommandLineFlags(&argc, &argv, true);
-    // set global log option
 
-    if (FLAGS_dummy_port >= 0) {
-        melon::StartDummyServerAt(FLAGS_dummy_port);
+    TURBO_SERVLET_PARSE(argc, argv);
+
+    if (turbo::get_flag(FLAGS_dummy_port) >= 0) {
+        melon::StartDummyServerAt(turbo::get_flag(FLAGS_dummy_port));
     }
 
     pbrpcframework::PressOptions options;
@@ -118,12 +117,12 @@ int main(int argc, char* argv[]) {
     }
 
     rpc_press->start();
-    if (FLAGS_duration <= 0) {
+    if (turbo::get_flag(FLAGS_duration) <= 0) {
         while (!melon::IsAskedToQuit()) {
             sleep(1);
         }
     } else {
-        sleep(FLAGS_duration);
+        sleep(turbo::get_flag(FLAGS_duration));
     }
     rpc_press->stop();
     // NOTE(gejun): Can't delete rpc_press on exit. It's probably

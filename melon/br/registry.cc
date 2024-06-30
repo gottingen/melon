@@ -24,7 +24,7 @@
 #include <melon/br/flags.h>
 #include <melon/br/protobufs.h>
 #include <melon/br/connections.h>
-
+#include <melon/br/launch.h>
 namespace melon {
 
     turbo::Status registry_builtin_restful() {
@@ -34,6 +34,7 @@ namespace melon {
         service->set_processor("/melon/protobufs", std::make_shared<melon::ListProtobufProcessor>());
         service->set_processor("/melon/connections", std::make_shared<melon::ListConnectionProcessor>());
         service->set_processor("/melon/sockets", std::make_shared<melon::SocketInfoProcessor>());
+        service->set_processor("/melon/launch", std::make_shared<melon::ListLaunchProcessor>());
         return turbo::OkStatus();
     }
 }  // namespace melon
