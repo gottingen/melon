@@ -57,7 +57,7 @@ namespace melon {
         }
         auto * args = turbo::Servlet::instance().launch_params();
         if(args == nullptr) {
-            LOG(FATAL)<< "launch_params is nullptr";
+            LOG_FIRST_N(WARNING, 1)<< "launch_params is nullptr";
             return;
         }
         if(args->size() > 0) {
