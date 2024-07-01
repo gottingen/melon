@@ -44,7 +44,6 @@
 #include "melon/utility/strings/sys_string_conversions.h"
 #include "melon/utility/strings/utf_string_conversions.h"
 #include "melon/utility/threading/thread_restrictions.h"
-#include <melon/utility/time/time.h>
 
 #if defined(OS_ANDROID)
 #include "melon/utility/android/content_uri_utils.h"

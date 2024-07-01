@@ -26,7 +26,6 @@
 #include <melon/utility/third_party/rapidjson/document.h>
 #include <melon/utility/third_party/rapidjson/stringbuffer.h>
 #include <melon/utility/third_party/rapidjson/prettywriter.h>
-#include <melon/utility/time/time.h>
 #include <melon/fiber/fiber.h>
 #include <melon/rpc/log.h>
 #include <melon/rpc/channel.h>
@@ -81,7 +80,7 @@ namespace melon::naming {
             ChannelOptions opt;
             opt.protocol = PROTOCOL_HTTP;
             opt.connect_timeout_ms = turbo::get_flag(FLAGS_consul_connect_timeout_ms);
-            opt.timeout_ms = (turbo::get_flag(FLAGS_consul_blocking_query_wait_secs) + 10) * mutil::Time::kMillisecondsPerSecond;
+            opt.timeout_ms = (turbo::get_flag(FLAGS_consul_blocking_query_wait_secs) + 10) * 1000;
             if (_channel.Init(turbo::get_flag(FLAGS_consul_agent_addr).c_str(), "rr", &opt) != 0) {
                 LOG(ERROR) << "Fail to init channel to consul at " << turbo::get_flag(FLAGS_consul_agent_addr);
                 return DegradeToOtherServiceIfNeeded(service_name, servers);
@@ -239,7 +238,7 @@ namespace melon::naming {
                     actions->ResetServers(servers);
                 }
                 if (fiber_usleep(
-                        std::max(turbo::get_flag(FLAGS_consul_retry_interval_ms), 1) * mutil::Time::kMicrosecondsPerMillisecond) < 0) {
+                        std::max(turbo::get_flag(FLAGS_consul_retry_interval_ms), 1) * 1000) < 0) {
                     if (errno == ESTOP) {
                         RPC_VLOG << "Quit NamingServiceThread=" << fiber_self();
                         return 0;

@@ -100,8 +100,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/time/tick_clock.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/time/time_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/version.cc
-        #${PROJECT_SOURCE_DIR}/melon/utility/logging.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/class_name.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/errno.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/find_cstr.cpp
