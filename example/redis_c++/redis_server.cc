@@ -68,7 +68,7 @@ public:
     explicit GetCommandHandler(RedisServiceImpl* rsimpl)
         : _rsimpl(rsimpl) {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<std::string_view>& args,
                                         melon::RedisReply* output,
                                         bool /*flush_batched*/) override {
         if (args.size() != 2ul) {
@@ -94,7 +94,7 @@ public:
     explicit SetCommandHandler(RedisServiceImpl* rsimpl)
         : _rsimpl(rsimpl) {}
 
-    melon::RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece>& args,
+    melon::RedisCommandHandlerResult Run(const std::vector<std::string_view>& args,
                                         melon::RedisReply* output,
                                         bool /*flush_batched*/) override {
         if (args.size() != 3ul) {

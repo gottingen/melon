@@ -29,6 +29,7 @@
 #include <melon/utility/strings/string_piece.h>
 #include <melon/raft/configuration.h>
 #include <melon/raft/configuration_manager.h>
+#include <turbo/strings/ascii.h>
 
 namespace google {
     namespace protobuf {
@@ -60,19 +61,19 @@ namespace melon::raft {
                   << " sync_segment_time_us: " << m.sync_segment_time_us;
     }
 
-    inline mutil::StringPiece parse_uri(mutil::StringPiece *uri, std::string *parameter) {
+    inline std::string_view parse_uri(std::string_view *uri, std::string *parameter) {
         // ${protocol}://${parameters}
         size_t pos = uri->find("://");
-        if (pos == mutil::StringPiece::npos) {
-            return mutil::StringPiece();
+        if (pos == std::string_view::npos) {
+            return std::string_view();
         }
-        mutil::StringPiece protocol = uri->substr(0, pos);
+        std::string_view protocol = uri->substr(0, pos);
         uri->remove_prefix(pos + 3/* length of '://' */);
-        protocol.trim_spaces();
+        protocol = turbo::trim_all(protocol);
         parameter->reserve(uri->size());
         parameter->clear();
         size_t removed_spaces = 0;
-        for (mutil::StringPiece::const_iterator
+        for (std::string_view::const_iterator
                      iter = uri->begin(); iter != uri->end(); ++iter) {
             if (!isspace(*iter)) {
                 parameter->push_back(*iter);

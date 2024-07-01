@@ -72,14 +72,14 @@ namespace melon {
         // Concatenate components into a redis command, similarly with
         // redisCommandArgv() in hiredis.
         // Example:
-        //   mutil::StringPiece components[] = { "set", "key", "value" };
+        //   std::string_view components[] = { "set", "key", "value" };
         //   request.AddCommandByComponents(components, arraysize(components));
-        bool AddCommandByComponents(const mutil::StringPiece *components, size_t n);
+        bool AddCommandByComponents(const std::string_view *components, size_t n);
 
         // Add a command with variadic args to this request.
         // The reason that adding so many overloads rather than using ... is that
         // it's the only way to dispatch the AddCommand w/o args differently.
-        bool AddCommand(const mutil::StringPiece &command);
+        bool AddCommand(const std::string_view &command);
 
         template<typename A1>
         bool AddCommand(const char *format, A1 a1) { return AddCommandWithArgs(format, a1); }
@@ -277,7 +277,7 @@ namespace melon {
         bool AddCommandHandler(const std::string &name, RedisCommandHandler *handler);
 
         // This function should not be touched by user and used by melon deverloper only.
-        RedisCommandHandler *FindCommandHandler(const mutil::StringPiece &name) const;
+        RedisCommandHandler *FindCommandHandler(const std::string_view &name) const;
 
     private:
         typedef std::unordered_map<std::string, RedisCommandHandler *> CommandMap;
@@ -313,7 +313,7 @@ namespace melon {
         // an start marker and melon will call MultiTransactionHandler() to new a transaction
         // handler that all the following commands are sent to this tranction handler until
         // it returns REDIS_CMD_HANDLED. Read the comment below.
-        virtual RedisCommandHandlerResult Run(const std::vector<mutil::StringPiece> &args,
+        virtual RedisCommandHandlerResult Run(const std::vector<std::string_view> &args,
                                               melon::RedisReply *output,
                                               bool flush_batched) = 0;
 

@@ -141,7 +141,7 @@ namespace melon {
         }
     }
 
-    bool RedisRequest::AddCommand(const mutil::StringPiece &command) {
+    bool RedisRequest::AddCommand(const std::string_view &command) {
         if (_has_error) {
             return false;
         }
@@ -156,7 +156,7 @@ namespace melon {
         }
     }
 
-    bool RedisRequest::AddCommandByComponents(const mutil::StringPiece *components,
+    bool RedisRequest::AddCommandByComponents(const std::string_view *components,
                                               size_t n) {
         if (_has_error) {
             return false;
@@ -466,8 +466,8 @@ namespace melon {
         return true;
     }
 
-    RedisCommandHandler *RedisService::FindCommandHandler(const mutil::StringPiece &name) const {
-        auto it = _command_map.find(name.as_string());
+    RedisCommandHandler *RedisService::FindCommandHandler(const std::string_view &name) const {
+        auto it = _command_map.find(std::string(name));
         if (it != _command_map.end()) {
             return it->second;
         }

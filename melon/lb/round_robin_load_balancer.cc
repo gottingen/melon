@@ -145,7 +145,7 @@ namespace melon::lb {
     }
 
     RoundRobinLoadBalancer *RoundRobinLoadBalancer::New(
-            const mutil::StringPiece &params) const {
+            const std::string_view &params) const {
         RoundRobinLoadBalancer *lb = new(std::nothrow) RoundRobinLoadBalancer;
         if (lb && !lb->SetParameters(params)) {
             delete lb;
@@ -177,7 +177,7 @@ namespace melon::lb {
         os << '}';
     }
 
-    bool RoundRobinLoadBalancer::SetParameters(const mutil::StringPiece &params) {
+    bool RoundRobinLoadBalancer::SetParameters(const std::string_view &params) {
         return GetRecoverPolicyByParams(params, &_cluster_recover_policy);
     }
 

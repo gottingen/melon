@@ -23,7 +23,7 @@
 #define MELON_RPC_REDIS_REDIS_REPLY_H_
 
 #include <melon/utility/iobuf.h>                  // mutil::IOBuf
-#include <melon/utility/strings/string_piece.h>   // mutil::StringPiece
+#include <melon/utility/strings/string_piece.h>   // std::string_view
 #include <melon/utility/arena.h>                  // mutil::Arena
 #include <turbo/log/logging.h>                // CHECK
 #include <melon/rpc/parse_result.h>                 // ParseError
@@ -71,12 +71,12 @@ namespace melon {
         void SetArray(int size);
 
         // Set the reply to a status.
-        void SetStatus(const mutil::StringPiece &str);
+        void SetStatus(const std::string_view &str);
 
         void FormatStatus(const char *fmt, ...);
 
         // Set the reply to an error.
-        void SetError(const mutil::StringPiece &str);
+        void SetError(const std::string_view &str);
 
         void FormatError(const char *fmt, ...);
 
@@ -84,7 +84,7 @@ namespace melon {
         void SetInteger(int64_t value);
 
         // Set this reply to a (bulk) string.
-        void SetString(const mutil::StringPiece &str);
+        void SetString(const std::string_view &str);
 
         void FormatString(const char *fmt, ...);
 
@@ -105,7 +105,7 @@ namespace melon {
         // Convert the reply to a StringPiece. If the reply is not a string,
         // call stacks are logged and "" is returned.
         // If you need a std::string, call .data().as_string() (which allocates mem)
-        mutil::StringPiece data() const;
+        std::string_view data() const;
 
         // Return number of sub replies in the array if this reply is an array, or
         // return the length of string if this reply is a string, otherwise 0 is
@@ -157,7 +157,7 @@ namespace melon {
 
         void FormatStringImpl(const char *fmt, va_list args, RedisReplyType type);
 
-        void SetStringImpl(const mutil::StringPiece &str, RedisReplyType type);
+        void SetStringImpl(const std::string_view &str, RedisReplyType type);
 
         RedisReplyType _type;
         int _length;  // length of short_str/long_str, count of replies
@@ -231,7 +231,7 @@ namespace melon {
         _length = npos;
     }
 
-    inline void RedisReply::SetStatus(const mutil::StringPiece &str) {
+    inline void RedisReply::SetStatus(const std::string_view &str) {
         return SetStringImpl(str, REDIS_REPLY_STATUS);
     }
 
@@ -242,7 +242,7 @@ namespace melon {
         va_end(ap);
     }
 
-    inline void RedisReply::SetError(const mutil::StringPiece &str) {
+    inline void RedisReply::SetError(const std::string_view &str) {
         return SetStringImpl(str, REDIS_REPLY_ERROR);
     }
 
@@ -262,7 +262,7 @@ namespace melon {
         _data.integer = value;
     }
 
-    inline void RedisReply::SetString(const mutil::StringPiece &str) {
+    inline void RedisReply::SetString(const std::string_view &str) {
         return SetStringImpl(str, REDIS_REPLY_STRING);
     }
 
@@ -286,17 +286,17 @@ namespace melon {
         return "";
     }
 
-    inline mutil::StringPiece RedisReply::data() const {
+    inline std::string_view RedisReply::data() const {
         if (is_string()) {
             if (_length < (int) sizeof(_data.short_str)) { // SSO
-                return mutil::StringPiece(_data.short_str, _length);
+                return std::string_view(_data.short_str, _length);
             } else {
-                return mutil::StringPiece(_data.long_str, _length);
+                return std::string_view(_data.long_str, _length);
             }
         }
         CHECK(false) << "The reply is " << RedisReplyTypeToString(_type)
                      << ", not a string";
-        return mutil::StringPiece();
+        return std::string_view();
     }
 
     inline const char *RedisReply::error_message() const {

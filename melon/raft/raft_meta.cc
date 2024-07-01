@@ -136,25 +136,25 @@ namespace melon::raft {
                                            std::string &merged_path,
                                            std::string &single_path) {
         // here uri has removed protocol already, check just for safety
-        mutil::StringPiece copied_uri(uri);
+        std::string_view copied_uri(uri);
         size_t pos = copied_uri.find("://");
-        if (pos != mutil::StringPiece::npos) {
+        if (pos != std::string_view::npos) {
             copied_uri.remove_prefix(pos + 3/* length of '://' */);
         }
 
         pos = copied_uri.find("merged_path=");
-        if (pos == mutil::StringPiece::npos) {
+        if (pos == std::string_view::npos) {
             return -1;
         }
         copied_uri.remove_prefix(pos + 12/* length of 'merged_path=' */);
 
         pos = copied_uri.find("&&single_path=");
-        if (pos == mutil::StringPiece::npos) {
+        if (pos == std::string_view::npos) {
             return -1;
         }
-        merged_path = copied_uri.substr(0, pos).as_string();
+        merged_path = std::string(copied_uri.substr(0, pos));
         copied_uri.remove_prefix(pos + 14/* length of '&&single_path=' */);
-        single_path = copied_uri.as_string();
+        single_path = std::string(copied_uri);
 
         return 0;
     }

@@ -145,7 +145,7 @@ namespace melon::lb {
     }
 
     RandomizedLoadBalancer *RandomizedLoadBalancer::New(
-            const mutil::StringPiece &params) const {
+            const std::string_view &params) const {
         RandomizedLoadBalancer *lb = new(std::nothrow) RandomizedLoadBalancer;
         if (lb && !lb->SetParameters(params)) {
             delete lb;
@@ -177,7 +177,7 @@ namespace melon::lb {
         os << '}';
     }
 
-    bool RandomizedLoadBalancer::SetParameters(const mutil::StringPiece &params) {
+    bool RandomizedLoadBalancer::SetParameters(const std::string_view &params) {
         return GetRecoverPolicyByParams(params, &_cluster_recover_policy);
     }
 

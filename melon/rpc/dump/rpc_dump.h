@@ -18,9 +18,7 @@
 //
 
 
-
-#ifndef MELON_RPC_DUMP_RPC_DUMP_H_
-#define MELON_RPC_DUMP_RPC_DUMP_H_
+#pragma once
 
 #include <melon/utility/iobuf.h>                            // IOBuf
 #include <melon/utility/files/file_path.h>                  // FilePath
@@ -86,7 +84,7 @@ namespace melon {
     //   }
     class SampleIterator {
     public:
-        explicit SampleIterator(const mutil::StringPiece &dir);
+        explicit SampleIterator(const std::string_view &dir);
 
         ~SampleIterator();
 
@@ -109,5 +107,3 @@ namespace melon {
 
 } // namespace melon
 
-
-#endif  // MELON_RPC_DUMP_RPC_DUMP_H_

@@ -34,6 +34,10 @@ namespace melon {
             return turbo::OkStatus();
         }
 
+        melon::TabEntry tab_entry() override {
+            return {"connections", "/melon/connections"};
+        }
+
     private:
         void print_connections(nlohmann::json &result, const std::vector<SocketId> &conns,bool is_channel_conn);
         Server *_server{nullptr};
@@ -41,5 +45,9 @@ namespace melon {
 
     struct SocketInfoProcessor : public melon::BuiltinProcessor {
         void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
+
+        melon::TabEntry tab_entry() override {
+            return {"connections", "/melon/sockets"};
+        }
     };
 }  // namespace melon

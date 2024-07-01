@@ -106,7 +106,7 @@ namespace melon {
         mutil::IOBuf _unwritten_buf;
     };
 
-    melon::var::CollectorSpeedLimit g_rpc_dump_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
+    melon::var::CollectorSpeedLimit g_rpc_dump_sl;
     static RpcDumpContext *g_rpc_dump_ctx = nullptr;
 
     void SampledRequest::dump_and_destroy(size_t round) {
@@ -248,7 +248,7 @@ namespace melon {
         return true;
     }
 
-    SampleIterator::SampleIterator(const mutil::StringPiece &dir)
+    SampleIterator::SampleIterator(const std::string_view &dir)
             : _cur_fd(-1), _enum(nullptr), _dir(std::string(dir.data(), dir.size())) {
     }
 

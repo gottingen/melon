@@ -161,7 +161,7 @@ namespace melon {
         return NULL;
     }
 
-    void AMFField::SetString(const mutil::StringPiece &str) {
+    void AMFField::SetString(const std::string_view &str) {
         // TODO: Try to reuse the space.
         Clear();
         if (str.size() < SSO_LIMIT) {
@@ -239,7 +239,7 @@ namespace melon {
 
 // ============= AMFObject =============
 
-    void AMFObject::SetString(const std::string &name, const mutil::StringPiece &str) {
+    void AMFObject::SetString(const std::string &name, const std::string_view &str) {
         _fields[name].SetString(str);
     }
 
@@ -984,7 +984,7 @@ namespace melon {
 
 // [ Write ]
 
-    void WriteAMFString(const mutil::StringPiece &str, AMFOutputStream *stream) {
+    void WriteAMFString(const std::string_view &str, AMFOutputStream *stream) {
         if (str.size() < 65536u) {
             stream->put_u8(AMF_MARKER_STRING);
             stream->put_u16(str.size());
@@ -1117,14 +1117,14 @@ namespace melon {
                 break;
             case AMF_MARKER_STRING: {
                 stream->put_u8(AMF_MARKER_STRING);
-                const mutil::StringPiece str = field.AsString();
+                const std::string_view str = field.AsString();
                 stream->put_u16(str.size());
                 stream->putn(str.data(), str.size());
             }
                 break;
             case AMF_MARKER_LONG_STRING: {
                 stream->put_u8(AMF_MARKER_LONG_STRING);
-                const mutil::StringPiece str = field.AsString();
+                const std::string_view str = field.AsString();
                 stream->put_u32(str.size());
                 stream->putn(str.data(), str.size());
             }

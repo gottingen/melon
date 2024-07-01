@@ -17,10 +17,7 @@
 //
 //
 
-
-
-#ifndef  MELON_RPC_HTTP_HTTP_HEADER_H_
-#define  MELON_RPC_HTTP_HTTP_HEADER_H_
+#pragma once
 
 #include <melon/utility/strings/string_piece.h>  // StringPiece
 #include <melon/utility/containers/case_ignored_flat_map.h>
@@ -102,7 +99,7 @@ namespace melon {
         // Append value to a header. If the header already exists, separate
         // old value and new value with comma(,) according to:
         //   https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-        void AppendHeader(const std::string &key, const mutil::StringPiece &value);
+        void AppendHeader(const std::string &key, const std::string_view &value);
 
         // Get header iterators which are invalidated after calling AppendHeader()
         HeaderIterator HeaderBegin() const { return _headers.begin(); }
@@ -176,6 +173,3 @@ namespace melon {
     const HttpHeader &DefaultHttpHeader();
 
 } // namespace melon
-
-
-#endif  // MELON_RPC_HTTP_HTTP_HEADER_H_

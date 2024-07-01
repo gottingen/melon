@@ -68,7 +68,7 @@ namespace melon {
 
     int SharedLoadBalancer::Init(const char *lb_protocol) {
         std::string lb_name;
-        mutil::StringPiece lb_params;
+        std::string_view lb_params;
         if (!ParseParameters(lb_protocol, &lb_name, &lb_params)) {
             LOG(FATAL) << "Fail to parse this load balancer protocol '" << lb_protocol << '\'';
             return -1;
@@ -98,11 +98,11 @@ namespace melon {
         }
     }
 
-    bool SharedLoadBalancer::ParseParameters(const mutil::StringPiece &lb_protocol,
+    bool SharedLoadBalancer::ParseParameters(const std::string_view &lb_protocol,
                                              std::string *lb_name,
-                                             mutil::StringPiece *lb_params) {
+                                             std::string_view *lb_params) {
         lb_name->clear();
-        lb_params->clear();
+        *lb_params = std::string_view();
         if (lb_protocol.empty()) {
             return false;
         }

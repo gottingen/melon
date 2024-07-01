@@ -81,7 +81,7 @@ namespace melon {
         };
 
         int ConsumeCommand(RedisConnContext *ctx,
-                           const std::vector<mutil::StringPiece> &args,
+                           const std::vector<std::string_view> &args,
                            bool flush_batched,
                            mutil::IOBufAppender *appender) {
             RedisReply output(&ctx->arena);
@@ -98,7 +98,7 @@ namespace melon {
                 RedisCommandHandler *ch = ctx->redis_service->FindCommandHandler(args[0]);
                 if (!ch) {
                     char buf[64];
-                    snprintf(buf, sizeof(buf), "ERR unknown command `%s`", args[0].as_string().c_str());
+                    snprintf(buf, sizeof(buf), "ERR unknown command `%s`", std::string(args[0]).c_str());
                     output.SetError(buf);
                 } else {
                     result = ch->Run(args, &output, flush_batched);
@@ -164,7 +164,7 @@ namespace melon {
                     ctx = new RedisConnContext(rs);
                     socket->reset_parsing_context(ctx);
                 }
-                std::vector<mutil::StringPiece> current_args;
+                std::vector<std::string_view> current_args;
                 mutil::IOBufAppender appender;
                 ParseError err = PARSE_OK;
 
@@ -173,7 +173,7 @@ namespace melon {
                     return MakeParseError(err);
                 }
                 while (true) {
-                    std::vector<mutil::StringPiece> next_args;
+                    std::vector<std::string_view> next_args;
                     err = ctx->parser.Consume(*source, &next_args, &ctx->arena);
                     if (err != PARSE_OK) {
                         break;

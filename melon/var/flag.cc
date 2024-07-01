@@ -24,12 +24,12 @@
 
 namespace melon::var {
 
-    Flag::Flag(const mutil::StringPiece &gflag_name) {
+    Flag::Flag(const std::string_view &gflag_name) {
         expose(gflag_name);
     }
 
-    Flag::Flag(const mutil::StringPiece &prefix,
-                 const mutil::StringPiece &gflag_name)
+    Flag::Flag(const std::string_view &prefix,
+                 const std::string_view &gflag_name)
             : _flag_name(gflag_name.data(), gflag_name.size()) {
         expose_as(prefix, gflag_name);
     }

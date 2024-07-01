@@ -89,7 +89,7 @@ namespace melon::raft {
         } else {
             off_t buf_off = request->offset();
             while (!buf.empty()) {
-                mutil::StringPiece p = buf.backing_block(0);
+                std::string_view p = buf.backing_block(0);
                 if (!is_zero(p.data(), p.size())) {
                     mutil::IOBuf piece_buf;
                     buf.cutn(&piece_buf, p.size());

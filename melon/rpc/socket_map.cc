@@ -218,7 +218,7 @@ namespace melon {
             char namebuf[32];
             int len = snprintf(namebuf, sizeof(namebuf), "rpc_socketmap_%p", this);
             _this_map_var = new melon::var::PassiveStatus<std::string>(
-                    mutil::StringPiece(namebuf, len), PrintSocketMap, this);
+                    std::string_view(namebuf, len), PrintSocketMap, this);
         }
     }
 

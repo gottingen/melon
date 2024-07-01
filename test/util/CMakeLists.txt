@@ -18,7 +18,6 @@ SET(TEST_UTILITY_SOURCES
         bounded_queue_unittest
         at_exit_unittest
         atomicops_unittest
-        big_endian_unittest
         bits_unittest
         hash_tables_unittest
         linked_list_unittest
@@ -33,7 +32,6 @@ SET(TEST_UTILITY_SOURCES
         file_path_unittest
         file_unittest
         scoped_temp_dir_unittest
-        guid_unittest
         hash_unittest
         lazy_instance_unittest
         aligned_memory_unittest
@@ -51,7 +49,6 @@ SET(TEST_UTILITY_SOURCES
         scoped_clear_errno_unittest
         scoped_generic_unittest
         security_unittest
-        sha1_unittest
         stl_util_unittest
         nullable_string16_unittest
         string16_unittest

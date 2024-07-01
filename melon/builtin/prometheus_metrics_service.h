@@ -31,7 +31,7 @@ namespace melon {
                             ::google::protobuf::Closure *done) override;
     };
 
-    mutil::StringPiece GetMetricsName(const std::string &name);
+    std::string_view GetMetricsName(const std::string &name);
 
     int DumpPrometheusMetricsToIOBuf(mutil::IOBuf *output);
 

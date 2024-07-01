@@ -463,7 +463,7 @@ namespace melon {
 
         int AddService(google::protobuf::Service *service,
                        ServiceOwnership ownership,
-                       const mutil::StringPiece &restful_mappings,
+                       const std::string_view &restful_mappings,
                        bool allow_default_url = false);
 
         int AddService(google::protobuf::Service *service,
@@ -498,14 +498,14 @@ namespace melon {
         // Notice that for performance concerns, this function does not lock service
         // list internally thus races with AddService()/RemoveService().
         google::protobuf::Service *
-        FindServiceByFullName(const mutil::StringPiece &full_name) const;
+        FindServiceByFullName(const std::string_view &full_name) const;
 
         // Find a service by its ServiceDescriptor::name().
         // Returns the registered service pointer, NULL on not found.
         // Notice that for performance concerns, this function does not lock service
         // list internally thus races with AddService()/RemoveService().
         google::protobuf::Service *
-        FindServiceByName(const mutil::StringPiece &name) const;
+        FindServiceByName(const std::string_view &name) const;
 
         // Put all services registered by user into `services'
         void ListServices(std::vector<google::protobuf::Service *> *services);
@@ -563,21 +563,21 @@ namespace melon {
         // an auto concurrency limiter, eg `options.max_concurrency = "auto"`.If you
         // still called non-const version of the interface, your changes to the
         // maximum concurrency will not take effect.
-        AdaptiveMaxConcurrency &MaxConcurrencyOf(const mutil::StringPiece &full_method_name);
+        AdaptiveMaxConcurrency &MaxConcurrencyOf(const std::string_view &full_method_name);
 
-        int MaxConcurrencyOf(const mutil::StringPiece &full_method_name) const;
+        int MaxConcurrencyOf(const std::string_view &full_method_name) const;
 
-        AdaptiveMaxConcurrency &MaxConcurrencyOf(const mutil::StringPiece &full_service_name,
-                                                 const mutil::StringPiece &method_name);
+        AdaptiveMaxConcurrency &MaxConcurrencyOf(const std::string_view &full_service_name,
+                                                 const std::string_view &method_name);
 
-        int MaxConcurrencyOf(const mutil::StringPiece &full_service_name,
-                             const mutil::StringPiece &method_name) const;
+        int MaxConcurrencyOf(const std::string_view &full_service_name,
+                             const std::string_view &method_name) const;
 
         AdaptiveMaxConcurrency &MaxConcurrencyOf(google::protobuf::Service *service,
-                                                 const mutil::StringPiece &method_name);
+                                                 const std::string_view &method_name);
 
         int MaxConcurrencyOf(google::protobuf::Service *service,
-                             const mutil::StringPiece &method_name) const;
+                             const std::string_view &method_name) const;
 
         int Concurrency() const {
             return mutil::subtle::NoBarrier_Load(&_concurrency);
@@ -650,21 +650,21 @@ namespace melon {
         void PutPidFileIfNeeded();
 
         const MethodProperty *
-        FindMethodPropertyByFullName(const mutil::StringPiece &fullname) const;
+        FindMethodPropertyByFullName(const std::string_view &fullname) const;
 
         const MethodProperty *
-        FindMethodPropertyByFullName(const mutil::StringPiece &full_service_name,
-                                     const mutil::StringPiece &method_name) const;
+        FindMethodPropertyByFullName(const std::string_view &full_service_name,
+                                     const std::string_view &method_name) const;
 
         const MethodProperty *
-        FindMethodPropertyByNameAndIndex(const mutil::StringPiece &service_name,
+        FindMethodPropertyByNameAndIndex(const std::string_view &service_name,
                                          int method_index) const;
 
         const ServiceProperty *
-        FindServicePropertyByFullName(const mutil::StringPiece &fullname) const;
+        FindServicePropertyByFullName(const std::string_view &fullname) const;
 
         const ServiceProperty *
-        FindServicePropertyByName(const mutil::StringPiece &name) const;
+        FindServicePropertyByName(const std::string_view &name) const;
 
         std::string ServerPrefix() const;
 

@@ -32,6 +32,10 @@ namespace melon {
         turbo::Status initialize(Server *server) override;
         void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
 
+        melon::TabEntry tab_entry() override {
+            return {"protobufs", "/melon/protobufs"};
+        }
+
         typedef std::map<std::string, std::string> Map;
         Map _map;
         Server *_server{nullptr};

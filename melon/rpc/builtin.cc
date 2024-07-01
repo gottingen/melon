@@ -25,46 +25,110 @@
 #include <melon/utility/file_util.h>
 #include <turbo/strings/str_split.h>
 #include <turbo/flags/flag.h>
+#include <collie/nlohmann/json.hpp>
 
 TURBO_FLAG(std::string , melon_builtin_restful_mapping_path, "/eabi", "mapping path for melon builtin restful service");
 
 
-class NotFoundProcessor : public melon::BuiltinProcessor {
-private:
-    void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
-        auto path = request->unresolved_path();
-        response->set_status_code(404);
-        response->set_header("Access-Control-Allow-Origin", "*");
-        response->set_header("Access-Control-Allow-Method", "*");
-        response->set_header("Access-Control-Allow-Headers", "*");
-        response->set_header("Access-Control-Allow-Credentials", "true");
-        response->set_header("Access-Control-Expose-Headers", "*");
-        response->set_header("Content-Type", "text/plain");
-        response->set_body("not found\n");
-        response->append_body("Request path: ");
-        response->append_body(path);
-        response->append_body("\n");
-    }
-};
-
-class RootProcessor : public melon::BuiltinProcessor {
-private:
-    void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
-        auto path = request->unresolved_path();
-        response->set_status_code(200);
-        response->set_header("Access-Control-Allow-Origin", "*");
-        response->set_header("Access-Control-Allow-Method", "*");
-        response->set_header("Access-Control-Allow-Headers", "*");
-        response->set_header("Access-Control-Allow-Credentials", "true");
-        response->set_header("Access-Control-Expose-Headers", "*");
-        response->set_header("Content-Type", "text/plain");
-        response->set_body("I am  root\n");
-        response->append_body("\n");
-    }
-};
-
-
 namespace melon {
+
+    class NotFoundProcessor : public melon::BuiltinProcessor {
+    private:
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
+            auto path = request->unresolved_path();
+            response->set_status_code(404);
+            response->set_access_control_all_allow();
+            response->set_header("Content-Type", "text/plain");
+            response->set_body("not found\n");
+            response->append_body("Request path: ");
+            response->append_body(path);
+            response->append_body("\n");
+        }
+        TabEntry tab_entry() override {
+            return TabEntry{};
+        }
+    };
+
+    class RootProcessor : public melon::BuiltinProcessor {
+    private:
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
+            auto path = request->unresolved_path();
+            response->set_status_code(200);
+            response->set_access_control_all_allow();
+            response->set_header("Content-Type", "text/plain");
+            response->set_body("I am  root\n");
+            response->append_body("\n");
+        }
+
+        TabEntry tab_entry() override {
+            return TabEntry{};
+        }
+    };
+
+    struct TabCard {
+        std::string name;
+        std::vector<std::string> paths;
+    };
+
+    turbo::flat_hash_map<std::string, TabCard> tab_cards;
+
+    static void add_to_global_tab(const TabEntry &entry) {
+        if(entry.name.empty() || entry.path.empty()) {
+            return;
+        }
+        auto it = tab_cards.find(entry.name);
+        if(it == tab_cards.end()) {
+            TabCard card;
+            card.name = entry.name;
+            card.paths.push_back(entry.path);
+            tab_cards[entry.name] = card;
+        } else {
+            for(auto &path : it->second.paths) {
+                if(path == entry.path) {
+                    LOG(FATAL)<<entry.name<<" already exists for path: "<<entry.name<<"."<<entry.path;
+                }
+            }
+            it->second.paths.push_back(entry.path);
+        }
+    }
+    std::once_flag tab_flag;
+    std::string tab_result;
+    static void build_tab() {
+        nlohmann::json j;
+        j["code"] = 0;
+        j["message"] = "ok";
+        j["root"] = BuiltinRestful::instance()->mapping_path();
+        for(auto &tab : tab_cards) {
+            nlohmann::json card;
+            card["name"] = tab.second.name;
+            std::vector<std::string> paths;
+            for(auto &path : tab.second.paths) {
+                paths.push_back(BuiltinRestful::instance()->mapping_path() + "/" + path);
+            }
+            card["paths"] = paths;
+            j["tabs"].push_back(card);
+        }
+        tab_result = j.dump();
+    }
+
+    static const std::string &get_tab_result() {
+        std::call_once(tab_flag, build_tab);
+        return tab_result;
+    }
+
+    class TabbedProcessor : public melon::BuiltinProcessor {
+    public:
+        void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override {
+            response->set_status_code(200);
+            response->set_access_control_all_allow();
+            response->set_content_json();
+            response->set_body(get_tab_result());
+        }
+
+        TabEntry tab_entry() override {
+            return TabEntry{};
+        }
+    };
 
     static std::string normalize_path(const std::string &path) {
         std::string result;
@@ -128,7 +192,6 @@ namespace melon {
         if(registered_) {
             return turbo::internal_error("register_server can only be called once");
         }
-        registered_ = true;
         if(server == nullptr) {
             return turbo::invalid_argument_error("server is empty");
         }
@@ -146,6 +209,10 @@ namespace melon {
         if(any_path_processor_ == nullptr && processors_.empty()) {
             return turbo::invalid_argument_error("any_path_processor and processors are both empty, you must set one of them");
         }
+        // add tab processor
+
+        set_processor_impl("/melon/tabs", std::make_shared<TabbedProcessor>(), true);
+
         for(auto &it : processors_) {
             STATUS_RETURN_IF_ERROR(it.second->initialize(server));
         }
@@ -156,6 +223,7 @@ namespace melon {
         if(r != 0) {
             return turbo::internal_error("register restful service failed");
         }
+        registered_ = true;
         return turbo::OkStatus();
     }
 
@@ -177,9 +245,15 @@ namespace melon {
         root_processor_ = std::move(processor);
         return this;
     }
+
     BuiltinRestful* BuiltinRestful::set_processor(const std::string &path, std::shared_ptr<BuiltinProcessor> processor, bool overwrite) {
         std::lock_guard<std::mutex> lock(mutex_);
-        LOG_IF(FATAL, registered_)<<"set_not_found_processor must be called before register_server";
+        set_processor_impl(path, processor, overwrite);
+        return this;
+    }
+
+    BuiltinRestful* BuiltinRestful::set_processor_impl(const std::string &path, std::shared_ptr<BuiltinProcessor> processor, bool overwrite) {
+        LOG_IF(FATAL, registered_)<<"set_processor_impl must be called before register_server";
         auto fpath = normalize_path(path);
         if(fpath.empty()) {
             LOG(FATAL)<<"path is empty";
@@ -190,6 +264,9 @@ namespace melon {
                 LOG(FATAL)<<"processor already exists for path: "<<path;
             }
         }
+        auto tab = processor->tab_entry();
+        tab.path = fpath;
+        add_to_global_tab(tab);
         processors_[fpath] = std::move(processor);
         return this;
     }

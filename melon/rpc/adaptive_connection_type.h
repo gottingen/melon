@@ -29,10 +29,10 @@ namespace melon {
     // Convert a case-insensitive string to corresponding ConnectionType
     // Possible options are: short, pooled, single
     // Returns: CONNECTION_TYPE_UNKNOWN on error.
-    ConnectionType StringToConnectionType(const mutil::StringPiece &type,
+    ConnectionType StringToConnectionType(const std::string_view &type,
                                           bool print_log_on_unknown);
 
-    inline ConnectionType StringToConnectionType(const mutil::StringPiece &type) {
+    inline ConnectionType StringToConnectionType(const std::string_view &type) {
         return StringToConnectionType(type, true);
     }
 
@@ -53,7 +53,7 @@ namespace melon {
             _error = false;
         }
 
-        void operator=(const mutil::StringPiece &name);
+        void operator=(const std::string_view &name);
 
         operator ConnectionType() const { return _type; }
 

@@ -286,7 +286,7 @@ mutil::Status RedisCommandFormat(mutil::IOBuf* buf, const char* fmt, ...) {
 }
 
 mutil::Status
-RedisCommandNoFormat(mutil::IOBuf* outbuf, const mutil::StringPiece& cmd) {
+RedisCommandNoFormat(mutil::IOBuf* outbuf, const std::string_view& cmd) {
     if (outbuf == NULL || cmd == NULL) {
         return mutil::Status(EINVAL, "Param[outbuf] or [cmd] is NULL");
     }
@@ -350,7 +350,7 @@ RedisCommandNoFormat(mutil::IOBuf* outbuf, const mutil::StringPiece& cmd) {
 }
 
 mutil::Status RedisCommandByComponents(mutil::IOBuf* output,
-                                      const mutil::StringPiece* components,
+                                      const std::string_view* components,
                                       size_t ncomponents) {
     if (output == NULL) {
         return mutil::Status(EINVAL, "Param[output] is NULL");
@@ -374,7 +374,7 @@ size_t RedisCommandParser::ParsedArgsSize() {
 }
 
 ParseError RedisCommandParser::Consume(mutil::IOBuf& buf,
-                                       std::vector<mutil::StringPiece>* args,
+                                       std::vector<std::string_view>* args,
                                        mutil::Arena* arena) {
     const char* pfc = (const char*)buf.fetch1();
     if (pfc == NULL) {
@@ -391,8 +391,8 @@ ParseError RedisCommandParser::Consume(mutil::IOBuf& buf,
     char intbuf[32];  // enough for fc + 64-bit decimal + \r\n
     const size_t ncopied = buf.copy_to(intbuf, sizeof(intbuf) - 1);
     intbuf[ncopied] = '\0';
-    const size_t crlf_pos = mutil::StringPiece(intbuf, ncopied).find("\r\n");
-    if (crlf_pos == mutil::StringPiece::npos) {  // not enough data
+    const size_t crlf_pos = std::string_view(intbuf, ncopied).find("\r\n");
+    if (crlf_pos == std::string_view::npos) {  // not enough data
         return PARSE_ERROR_NOT_ENOUGH_DATA;
     }
     char* endptr = NULL;
@@ -432,7 +432,7 @@ ParseError RedisCommandParser::Consume(mutil::IOBuf& buf,
     char* d = (char*)arena->allocate((len/8 + 1) * 8);
     buf.cutn(d, len);
     d[len] = '\0';
-    _args[_index].set(d, len);
+    _args[_index] = std::string_view(d, len);
     if (_index == 0) {
         // convert it to lowercase when it is command name
         for (int i = 0; i < len; ++i) {

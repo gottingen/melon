@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
     if (exit) {
         return code;
     }
+    LOG(INFO)<<"config done..";
     // Generally you only need one Server.
     melon::Server server;
     auto service = melon::RestfulService::instance();
@@ -120,6 +121,7 @@ int main(int argc, char *argv[]) {
         LOG(ERROR) << "register server failed: " << rs;
         return -1;
     }
+    LOG(INFO)<< "restful service has been registered";
     melon::WebuiConfig conf = melon::WebuiConfig::default_config();
     conf.mapping_path = turbo::get_flag(FLAGS_webui_mapping);
     conf.root_path = turbo::get_flag(FLAGS_root_path);
@@ -129,15 +131,18 @@ int main(int argc, char *argv[]) {
         LOG(ERROR) << "register server failed: " << rs;
         return -1;
     }
+    LOG(INFO)<< "webui has been registered";
     melon::ServerOptions options;
     options.idle_timeout_sec = turbo::get_flag(FLAGS_idle_timeout_s);
     options.mutable_ssl_options()->default_cert.certificate = turbo::get_flag(FLAGS_certificate);
     options.mutable_ssl_options()->default_cert.private_key = turbo::get_flag(FLAGS_private_key);
     options.mutable_ssl_options()->ciphers = turbo::get_flag(FLAGS_ciphers);
+    LOG(INFO)<< "ready to start server";
     if (server.Start(turbo::get_flag(FLAGS_port), &options) != 0) {
         LOG(ERROR) << "Fail to start HttpServer";
         return -1;
     }
+    LOG(INFO)<< "Server started at port: " << turbo::get_flag(FLAGS_port);
     server.RunUntilAskedToQuit();
     return 0;
 }

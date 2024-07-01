@@ -55,7 +55,7 @@ const int ALLOW_UNUSED dummy_bt = GetStackTrace
     : backtrace(dummy_buf, arraysize(dummy_buf));
 
 // For controlling contentions collected per second.
-static melon::var::CollectorSpeedLimit g_cp_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
+static melon::var::CollectorSpeedLimit g_cp_sl;
 
 const size_t MAX_CACHED_CONTENTIONS = 512;
 // Skip frames which are always same: the unlock function and submit_contention()

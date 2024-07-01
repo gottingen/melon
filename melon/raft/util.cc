@@ -24,6 +24,7 @@
 #include <melon/utility/raw_pack.h>                     // mutil::RawPacker
 #include <melon/utility/file_util.h>
 #include <melon/raft/raft.h>
+#include <turbo/strings/match.h>
 
 // Reloading following does not change names of the corresponding vars.
 // Avoid reloading in practice.
@@ -182,15 +183,15 @@ namespace melon::var {
         return static_cast<int64_t>(round(s.data.num * 1000000.0 / s.time_us));
     }
 
-    int CounterRecorder::expose(const mutil::StringPiece &prefix1,
-                                const mutil::StringPiece &prefix2) {
+    int CounterRecorder::expose(const std::string_view &prefix1,
+                                const std::string_view &prefix2) {
         if (prefix2.empty()) {
             LOG(ERROR) << "Parameter[prefix2] is empty";
             return -1;
         }
-        mutil::StringPiece prefix = prefix2;
+        std::string_view prefix = prefix2;
         // User may add "_counter" as the suffix, remove it.
-        if (prefix.ends_with("counter") || prefix.ends_with("Counter")) {
+        if (turbo::starts_with(prefix, "counter") || turbo::starts_with(prefix, "Counter")) {
             prefix.remove_suffix(7);
             if (prefix.empty()) {
                 LOG(ERROR) << "Invalid prefix2=" << prefix2;

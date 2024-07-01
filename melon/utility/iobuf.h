@@ -31,7 +31,7 @@
 #include <string>                                // std::string
 #include <ostream>                               // std::ostream
 #include <google/protobuf/io/zero_copy_stream.h> // ZeroCopyInputStream
-#include <melon/utility/strings/string_piece.h>           // mutil::StringPiece
+#include <string_view>
 #include <melon/utility/snappy/snappy-sinksource.h>
 #include "melon/utility/zero_copy_stream_as_streambuf.h"
 #include <melon/utility/macros.h>
@@ -375,15 +375,15 @@ namespace mutil {
         static size_t block_count_hit_tls_threshold();
 
         // Equal with a string/IOBuf or not.
-        bool equals(const mutil::StringPiece &) const;
+        bool equals(const std::string_view &) const;
 
         bool equals(const IOBuf &other) const;
 
         // Get the number of backing blocks
         size_t backing_block_num() const { return _ref_num(); }
 
-        // Get #i backing_block, an empty StringPiece is returned if no such block
-        StringPiece backing_block(size_t i) const;
+        // Get #i backing_block, an empty std::string_view is returned if no such block
+        std::string_view backing_block(size_t i) const;
 
         // Make a movable version of self
         Movable movable() { return Movable(*this); }
@@ -459,13 +459,13 @@ namespace mutil {
 
     std::ostream &operator<<(std::ostream &, const IOBuf &buf);
 
-    inline bool operator==(const mutil::IOBuf &b, const mutil::StringPiece &s) { return b.equals(s); }
+    inline bool operator==(const mutil::IOBuf &b, const std::string_view &s) { return b.equals(s); }
 
-    inline bool operator==(const mutil::StringPiece &s, const mutil::IOBuf &b) { return b.equals(s); }
+    inline bool operator==(const std::string_view &s, const mutil::IOBuf &b) { return b.equals(s); }
 
-    inline bool operator!=(const mutil::IOBuf &b, const mutil::StringPiece &s) { return !b.equals(s); }
+    inline bool operator!=(const mutil::IOBuf &b, const std::string_view &s) { return !b.equals(s); }
 
-    inline bool operator!=(const mutil::StringPiece &s, const mutil::IOBuf &b) { return !b.equals(s); }
+    inline bool operator!=(const std::string_view &s, const mutil::IOBuf &b) { return !b.equals(s); }
 
     inline bool operator==(const mutil::IOBuf &b1, const mutil::IOBuf &b2) { return b1.equals(b2); }
 
@@ -720,7 +720,7 @@ namespace mutil {
         // Returns 0 on success, -1 otherwise.
         int append(const void *data, size_t n);
 
-        int append(const mutil::StringPiece &str);
+        int append(const std::string_view &str);
 
         // Format integer |d| to back side of the internal buffer, which is much faster
         // than snprintf(..., "%lu", d).

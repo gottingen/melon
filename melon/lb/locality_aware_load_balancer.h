@@ -52,7 +52,7 @@ namespace melon::lb {
 
         size_t RemoveServersInBatch(const std::vector<ServerId> &servers);
 
-        LocalityAwareLoadBalancer *New(const mutil::StringPiece &) const;
+        LocalityAwareLoadBalancer *New(const std::string_view &) const;
 
         void Destroy();
 

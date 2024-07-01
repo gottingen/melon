@@ -35,7 +35,7 @@ namespace melon::raft {
         return os;
     }
 
-    int Configuration::parse_from(mutil::StringPiece conf) {
+    int Configuration::parse_from(std::string_view conf) {
         reset();
         std::string peer_str;
         for (mutil::StringSplitter sp(conf.begin(), conf.end(), ','); sp; ++sp) {

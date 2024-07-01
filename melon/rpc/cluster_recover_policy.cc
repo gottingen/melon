@@ -105,7 +105,7 @@ namespace melon {
         return false;
     }
 
-    bool GetRecoverPolicyByParams(const mutil::StringPiece &params,
+    bool GetRecoverPolicyByParams(const std::string_view &params,
                                   std::shared_ptr<ClusterRecoverPolicy> *ptr_out) {
         int64_t min_working_instances = -1;
         int64_t hold_seconds = -1;

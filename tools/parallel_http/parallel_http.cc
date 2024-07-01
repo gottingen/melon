@@ -24,6 +24,8 @@
 #include <melon/utility/files/scoped_file.h>
 #include <melon/rpc/channel.h>
 #include <turbo/flags/parse.h>
+#include <turbo/strings/ascii.h>
+#include <turbo/strings/match.h>
 
 TURBO_FLAG(std::string, url_file, "", "The file containing urls to fetch. If this flag is"
               " empty, read urls from stdin");
@@ -125,10 +127,10 @@ int main(int argc, char** argv) {
             line_buf[nr - 1] = '\0';
             --nr;
         }
-        mutil::StringPiece line(line_buf, nr);
-        line.trim_spaces();
+        std::string_view line(line_buf, nr);
+        line = turbo::trim_all(line);
         if (!line.empty()) {
-            url_list.push_back(line.as_string());
+            url_list.push_back({line.data(), line.size()});
         }
     }
     if (url_list.empty()) {
@@ -154,13 +156,13 @@ int main(int argc, char** argv) {
                 output_queue.swap(args[i].output_queue);
             }
             for (size_t i = 0; i < output_queue.size(); ++i) {
-                mutil::StringPiece url = output_queue[i].first;
-                mutil::StringPiece hostname;
-                if (url.starts_with("http://")) {
+                std::string_view url = output_queue[i].first;
+                std::string_view hostname;
+                if (turbo::starts_with(url, "http://")) {
                     url.remove_prefix(7);
                 }
                 size_t slash_pos = url.find('/');
-                if (slash_pos != mutil::StringPiece::npos) {
+                if (slash_pos != std::string_view::npos) {
                     hostname = url.substr(0, slash_pos);
                 } else {
                     hostname = url;

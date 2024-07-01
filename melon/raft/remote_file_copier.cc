@@ -28,6 +28,7 @@
 #include <melon/raft/util.h>
 #include <melon/raft/snapshot.h>
 #include <melon/raft/config.h>
+#include <turbo/strings/match.h>
 
 TURBO_FLAG(int32_t, raft_max_byte_count_per_rpc, 1024 * 128 /*128K*/,
            "Maximum of block size per RPC").on_validate(turbo::GtValidator<int32_t, 1>::validate);
@@ -46,14 +47,14 @@ namespace melon::raft {
                                SnapshotThrottle *throttle) {
         // Parse uri format: remote://ip:port/reader_id
         static const size_t prefix_size = strlen("remote://");
-        mutil::StringPiece uri_str(uri);
-        if (!uri_str.starts_with("remote://")) {
+        std::string_view uri_str(uri);
+        if (!turbo::starts_with(uri_str, "remote://")) {
             LOG(ERROR) << "Invalid uri=" << uri;
             return -1;
         }
         uri_str.remove_prefix(prefix_size);
         size_t slash_pos = uri_str.find('/');
-        mutil::StringPiece ip_and_port = uri_str.substr(0, slash_pos);
+        std::string_view ip_and_port = uri_str.substr(0, slash_pos);
         uri_str.remove_prefix(slash_pos + 1);
         if (!mutil::StringToInt64(uri_str, &_reader_id)) {
             LOG(ERROR) << "Invalid reader_id_format=" << uri_str
@@ -62,7 +63,7 @@ namespace melon::raft {
         }
         melon::ChannelOptions channel_opt;
         channel_opt.connect_timeout_ms = turbo::get_flag(FLAGS_raft_rpc_channel_connect_timeout_ms);
-        if (_channel.Init(ip_and_port.as_string().c_str(), &channel_opt) != 0) {
+        if (_channel.Init(std::string(ip_and_port).c_str(), &channel_opt) != 0) {
             LOG(ERROR) << "Fail to init Channel to " << ip_and_port;
             return -1;
         }

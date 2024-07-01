@@ -141,8 +141,8 @@ namespace melon::var {
         }
     };
 
-// We have to initialize global map on need because var is possibly used
-// before main().
+    // We have to initialize global map on need because var is possibly used
+    // before main().
     static pthread_once_t s_var_maps_once = PTHREAD_ONCE_INIT;
     static VarMapWithLock *s_var_maps = nullptr;
 
@@ -179,8 +179,8 @@ namespace melon::var {
                           " dtors to avoid displaying a variable that is just destructing";
     }
 
-    int Variable::expose_impl(const mutil::StringPiece &prefix,
-                              const mutil::StringPiece &name,
+    int Variable::expose_impl(const std::string_view &prefix,
+                              const std::string_view &name,
                               DisplayFilter display_filter) {
         if (name.empty()) {
             LOG(ERROR) << "Parameter[name] is empty";
@@ -361,8 +361,8 @@ namespace melon::var {
 
         void reset();
 
-        mutil::StringPiece data() {
-            return mutil::StringPiece(pbase(), pptr() - pbase());
+        std::string_view data() {
+            return std::string_view(pbase(), pptr() - pbase());
         }
 
     private:
@@ -591,7 +591,7 @@ namespace melon::var {
             mutil::back_char(command_name) == ')') {
             // remove parenthesis.
             to_underscored_name(&s,
-                                mutil::StringPiece(command_name.data() + 1,
+                                std::string_view(command_name.data() + 1,
                                                    command_name.size() - 2UL));
         } else {
             to_underscored_name(&s, command_name);
@@ -601,7 +601,7 @@ namespace melon::var {
 
     class FileDumper : public Dumper {
     public:
-        FileDumper(const std::string &filename, mutil::StringPiece s/*prefix*/)
+        FileDumper(const std::string &filename, std::string_view s/*prefix*/)
                 : _filename(filename), _fp(nullptr) {
             // setting prefix.
             // remove trailing spaces.
@@ -629,7 +629,7 @@ namespace melon::var {
         }
 
     protected:
-        bool dump_impl(const std::string &name, const mutil::StringPiece &desc, const std::string &separator) {
+        bool dump_impl(const std::string &name, const std::string_view &desc, const std::string &separator) {
             if (_fp == nullptr) {
                 mutil::File::Error error;
                 mutil::FilePath dir = mutil::FilePath(_filename).DirName();
@@ -663,10 +663,10 @@ namespace melon::var {
 
     class CommonFileDumper : public FileDumper {
     public:
-        CommonFileDumper(const std::string &filename, mutil::StringPiece prefix)
+        CommonFileDumper(const std::string &filename, std::string_view prefix)
                 : FileDumper(filename, prefix), _separator(":") {}
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) {
+        bool dump(const std::string &name, const std::string_view &desc) {
             return dump_impl(name, desc, _separator);
         }
 
@@ -676,10 +676,10 @@ namespace melon::var {
 
     class PrometheusFileDumper : public FileDumper {
     public:
-        PrometheusFileDumper(const std::string &filename, mutil::StringPiece prefix)
+        PrometheusFileDumper(const std::string &filename, std::string_view prefix)
                 : FileDumper(filename, prefix), _separator(" ") {}
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) {
+        bool dump(const std::string &name, const std::string_view &desc) {
             return dump_impl(name, desc, _separator);
         }
 
@@ -690,7 +690,7 @@ namespace melon::var {
     class FileDumperGroup : public Dumper {
     public:
         FileDumperGroup(std::string tabs, std::string filename,
-                        mutil::StringPiece s/*prefix*/) {
+                        std::string_view s/*prefix*/) {
             mutil::FilePath path(filename);
             if (path.FinalExtension() == ".data") {
                 // .data will be appended later
@@ -718,7 +718,7 @@ namespace melon::var {
             dumpers.clear();
         }
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) override {
+        bool dump(const std::string &name, const std::string_view &desc) override {
             for (size_t i = 0; i < dumpers.size() - 1; ++i) {
                 if (dumpers[i].second->match(name)) {
                     return dumpers[i].first->dump(name, desc);
@@ -878,7 +878,7 @@ namespace melon::var {
         return true;
     }
 
-    void to_underscored_name(std::string *name, const mutil::StringPiece &src) {
+    void to_underscored_name(std::string *name, const std::string_view &src) {
         name->reserve(name->size() + src.size() + 8/*just guess*/);
         for (const char *p = src.data(); p != src.data() + src.size(); ++p) {
             if (isalpha(*p)) {

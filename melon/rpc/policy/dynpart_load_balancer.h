@@ -38,7 +38,7 @@ public:
     size_t AddServersInBatch(const std::vector<ServerId>& servers);
     size_t RemoveServersInBatch(const std::vector<ServerId>& servers);
     int SelectServer(const SelectIn& in, SelectOut* out);
-    DynPartLoadBalancer* New(const mutil::StringPiece&) const;
+    DynPartLoadBalancer* New(const std::string_view&) const;
     void Destroy();
     void Describe(std::ostream&, const DescribeOptions& options);
 

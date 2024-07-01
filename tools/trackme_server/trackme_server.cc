@@ -220,7 +220,7 @@ void BugsLoader::load_bugs() {
             continue;
         }
         melon::TrackMeSeverity severity = melon::TrackMeOK;
-        mutil::StringPiece severity_str(sp.field(), sp.length());
+        std::string_view severity_str(sp.field(), sp.length());
         if (severity_str == "f" || severity_str == "F") {
             severity = melon::TrackMeFatal;
         } else if (severity_str == "w" || severity_str == "W") {
@@ -237,7 +237,7 @@ void BugsLoader::load_bugs() {
         }
         // Treat everything until end of the line as description. So don't add 
         // comments starting with # or //, they are not recognized.
-        mutil::StringPiece description(sp.field(), line + nr - sp.field());
+        std::string_view description(sp.field(), line + nr - sp.field());
         RevisionInfo info;
         info.min_rev = min_rev;
         info.max_rev = max_rev;

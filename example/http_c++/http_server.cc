@@ -21,6 +21,7 @@
 // A server to receive HttpRequest and send back HttpResponse.
 
 #include <turbo/flags/flag.h>
+#include <turbo/flags/servlet.h>
 #include <turbo/log/logging.h>
 #include <melon/rpc/server.h>
 #include <melon/rpc/restful.h>
@@ -228,9 +229,17 @@ public:
 
 int main(int argc, char* argv[]) {
     // Generally you only need one Server.
+    auto *run_app = turbo::Servlet::instance().run_app();
+    run_app->add_option("--port", FLAGS_port, FLAGS_port.help());
+    run_app->add_option("--idle_timeout_s", FLAGS_idle_timeout_s, FLAGS_idle_timeout_s.help());
+    run_app->add_option("--certificate", FLAGS_certificate, FLAGS_certificate.help());
+    run_app->add_option("--private_key", FLAGS_private_key, FLAGS_private_key.help());
+    run_app->add_option("--ciphers", FLAGS_ciphers, FLAGS_ciphers.help());
+    auto [exit, ret] = turbo::Servlet::instance().run(argc, argv);
+    if (exit) {
+        return ret;
+    }
     melon::Server server;
-
-    turbo::setup_rotating_file_sink("http_server.log", 100, 10, true, 60);
     //turbo::setup_color_stderr_sink();
     example::HttpServiceImpl http_svc;
     example::FileServiceImpl file_svc;

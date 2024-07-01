@@ -17,9 +17,6 @@
 //
 //
 
-
-// Date: Mon. Nov 7 14:47:36 CST 2011
-
 #include <arpa/inet.h>                         // inet_pton, inet_ntop
 #include <netdb.h>                             // gethostbyname_r
 #include <unistd.h>                            // gethostname
@@ -36,7 +33,8 @@
 #include <melon/utility/endpoint.h>                    // ip_t
 #include <turbo/log/logging.h>
 #include <melon/utility/memory/singleton_on_pthread_once.h>
-#include <melon/utility/strings/string_piece.h>
+#include <turbo/strings/match.h>
+#include <string_view>
 
 //supported since Linux 3.9.
 TURBO_FLAG(bool,reuse_port, false, "Enable SO_REUSEPORT for all listened sockets");
@@ -140,8 +138,8 @@ int ip2hostname(ip_t ip, char* host, size_t host_len) {
         return -1;
     }
     // remove baidu-specific domain name (that every name has)
-    mutil::StringPiece str(host);
-    if (str.ends_with(".baidu.com")) {
+    std::string_view str(host);
+    if (turbo::ends_with(str, ".baidu.com")) {
         host[str.size() - 10] = '\0';
     }
     return 0;

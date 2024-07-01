@@ -27,6 +27,10 @@ namespace melon {
 
     struct ListLaunchProcessor : public melon::BuiltinProcessor {
         void process(const melon::RestfulRequest *request, melon::RestfulResponse *response) override;
+
+        melon::TabEntry tab_entry() override {
+            return {"launch", "/melon/launch"};
+        }
     };
 
 }  // namespace melon

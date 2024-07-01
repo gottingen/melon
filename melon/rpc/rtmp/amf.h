@@ -172,7 +172,7 @@ namespace melon {
 
         bool IsArray() const { return _type == AMF_MARKER_STRICT_ARRAY; }
 
-        mutil::StringPiece AsString() const { return mutil::StringPiece((_is_shortstr ? _shortstr : _str), _strsize); }
+        std::string_view AsString() const { return std::string_view((_is_shortstr ? _shortstr : _str), _strsize); }
 
         bool AsBool() const { return _b; }
 
@@ -182,7 +182,7 @@ namespace melon {
 
         const AMFArray &AsArray() const { return *_arr; }
 
-        void SetString(const mutil::StringPiece &str);
+        void SetString(const std::string_view &str);
 
         void SetBool(bool val);
 
@@ -228,7 +228,7 @@ namespace melon {
 
         void Clear() { _fields.clear(); }
 
-        void SetString(const std::string &name, const mutil::StringPiece &val);
+        void SetString(const std::string &name, const std::string_view &val);
 
         void SetBool(const std::string &name, bool val);
 
@@ -277,7 +277,7 @@ namespace melon {
 
         size_t size() const { return _size; }
 
-        void AddString(const mutil::StringPiece &val) { AddField()->SetString(val); }
+        void AddString(const std::string_view &val) { AddField()->SetString(val); }
 
         void AddBool(bool val) { AddField()->SetBool(val); }
 
@@ -339,7 +339,7 @@ namespace melon {
 
     // Serialize types into the stream.
     // Check stream->good() for successfulness after one or multiple WriteAMFxxx.
-    void WriteAMFString(const mutil::StringPiece &val, AMFOutputStream *stream);
+    void WriteAMFString(const std::string_view &val, AMFOutputStream *stream);
 
     void WriteAMFBool(bool val, AMFOutputStream *stream);
 

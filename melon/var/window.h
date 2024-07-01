@@ -21,7 +21,7 @@
 #pragma once
 
 #include <limits>                                 // std::numeric_limits
-#include <math.h>                                 // round
+#include <cmath>                                 // round
 #include <turbo/flags/flag.h>
 #include <turbo/flags/declare.h>
 #include <turbo/log/logging.h>                         // LOG
@@ -145,8 +145,8 @@ namespace melon::var {
             }
 
         protected:
-            int expose_impl(const mutil::StringPiece &prefix,
-                            const mutil::StringPiece &name,
+            int expose_impl(const std::string_view &prefix,
+                            const std::string_view &name,
                             DisplayFilter display_filter) override {
                 const int rc = Variable::expose_impl(prefix, name, display_filter);
                 if (rc == 0 &&
@@ -183,13 +183,13 @@ namespace melon::var {
         // of Window is largely affected by window_size while PerSecond is not.
         Window(R *var, time_t window_size) : Base(var, window_size) {}
 
-        Window(const mutil::StringPiece &name, R *var, time_t window_size)
+        Window(const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose(name);
         }
 
-        Window(const mutil::StringPiece &prefix,
-               const mutil::StringPiece &name, R *var, time_t window_size)
+        Window(const std::string_view &prefix,
+               const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose_as(prefix, name);
         }
@@ -209,23 +209,23 @@ namespace melon::var {
 
         PerSecond(R *var, time_t window_size) : Base(var, window_size) {}
 
-        PerSecond(const mutil::StringPiece &name, R *var) : Base(var, -1) {
+        PerSecond(const std::string_view &name, R *var) : Base(var, -1) {
             this->expose(name);
         }
 
-        PerSecond(const mutil::StringPiece &name, R *var, time_t window_size)
+        PerSecond(const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose(name);
         }
 
-        PerSecond(const mutil::StringPiece &prefix,
-                  const mutil::StringPiece &name, R *var)
+        PerSecond(const std::string_view &prefix,
+                  const std::string_view &name, R *var)
                 : Base(var, -1) {
             this->expose_as(prefix, name);
         }
 
-        PerSecond(const mutil::StringPiece &prefix,
-                  const mutil::StringPiece &name, R *var, time_t window_size)
+        PerSecond(const std::string_view &prefix,
+                  const std::string_view &name, R *var, time_t window_size)
                 : Base(var, window_size) {
             this->expose_as(prefix, name);
         }
@@ -336,12 +336,12 @@ namespace melon::var {
 
         WindowEx() : Base(window_size) {}
 
-        WindowEx(const mutil::StringPiece &name) : Base(window_size) {
+        WindowEx(const std::string_view &name) : Base(window_size) {
             this->expose(name);
         }
 
-        WindowEx(const mutil::StringPiece &prefix,
-                 const mutil::StringPiece &name)
+        WindowEx(const std::string_view &prefix,
+                 const std::string_view &name)
                 : Base(window_size) {
             this->expose_as(prefix, name);
         }
@@ -360,12 +360,12 @@ namespace melon::var {
 
         PerSecondEx() : Base(window_size) {}
 
-        PerSecondEx(const mutil::StringPiece &name) : Base(window_size) {
+        PerSecondEx(const std::string_view &name) : Base(window_size) {
             this->expose(name);
         }
 
-        PerSecondEx(const mutil::StringPiece &prefix,
-                    const mutil::StringPiece &name)
+        PerSecondEx(const std::string_view &prefix,
+                    const std::string_view &name)
                 : Base(window_size) {
             this->expose_as(prefix, name);
         }

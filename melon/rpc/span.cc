@@ -356,7 +356,7 @@ namespace melon {
 
     bool has_span_db() { return !!g_span_db; }
 
-    melon::var::CollectorSpeedLimit g_span_sl = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
+    melon::var::CollectorSpeedLimit g_span_sl;
     static melon::var::DisplaySamplingRatio s_display_sampling_ratio(
             "rpcz_sampling_ratio", &g_span_sl);
 

@@ -153,7 +153,7 @@ enum HttpContentType {
 // Parse from the textual content type. One type may have more than one literals.
 // Returns a numerical type. *is_grpc_ct is set to true if the content-type is
 // set by gRPC.
-HttpContentType ParseContentType(mutil::StringPiece content_type, bool* is_grpc_ct);
+HttpContentType ParseContentType(std::string_view content_type, bool* is_grpc_ct);
 
 } // namespace policy
 } // namespace melon

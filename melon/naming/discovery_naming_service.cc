@@ -30,6 +30,7 @@
 #include <melon/rpc/channel.h>
 #include <melon/rpc/controller.h>
 #include <melon/naming/discovery_naming_service.h>
+#include <turbo/strings/str_split.h>
 
 #ifdef BILIBILI_INTERNAL
 # define DEFAULT_DISCOVERY_API_ADDR "http://api.bilibili.co/discovery/nodes"
@@ -275,8 +276,7 @@ namespace melon::naming {
         os << "appid=" << _params.appid
            << "&hostname=" << _params.hostname;
 
-        std::vector<mutil::StringPiece> addrs;
-        mutil::SplitString(_params.addrs, ',', &addrs);
+        std::vector<std::string_view> addrs = turbo::str_split(_params.addrs, ',');
         for (size_t i = 0; i < addrs.size(); ++i) {
             if (!addrs[i].empty()) {
                 os << "&addrs=" << addrs[i];
@@ -426,9 +426,9 @@ namespace melon::naming {
                 }
                 // The result returned by discovery include protocol prefix, such as
                 // http://172.22.35.68:6686, which should be removed.
-                mutil::StringPiece addr(addrs[j].GetString(), addrs[j].GetStringLength());
-                mutil::StringPiece::size_type pos = addr.find("://");
-                if (pos != mutil::StringPiece::npos) {
+                std::string_view addr(addrs[j].GetString(), addrs[j].GetStringLength());
+                std::string_view::size_type pos = addr.find("://");
+                if (pos != std::string_view::npos) {
                     if (pos != 4 /* sizeof("grpc") */ ||
                         strncmp("grpc", addr.data(), 4) != 0) {
                         // Skip server that has prefix but not start with "grpc"

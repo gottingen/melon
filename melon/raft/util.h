@@ -81,8 +81,8 @@ namespace melon::var {
         };
     } // namespace detail
 
-// Specialized structure to record counter.
-// It's not a Variable, but it contains multiple var inside.
+    // Specialized structure to record counter.
+    // It's not a Variable, but it contains multiple var inside.
     class CounterRecorder : public detail::CounterRecorderBase {
         typedef detail::CounterRecorderBase Base;
     public:
@@ -90,22 +90,22 @@ namespace melon::var {
 
         explicit CounterRecorder(time_t window_size) : Base(window_size) {}
 
-        explicit CounterRecorder(const mutil::StringPiece &prefix) : Base(-1) {
+        explicit CounterRecorder(const std::string_view &prefix) : Base(-1) {
             expose(prefix);
         }
 
-        CounterRecorder(const mutil::StringPiece &prefix,
+        CounterRecorder(const std::string_view &prefix,
                         time_t window_size) : Base(window_size) {
             expose(prefix);
         }
 
-        CounterRecorder(const mutil::StringPiece &prefix1,
-                        const mutil::StringPiece &prefix2) : Base(-1) {
+        CounterRecorder(const std::string_view &prefix1,
+                        const std::string_view &prefix2) : Base(-1) {
             expose(prefix1, prefix2);
         }
 
-        CounterRecorder(const mutil::StringPiece &prefix1,
-                        const mutil::StringPiece &prefix2,
+        CounterRecorder(const std::string_view &prefix1,
+                        const std::string_view &prefix2,
                         time_t window_size) : Base(window_size) {
             expose(prefix1, prefix2);
         }
@@ -127,12 +127,12 @@ namespace melon::var {
         //                                    // foo_bar_apply_max_counter
         //                                    // foo_bar_apply_total_times
         //                                    // foo_bar_apply_qps
-        int expose(const mutil::StringPiece &prefix) {
-            return expose(mutil::StringPiece(), prefix);
+        int expose(const std::string_view &prefix) {
+            return expose(std::string_view(), prefix);
         }
 
-        int expose(const mutil::StringPiece &prefix1,
-                   const mutil::StringPiece &prefix2);
+        int expose(const std::string_view &prefix1,
+                   const std::string_view &prefix2);
 
         // Hide all internal variables, called in dtor as well.
         void hide();
@@ -210,7 +210,7 @@ namespace melon::raft {
         mutil::MurmurHash3_x86_32_Init(&ctx, 0);
         const size_t block_num = buf.backing_block_num();
         for (size_t i = 0; i < block_num; ++i) {
-            mutil::StringPiece sp = buf.backing_block(i);
+            std::string_view sp = buf.backing_block(i);
             if (!sp.empty()) {
                 mutil::MurmurHash3_x86_32_Update(&ctx, sp.data(), sp.size());
             }
@@ -228,7 +228,7 @@ namespace melon::raft {
         uint32_t hash = 0;
         const size_t block_num = buf.backing_block_num();
         for (size_t i = 0; i < block_num; ++i) {
-            mutil::StringPiece sp = buf.backing_block(i);
+            std::string_view sp = buf.backing_block(i);
             if (!sp.empty()) {
                 hash = mutil::crc32c::Extend(hash, sp.data(), sp.size());
             }

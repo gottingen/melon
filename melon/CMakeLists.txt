@@ -27,7 +27,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/arena.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/at_exit.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/atomicops_internals_x86_gcc.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/big_endian.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/cpu.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/alias.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/debug/asan_invalid_access.cc
@@ -51,11 +50,8 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/files/scoped_temp_dir.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/file_util.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/file_util_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/guid.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/guid_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/hash.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/lazy_instance.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/location.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/aligned_memory.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/memory/ref_counted_memory.cc
@@ -68,7 +64,6 @@ set(UTILITY_SOURCES
         ${PROJECT_SOURCE_DIR}/melon/utility/rand_util_posix.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/fast_rand.cpp
         ${PROJECT_SOURCE_DIR}/melon/utility/safe_strerror_posix.cc
-        ${PROJECT_SOURCE_DIR}/melon/utility/sha1_portable.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/latin1_string_conversions.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/nullable_string16.cc
         ${PROJECT_SOURCE_DIR}/melon/utility/strings/safe_sprintf.cc

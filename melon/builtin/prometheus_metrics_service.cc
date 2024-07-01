@@ -29,6 +29,8 @@
 #include <melon/builtin/common.h>
 #include <melon/var/var.h>
 #include <melon/var/config.h>
+#include <string_view>
+#include <turbo/strings/match.h>
 
 namespace melon {
 
@@ -49,14 +51,14 @@ namespace melon {
                 : _os(os), _server_prefix(server_prefix) {
         }
 
-        bool dump(const std::string &name, const mutil::StringPiece &desc) override;
+        bool dump(const std::string &name, const std::string_view &desc) override;
 
     private:
         DISALLOW_COPY_AND_ASSIGN(PrometheusMetricsDumper);
 
         // Return true iff name ends with suffix output by LatencyRecorder.
-        bool DumpLatencyRecorderSuffix(const mutil::StringPiece &name,
-                                       const mutil::StringPiece &desc);
+        bool DumpLatencyRecorderSuffix(const std::string_view &name,
+                                       const std::string_view &desc);
 
         // 6 is the number of vars in LatencyRecorder that indicating percentiles
         static const int NPERCENTILES = 6;
@@ -70,8 +72,8 @@ namespace melon {
             bool IsComplete() const { return !metric_name.empty(); }
         };
 
-        const SummaryItems *ProcessLatencyRecorderSuffix(const mutil::StringPiece &name,
-                                                         const mutil::StringPiece &desc);
+        const SummaryItems *ProcessLatencyRecorderSuffix(const std::string_view &name,
+                                                         const std::string_view &desc);
 
     private:
         mutil::IOBufBuilder *_os;
@@ -79,14 +81,14 @@ namespace melon {
         std::map<std::string, SummaryItems> _m;
     };
 
-    mutil::StringPiece GetMetricsName(const std::string &name) {
+    std::string_view GetMetricsName(const std::string &name) {
         auto pos = name.find_first_of('{');
         int size = (pos == std::string::npos) ? name.size() : pos;
-        return mutil::StringPiece(name.data(), size);
+        return std::string_view(name.data(), size);
     }
 
     bool PrometheusMetricsDumper::dump(const std::string &name,
-                                       const mutil::StringPiece &desc) {
+                                       const std::string_view &desc) {
         if (!desc.empty() && desc[0] == '"') {
             // there is no necessary to monitor string in prometheus
             return true;
@@ -106,8 +108,8 @@ namespace melon {
     }
 
     const PrometheusMetricsDumper::SummaryItems *
-    PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const mutil::StringPiece &name,
-                                                          const mutil::StringPiece &desc) {
+    PrometheusMetricsDumper::ProcessLatencyRecorderSuffix(const std::string_view &name,
+                                                          const std::string_view &desc) {
         static std::string latency_names[] = {
                 mutil::string_printf("_latency_%d", (int) turbo::get_flag(FLAGS_var_latency_p1)),
                 mutil::string_printf("_latency_%d", (int) turbo::get_flag(FLAGS_var_latency_p2)),
@@ -115,33 +117,33 @@ namespace melon {
                 "_latency_999", "_latency_9999", "_max_latency"
         };
         CHECK(NPERCENTILES == arraysize(latency_names));
-        const std::string desc_str = desc.as_string();
-        mutil::StringPiece metric_name(name);
+        const std::string desc_str(desc.data(), desc.size());
+        std::string_view metric_name(name);
         for (int i = 0; i < NPERCENTILES; ++i) {
-            if (!metric_name.ends_with(latency_names[i])) {
+            if (!turbo::ends_with(metric_name, latency_names[i])) {
                 continue;
             }
             metric_name.remove_suffix(latency_names[i].size());
-            SummaryItems *si = &_m[metric_name.as_string()];
+            SummaryItems *si = &_m[std::string(metric_name)];
             si->latency_percentiles[i] = desc_str;
             if (i == NPERCENTILES - 1) {
                 // '_max_latency' is the last suffix name that appear in the sorted var
                 // list, which means all related percentiles have been gathered and we are
                 // ready to output a Summary.
-                si->metric_name = metric_name.as_string();
+                si->metric_name = metric_name;
             }
             return si;
         }
         // Get the average of latency in recent window size
-        if (metric_name.ends_with("_latency")) {
+        if (turbo::ends_with(metric_name, "_latency")) {
             metric_name.remove_suffix(8);
-            SummaryItems *si = &_m[metric_name.as_string()];
+            SummaryItems *si = &_m[std::string(metric_name)];
             si->latency_avg = strtoll(desc_str.data(), NULL, 10);
             return si;
         }
-        if (metric_name.ends_with("_count")) {
+        if (turbo::ends_with(metric_name, "_count")) {
             metric_name.remove_suffix(6);
-            SummaryItems *si = &_m[metric_name.as_string()];
+            SummaryItems *si = &_m[std::string(metric_name)];
             si->count = strtoll(desc_str.data(), NULL, 10);
             return si;
         }
@@ -149,9 +151,9 @@ namespace melon {
     }
 
     bool PrometheusMetricsDumper::DumpLatencyRecorderSuffix(
-            const mutil::StringPiece &name,
-            const mutil::StringPiece &desc) {
-        if (!name.starts_with(_server_prefix)) {
+            const std::string_view &name,
+            const std::string_view &desc) {
+        if (!turbo::starts_with(name, _server_prefix)) {
             return false;
         }
         const SummaryItems *si = ProcessLatencyRecorderSuffix(name, desc);

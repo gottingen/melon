@@ -47,7 +47,7 @@ namespace melon {
             : _value("timeout"), _max_concurrency(-1), _timeout_conf(value) {}
 
     inline bool CompareStringPieceWithoutCase(
-            const mutil::StringPiece &s1, const char *s2) {
+            const std::string_view &s1, const char *s2) {
         DCHECK(s2 != NULL);
         if (std::strlen(s2) != s1.size()) {
             return false;
@@ -55,23 +55,23 @@ namespace melon {
         return ::strncasecmp(s1.data(), s2, s1.size()) == 0;
     }
 
-    AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const mutil::StringPiece &value)
+    AdaptiveMaxConcurrency::AdaptiveMaxConcurrency(const std::string_view &value)
             : _max_concurrency(0) {
         int max_concurrency = 0;
         if (mutil::StringToInt(value, &max_concurrency)) {
             operator=(max_concurrency);
         } else {
-            value.CopyToString(&_value);
+            _value = value;
             _max_concurrency = -1;
         }
     }
 
-    void AdaptiveMaxConcurrency::operator=(const mutil::StringPiece &value) {
+    void AdaptiveMaxConcurrency::operator=(const std::string_view &value) {
         int max_concurrency = 0;
         if (mutil::StringToInt(value, &max_concurrency)) {
             return operator=(max_concurrency);
         } else {
-            value.CopyToString(&_value);
+            _value = value;
             _max_concurrency = -1;
         }
     }
@@ -113,7 +113,7 @@ namespace melon {
     }
 
     bool operator==(const AdaptiveMaxConcurrency &adaptive_concurrency,
-                    const mutil::StringPiece &concurrency) {
+                    const std::string_view &concurrency) {
         return CompareStringPieceWithoutCase(concurrency,
                                              adaptive_concurrency.value().c_str());
     }

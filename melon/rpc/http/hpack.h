@@ -17,13 +17,10 @@
 //
 //
 
-
-
-#ifndef  MELON_RPC_HTTP_HPACK_H_
-#define  MELON_RPC_HTTP_HPACK_H_
+#pragma once
 
 #include <melon/utility/iobuf.h>                             // mutil::IOBuf
-#include <melon/utility/strings/string_piece.h>              // mutil::StringPiece
+#include <string_view>
 #include <melon/rpc/http/http2.h>
 #include <melon/rpc/describable.h>
 
@@ -141,7 +138,7 @@ namespace melon {
         IndexTable *_decode_table;
     };
 
-// Lowercase the input string, a fast implementation.
+    // Lowercase the input string, a fast implementation.
     void tolower(std::string *s);
 
     inline ssize_t HPacker::Decode(mutil::IOBuf *source, Header *h) {
@@ -154,6 +151,3 @@ namespace melon {
     }
 
 } // namespace melon
-
-
-#endif  // MELON_RPC_HTTP_HPACK_H_

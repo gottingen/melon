@@ -78,6 +78,7 @@
 #include <melon/br/registry.h>
 #include <melon/rpc/builtin.h>
 #include <turbo/flags/declare.h>
+#include <turbo/strings/ascii.h>
 
 inline std::ostream &operator<<(std::ostream &os, const timeval &tm) {
     const char old_fill = os.fill();
@@ -627,8 +628,8 @@ namespace melon {
         std::string raw_protocol;
         const std::string &alpns = options->alpns;
         for (mutil::StringSplitter split(alpns.data(), ','); split; ++split) {
-            mutil::StringPiece alpn(split.field(), split.length());
-            alpn.trim_spaces();
+            std::string_view alpn(split.field(), split.length());
+            alpn = turbo::trim_all(alpn);
 
             // Check protocol valid(exist and server support)
             AdaptiveProtocolType protocol_type(alpn);
@@ -1314,8 +1315,8 @@ namespace melon {
             }
         }
 
-        mutil::StringPiece restful_mappings = svc_opt.restful_mappings;
-        restful_mappings.trim_spaces();
+        std::string_view restful_mappings = svc_opt.restful_mappings;
+        restful_mappings = turbo::trim_all(restful_mappings);
         if (!restful_mappings.empty()) {
             // Parse the mappings.
             std::vector<RestfulMapping> mappings;
@@ -1468,12 +1469,12 @@ namespace melon {
 
     int Server::AddService(google::protobuf::Service *service,
                            ServiceOwnership ownership,
-                           const mutil::StringPiece &restful_mappings,
+                           const std::string_view &restful_mappings,
                            bool allow_default_url) {
         ServiceOptions options;
         options.ownership = ownership;
         // TODO: This is weird
-        options.restful_mappings = restful_mappings.as_string();
+        options.restful_mappings = restful_mappings;
         options.allow_default_url = allow_default_url;
         return AddServiceInternal(service, false, options);
     }
@@ -1511,20 +1512,19 @@ namespace melon {
             if (mp->http_url) {
                 mutil::StringSplitter at_sp(mp->http_url->c_str(), '@');
                 for (; at_sp; ++at_sp) {
-                    mutil::StringPiece path(at_sp.field(), at_sp.length());
-                    path.trim_spaces();
+                    std::string_view path(at_sp.field(), at_sp.length());
+                    path = turbo::trim_all(path);
                     mutil::StringSplitter slash_sp(
                             path.data(), path.data() + path.size(), '/');
                     if (slash_sp == NULL) {
                         LOG(ERROR) << "Invalid http_url=" << *mp->http_url;
                         break;
                     }
-                    mutil::StringPiece v_svc_name(slash_sp.field(), slash_sp.length());
+                    std::string_view v_svc_name(slash_sp.field(), slash_sp.length());
                     const ServiceProperty *vsp = FindServicePropertyByName(v_svc_name);
                     if (vsp == NULL) {
                         if (_global_restful_map) {
-                            std::string path_str;
-                            path.CopyToString(&path_str);
+                            std::string path_str(path);
                             if (_global_restful_map->RemoveByPathString(path_str)) {
                                 continue;
                             }
@@ -1533,8 +1533,7 @@ namespace melon {
                                     << " for restful_map does not exist";
                         break;
                     }
-                    std::string path_str;
-                    path.CopyToString(&path_str);
+                    std::string path_str(path);
                     if (!vsp->restful_map->RemoveByPathString(path_str)) {
                         LOG(ERROR) << "Fail to find path=" << path
                                     << " in restful_map of service=" << v_svc_name;
@@ -1617,13 +1616,13 @@ namespace melon {
     }
 
     google::protobuf::Service *Server::FindServiceByFullName(
-            const mutil::StringPiece &full_name) const {
+            const std::string_view &full_name) const {
         ServiceProperty *ss = _fullname_service_map.seek(full_name);
         return (ss ? ss->service : NULL);
     }
 
     google::protobuf::Service *Server::FindServiceByName(
-            const mutil::StringPiece &name) const {
+            const std::string_view &name) const {
         ServiceProperty *ss = _service_map.seek(name);
         return (ss ? ss->service : NULL);
     }
@@ -1807,13 +1806,13 @@ namespace melon {
     }
 
     const Server::MethodProperty *
-    Server::FindMethodPropertyByFullName(const mutil::StringPiece &fullname) const {
+    Server::FindMethodPropertyByFullName(const std::string_view &fullname) const {
         return _method_map.seek(fullname);
     }
 
     const Server::MethodProperty *
-    Server::FindMethodPropertyByFullName(const mutil::StringPiece &service_name/*full*/,
-                                         const mutil::StringPiece &method_name) const {
+    Server::FindMethodPropertyByFullName(const std::string_view &service_name/*full*/,
+                                         const std::string_view &method_name) const {
         const size_t fullname_len = service_name.size() + 1 + method_name.size();
         if (fullname_len <= 256) {
             // Avoid allocation in most cases.
@@ -1821,7 +1820,7 @@ namespace melon {
             memcpy(buf, service_name.data(), service_name.size());
             buf[service_name.size()] = '.';
             memcpy(buf + service_name.size() + 1, method_name.data(), method_name.size());
-            return FindMethodPropertyByFullName(mutil::StringPiece(buf, fullname_len));
+            return FindMethodPropertyByFullName(std::string_view(buf, fullname_len));
         } else {
             std::string full_method_name;
             full_method_name.reserve(fullname_len);
@@ -1833,7 +1832,7 @@ namespace melon {
     }
 
     const Server::MethodProperty *
-    Server::FindMethodPropertyByNameAndIndex(const mutil::StringPiece &service_name,
+    Server::FindMethodPropertyByNameAndIndex(const std::string_view &service_name,
                                              int method_index) const {
         const Server::ServiceProperty *sp = FindServicePropertyByName(service_name);
         if (NULL == sp) {
@@ -1848,12 +1847,12 @@ namespace melon {
     }
 
     const Server::ServiceProperty *
-    Server::FindServicePropertyByFullName(const mutil::StringPiece &fullname) const {
+    Server::FindServicePropertyByFullName(const std::string_view &fullname) const {
         return _fullname_service_map.seek(fullname);
     }
 
     const Server::ServiceProperty *
-    Server::FindServicePropertyByName(const mutil::StringPiece &name) const {
+    Server::FindServicePropertyByName(const std::string_view &name) const {
         return _service_map.seek(name);
     }
 
@@ -2102,7 +2101,7 @@ namespace melon {
         return mp->max_concurrency;
     }
 
-    AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(const mutil::StringPiece &full_method_name) {
+    AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(const std::string_view &full_method_name) {
         MethodProperty *mp = _method_map.seek(full_method_name);
         if (mp == NULL) {
             LOG(ERROR) << "Fail to find method=" << full_method_name;
@@ -2112,12 +2111,12 @@ namespace melon {
         return MaxConcurrencyOf(mp);
     }
 
-    int Server::MaxConcurrencyOf(const mutil::StringPiece &full_method_name) const {
+    int Server::MaxConcurrencyOf(const std::string_view &full_method_name) const {
         return MaxConcurrencyOf(_method_map.seek(full_method_name));
     }
 
-    AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(const mutil::StringPiece &full_service_name,
-                                                     const mutil::StringPiece &method_name) {
+    AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(const std::string_view &full_service_name,
+                                                     const std::string_view &method_name) {
         MethodProperty *mp = const_cast<MethodProperty *>(
                 FindMethodPropertyByFullName(full_service_name, method_name));
         if (mp == NULL) {
@@ -2129,19 +2128,19 @@ namespace melon {
         return MaxConcurrencyOf(mp);
     }
 
-    int Server::MaxConcurrencyOf(const mutil::StringPiece &full_service_name,
-                                 const mutil::StringPiece &method_name) const {
+    int Server::MaxConcurrencyOf(const std::string_view &full_service_name,
+                                 const std::string_view &method_name) const {
         return MaxConcurrencyOf(FindMethodPropertyByFullName(
                 full_service_name, method_name));
     }
 
     AdaptiveMaxConcurrency &Server::MaxConcurrencyOf(google::protobuf::Service *service,
-                                                     const mutil::StringPiece &method_name) {
+                                                     const std::string_view &method_name) {
         return MaxConcurrencyOf(service->GetDescriptor()->full_name(), method_name);
     }
 
     int Server::MaxConcurrencyOf(google::protobuf::Service *service,
-                                 const mutil::StringPiece &method_name) const {
+                                 const std::string_view &method_name) const {
         return MaxConcurrencyOf(service->GetDescriptor()->full_name(), method_name);
     }
 

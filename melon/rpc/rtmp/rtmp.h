@@ -22,7 +22,7 @@
 #ifndef MELON_RPC_RTMP_RTMP_H_
 #define MELON_RPC_RTMP_RTMP_H_
 
-#include <melon/utility/strings/string_piece.h>   // mutil::StringPiece
+#include <string_view>
 #include <melon/utility/endpoint.h>               // mutil::EndPoint
 #include <melon/rpc/shared_object.h>          // SharedObject, intrusive_ptr
 #include <melon/rpc/socket_id.h>              // SocketUniquePtr
@@ -344,7 +344,7 @@ namespace melon {
         std::vector<std::string> pps_list;
 
     private:
-        mutil::Status ParseSPS(const mutil::StringPiece &buf, size_t sps_length);
+        mutil::Status ParseSPS(const std::string_view &buf, size_t sps_length);
     };
 
     std::ostream &operator<<(std::ostream &, const AVCDecoderConfigurationRecord &);
@@ -545,7 +545,7 @@ namespace melon {
 
     const char *RtmpPublishType2Str(RtmpPublishType);
 
-    bool Str2RtmpPublishType(const mutil::StringPiece &, RtmpPublishType *);
+    bool Str2RtmpPublishType(const std::string_view &, RtmpPublishType *);
 
 // For SetPeerBandwidth
     enum RtmpLimitType {
@@ -577,7 +577,7 @@ namespace melon {
 
         virtual void OnCuePoint(RtmpCuePoint *);
 
-        virtual void OnMetaData(RtmpMetaData *, const mutil::StringPiece &);
+        virtual void OnMetaData(RtmpMetaData *, const std::string_view &);
 
         virtual void OnSharedObjectMessage(RtmpSharedObjectMessage *msg);
 
@@ -599,7 +599,7 @@ namespace melon {
         virtual int SendCuePoint(const RtmpCuePoint &);
 
         virtual int SendMetaData(const RtmpMetaData &,
-                                 const mutil::StringPiece &name = "onMetaData");
+                                 const std::string_view &name = "onMetaData");
 
         virtual int SendSharedObjectMessage(const RtmpSharedObjectMessage &msg);
 
@@ -616,14 +616,14 @@ namespace melon {
 
         // Send a message to the peer to make it stop. The concrete message depends
         // on implementation of the stream.
-        virtual int SendStopMessage(const mutil::StringPiece &error_description);
+        virtual int SendStopMessage(const std::string_view &error_description);
 
         // // Call user's procedure at server-side.
         // // request == NULL  : send AMF null as the parameter.
         // // response == NULL : response is not needed.
         // // done == NULL     : synchronous call, asynchronous otherwise.
         // void Call(Controller* cntl,
-        //           const mutil::StringPiece& procedure_name,
+        //           const std::string_view& procedure_name,
         //           const google::protobuf::Message* request,
         //           google::protobuf::Message* response,
         //           google::protobuf::Closure* done);
@@ -691,7 +691,7 @@ namespace melon {
 
         void CallOnCuePoint(RtmpCuePoint *);
 
-        void CallOnMetaData(RtmpMetaData *, const mutil::StringPiece &);
+        void CallOnMetaData(RtmpMetaData *, const std::string_view &);
 
         void CallOnSharedObjectMessage(RtmpSharedObjectMessage *msg);
 
@@ -910,7 +910,7 @@ namespace melon {
 
         int Play(const RtmpPlayOptions &opt);
 
-        int Publish(const mutil::StringPiece &name, RtmpPublishType type);
+        int Publish(const std::string_view &name, RtmpPublishType type);
 
         // @StreamCreator
         StreamUserData *OnCreatingStream(SocketUniquePtr *inout, Controller *cntl) override;
@@ -990,7 +990,7 @@ namespace melon {
 
         virtual void OnCuePoint(melon::RtmpCuePoint *cuepoint) = 0;
 
-        virtual void OnMetaData(melon::RtmpMetaData *metadata, const mutil::StringPiece &name) = 0;
+        virtual void OnMetaData(melon::RtmpMetaData *metadata, const std::string_view &name) = 0;
 
         virtual void OnAudioMessage(melon::RtmpAudioMessage *msg) = 0;
 
@@ -1018,7 +1018,7 @@ namespace melon {
 
         void OnCuePoint(melon::RtmpCuePoint *cuepoint);
 
-        void OnMetaData(melon::RtmpMetaData *metadata, const mutil::StringPiece &name);
+        void OnMetaData(melon::RtmpMetaData *metadata, const std::string_view &name);
 
         void OnAudioMessage(melon::RtmpAudioMessage *msg);
 
@@ -1069,7 +1069,7 @@ namespace melon {
         int SendCuePoint(const RtmpCuePoint &);
 
         int SendMetaData(const RtmpMetaData &,
-                         const mutil::StringPiece &name = "onMetaData");
+                         const std::string_view &name = "onMetaData");
 
         int SendSharedObjectMessage(const RtmpSharedObjectMessage &msg);
 
@@ -1138,31 +1138,31 @@ namespace melon {
 // "rtmp://" can be ignored.
 // NOTE: query strings after stream_name is not removed and returned as part
 // of stream_name.
-    void ParseRtmpURL(const mutil::StringPiece &rtmp_url,
-                      mutil::StringPiece *host,
-                      mutil::StringPiece *vhost_after_app,
-                      mutil::StringPiece *port,
-                      mutil::StringPiece *app,
-                      mutil::StringPiece *stream_name);
+    void ParseRtmpURL(const std::string_view &rtmp_url,
+                      std::string_view *host,
+                      std::string_view *vhost_after_app,
+                      std::string_view *port,
+                      std::string_view *app,
+                      std::string_view *stream_name);
 
-    void ParseRtmpHostAndPort(const mutil::StringPiece &host_and_port,
-                              mutil::StringPiece *host,
-                              mutil::StringPiece *port);
+    void ParseRtmpHostAndPort(const std::string_view &host_and_port,
+                              std::string_view *host,
+                              std::string_view *port);
 
-    mutil::StringPiece RemoveQueryStrings(const mutil::StringPiece &stream_name,
-                                          mutil::StringPiece *query_strings);
+    std::string_view RemoveQueryStrings(const std::string_view &stream_name,
+                                          std::string_view *query_strings);
 
 // Returns "rtmp://HOST/APP/STREAM_NAME"
-    std::string MakeRtmpURL(const mutil::StringPiece &host,
-                            const mutil::StringPiece &port,
-                            const mutil::StringPiece &app,
-                            const mutil::StringPiece &stream_name);
+    std::string MakeRtmpURL(const std::string_view &host,
+                            const std::string_view &port,
+                            const std::string_view &app,
+                            const std::string_view &stream_name);
 
 // Returns url removed with beginning "rtmp://".
-    mutil::StringPiece RemoveRtmpPrefix(const mutil::StringPiece &url);
+    std::string_view RemoveRtmpPrefix(const std::string_view &url);
 
 // Returns url removed with beginning "xxx://"
-    mutil::StringPiece RemoveProtocolPrefix(const mutil::StringPiece &url);
+    std::string_view RemoveProtocolPrefix(const std::string_view &url);
 
 // Implement this class and assign an instance to ServerOption.rtmp_service
 // to enable RTMP support.
@@ -1224,7 +1224,7 @@ namespace melon {
         virtual void OnSetBufferLength(uint32_t buffer_length_ms);
 
         // @RtmpStreamBase, sending StreamNotFound
-        int SendStopMessage(const mutil::StringPiece &error_description);
+        int SendStopMessage(const std::string_view &error_description);
 
         void Destroy();
 

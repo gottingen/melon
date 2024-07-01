@@ -114,11 +114,11 @@ namespace melon::var {
     }
 
     template<typename T>
-    struct is_vector : public mutil::false_type {
+    struct is_vector : public std::false_type {
     };
 
     template<typename T, size_t N>
-    struct is_vector<Vector<T, N> > : public mutil::true_type {
+    struct is_vector<Vector<T, N> > : public std::true_type {
     };
 
 }  // namespace melon::var

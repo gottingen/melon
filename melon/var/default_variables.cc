@@ -378,12 +378,12 @@ namespace melon::var {
     extern PassiveStatus<int> g_fd_num;
 
     const int MAX_FD_SCAN_COUNT = 10003;
-    static mutil::static_atomic<bool> s_ever_reached_fd_scan_limit = MUTIL_STATIC_ATOMIC_INIT(false);
+    static std::atomic<bool> s_ever_reached_fd_scan_limit{false};
 
     class FdReader {
     public:
         bool operator()(int *stat) const {
-            if (s_ever_reached_fd_scan_limit.load(mutil::memory_order_relaxed)) {
+            if (s_ever_reached_fd_scan_limit.load(std::memory_order_relaxed)) {
                 // Never update the count again.
                 return false;
             }
@@ -393,7 +393,7 @@ namespace melon::var {
             }
             if (count == MAX_FD_SCAN_COUNT - 2
                 && s_ever_reached_fd_scan_limit.exchange(
-                    true, mutil::memory_order_relaxed) == false) {
+                    true, std::memory_order_relaxed) == false) {
                 // Rename the var to notify user.
                 g_fd_num.hide();
                 g_fd_num.expose("process_fd_num_too_many");
@@ -407,7 +407,7 @@ namespace melon::var {
         return CachedReader<int>::get_value(FdReader());
     }
 
-// ==================================================
+    // ==================================================
     struct ProcIO {
         // number of bytes the process read, using any read-like system call (from
         // files, pipes, tty...).

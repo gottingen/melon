@@ -21,7 +21,6 @@
 
 #include <string>                       // std::string
 #include <vector>                       // std::vector
-#include <melon/utility/atomicops.h>             // mutil::atomic
 #include <melon/utility/scoped_lock.h>           // MELON_SCOPED_LOCK
 #include <melon/utility/type_traits.h>           // mutil::add_cr_non_integral
 #include <melon/utility/synchronization/lock.h>  // mutil::Lock
@@ -29,6 +28,7 @@
 #include <melon/var/detail/agent_group.h>    // detail::AgentGroup
 #include <melon/var/detail/is_atomical.h>
 #include <melon/var/detail/call_op_returning_void.h>
+#include <atomic>
 
 namespace melon::var {
     namespace detail {
@@ -68,7 +68,7 @@ namespace melon::var {
             Combiner *_c;
         };
 
-// Abstraction of tls element whose operations are all atomic.
+        // Abstraction of tls element whose operations are all atomic.
         template<typename T, typename Enabler = void>
         class ElementContainer {
             template<typename> friend
@@ -117,26 +117,26 @@ namespace melon::var {
             // We don't need any memory fencing here, every op is relaxed.
 
             inline void load(T *out) {
-                *out = _value.load(mutil::memory_order_relaxed);
+                *out = _value.load(std::memory_order_relaxed);
             }
 
             inline void store(T new_value) {
-                _value.store(new_value, mutil::memory_order_relaxed);
+                _value.store(new_value, std::memory_order_relaxed);
             }
 
             inline void exchange(T *prev, T new_value) {
-                *prev = _value.exchange(new_value, mutil::memory_order_relaxed);
+                *prev = _value.exchange(new_value, std::memory_order_relaxed);
             }
 
             // [Unique]
             inline bool compare_exchange_weak(T &expected, T new_value) {
                 return _value.compare_exchange_weak(expected, new_value,
-                                                    mutil::memory_order_relaxed);
+                                                    std::memory_order_relaxed);
             }
 
             template<typename Op, typename T1>
             void modify(const Op &op, const T1 &value2) {
-                T old_value = _value.load(mutil::memory_order_relaxed);
+                T old_value = _value.load(std::memory_order_relaxed);
                 T new_value = old_value;
                 call_op_returning_void(op, new_value, value2);
                 // There's a contention with the reset operation of combiner,
@@ -144,14 +144,14 @@ namespace melon::var {
                 // compare_exchange_weak operation will fail and recalculation is
                 // to be processed according to the new version of value
                 while (!_value.compare_exchange_weak(
-                        old_value, new_value, mutil::memory_order_relaxed)) {
+                        old_value, new_value, std::memory_order_relaxed)) {
                     new_value = old_value;
                     call_op_returning_void(op, new_value, value2);
                 }
             }
 
         private:
-            mutil::atomic<T> _value;
+            std::atomic<T> _value;
         };
 
         template<typename ResultTp, typename ElementTp, typename BinaryOp>

@@ -50,6 +50,7 @@
 #include <melon/rpc/grpc/grpc.h>
 #include <melon/fiber/key.h>
 #include <cinttypes>
+#include <turbo/strings/match.h>
 
 TURBO_DECLARE_FLAG(bool, http_verbose);
 TURBO_DECLARE_FLAG(int32_t, http_verbose_max_body_length);
@@ -150,19 +151,19 @@ namespace melon {
 
         const CommonStrings *get_common_strings() { return common; }
 
-        HttpContentType ParseContentType(mutil::StringPiece ct, bool *is_grpc_ct) {
+        HttpContentType ParseContentType(std::string_view ct, bool *is_grpc_ct) {
             // According to http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
             //   media-type  = type "/" subtype *( ";" parameter )
             //   type        = token
             //   subtype     = token
 
-            const mutil::StringPiece prefix = "application/";
-            if (!ct.starts_with(prefix)) {
+            const std::string_view prefix = "application/";
+            if (!turbo::starts_with(ct, prefix)) {
                 return HTTP_CONTENT_OTHERS;
             }
             ct.remove_prefix(prefix.size());
 
-            if (ct.starts_with("grpc")) {
+            if (turbo::starts_with(ct, "grpc")) {
                 if (ct.size() == (size_t) 4 || ct[4] == ';') {
                     if (is_grpc_ct) {
                         *is_grpc_ct = true;
@@ -180,16 +181,16 @@ namespace melon {
             }
 
             HttpContentType type = HTTP_CONTENT_OTHERS;
-            if (ct.starts_with("json")) {
+            if (turbo::starts_with(ct, "json")) {
                 type = HTTP_CONTENT_JSON;
                 ct.remove_prefix(4);
-            } else if (ct.starts_with("proto-text")) {
+            } else if (turbo::starts_with(ct, "proto-text")) {
                 type = HTTP_CONTENT_PROTO_TEXT;
                 ct.remove_prefix(10);
-            } else if (ct.starts_with("proto")) {
+            } else if (turbo::starts_with(ct, "proto")) {
                 type = HTTP_CONTENT_PROTO;
                 ct.remove_prefix(5);
-            } else if (ct.starts_with("x-protobuf")) {
+            } else if (turbo::starts_with(ct, "x-protobuf")) {
                 type = HTTP_CONTENT_PROTO;
                 ct.remove_prefix(10);
             } else {
@@ -998,9 +999,9 @@ namespace melon {
                 return wrapper.FindMethodPropertyByFullName(
                         IndexService::descriptor()->full_name(), common->DEFAULT_METHOD);
             }
-            mutil::StringPiece service_name(splitter.field(), splitter.length());
+            std::string_view service_name(splitter.field(), splitter.length());
             const bool full_service_name =
-                    (service_name.find('.') != mutil::StringPiece::npos);
+                    (service_name.find('.') != std::string_view::npos);
             const Server::ServiceProperty *const sp =
                     (full_service_name ?
                      wrapper.FindServicePropertyByFullName(service_name) :
@@ -1012,10 +1013,10 @@ namespace melon {
             // Find restful methods by uri.
             if (sp->restful_map) {
                 ++splitter;
-                mutil::StringPiece left_path;
+                std::string_view left_path;
                 if (splitter) {
                     // The -1 is for including /, always safe because of ++splitter
-                    left_path.set(splitter.field() - 1, uri_path.c_str() +
+                    left_path = std::string_view (splitter.field() - 1, uri_path.c_str() +
                                                         uri_path.size() - splitter.field() + 1);
                 }
                 return sp->restful_map->FindMethodProperty(left_path, unresolved_path);
@@ -1027,9 +1028,9 @@ namespace melon {
 
             // Regard URI as [service_name]/[method_name]
             const Server::MethodProperty *mp = NULL;
-            mutil::StringPiece method_name;
+            std::string_view method_name;
             if (++splitter != NULL) {
-                method_name.set(splitter.field(), splitter.length());
+                method_name = std::string_view (splitter.field(), splitter.length());
                 // Copy splitter rather than modifying it directly since it's used
                 // in later branches.
                 mp = wrapper.FindMethodPropertyByFullName(service_name, method_name);

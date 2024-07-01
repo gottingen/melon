@@ -29,10 +29,10 @@ namespace melon {
     // Convert a case-insensitive string to corresponding ProtocolType which is
     // defined in src/melon/options.proto
     // Returns: PROTOCOL_UNKNOWN on error.
-    ProtocolType StringToProtocolType(const mutil::StringPiece &type,
+    ProtocolType StringToProtocolType(const std::string_view &type,
                                       bool print_log_on_unknown);
 
-    inline ProtocolType StringToProtocolType(const mutil::StringPiece &type) {
+    inline ProtocolType StringToProtocolType(const std::string_view &type) {
         return StringToProtocolType(type, true);
     }
 
@@ -46,7 +46,7 @@ namespace melon {
 
         explicit AdaptiveProtocolType(ProtocolType type) : _type(type) {}
 
-        explicit AdaptiveProtocolType(mutil::StringPiece name) { *this = name; }
+        explicit AdaptiveProtocolType(std::string_view name) { *this = name; }
 
         ~AdaptiveProtocolType() {}
 
@@ -56,10 +56,10 @@ namespace melon {
             _param.clear();
         }
 
-        void operator=(mutil::StringPiece name) {
-            mutil::StringPiece param;
+        void operator=(std::string_view name) {
+            std::string_view param;
             const size_t pos = name.find(':');
-            if (pos != mutil::StringPiece::npos) {
+            if (pos != std::string_view::npos) {
                 param = name.substr(pos + 1);
                 name.remove_suffix(name.size() - pos);
             }

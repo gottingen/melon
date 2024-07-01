@@ -145,7 +145,7 @@ namespace melon::lb {
     }
 
     LoadBalancer *WeightedRandomizedLoadBalancer::New(
-            const mutil::StringPiece &) const {
+            const std::string_view &) const {
         return new(std::nothrow) WeightedRandomizedLoadBalancer;
     }
 

@@ -33,26 +33,37 @@
 
 namespace melon {
 
+    struct TabEntry {
+        std::string name;
+        std::string path;
+    };
+
     struct BuiltinProcessor {
         virtual ~BuiltinProcessor() = default;
+
         virtual void process(const RestfulRequest *request, RestfulResponse *response) = 0;
+
+        virtual TabEntry tab_entry() = 0;
 
         virtual turbo::Status initialize(Server *server) {
             return turbo::OkStatus();
         }
+
 
         void add_eternal_header(const std::string &key, const std::string &value) {
             eternal_headers.emplace_back(key, value);
         }
 
         void apply_eternal_headers(RestfulResponse *response) {
-            for(const auto &header : eternal_headers) {
+            for (const auto &header: eternal_headers) {
                 response->set_header(header.first, header.second);
             }
         }
+
         void clear_eternal_headers() {
             eternal_headers.clear();
         }
+
         std::vector<std::pair<std::string, std::string>> eternal_headers;
     };
 
@@ -67,22 +78,32 @@ namespace melon {
 
         turbo::Status register_server(Server *server);
 
-        BuiltinRestful* set_not_found_processor(std::shared_ptr<BuiltinProcessor> processor);
+        BuiltinRestful *set_not_found_processor(std::shared_ptr<BuiltinProcessor> processor);
 
-        BuiltinRestful* set_any_path_processor(std::shared_ptr<BuiltinProcessor> processor);
+        BuiltinRestful *set_any_path_processor(std::shared_ptr<BuiltinProcessor> processor);
 
-        BuiltinRestful* set_root_processor(std::shared_ptr<BuiltinProcessor> processor);
+        BuiltinRestful *set_root_processor(std::shared_ptr<BuiltinProcessor> processor);
 
-        BuiltinRestful* set_processor(const std::string &path, std::shared_ptr<BuiltinProcessor> processor, bool overwrite = false);
+        BuiltinRestful *
+        set_processor(const std::string &path, std::shared_ptr<BuiltinProcessor> processor, bool overwrite = false);
 
-        BuiltinRestful* set_mapping_path(const std::string &mapping_path);
+        BuiltinRestful *set_mapping_path(const std::string &mapping_path);
 
         static BuiltinRestful *instance() {
             static BuiltinRestful service;
             return &service;
         }
+
+        const std::string &mapping_path() const {
+            return mapping_path_;
+        }
+
     private:
         BuiltinRestful() = default;
+
+        BuiltinRestful *
+        set_processor_impl(const std::string &path, std::shared_ptr<BuiltinProcessor> processor, bool overwrite);
+
     private:
         std::mutex mutex_;
         bool registered_{false};

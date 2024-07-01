@@ -144,8 +144,8 @@ namespace melon::var {
         return *(T *) arg;
     }
 
-// for limiting samples returning nullptr in speed_limit()
-    static CollectorSpeedLimit g_null_speed_limit = MELON_VAR_COLLECTOR_SPEED_LIMIT_INITIALIZER;
+    // for limiting samples returning nullptr in speed_limit()
+    static CollectorSpeedLimit g_null_speed_limit;
 
     void Collector::grab_thread() {
         _last_active_cpuwide_us = mutil::cpuwide_time_us();
@@ -342,7 +342,7 @@ namespace melon::var {
     size_t is_collectable_before_first_time_grabbed(CollectorSpeedLimit *sl) {
         if (!sl->ever_grabbed) {
             int before_add = sl->count_before_grabbed.fetch_add(
-                    1, mutil::memory_order_relaxed);
+                    1, std::memory_order_relaxed);
             if (before_add == 0) {
                 sl->first_sample_real_us = mutil::gettimeofday_us();
             } else if (before_add >= turbo::get_flag(FLAGS_var_collector_expected_per_second)) {

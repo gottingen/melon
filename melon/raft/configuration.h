@@ -297,7 +297,7 @@ namespace melon::raft {
 
         // Parse Configuration from a string into |this|
         // Returns 0 on success, -1 otherwise
-        int parse_from(mutil::StringPiece conf);
+        int parse_from(std::string_view conf);
 
     private:
         std::set<PeerId> _peers;
